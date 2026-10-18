@@ -268,7 +268,7 @@ a{color:inherit}
       <div class="intro">
         <div class="eyebrow">GenAI in the enterprise · Field-built</div>
         <h1>Work our clients <em>run on</em> every week</h1>
-        <p class="lede">Seventeen engagements across cement, cables, retail, housing finance, energy and real estate. Each one is a working build, not a slide.</p>
+        <p class="lede">Twenty-one engagements across finance, energy, manufacturing, retail, infrastructure and more. Each one is a working build, not a slide.</p>
 
         <div class="now fade" id="now" aria-live="polite"></div>
       </div>
@@ -406,7 +406,11 @@ const CASES = [
  {slug:"amber-supply-chain-logistics-digital-twin", company:"Amber Enterprises", sector:"Electronics Manufacturing", fn:"Supply Chain", title:"Plant Logistics Digital Twin", build:"Interactive 3D",
   sub:"A live 3D view of each truck, dock and dispatch bay, with a peak-season dock simulator and auto-drafted shift handovers.",
   kpis:[["−38%", "Inbound truck turnaround time"], ["91%", "Dock utilisation, from 64%"], ["−52%", "Truck detention charges"]],
-  tools:"Three.js, Claude, Python SimPy, D3.js, gate and ERP logs", pri:"#0F5E63", acc:"#F2B705", deep:"#14181D"}
+  tools:"Three.js, Claude, Python SimPy, D3.js, gate and ERP logs", pri:"#0F5E63", acc:"#F2B705", deep:"#14181D"},
+ {"slug":"bajaj-finserv-hr-aop-and-attrition-analytics","company":"Bajaj Finserv","sector":"Financial Services","fn":"HR","title":"AOP & Attrition Analytics","build":"Predictive analytics","sub":"Attrition signals traced through the rural sales hierarchy, linked to AOP targets, with early warnings and a simulator to focus retention spending.","kpis":[["19%","Annualised attrition, down from 25%"],["60 days","Advance warning for high-risk employees"],["−35%","Exits within six months of joining"]],"tools":"Workforce analytics, D3.js, predictive scoring, retention simulator","pri":"#0060B0","acc":"#FF6B3D","deep":"#0A1F44"},
+ {"slug":"shell-finance-workflow-automation","company":"Shell · Sprng Energy","sector":"Renewable Energy","fn":"Finance","title":"Workflow Automation","build":"Process automation","sub":"Eight recurring workflows across generation, treasury, regulatory reporting and lease accounting were matched to Excel, VBA, Power Query and Python.","kpis":[["8","Finance and operations workflows automated"],["~159 hrs","Team time returned every month"],["83%","Less manual handling of data"]],"tools":"Excel formulas, VBA, Power Query, Python","pri":"#C8102E","acc":"#F5B800","deep":"#211B16"},
+ {"slug":"sterlite-hr-rewire-org-chart","company":"Sterlite Power","sector":"Power Transmission","fn":"HR","title":"Living Org Chart & Reorganisation","build":"Organisation design","sub":"Turn one Excel file into an interactive org chart, expose spans and layers, rehearse reorganisations and flag succession gaps before decisions go live.","kpis":[["1 day","Org chart refresh, from about 3 weeks"],["14","Reorganisation scenarios tested per review"],["68%","Critical roles with ready-now successor"]],"tools":"Excel, D3.js, organisational modelling, succession analytics","pri":"#0E5FAE","acc":"#19B4C8","deep":"#0A1A2F"},
+ {"slug":"sterlite-power-project-planning-schedule-automation","company":"Sterlite Power","sector":"Power Transmission","fn":"Project Planning","title":"Tower Schedule Automation","build":"Scheduling engine","sub":"A VBA schedule engine cascades changes to foundation, erection and stringing across every transmission-line stretch, refreshing the Gantt plan in minutes.","kpis":[["2 min","To reforecast after a field change, from ~12 hours"],["168","Scheduling levers in one interface"],["3 weeks","Earlier warning of finish-date slippage"]],"tools":"Excel/VBA, Gantt charts, D3.js, Three.js","pri":"#4338CA","acc":"#F97316","deep":"#15133B"}
 ];
 CASES.forEach((c,i) => { c.i = i; c.url = "cases/" + c.slug + ".html"; c.hero = "thumbs/" + c.slug + "-hero.jpg"; c.scroll = "thumbs/" + c.slug + "-scroll.jpg";
   c.hay = [c.company,c.sector,c.fn,c.title,c.build,c.sub,c.tools,c.kpis.map(k=>k.join(" ")).join(" ")].join(" ").toLowerCase(); });
