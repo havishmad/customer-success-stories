@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bharat Petroleum · Pipeline Defect Analytics | HMC Case Study</title>
+<meta name="description" content="How Havish M Consulting turned in-line inspection data into a 3D defect twin, automated B31G assessments, corrosion growth forecasts and a risk-ranked dig plan for a product pipeline.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{
+  --pri:#0A8FA8; --deep:#161D22; --acc:#F5C518; --bad:#E5484D; --good:#2E9E5B; --amb:#F08A3E;
+  --bg:#F3F6F7; --text:#182026; --muted:#5D6A72; --card:#FFFFFF; --line:#DDE4E7;
+  --radius:12px; --shadow:0 1px 2px rgba(22,29,34,.06),0 8px 24px rgba(22,29,34,.08);
+  --serif:"DM Serif Display",Georgia,serif; --sans:"DM Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif; --mono:ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--serif);font-weight:400;color:var(--deep);margin:0;line-height:1.15}
+h2{font-size:clamp(1.6rem,3.2vw,2.2rem)}
+h3{font-size:1.2rem}
+p{margin:0}
+.wrap{max-width:1260px;margin:0 auto;padding:0 24px}
+section{padding:64px 0}
+.eyebrow{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--pri);margin-bottom:10px}
+.lead{color:var(--muted);max-width:800px;margin-top:12px}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line)}
+.sec-head{margin-bottom:28px}
+.alt{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.topbar{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+.logos{display:flex;align-items:center;gap:16px}
+.logos img{height:44px;width:auto;object-fit:contain}
+.logos img.cl{height:30px}
+.vdiv{width:1px;height:36px;background:var(--line)}
+.tagline{font-size:.8rem;color:var(--muted);letter-spacing:.04em}
+.tagline b{color:var(--pri);font-weight:700}
+.hero{background:radial-gradient(120% 140% at 88% 0%,#4A2470 0%,#2A1446 45%,#120821 100%);color:#fff;padding:76px 0 70px;position:relative;overflow:hidden}
+.hero canvas{position:absolute;right:0;top:0;width:58%;height:100%;pointer-events:none}
+.hero .eyebrow{color:#5FD3E8}
+.hero h1{color:#fff;font-size:clamp(2.3rem,5.4vw,3.8rem);max-width:720px;position:relative;z-index:1}
+.hero h1 em{font-style:normal;color:#5FD3E8}
+.hero .sub{font-size:clamp(1.05rem,2vw,1.2rem);color:rgba(255,255,255,.86);max-width:640px;margin-top:18px;position:relative;z-index:1}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px;position:relative;z-index:1}
+.pill{border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:6px 14px;font-size:.85rem;color:#fff;background:rgba(255,255,255,.06)}
+.pill span{color:#5FD3E8;font-weight:700;margin-right:6px}
+.kpis{margin-top:-30px;position:relative;z-index:2;padding:0}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi{padding:22px 20px;border-top:3px solid var(--acc)}
+.kpi .label{font-size:.82rem;color:var(--muted);font-weight:500}
+.kpi .val{font-family:var(--serif);font-size:clamp(1.9rem,4vw,2.6rem);color:var(--pri);line-height:1.1;margin-top:6px;white-space:nowrap}
+.kpi .val small{font-family:var(--sans);font-size:.9rem;color:var(--muted);margin-left:4px}
+.delta{display:inline-flex;align-items:center;gap:4px;font-size:.8rem;font-weight:700;margin-top:8px;padding:2px 8px;border-radius:999px;background:rgba(31,166,122,.1);color:var(--good)}
+.footnote{font-size:.78rem;color:var(--muted);margin-top:14px}
+.ch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.chc{padding:24px}
+.ico{width:44px;height:44px;border-radius:10px;background:var(--pri-15);display:grid;place-items:center;margin-bottom:16px}
+.ico svg{width:22px;height:22px;stroke:var(--pri);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.chc h3{margin-bottom:8px}
+.chc p{font-size:.92rem;color:#433A52}
+.tl{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.tl::before{content:"";position:absolute;left:10%;right:10%;top:27px;height:3px;background:linear-gradient(90deg,var(--pri),var(--acc));border-radius:2px;opacity:.55}
+.tl-step{position:relative;background:none;border:0;cursor:pointer;font:inherit;color:inherit;display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 4px 8px}
+.tl-dot{width:56px;height:56px;border-radius:50%;background:#fff;border:2px solid var(--line);display:grid;place-items:center;font-family:var(--serif);font-size:1.25rem;color:var(--pri);transition:all .25s;position:relative;z-index:1}
+.tl-name{font-weight:700;font-size:.95rem}
+.tl-dur{font-size:.75rem;color:var(--muted);margin-top:-8px}
+.tl-step:hover .tl-dot{border-color:var(--pri)}
+.tl-step[aria-expanded="true"] .tl-dot{background:var(--pri);border-color:var(--pri);color:#fff;box-shadow:0 0 0 6px var(--pri-15)}
+.tl-step:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:8px}
+.tl-panel{display:none;padding:24px 28px;margin-top:20px;border-left:4px solid var(--acc)}
+.tl-panel.open{display:block;animation:fadeUp .35s ease}
+.tl-panel h3{margin-bottom:6px}
+.tl-panel ul{margin:12px 0 0;padding-left:20px;color:#433A52}
+.tl-panel li{margin:6px 0}
+.tl-panel .deliv{margin-top:14px;font-size:.85rem;color:var(--muted)}
+.tl-panel .deliv b{color:var(--pri)}
+.tl-hint{text-align:center;color:var(--muted);font-size:.8rem;margin-top:6px}
+.seg{display:inline-flex;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:22px;padding:4px;gap:4px}
+.seg button{border:0;background:none;font:inherit;font-size:.82rem;font-weight:700;padding:6px 13px;border-radius:999px;cursor:pointer;color:var(--muted);transition:all .2s}
+.seg button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.seg button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.seg.sm button{font-size:.76rem;padding:5px 10px}
+.mod-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.mod-head h3{font-size:1.5rem}
+.mod-head p{font-size:.88rem;color:var(--muted);max-width:720px;margin-top:4px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--deep);color:#5FD3E8;font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:8px}
+.module{margin-bottom:54px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 12px;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer;color:var(--deep);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:border-color .15s,color .15s,background .15s}
+.btn:hover{border-color:var(--pri);color:var(--pri)}
+.btn.go{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.go:hover{background:#178A65;color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+
+
+.logos img.cl{height:40px}
+.hero{background:radial-gradient(110% 140% at 85% 10%,#0F3B45 0%,#161D22 52%,#0A0E11 100%)}
+.hero .eyebrow,.hero .pill span{color:#F5C518}
+.hero h1 em{color:#5FD3E8;font-style:italic}
+.badge{color:#F5C518}
+.kpi{border-top:3px solid var(--pri)}
+.chc p,.tl-panel ul,.tk p{color:#3F4B53}
+.tl::before{background:linear-gradient(90deg,var(--pri),var(--acc))}
+.module .btn.go,.btn.go{background:var(--deep);border-color:var(--deep);color:#fff}
+.module .btn.go:hover,.btn.go:hover{background:#000;color:#fff}
+.btn.sm{padding:6px 10px;font-size:.74rem}
+.btn.ai{background:linear-gradient(110deg,#161D22 0%,#0E4A57 38%,#0A8FA8 50%,#0E4A57 62%,#161D22 100%);background-size:260% 100%;color:#fff;border-color:transparent;animation:shim 3.2s linear infinite}
+.btn.ai:hover{color:#fff;filter:brightness(1.12)} .btn.ai[disabled]{opacity:.75;cursor:progress}
+@keyframes shim{from{background-position:130% 0}to{background-position:-130% 0}}
+.chart svg{width:100%;height:auto;display:block}
+.axis text{font-family:var(--sans);font-size:11px;fill:var(--muted)}
+.axis line{stroke:var(--line)} .axis path{display:none}
+.grid line{stroke:var(--line);stroke-dasharray:2 3} .grid path{display:none}
+.ckey{display:flex;gap:12px;font-size:.74rem;color:var(--muted);margin-top:6px;flex-wrap:wrap}
+.ckey span{display:inline-flex;align-items:center;gap:6px}
+.ckey i{width:12px;height:12px;border-radius:3px;display:inline-block}
+h4.lbl{margin:0 0 8px;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.chipb{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;font:700 .74rem var(--sans);color:var(--deep);cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.chipb:hover{border-color:var(--pri)} .chipb.off{opacity:.45;text-decoration:line-through}
+.chipb.pre{font-weight:600;background:#F0F7F9;border-color:#CFE3E9} .chipb.pre.on{background:var(--deep);border-color:var(--deep);color:#fff}
+.chipb i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.sigs{display:flex;gap:5px;flex-wrap:wrap}
+.ms{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.ms .k{font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.ms .v{font-family:var(--serif);font-size:1.3rem;color:var(--deep);line-height:1.15;font-variant-numeric:tabular-nums}
+.ms .s{font-size:.68rem;color:var(--muted)}
+.ms.a .v{color:var(--good)} .ms.b .v{color:var(--bad)} .ms.o .v{color:#B7791F}
+.rng{display:flex;flex-direction:column;gap:3px;min-width:0}
+.rng .t{display:flex;justify-content:space-between;font-size:.76rem;font-weight:700;color:var(--deep);gap:8px}
+.rng .t b{color:var(--pri);font-variant-numeric:tabular-nums;white-space:nowrap}
+.rng input{width:100%;accent-color:var(--pri)}
+select.sel{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:600 .78rem var(--sans);background:#fff;color:var(--deep);width:100%}
+.note{font-size:.72rem;color:var(--muted);line-height:1.45;margin:0}
+.pill2{display:inline-flex;align-items:center;gap:6px;font:800 .62rem var(--sans);letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.pill2.off{background:#E9EEF0;color:#5D6A72} .pill2.on{background:#DDF1F5;color:#06697C}
+.pill2 i{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block}
+.pill2.on i{animation:blink 1.4s infinite}
+@keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
+.st{font:800 .6rem var(--sans);letter-spacing:.07em;text-transform:uppercase;border-radius:999px;padding:3px 8px;white-space:nowrap;display:inline-block}
+.st.rep{background:#FCE2E3;color:#A32A2F} .st.cut{background:#2B1012;color:#fff} .st.mon{background:#FFF0CC;color:#8A5A00} .st.ok{background:#DDF1E5;color:#1F6B3E} .st.ver{background:#FFF7CC;color:#7A6200}
+/* key panel */
+.aikey{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:18px;padding:16px 18px;margin:0 0 32px;align-items:center;border:2px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(120deg,#0A8FA8,#F5C518,#E5484D,#0A8FA8,#F5C518) border-box;background-size:100% 100%,300% 100%;animation:bord 9s linear infinite}
+@keyframes bord{to{background-position:0 0,300% 0}}
+.aikey h3{margin:0;font:400 1.35rem var(--serif);color:var(--deep)}
+.aikey .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
+.kf{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.kf input[type=password],.kf input[type=text]{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:500 .8rem var(--mono);color:var(--deep);background:#fff;min-width:0}
+.kf input[type=password]{flex:1 1 220px} .kf input[type=text]{flex:0 1 150px}
+.kf .rem{display:flex;gap:6px;align-items:center;font-size:.74rem;color:var(--deep)}
+.spark{color:var(--pri);display:inline-block;animation:tw 2.4s ease-in-out infinite}
+@keyframes tw{50%{opacity:.4;transform:scale(.8) rotate(20deg)}}
+.askrow{display:flex;gap:6px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:4px 4px 4px 10px;transition:box-shadow .2s,border-color .2s}
+.askrow:focus-within{box-shadow:0 0 0 3px rgba(10,143,168,.18);border-color:var(--pri)}
+.askrow input{flex:1;min-width:0;border:0;outline:0;font:500 .84rem var(--sans);padding:7px 0;background:transparent;color:var(--text)}
+.askres{margin-top:8px;border-radius:12px;background:linear-gradient(135deg,#E9F6F9,#fff 70%);border:1px solid #C6E3EA;padding:10px 12px;font-size:.8rem;animation:fadeUp .35s ease;color:#2E3A42}
+.askres .h{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+.askres .h b{color:var(--deep);font-size:.86rem}
+.askres .nums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:8px 0}
+.askres .nums div{background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:.66rem;color:var(--muted)}
+.askres .nums b{display:block;font:400 1.25rem var(--serif);color:var(--deep);font-variant-numeric:tabular-nums}
+.askres p{margin:0}
+/* module 1 */
+.ili{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(0,1fr);overflow:hidden}
+.ili>div{min-width:0}
+.ili>div+div{border-left:1px solid var(--line);background:#F7FAFB;padding:14px;display:flex;flex-direction:column;gap:10px}
+.stage{position:relative;height:460px;background:radial-gradient(120% 120% at 50% 0%,#1F2D35 0%,#11181D 70%);overflow:hidden;cursor:grab;touch-action:none}
+.stage:active{cursor:grabbing}
+.stage canvas{display:block;width:100%;height:100%}
+.hud{position:absolute;left:12px;top:12px;display:flex;gap:6px;flex-wrap:wrap;z-index:3}
+.hud button{border:1px solid rgba(255,255,255,.2);background:rgba(22,29,34,.75);color:#fff;border-radius:999px;padding:6px 11px;font:700 .72rem var(--sans);cursor:pointer;backdrop-filter:blur(4px)}
+.hud button.on{background:var(--acc);color:#161D22;border-color:var(--acc)}
+.hud2{position:absolute;right:12px;top:12px;z-index:3;font:600 .72rem var(--mono);color:#CFE3E9;background:rgba(22,29,34,.75);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:8px 10px;text-align:right;line-height:1.5}
+.hud2 b{color:#F5C518;font-size:1rem}
+.prog{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(255,255,255,.1);z-index:3}
+.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#0A8FA8,#F5C518)}
+.lab3{position:absolute;z-index:2;font:700 .62rem var(--sans);color:#E6F1F4;background:rgba(10,14,17,.65);border:1px solid rgba(255,255,255,.18);padding:2px 7px;border-radius:999px;transform:translate(-50%,-50%);pointer-events:none;white-space:nowrap;letter-spacing:.03em}
+.lab3.cp{color:#FFD1D2;border-color:rgba(229,72,77,.5)} .lab3.hca{color:#FFE9A8} .lab3.river{color:#9EDCFF}
+.feed{display:flex;flex-direction:column;gap:4px;max-height:132px;overflow:hidden}
+.fi{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:7px;align-items:center;font-size:.72rem;background:#fff;border:1px solid var(--line);border-radius:8px;padding:5px 8px;cursor:pointer}
+.fi.new{animation:fadeUp .3s ease}
+.fi i{width:9px;height:9px;border-radius:50%}
+.fi b{color:var(--deep)} .fi span{color:var(--muted);font-variant-numeric:tabular-nums}
+.dd h5{margin:0;font:400 1.4rem var(--serif);color:var(--deep);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 10px;font-size:.76rem;margin:8px 0}
+.kv span{color:var(--muted)} .kv b{color:var(--deep);font-weight:700;font-variant-numeric:tabular-nums}
+.mapw{border-top:1px solid var(--line);padding:12px 14px 8px}
+/* module 2 */
+.lab{display:grid;grid-template-columns:240px minmax(0,1.4fr) minmax(0,1fr);overflow:hidden}
+.lab>div{min-width:0;padding:14px}
+.lab>div:first-child{border-right:1px solid var(--line);background:#F7FAFB;display:flex;flex-direction:column;gap:11px}
+.lab>div:last-child{border-left:1px solid var(--line);background:#F7FAFB;display:flex;flex-direction:column;gap:10px}
+.verdict{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.verdict .big{font:400 2.1rem var(--serif);line-height:1;font-variant-numeric:tabular-nums}
+.xs svg{max-width:250px;margin:0 auto}
+.calc{font:500 .7rem/1.6 var(--mono);background:#11181D;color:#CFE3E9;border-radius:10px;padding:10px 12px;white-space:pre-wrap;overflow-x:auto}
+.calc b{color:#F5C518;font-weight:600}
+.pbar{display:grid;grid-template-columns:96px minmax(0,1fr) 58px;gap:6px;align-items:center;font-size:.72rem;margin-bottom:5px}
+.pbar .b{height:10px;background:#E6ECEE;border-radius:5px;overflow:hidden}
+.pbar .b i{display:block;height:100%;border-radius:5px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.pbar b{text-align:right;font-variant-numeric:tabular-nums;color:var(--deep)}
+/* module 3 */
+.gr{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);overflow:hidden}
+.gr>div{min-width:0;padding:14px}
+.gr>div+div{border-left:1px solid var(--line);background:#F7FAFB}
+.yr{display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.yr .play{width:32px;height:32px;border-radius:50%;border:0;background:var(--pri);color:#fff;cursor:pointer}
+.yr .big{font:400 1.6rem var(--serif);color:var(--deep);min-width:64px}
+.yr input{flex:1;min-width:140px;accent-color:var(--pri)}
+.rm{display:grid;grid-template-columns:22px repeat(5,minmax(0,1fr));gap:3px;font-size:.62rem}
+.rm div{height:30px;border-radius:5px;display:grid;place-items:center;font:800 .78rem var(--sans);cursor:pointer;transition:transform .15s,box-shadow .15s}
+.rm div:hover{transform:scale(1.06)}
+.rm div.on{box-shadow:0 0 0 2px var(--deep)}
+.rm span{display:grid;place-items:center;color:var(--muted);font-weight:700}
+.digs{display:flex;flex-direction:column;gap:5px;margin-top:8px;max-height:260px;overflow:auto}
+.dg{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;font-size:.74rem;background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 9px;cursor:pointer;animation:fadeUp .3s ease}
+.dg b{color:var(--deep)} .dg span{color:var(--muted)}
+/* module 4 */
+.cop{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);overflow:hidden}
+.cop>div{min-width:0;padding:14px}
+.cop>div+div{border-left:1px solid var(--line);background:#F7FAFB}
+.rc{background:#fff;border:1px solid var(--line);border-left:4px solid var(--pri);border-radius:8px;padding:9px 11px;font-size:.78rem;margin-top:8px}
+.rc b{color:var(--deep)}
+.out{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:.82rem;line-height:1.55;min-height:300px;color:#25313A}
+.out ul{margin:4px 0 8px;padding-left:18px}
+.out p{margin:0 0 6px}
+.dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--pri);margin-right:3px;animation:blink 1s infinite}
+.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--deep);color:#fff;padding:10px 16px;border-radius:999px;font-size:.82rem;font-weight:700;opacity:0;transition:all .3s;z-index:80;pointer-events:none;max-width:calc(100vw - 32px);text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.cmp-head{display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+.cmp{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.cmp th,.cmp td{padding:16px 18px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);font-size:.92rem;overflow-wrap:anywhere}
+.cmp thead th{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);background:#F3F6F7}
+.cmp tbody tr:last-child td,.cmp tbody tr:last-child th{border-bottom:0}
+.cmp tbody th{font-weight:700;color:var(--pri)}
+.cmp col.c1{width:22%}
+.cmp td{transition:background .3s,opacity .3s,color .3s}
+.cmp.hl-before td.b{background:#FCEEF3;color:#7A1236}
+.cmp.hl-before td.a{opacity:.38}
+.cmp.hl-after td.a{background:#ECF8F3;color:#0E4F39;font-weight:500}
+.cmp.hl-after td.b{opacity:.38}
+.cmp.hl-after thead th.a{color:var(--acc)}
+.cmp.hl-before thead th.b{color:var(--bad)}
+.tchips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:.9rem;font-weight:500;display:inline-flex;align-items:center;gap:8px}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 3px var(--acc-15)}
+.chip em{font-style:normal;color:var(--muted);font-weight:400;font-size:.82rem}
+.tk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.tk{padding:26px}
+.tk .n{font-family:var(--serif);font-size:2.6rem;color:var(--acc);line-height:1}
+.tk h3{margin:12px 0 8px}
+.tk p{font-size:.92rem;color:#433A52}
+footer{background:var(--deep);color:rgba(255,255,255,.75);padding:48px 0 32px;margin-top:32px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px}
+.f-brand{display:flex;align-items:center;gap:16px}
+.f-brand img{height:44px;width:auto;border-radius:6px;background:#fff;padding:4px}
+.f-brand b{display:block;color:#fff;font-family:var(--serif);font-weight:400;font-size:1.15rem}
+.copy{width:100%;border-top:1px solid rgba(255,255,255,.12);padding-top:18px;font-size:.8rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+#tip{position:fixed;pointer-events:none;z-index:95;background:var(--deep);color:#fff;font-size:.8rem;line-height:1.45;padding:10px 12px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transition:opacity .15s;max-width:300px}
+#tip b{color:#7DE3BE;font-weight:700}
+#tip .t{font-weight:700;font-size:.85rem;margin-bottom:2px;color:#fff}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.cmp.hl-after td.a{background:#E5F4F7;color:#161D22}
+.chip i{background:var(--acc);box-shadow:0 0 0 3px rgba(245,197,24,.22)}
+.tk .n{color:var(--pri)}
+#tip b{color:#F5C518}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.js .reveal{opacity:1;transform:none;transition:none}.aikey,.btn.ai,.spark,.pill2.on i{animation:none!important}.fi,.dg,.askres{animation:none}.pbar .b i{transition:none}}
+@media (max-width:1100px){.lab{grid-template-columns:220px minmax(0,1fr)}.lab>div:last-child{grid-column:1/-1;border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:980px){.kpi-grid,.ch-grid{grid-template-columns:repeat(2,1fr)}.dash{grid-template-columns:1fr}.tk-grid{grid-template-columns:1fr}.hero canvas{width:100%;opacity:.35}
+  .ili,.lab,.gr,.cop,.aikey{grid-template-columns:minmax(0,1fr)}.ili>div+div,.gr>div+div,.cop>div+div{border-left:0;border-top:1px solid var(--line)}.lab>div:first-child{border-right:0;border-bottom:1px solid var(--line)}.lab>div:last-child{grid-template-columns:minmax(0,1fr)}.stage{height:360px}}
+@media (max-width:640px){
+  .wrap{padding:0 16px} section{padding:48px 0} .hero{padding:52px 0 56px} .logos img{height:34px} .logos img.cl{height:30px} .vdiv{height:28px}
+  .kpi-grid{gap:10px} .kpi{padding:16px 14px} .ch-grid{grid-template-columns:1fr}
+  .tl::before{top:19px} .tl-dot{width:40px;height:40px;font-size:1rem} .tl-name{font-size:.75rem} .tl-dur{display:none} .tl-panel{padding:18px}
+  .sx{overflow-x:auto;-webkit-overflow-scrolling:touch} .sx svg{min-width:600px} .stage{height:320px} .hud2{display:none} .askres .nums{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cmp th,.cmp td{padding:12px 10px;font-size:.82rem} .cmp thead th{font-size:.68rem;letter-spacing:.08em} .chart-card{padding:14px}
+}
+@media print{
+  body{background:#fff;font-size:12px} .topbar{position:static}
+  .hero{background:#161D22!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:36px 0} .hero canvas{display:none}
+  .card{box-shadow:none;break-inside:avoid} section{padding:28px 0} .js .reveal{opacity:1!important;transform:none!important}
+  .seg,.tl-hint,.btn,.rng input,.hud,#tip,.toast,.aikey,.askrow{display:none!important} .tl-panel{display:block!important;margin-top:10px}
+  footer{background:#fff;color:var(--text)} footer .f-brand b{color:var(--deep)} .kpis{margin-top:16px}
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="logos">
+      <img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting">
+      <span class="vdiv" aria-hidden="true"></span>
+      <img class="cl" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Bharat_Petroleum_logo.svg" alt="Bharat Petroleum">
+    </div>
+    <div class="tagline">Customer Case Study · <b>Pipeline Defect Analytics</b></div>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas id="heroCv" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="eyebrow">Bharat Petroleum × Havish M Consulting</div>
+    <h1>Every defect in the pipe, <em>assessed before it matters</em></h1>
+    <p class="sub">An inline inspection run produces thousands of features. HMC turned that data into a 3D defect twin of the pipeline, automated fitness-for-service checks for every metal-loss anomaly, forecast corrosion growth from repeat runs, and produced a risk-ranked dig plan, with GenAI writing the field briefs.</p>
+    <div class="pills">
+      <span class="pill"><span>Client</span>Bharat Petroleum</span>
+      <span class="pill"><span>Function</span>Pipelines · Asset Integrity</span>
+      <span class="pill"><span>Theme</span>Defect Analytics &amp; Remaining Life</span>
+    </div>
+  </div>
+</section>
+
+<section class="kpis">
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="card kpi reveal"><div class="label">From inspection data to a dig plan</div><div class="val"><span class="count" data-to="3">0</span><small>days</small></div><div class="delta">▼ from about 6 weeks</div></div>
+      <div class="card kpi reveal"><div class="label">Metal-loss anomalies assessed</div><div class="val"><span class="count" data-to="100">0</span><small>%</small></div><div class="delta">every feature, not a sample</div></div>
+      <div class="card kpi reveal"><div class="label">Unnecessary excavations</div><div class="val"><span class="count" data-to="35">0</span><small>% fewer</small></div><div class="delta">▼ digs ranked by risk and growth</div></div>
+      <div class="card kpi reveal"><div class="label">Engineering hours per inspection run</div><div class="val"><span class="count" data-to="70">0</span><small>% lower</small></div><div class="delta">▼ automated assessment and briefs</div></div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="challenge">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Challenge</div>
+      <h2>Thousands of features, a handful of engineers</h2>
+      <p class="lead">Inline inspection vendors deliver huge feature lists. Turning them into safe, economical repair decisions was slow, manual and disconnected from what was around the pipe.</p>
+    </div>
+    <div class="ch-grid">
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16M4 18h10"/></svg></div><h3>Feature lists, not insight</h3><p>Each run arrived as spreadsheets of depth, length and clock position, reviewed line by line.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><h3>Sampled assessments</h3><p>Fitness-for-service checks were run by hand on the deepest features, so long shallow defects slipped through.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></div><h3>Growth unknown</h3><p>Repeat runs were not matched, so corrosion rates and remaining life were guesses.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg></div><h3>Context missing</h3><p>River crossings, villages, cathodic protection readings and design factors were not in the same view as the defects.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="approach" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">HMC Approach</div>
+      <h2>Codify the integrity engineer's method</h2>
+      <p class="lead">Standard fitness-for-service methods, applied to every feature, in context, with people making the final call.</p>
+    </div>
+    <div class="tl reveal" aria-label="HMC approach steps">
+      <button class="tl-step" aria-expanded="true" aria-controls="tp0"><span class="tl-dot">1</span><span class="tl-name">Discover</span><span class="tl-dur">2 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp1"><span class="tl-dot">2</span><span class="tl-name">Design</span><span class="tl-dur">3 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp2"><span class="tl-dot">3</span><span class="tl-name">Build</span><span class="tl-dur">6 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp3"><span class="tl-dot">4</span><span class="tl-name">Adopt</span><span class="tl-dur">Pilot segment</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp4"><span class="tl-dot">5</span><span class="tl-name">Scale</span><span class="tl-dur">All segments</span></button>
+    </div>
+    <p class="tl-hint">Select a step to see what happened.</p>
+    <div class="card tl-panel open" id="tp0"><h3>Discover · How integrity decisions are made</h3><p>Worked alongside the pipeline integrity team on past runs.</p><ul><li>Inspection vendor formats, tolerances and feature classes mapped.</li><li>Past digs compared with predicted severity.</li><li>Location classes, crossings and cathodic protection survey data collected.</li></ul><p class="deliv"><b>Deliverable:</b> Data model and assessment rulebook.</p></div>
+    <div class="card tl-panel" id="tp1"><h3>Design · Standard methods, automated</h3><p>No black boxes for safety decisions.</p><ul><li>Modified B31G (0.85 dL) for metal loss, with location-class design factors.</li><li>Run-to-run matching for corrosion growth rates.</li><li>Risk = likelihood from remaining life × consequence from location.</li></ul><p class="deliv"><b>Deliverable:</b> Assessment engine specification.</p></div>
+    <div class="card tl-panel" id="tp2"><h3>Build · The integrity workspace</h3><p>One place from feature to field.</p><ul><li>3D defect twin and unrolled wall map.</li><li>Assessment lab, growth forecast and dig planner.</li><li>GenAI dig briefs and run summaries.</li></ul><p class="deliv"><b>Deliverable:</b> Working tool and Power BI views.</p></div>
+    <div class="card tl-panel" id="tp3"><h3>Adopt · Pilot on one segment</h3><p>Engineers sign off every repair.</p><ul><li>Automated results checked against manual assessments.</li><li>Field crews used dig briefs on the first excavations.</li><li>Feedback on measured versus reported depths.</li></ul><p class="deliv"><b>Deliverable:</b> Validation report.</p></div>
+    <div class="card tl-panel" id="tp4"><h3>Scale · Every run, every segment</h3><p>Integrity management as a routine.</p><ul><li>New runs loaded and assessed within days.</li><li>Dig findings fed back to calibrate growth rates.</li><li>Cathodic protection actions tracked against corrosion trends.</li></ul><p class="deliv"><b>Deliverable:</b> Roll-out and governance plan.</p></div>
+  </div>
+</section>
+
+<section id="solution">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Solution</div>
+      <h2>From pig run to dig plan, live</h2>
+      <p class="lead">A synthetic 24 km, 12-inch product pipeline segment with 73 reported anomalies. Run the pig, inspect any defect, assess it, project its growth and plan the digs.</p>
+    </div>
+
+    <div class="card aikey reveal" id="aiKey">
+      <div><div class="row"><h3><span class="spark">✦</span> Live GenAI</h3><span class="pill2 aipill off"><i></i>Templates</span></div>
+        <p class="note">Optional. Every ✦ button already works on built-in templates. Add an OpenAI key to ask the run anything in your own words and to have AI write dig briefs and run summaries.</p></div>
+      <div class="kf"><input type="password" id="apiKey" placeholder="OpenAI API key (sk-…)" autocomplete="off" spellcheck="false" aria-label="OpenAI API key">
+        <input type="text" id="model" value="gpt-4o-mini" list="models" spellcheck="false" aria-label="Model"><datalist id="models"><option value="gpt-4o-mini"><option value="gpt-4.1-mini"><option value="gpt-4o"><option value="gpt-4.1"></datalist>
+        <label class="rem"><input type="checkbox" id="remember"> Remember on this device</label>
+        <button class="btn sm go" id="keySave" type="button">Connect</button><button class="btn sm" id="keyClear" type="button">Disconnect</button>
+        <p class="note" id="keyMsg" style="flex-basis:100%">The key goes only from this browser to OpenAI and stays in memory unless you tick "remember". Only the synthetic data on this page is sent.</p></div>
+    </div>
+
+    <div class="module reveal" id="iliModule">
+      <div class="mod-head"><div><div class="badge">01 · 3D inspection run</div><h3>Watch the pig find the defects</h3><p>The inspection tool travels the line and each anomaly appears where it was reported. Drag to rotate, scroll to zoom, click a defect for its details. Below, the same pipe is unrolled into a wall map.</p></div>
+        <span class="pill2 aipill off"><i></i>Templates</span></div>
+      <div class="askrow" style="margin-bottom:6px"><span class="spark">✦</span><input id="askI" type="text" placeholder="Ask the run, e.g. internal corrosion at the bottom of the line near the river" aria-label="Ask the run"><button class="btn ai sm" id="askGo" type="button">Ask</button></div>
+      <div class="sigs" id="askChips" style="margin-bottom:6px"></div>
+      <div id="askRes" class="askres" style="display:none;margin-bottom:10px"></div>
+      <div class="card ili">
+        <div>
+          <div class="stage" id="stage"><div class="hud"><button type="button" id="pPlay">❚❚ Pause</button><button type="button" id="pSpeed">1×</button><button type="button" id="pFollow">Follow pig</button><button type="button" id="pReset">↻ Replay</button></div>
+            <div class="hud2" id="hud2"></div><div class="prog"><i id="progBar"></i></div></div>
+          <div class="mapw"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px"><h4 class="lbl" style="margin:0">Unrolled wall map · elevation profile, distance and clock position</h4><div class="sigs" id="typeChips"></div></div>
+            <div class="sx"><div class="chart" id="wmap"></div></div></div>
+        </div>
+        <div>
+          <div><h4 class="lbl">Detected as the pig passes</h4><div class="feed" id="feed"></div></div>
+          <div class="dd" id="dd"></div>
+        </div>
+      </div>
+      <p class="footnote">Synthetic pipeline and inspection data. Defect positions and sizes are illustrative; the 3D pipe is exaggerated in diameter for visibility.</p>
+    </div>
+
+    <div class="module reveal" id="labModule">
+      <div class="mod-head"><div><div class="badge">02 · Assessment lab</div><h3>Is this defect safe at operating pressure?</h3><p>Modified B31G (0.85 dL) estimates the failure pressure of a corroded pipe from its depth and length. Pick a defect or move the sliders: the cross-section, the acceptance curve and the verdict update live.</p></div></div>
+      <div class="card lab">
+        <div>
+          <div><h4 class="lbl">Defect</h4><select class="sel" id="lDef" aria-label="Defect"></select></div>
+          <div class="rng"><div class="t"><span>Depth (% of wall)</span><b id="lDv"></b></div><input type="range" id="lD" min="5" max="85" value="40" aria-label="Depth"></div>
+          <div class="rng"><div class="t"><span>Axial length (mm)</span><b id="lLv"></b></div><input type="range" id="lL" min="10" max="500" value="120" aria-label="Length"></div>
+          <div><h4 class="lbl">Pipe</h4><select class="sel" id="lPipe" aria-label="Pipe"><option value="0">12" (323.9 mm) · 7.1 mm · API 5L X52</option><option value="1">12" (323.9 mm) · 6.4 mm · API 5L X52</option><option value="2">16" (406.4 mm) · 7.9 mm · API 5L X60</option></select></div>
+          <div class="rng"><div class="t"><span>MAOP</span><b id="lMv"></b></div><input type="range" id="lM" min="60" max="110" value="98" aria-label="MAOP"></div>
+          <div><h4 class="lbl">Design factor (location class)</h4><select class="sel" id="lF" aria-label="Design factor"><option value="0.72">0.72 · Class 1 (rural)</option><option value="0.6">0.60 · Class 2 / crossings</option><option value="0.5">0.50 · Class 3 (populated)</option></select></div>
+        </div>
+        <div><div class="chart" id="acc"></div><div class="ckey"><span><i style="background:#2E9E5B"></i>Acceptable</span><span><i style="background:#F08A3E"></i>Monitor</span><span><i style="background:#E5484D"></i>Repair</span><span><i style="background:#2B1012"></i>Cut-out (≥ 80% wall)</span><span><i style="background:#fff;border:2px solid #161D22;border-radius:50%"></i>Being assessed</span></div></div>
+        <div>
+          <div><h4 class="lbl">Cross-section at the defect</h4><div class="chart xs" id="xsec"></div></div>
+          <div><div class="verdict" id="verdict"></div></div>
+          <div id="pbars"></div>
+          <div class="calc" id="calc"></div>
+        </div>
+      </div>
+      <p class="footnote">Simplified Modified B31G for illustration. Real assessments also apply tool tolerances, interaction rules and RSTRENG effective-area methods where needed.</p>
+    </div>
+
+    <div class="module reveal" id="grModule">
+      <div class="mod-head"><div><div class="badge">03 · Growth &amp; dig plan</div><h3>When does each defect need a repair?</h3><p>Matching the 2021 and 2026 runs gives a corrosion rate for every metal-loss defect. Play the years to watch defects deepen and cross the repair line. The risk matrix ranks the digs by likelihood and consequence.</p></div></div>
+      <div class="card gr">
+        <div><div class="yr"><button class="play" id="yPlay" type="button" aria-label="Play years">▶</button><span class="big" id="yV">2026</span><input type="range" id="yS" min="2026" max="2036" value="2026" aria-label="Year"><span class="pill2 off" id="yDigs"><i></i></span></div>
+          <div class="sx"><div class="chart" id="growth"></div></div>
+          <div class="chart" id="digBars" style="margin-top:6px"></div></div>
+        <div><h4 class="lbl">Risk matrix · likelihood × consequence (2026)</h4><div class="rm" id="rm"></div><p class="note" style="margin-top:6px">Likelihood from remaining life; consequence from location (village, river and road crossings score highest). Click a cell to filter.</p>
+          <h4 class="lbl" style="margin-top:12px" id="digT">Dig plan</h4><div class="digs" id="digs"></div></div>
+      </div>
+    </div>
+
+    <div class="module reveal" id="copModule" style="margin-bottom:0">
+      <div class="mod-head"><div><div class="badge">04 · Integrity copilot</div><h3>From defect to field instructions</h3><p>Pick a defect and get a dig brief for the field crew: what to expect, the assessment, likely cause, safety steps, inspections at the dig and the repair. Or summarise the whole run for management.</p></div>
+        <span class="pill2 aipill off"><i></i>Templates</span></div>
+      <div class="card cop">
+        <div><h4 class="lbl">Defect</h4><select class="sel" id="cDef" aria-label="Defect for the brief"></select>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn ai" id="cBrief" type="button">✦ Write dig brief</button><button class="btn ai" id="cSum" type="button">✦ Summarise the run</button></div>
+          <div id="rcBox"></div></div>
+        <div><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px"><h4 class="lbl" style="margin:0" id="outT">Output</h4><button class="btn sm" id="cCopy" type="button">⧉ Copy</button></div><div class="out" id="out"><p class="note">Pick a defect and press "Write dig brief".</p></div></div>
+      </div>
+      <p class="footnote">Template briefs follow standard integrity practice; with a key, the AI writes from the same defect data and rules. Engineers review every brief before use.</p>
+    </div>
+  </div>
+</section>
+
+<section id="impact" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Impact Dashboard</div>
+      <h2>No backlog after a run, and corrosion slowing where it was worst</h2>
+      <p class="lead">Every anomaly now has a decision within days, and the analytics pointed cathodic protection and pigging fixes to the stretches that needed them.</p>
+    </div>
+    <div class="dash">
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>Anomaly backlog 30 days after a run</h3><p class="sub">Anomalies by decision status and type (circle size = count)</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-pk="before" aria-pressed="false">Before</button><button type="button" data-pk="after" aria-pressed="true">After</button></div></div>
+        <div class="chart" id="pack"></div>
+      </div>
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>Corrosion rate along the line</h3><p class="sub">Horizon chart, mm per year by km; darker bands mean faster corrosion</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-hz="before" aria-pressed="false">Before</button><button type="button" data-hz="after" aria-pressed="true">After</button></div></div>
+        <div class="chart" id="horizon"></div>
+        <div class="ckey"><span><i style="background:#BFE6EE"></i>0–0.1</span><span><i style="background:#3FB3C9"></i>0.1–0.2</span><span><i style="background:#0A6F84"></i>0.2–0.3</span><span><i style="background:#E5484D"></i>above 0.3 mm/yr</span></div>
+      </div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <div class="cmp-head reveal"><div><div class="eyebrow">Before vs After</div><h2>How integrity decisions are made now</h2></div>
+      <div class="seg" role="group" aria-label="Highlight column"><button type="button" data-hl="before" aria-pressed="false">Before</button><button type="button" data-hl="after" aria-pressed="true">After</button></div></div>
+    <div class="card reveal" style="overflow:hidden">
+      <table class="cmp hl-after" id="cmp"><colgroup><col class="c1"><col><col></colgroup>
+        <thead><tr><th scope="col">Dimension</th><th scope="col" class="b">Before</th><th scope="col" class="a">After</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Inspection data</th><td class="b">Vendor spreadsheets</td><td class="a">3D twin and unrolled wall map</td></tr>
+          <tr><th scope="row">Assessment</th><td class="b">Deepest features, by hand</td><td class="a">Every metal-loss feature, Modified B31G</td></tr>
+          <tr><th scope="row">Growth</th><td class="b">Assumed rates</td><td class="a">Run-to-run matched, per defect</td></tr>
+          <tr><th scope="row">Prioritisation</th><td class="b">Depth only</td><td class="a">Remaining life × location consequence</td></tr>
+          <tr><th scope="row">Field instructions</th><td class="b">Written per dig</td><td class="a">Dig briefs drafted in minutes</td></tr>
+          <tr><th scope="row">Time to decision</th><td class="b">About 6 weeks</td><td class="a">About 3 days</td></tr>
+        </tbody></table>
+    </div>
+  </div>
+</section>
+
+<section id="tools" style="padding-top:16px">
+  <div class="wrap">
+    <div class="sec-head reveal" style="margin-bottom:20px"><div class="eyebrow">Tools &amp; Tech Used</div><h2>The integrity analytics stack</h2></div>
+    <div class="tchips reveal">
+      <span class="chip"><i></i>Python <em>B31G engine, run matching</em></span>
+      <span class="chip"><i></i>Three.js <em>3D defect twin</em></span>
+      <span class="chip"><i></i>D3 <em>wall maps and growth views</em></span>
+      <span class="chip"><i></i>GIS layers <em>crossings, villages, CP survey</em></span>
+      <span class="chip"><i></i>Large language model <em>dig briefs and summaries</em></span>
+      <span class="chip"><i></i>Power BI <em>integrity dashboards</em></span>
+    </div>
+  </div>
+</section>
+
+<section id="takeaways">
+  <div class="wrap">
+    <div class="sec-head reveal"><div class="eyebrow">Key Takeaways</div><h2>What any pipeline operator can borrow</h2></div>
+    <div class="tk-grid">
+      <div class="card tk reveal"><div class="n">01</div><h3>Assess every feature</h3><p>Automating a standard method removes sampling bias; long, shallow defects get the same scrutiny as deep ones.</p></div>
+      <div class="card tk reveal"><div class="n">02</div><h3>Growth beats a snapshot</h3><p>Matched runs turn depth into remaining life, and remaining life into a dig calendar.</p></div>
+      <div class="card tk reveal"><div class="n">03</div><h3>Context sets the priority</h3><p>The same defect under a village or a river matters more than in an open field. Put location in the risk score.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="f-brand"><img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting"><div><b>Havish M Consulting</b></div></div>
+    <div class="copy"><span>© <span id="yr">2026</span> Havish M Consulting. All rights reserved.</span><span>Figures indicative; validated metrics available on request.</span></div>
+  </div>
+</footer>
+<div id="tip" role="tooltip"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DUR = reduce ? 0 : 650;
+const $ = id => document.getElementById(id);
+$('yr').textContent = new Date().getFullYear();
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hasD3 = typeof d3 !== 'undefined', hasT = typeof THREE !== 'undefined';
+const sleep = ms => new Promise(r => setTimeout(r, reduce ? 0 : ms));
+const sum = a => a.reduce((x, y) => x + y, 0);
+const range = n => Array.from({ length: n }, (_, i) => i);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const ease = x => x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const tip = $('tip');
+function showTip(html, ev){ tip.innerHTML = html; tip.style.opacity = 1; const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = ev.clientX + pad, y = ev.clientY + pad; if (x + w > innerWidth - 8) x = ev.clientX - w - pad; if (y + h > innerHeight - 8) y = ev.clientY - h - pad;
+  tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; }
+function hideTip(){ tip.style.opacity = 0; }
+window.addEventListener('scroll', hideTip, {passive:true});
+function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => el.classList.remove('on'), 2600); }
+const onView = new Map();
+const io = ('IntersectionObserver' in window) ? new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; e.target.classList.add('in');
+  const fn = onView.get(e.target); if (fn){ fn(); onView.delete(e.target); } io.unobserve(e.target); }), {threshold:.12}) : null;
+function whenVisible(el, fn){ onView.set(el, fn); if (io) io.observe(el); else fn(); }
+document.querySelectorAll('.reveal').forEach(el => io ? io.observe(el) : el.classList.add('in'));
+function countUp(el){ const to = +el.dataset.to; if (reduce || !to){ el.textContent = to; return; }
+  const t0 = performance.now(); (function s(t){ const p = Math.min(1,(t-t0)/1400), e = 1 - Math.pow(1-p,3); el.textContent = Math.round(to*e); if (p < 1) requestAnimationFrame(s); })(t0); }
+document.querySelectorAll('.count').forEach(el => whenVisible(el.closest('.kpi'), () => countUp(el)));
+const tlSteps = document.querySelectorAll('.tl-step');
+tlSteps.forEach(btn => btn.addEventListener('click', () => { const open = btn.getAttribute('aria-expanded') === 'true';
+  tlSteps.forEach(b => { b.setAttribute('aria-expanded','false'); $(b.getAttribute('aria-controls')).classList.remove('open'); });
+  if (!open){ btn.setAttribute('aria-expanded','true'); $(btn.getAttribute('aria-controls')).classList.add('open'); } }));
+function segBind(attr, fn){ const bs = document.querySelectorAll(`[data-${attr}]`); bs.forEach(b => b.addEventListener('click', () => { bs.forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); fn(b.dataset[attr]); })); }
+const cmpT = $('cmp');
+segBind('hl', v => { cmpT.classList.toggle('hl-before', v === 'before'); cmpT.classList.toggle('hl-after', v === 'after'); });
+function md(s){ const lines = esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').split(/\n/); let out = '', inL = false;
+  lines.forEach(l => { const m = l.match(/^\s*(?:[-*•]|\d+[.)])\s+(.*)/); if (m){ if (!inL){ out += '<ul>'; inL = true; } out += '<li>' + m[1] + '</li>'; } else { if (inL){ out += '</ul>'; inL = false; } if (l.trim()) out += '<p>' + l.replace(/^#+\s*/, '') + '</p>'; } });
+  if (inL) out += '</ul>'; return out; }
+
+/* HERO · a pig travels the pipe; sensor rings light up defects */
+(function hero(){
+  const cv = $('heroCv'), cx = cv.getContext('2d'); let W = 0, H = 0, run = false, t0 = performance.now(); const R = mulberry32(8);
+  const DEF = range(9).map(i => ({ u: .08 + i * .105 + R() * .04, s: R() < .3 ? 2 : R() < .6 ? 1 : 0, top: R() < .5 }));
+  function size(){ const dpr = Math.min(2, devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; cx.setTransform(dpr,0,0,dpr,0,0); }
+  const COL = ['rgba(95,211,232,.9)','rgba(245,197,24,.95)','rgba(229,72,77,1)'];
+  function draw(t){ cx.clearRect(0, 0, W, H); const x0 = W * .32, x1 = W + 20, yc = H * .52, r = Math.min(46, H * .09), p = (t % 9) / 9, px = x0 + (x1 - x0) * p;
+    const g = cx.createLinearGradient(0, yc - r, 0, yc + r); g.addColorStop(0,'rgba(160,190,200,.28)'); g.addColorStop(.5,'rgba(60,80,90,.12)'); g.addColorStop(1,'rgba(160,190,200,.22)');
+    cx.fillStyle = g; cx.fillRect(x0, yc - r, x1 - x0, 2 * r); cx.strokeStyle = 'rgba(207,227,233,.55)'; cx.lineWidth = 1.5; cx.beginPath(); cx.moveTo(x0, yc - r); cx.lineTo(x1, yc - r); cx.moveTo(x0, yc + r); cx.lineTo(x1, yc + r); cx.stroke();
+    for (let k = 0; k < 14; k++){ const wx = x0 + (x1 - x0) * k / 14; cx.strokeStyle = 'rgba(207,227,233,.18)'; cx.beginPath(); cx.ellipse(wx, yc, 6, r, 0, 0, Math.PI * 2); cx.stroke(); }
+    DEF.forEach(d => { const dx = x0 + (x1 - x0) * d.u, seen = px > dx, dy = yc + (d.top ? -r : r) * .82; if (!seen) return; const age = clamp((px - dx) / 120, 0, 1);
+      cx.fillStyle = COL[d.s]; cx.beginPath(); cx.ellipse(dx, dy, 7 + d.s * 3, 4, 0, 0, Math.PI * 2); cx.fill();
+      if (age < 1){ cx.strokeStyle = COL[d.s].replace(/[\d.]+\)$/, (1 - age) + ')'); cx.lineWidth = 2; cx.beginPath(); cx.arc(dx, dy, 8 + age * 30, 0, Math.PI * 2); cx.stroke(); }
+      cx.font = '700 10px DM Sans, sans-serif'; cx.fillStyle = 'rgba(230,241,244,.8)'; cx.fillText(d.s === 2 ? 'ML 54%' : d.s === 1 ? 'ML 31%' : 'ML 12%', dx - 16, d.top ? dy - 14 : dy + 22); });
+    const gp = cx.createRadialGradient(px, yc, 2, px, yc, r * 1.6); gp.addColorStop(0,'rgba(245,197,24,.55)'); gp.addColorStop(1,'rgba(245,197,24,0)'); cx.fillStyle = gp; cx.fillRect(px - r * 1.6, yc - r * 1.6, r * 3.2, r * 3.2);
+    cx.fillStyle = '#F5C518'; cx.beginPath(); cx.roundRect ? cx.roundRect(px - 26, yc - r * .7, 52, r * 1.4, 10) : cx.rect(px - 26, yc - r * .7, 52, r * 1.4); cx.fill();
+    cx.fillStyle = '#161D22'; for (let k = 0; k < 4; k++) cx.fillRect(px - 20 + k * 12, yc - r * .5, 3, r);
+    cx.strokeStyle = 'rgba(95,211,232,.6)'; cx.lineWidth = 1; for (let k = 1; k <= 2; k++){ cx.beginPath(); cx.arc(px + 26, yc, 8 * k + (t * 30 % 8), -1, 1); cx.stroke(); } }
+  size(); draw(4.5); window.addEventListener('resize', () => { size(); draw(4.5); }); if (reduce) return;
+  function loop(now){ if (!run) return; draw((now - t0) / 1000); requestAnimationFrame(loop); }
+  if (io) new IntersectionObserver(es => { const on = es[0].isIntersecting; if (on && !run){ run = true; requestAnimationFrame(loop); } else if (!on) run = false; }).observe(cv);
+})();
+
+/* ======================================================================
+   DATA · synthetic 24 km, 12" product pipeline
+   ====================================================================== */
+const KM = 24;
+const ZONES = [{ k:'road', n:'Road crossing', a:3.0, b:3.4, c:4 }, { k:'river', n:'River crossing', a:7.3, b:8.4, c:5 }, { k:'hca', n:'Village · HCA', a:11.0, b:12.6, c:5 }, { k:'road', n:'Highway crossing', a:15.4, b:15.8, c:4 }, { k:'cp', n:'CP low zone', a:18.0, b:21.0, c:2 }];
+const zoneOf = km => ZONES.find(z => km >= z.a - .05 && km <= z.b + .05) || null;
+const elev = km => 214 - 26 * Math.exp(-Math.pow((km - 7.85) / .7, 2)) + 18 * Math.exp(-Math.pow((km - 15) / 3, 2)) - 6 * Math.exp(-Math.pow((km - 2.3) / .5, 2)) + 4 * Math.sin(km / 2.3);
+const TYPES = { EML:['External metal loss','#E5484D'], IML:['Internal metal loss','#F08A3E'], DENT:['Dent','#9B6BE0'], GWA:['Girth weld anomaly','#F5C518'], MFG:['Lamination (mill)','#3FB3C9'] };
+const PIPES = [{ D:323.9, t:7.1, smys:359, g:'X52' }, { D:323.9, t:6.4, smys:359, g:'X52' }, { D:406.4, t:7.9, smys:414, g:'X60' }];
+let PIPE = Object.assign({}, PIPES[0]), MAOP = 98;
+const RD = mulberry32(42), gn = () => { let u = 0; while (!u) u = RD(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * RD()); };
+const DEF = [];
+function add(o){ DEF.push(Object.assign({ w: 20 + Math.round(RD() * 60) }, o)); }
+range(24).forEach(() => add({ type:'EML', km: RD() * KM, clock: RD() * 12, d: 9 + Math.abs(gn()) * 11, L: 15 + Math.round(-Math.log(RD()) * 60), rate: .4 + RD() * .8 }));
+range(12).forEach(() => add({ type:'EML', km: 18 + RD() * 3, clock: RD() * 12, d: 18 + Math.abs(gn()) * 15, L: 30 + Math.round(-Math.log(RD()) * 90), rate: 2 + RD() * 1.6 }));
+range(9).forEach(() => add({ type:'IML', km: 7.35 + RD() * 1.0, clock: 4.6 + RD() * 2.8, d: 16 + Math.abs(gn()) * 13, L: 25 + Math.round(-Math.log(RD()) * 70), rate: 1.8 + RD() * 1.2 }));
+range(4).forEach(() => add({ type:'IML', km: 2.1 + RD() * .5, clock: 4.8 + RD() * 2.4, d: 12 + Math.abs(gn()) * 9, L: 20 + Math.round(RD() * 60), rate: .9 + RD() * .6 }));
+range(4).forEach(() => add({ type:'IML', km: RD() * KM, clock: 5 + RD() * 2, d: 8 + RD() * 10, L: 15 + Math.round(RD() * 40), rate: .5 + RD() * .4 }));
+[3.12, 3.28, 9.9, 15.55, 15.71, 20.4].forEach(km => add({ type:'DENT', km: km + RD() * .05, clock: (11 + RD() * 2.5) % 12, d: 1.2 + RD() * 4, L: 60 + Math.round(RD() * 120), rate: 0 }));
+range(8).forEach(() => add({ type:'GWA', km: RD() * KM, clock: RD() * 12, d: 10 + RD() * 15, L: 20 + Math.round(RD() * 40), rate: 0 }));
+range(6).forEach(() => add({ type:'MFG', km: RD() * KM, clock: RD() * 12, d: 15 + RD() * 20, L: 40 + Math.round(RD() * 120), rate: 0 }));
+Object.assign(DEF[30], { type:'EML', km: 19.42, clock: 8.0, d: 61, L: 210, rate: 3.2 });
+Object.assign(DEF[25], { type:'EML', km: 19.88, clock: 4.25, d: 81, L: 95, rate: 3.6 });
+Object.assign(DEF[36], { type:'IML', km: 7.86, clock: 5.5, d: 54, L: 140, rate: 2.9 });
+Object.assign(DEF[54], { type:'DENT', km: 15.62, clock: 12.0, d: 6.8, L: 180, rate: 0 });
+DEF.sort((a, b) => a.km - b.km).forEach((d, i) => { d.i = i; d.id = 'A-' + String(i + 1).padStart(3, '0'); d.d = Math.round(Math.min(d.type === 'DENT' ? 8 : 85, d.d)); d.rate = Math.round(d.rate * 10) / 10; d.d21 = Math.max(3, Math.round(d.d - d.rate * 5)); d.zone = zoneOf(d.km); d.clock = Math.round(d.clock * 4) / 4 % 12; d.L = Math.min(480, d.L); d.det = false; });
+const fmtClock = c => { const h = Math.floor(c) || 12, m = Math.round((c % 1) * 60); return `${h}:${String(m).padStart(2, '0')}`; };
+const ML = d => d.type === 'EML' || d.type === 'IML';
+const DF = () => .72;
+function b31g(dPct, L, P, F, maop){ const t = P.t, d = dPct / 100 * t, z = L * L / (P.D * t), M = z <= 50 ? Math.sqrt(1 + .6275 * z - .003375 * z * z) : .032 * z + 3.3, Sfl = P.smys + 69, a = .85 * d / t, Sf = Sfl * (1 - a) / (1 - a / M), Pf = 2 * Sf * t / P.D * 10, Ps = Pf * F;
+  return { z, M, Sfl, Sf, Pf, Ps, erf: maop / Ps, P0: 2 * Sfl * t / P.D * 10 }; }
+function assess(d, dd){ const dep = dd == null ? d.d : dd;
+  if (d.type === 'DENT') return { st: dep >= 6 ? 'rep' : 'mon', txt: dep >= 6 ? 'Repair' : 'Monitor', note: dep.toFixed(1) + '% of OD' };
+  if (d.type === 'GWA') return { st:'ver', txt:'Verify by NDT', note:'girth weld' };
+  if (d.type === 'MFG') return { st:'ok', txt:'Acceptable', note:'non-growing' };
+  const r = b31g(dep, d.L, PIPE, DF(d), MAOP); if (dep >= 80) return { st:'cut', txt:'Cut-out', r }; if (r.erf > 1) return { st:'rep', txt:'Repair', r }; if (r.erf > .85) return { st:'mon', txt:'Monitor', r }; return { st:'ok', txt:'Acceptable', r }; }
+function life(d){ if (!ML(d)) return d.type === 'DENT' && d.d >= 6 ? 0 : d.type === 'GWA' ? 2 : 99; for (let y = 0; y <= 30; y += .1){ const a = assess(d, d.d + d.rate * y); if (a.st === 'rep' || a.st === 'cut') return Math.round(y * 10) / 10; } return 99; }
+const likeOf = d => { const l = life(d); if (d.type === 'MFG') return 1; if (d.type === 'GWA') return 3; return l < 1 ? 5 : l < 3 ? 4 : l < 5 ? 3 : l < 10 ? 2 : 1; };
+const consOf = d => d.zone ? d.zone.c : 2;
+const SC = { ok:'#2E9E5B', mon:'#F08A3E', rep:'#E5484D', cut:'#2B1012', ver:'#C9A200' };
+let SEL = DEF.find(d => d.id && d.km > 7.8 && d.km < 7.9 && d.type === 'IML') || DEF[0];
+const TON = Object.fromEntries(Object.keys(TYPES).map(k => [k, true]));
+let FILTER = null;
+const visible = d => TON[d.type] && (!FILTER || FILTER.ids.has(d.i));
+const selectHooks = [];
+function select(d, from){ SEL = d; selectHooks.forEach(f => f(from)); }
+
+/* ======================================================================
+   01 · 3D RUN
+   ====================================================================== */
+let PIG = { p: 0, play: true, speed: 1, follow: false, done: false };
+const RUN_S = 26;
+const W3 = {};
+function canvasMap(){ const c = document.createElement('canvas'); c.width = 2048; c.height = 256; const g = c.getContext('2d');
+  const gr = g.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0,'#7E959F'); gr.addColorStop(.5,'#A9BCC4'); gr.addColorStop(1,'#7E959F'); g.fillStyle = gr; g.fillRect(0, 0, 2048, 256);
+  for (let k = 0; k <= KM; k++){ g.fillStyle = 'rgba(22,29,34,.35)'; g.fillRect(k / KM * 2048 - 1, 0, 2, 256); }
+  DEF.forEach(d => { if (!ML(d) && d.type !== 'DENT') return; const x = d.km / KM * 2048, y = (1 - d.clock / 12) * 256, rx = 6 + d.L / 30, ry = 8 + d.w / 6, col = d.type === 'DENT' ? '155,107,224' : d.d > 50 ? '229,72,77' : d.d > 30 ? '240,138,62' : '245,197,24';
+    [y, y - 256, y + 256].forEach(yy => { const rg = g.createRadialGradient(x, yy, 0, x, yy, Math.max(rx, ry)); rg.addColorStop(0, `rgba(${col},.95)`); rg.addColorStop(1, `rgba(${col},0)`); g.save(); g.translate(x, yy); g.scale(rx / Math.max(rx, ry), ry / Math.max(rx, ry)); g.translate(-x, -yy); g.fillStyle = rg; g.beginPath(); g.arc(x, yy, Math.max(rx, ry), 0, 7); g.fill(); g.restore(); }); });
+  return c; }
+function build3D(){
+  const host = $('stage'); let w = host.clientWidth, h = host.clientHeight;
+  let renderer; try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); } catch (e){ host.insertAdjacentHTML('beforeend', '<p style="color:#CFE3E9;padding:60px 20px;text-align:center">3D view needs WebGL. The wall map below shows the same run.</p>'); return; }
+  renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1)); renderer.setSize(w, h); host.prepend(renderer.domElement);
+  const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(42, w / h, .1, 1000);
+  scene.add(new THREE.AmbientLight(0xffffff, .55)); const dl = new THREE.DirectionalLight(0xffffff, .9); dl.position.set(30, 60, 40); scene.add(dl); const dl2 = new THREE.DirectionalLight(0x5FD3E8, .35); dl2.position.set(-40, 10, -30); scene.add(dl2);
+  const X = km => (km - 12) * 5, pts = range(49).map(i => { const km = i / 2; return new THREE.Vector3(X(km), (elev(km) - 214) * .28, Math.sin(km / KM * Math.PI * 2) * 7); });
+  const curve = new THREE.CatmullRomCurve3(pts), SEG = 720, R = 2.4, tube = new THREE.TubeGeometry(curve, SEG, R, 40, false);
+  const tex = new THREE.CanvasTexture(canvasMap()); tex.anisotropy = 4;
+  const pipe = new THREE.Mesh(tube, new THREE.MeshPhongMaterial({ map: tex, transparent: true, opacity: .58, side: THREE.DoubleSide, shininess: 60, specular: 0x88aabb, depthWrite: false })); scene.add(pipe);
+  const ground = new THREE.GridHelper(170, 34, 0x2A3A42, 0x1E2A30); ground.position.y = -9.5; scene.add(ground);
+  const at = km => curve.getPointAt(clamp(km / KM, 0, 1));
+  ZONES.forEach(z => { const a = at(z.a), b = at(z.b), mid = at((z.a + z.b) / 2), len = Math.max(3, a.distanceTo(b));
+    const col = z.k === 'river' ? 0x2F86C9 : z.k === 'hca' ? 0xF5C518 : z.k === 'cp' ? 0xE5484D : 0x8A97A0, op = z.k === 'river' ? .55 : .18;
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(len, z.k === 'river' ? 40 : 26), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: op, side: THREE.DoubleSide, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.position.set(mid.x, -9.4, mid.z); scene.add(m);
+    if (z.k === 'hca') range(7).forEach(i => { const hb = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2 + (i % 3), 2.4), new THREE.MeshPhongMaterial({ color: 0xE9E2CF })); hb.position.set(mid.x - 6 + (i % 4) * 4, -9.5 + (2 + (i % 3)) / 2, mid.z + 10 + Math.floor(i / 4) * 5); scene.add(hb); }); });
+  range(13).forEach(i => { const km = i * 2, p = at(km), inCp = km >= 18 && km <= 21, post = new THREE.Mesh(new THREE.CylinderGeometry(.3, .3, 3.2, 8), new THREE.MeshPhongMaterial({ color: inCp ? 0xE5484D : 0xF5C518 })); post.position.set(p.x, -9.5 + 1.6, p.z + 5); scene.add(post); });
+  const markers = DEF.map(d => { const u = d.km / KM, i = Math.round(u * SEG), P = curve.getPointAt(i / SEG), N = tube.normals[i], B = tube.binormals[i], v = d.clock / 12 * Math.PI * 2, nx = -Math.cos(v), ny = Math.sin(v);
+    const n = new THREE.Vector3().addScaledVector(N, nx).addScaledVector(B, ny).normalize(), pos = P.clone().addScaledVector(n, R + .25), size = ML(d) ? .45 + d.d / 80 : .6;
+    const m = new THREE.Mesh(new THREE.SphereGeometry(size, 14, 14), new THREE.MeshBasicMaterial({ color: TYPES[d.type][1], transparent: true, opacity: 1 })); m.position.copy(pos); m.scale.setScalar(.001); m.userData.d = d; m.userData.born = -1; scene.add(m);
+    const st = new THREE.Line(new THREE.BufferGeometry().setFromPoints([pos, pos.clone().addScaledVector(n, 1.4)]), new THREE.LineBasicMaterial({ color: TYPES[d.type][1], transparent: true, opacity: 0 })); scene.add(st); m.userData.stalk = st; return m; });
+  const halo = new THREE.Mesh(new THREE.TorusGeometry(1.2, .12, 8, 32), new THREE.MeshBasicMaterial({ color: 0xffffff })); scene.add(halo);
+  const pig = new THREE.Group(), body = new THREE.Mesh(new THREE.CylinderGeometry(1.35, 1.35, 3.2, 20), new THREE.MeshPhongMaterial({ color: 0xF5C518, emissive: 0x3A2E00 }));
+  const cup1 = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, .35, 24), new THREE.MeshPhongMaterial({ color: 0x161D22 })); cup1.position.y = 1.4; const cup2 = cup1.clone(); cup2.position.y = -1.4;
+  const ringS = new THREE.Mesh(new THREE.TorusGeometry(1.7, .08, 8, 40), new THREE.MeshBasicMaterial({ color: 0x5FD3E8, transparent: true, opacity: .9 })); ringS.rotation.x = Math.PI / 2;
+  pig.add(body, cup1, cup2, ringS); scene.add(pig); const pglow = new THREE.PointLight(0xF5C518, 1.4, 22); pig.add(pglow);
+  /* labels */
+  const labs = ZONES.map(z => { const e = document.createElement('div'); e.className = 'lab3 ' + z.k; e.textContent = z.n; host.appendChild(e); return { e, p: (() => { const q = at((z.a + z.b) / 2); return new THREE.Vector3(q.x, -7.5, q.z + (z.k === 'hca' ? 18 : 11)); })() }; });
+  ['km 0', 'km 24'].forEach((t, i) => { const e = document.createElement('div'); e.className = 'lab3'; e.textContent = t; host.appendChild(e); const q = at(i * KM); labs.push({ e, p: new THREE.Vector3(q.x, q.y + 5, q.z) }); });
+  /* orbit */
+  const baseRad = () => 96 * Math.max(1, 1.7 / (w / h) * .9); let th = 1.2, ph = 1.05, rad = baseRad(), tgt = new THREE.Vector3(0, -2, 0), drag = null, moved = 0;
+  host.addEventListener('pointerdown', e => { if (e.target.closest('.hud')) return; drag = { x: e.clientX, y: e.clientY }; moved = 0; host.setPointerCapture(e.pointerId); });
+  host.addEventListener('pointermove', e => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; moved += Math.abs(dx) + Math.abs(dy); th -= dx * .006; ph = clamp(ph - dy * .005, .25, 1.5); drag = { x: e.clientX, y: e.clientY }; W3.dirty = true; });
+  host.addEventListener('pointerup', e => { if (drag && moved < 6) pick(e); drag = null; });
+  host.addEventListener('wheel', e => { e.preventDefault(); rad = clamp(rad * (1 + Math.sign(e.deltaY) * .08), 18, 190); W3.dirty = true; }, { passive: false });
+  const ray = new THREE.Raycaster(), mv = new THREE.Vector2();
+  function pick(e){ const r = renderer.domElement.getBoundingClientRect(); mv.x = (e.clientX - r.left) / r.width * 2 - 1; mv.y = -(e.clientY - r.top) / r.height * 2 + 1; ray.setFromCamera(mv, cam);
+    const hit = ray.intersectObjects(markers.filter(m => m.visible && m.userData.d.det)); if (hit.length) select(hit[0].object.userData.d, '3d'); }
+  host.addEventListener('mousemove', e => { if (drag) return; const r = renderer.domElement.getBoundingClientRect(); mv.x = (e.clientX - r.left) / r.width * 2 - 1; mv.y = -(e.clientY - r.top) / r.height * 2 + 1; ray.setFromCamera(mv, cam);
+    const hit = ray.intersectObjects(markers.filter(m => m.visible && m.userData.d.det)); if (hit.length){ const d = hit[0].object.userData.d; host.style.cursor = 'pointer'; showTip(`<div class="t">${d.id} · ${TYPES[d.type][0]}</div>km ${d.km.toFixed(2)} · ${fmtClock(d.clock)} o'clock<br>${d.type === 'DENT' ? d.d + '% OD' : '<b>' + d.d + '%</b> wall'} · ${d.L} mm long`, e); } else { host.style.cursor = ''; hideTip(); } });
+  host.addEventListener('mouseleave', hideTip);
+  function resize(){ w = host.clientWidth; h = host.clientHeight; renderer.setSize(w, h); if (!PIG.follow) rad = baseRad(); cam.aspect = w / h; cam.updateProjectionMatrix(); W3.dirty = true; }
+  window.addEventListener('resize', resize);
+  let vis = false, last = performance.now(); if (io) new IntersectionObserver(es => { vis = es[0].isIntersecting; }, { threshold: .02 }).observe(host); else vis = true;
+  function frame(now){ requestAnimationFrame(frame); const dt = Math.min(.05, (now - last) / 1000); last = now; if (!vis) return;
+    if (PIG.play && !PIG.done){ PIG.p = Math.min(1, PIG.p + dt / RUN_S * PIG.speed); if (PIG.p >= 1){ PIG.done = true; onRunDone(); } }
+    const u = clamp(PIG.p, .0005, .9995), pp = curve.getPointAt(u), tg = curve.getTangentAt(u); pig.position.copy(pp); pig.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), tg); ringS.scale.setScalar(1 + .25 * Math.sin(now / 120));
+    markers.forEach(m => { const d = m.userData.d; if (!d.det && d.km / KM <= PIG.p){ d.det = true; m.userData.born = now; onDetect(d); }
+      const age = m.userData.born < 0 ? -1 : (now - m.userData.born) / 450, s = age < 0 ? .001 : age < 1 ? 1 + .9 * Math.sin(age * Math.PI) : 1, on = visible(d);
+      m.scale.setScalar(d.det ? s : .001); m.material.opacity = on ? 1 : .08; m.userData.stalk.material.opacity = d.det && on ? .7 : 0; });
+    if (SEL){ const m = markers[SEL.i]; halo.visible = SEL.det; halo.position.copy(m.position); halo.lookAt(cam.position); halo.scale.setScalar(1 + .15 * Math.sin(now / 200)); }
+    if (PIG.follow){ tgt.lerp(pp, .1); rad += (26 - rad) * .06; W3.f = true; } else { tgt.lerp(new THREE.Vector3(0, -2, 0), .05); if (W3.f){ rad += (baseRad() - rad) * .06; if (Math.abs(baseRad() - rad) < 1) W3.f = false; } }
+    cam.position.set(tgt.x + rad * Math.sin(ph) * Math.cos(th), tgt.y + rad * Math.cos(ph), tgt.z + rad * Math.sin(ph) * Math.sin(th)); cam.lookAt(tgt);
+    renderer.render(scene, cam);
+    labs.forEach(l => { const v = l.p.clone().project(cam); const show = v.z < 1 && Math.abs(v.x) < 1.05 && Math.abs(v.y) < 1.05; l.e.style.display = show ? '' : 'none'; if (show){ l.e.style.left = (v.x + 1) / 2 * w + 'px'; l.e.style.top = (1 - v.y) / 2 * h + 'px'; } });
+    $('progBar').style.width = PIG.p * 100 + '%'; if ((now | 0) % 3 === 0) hud(); }
+  requestAnimationFrame(frame); Object.assign(W3, { markers, renderer });
+}
+function hud(){ const det = DEF.filter(d => d.det), rep = det.filter(d => ['rep','cut'].includes(assess(d).st)).length; $('hud2').innerHTML = `km <b>${(PIG.p * KM).toFixed(1)}</b> / ${KM}<br>${det.length} anomalies · <span style="color:#FF8A8D">${rep} need repair</span>`; }
+const feedQ = [];
+function onDetect(d){ feedQ.unshift(d); if (feedQ.length > 5) feedQ.pop(); renderFeed(); if (wm) wm.update(); if (d === SEL || (!SEL.det && d.det)) renderDD(); }
+function onRunDone(){ $('pPlay').textContent = '▶ Play'; toast(`Run complete · ${DEF.length} anomalies, ${DEF.filter(d => ['rep','cut'].includes(assess(d).st)).length} need repair`); renderDD(); }
+function renderFeed(){ $('feed').innerHTML = feedQ.map((d, k) => { const a = assess(d); return `<div class="fi${k === 0 && !PIG.done ? ' new' : ''}" data-i="${d.i}"><i style="background:${TYPES[d.type][1]}"></i><span><b>${d.id}</b> · ${TYPES[d.type][0]} · km ${d.km.toFixed(2)}</span><span class="st ${a.st}">${d.type === 'DENT' ? d.d + '% OD' : d.d + '%'}</span></div>`; }).join('') || '<p class="note">Waiting for the pig…</p>'; }
+$('feed').addEventListener('click', e => { const f = e.target.closest('[data-i]'); if (f) select(DEF[+f.dataset.i], 'feed'); });
+function renderDD(){ const d = SEL; if (!d) return; if (!d.det){ $('dd').innerHTML = `<h4 class="lbl">Selected defect</h4><p class="note">${d.id} has not been reached yet. Click any detected defect in the 3D view, the feed or the wall map.</p>`; return; }
+  const a = assess(d), l = life(d), r = a.r;
+  $('dd').innerHTML = `<h4 class="lbl">Selected defect</h4><h5>${d.id} <span class="st ${a.st}">${a.txt}</span></h5>
+    <div class="kv"><span>Type</span><b style="color:${TYPES[d.type][1]}">${TYPES[d.type][0]}</b><span>Location</span><b>km ${d.km.toFixed(3)} · ${fmtClock(d.clock)} o'clock</b><span>Context</span><b>${d.zone ? esc(d.zone.n) : 'Open field (class 1)'}</b>
+    <span>Depth</span><b>${d.type === 'DENT' ? d.d + '% of OD' : `${d.d}% wall (${(d.d / 100 * PIPE.t).toFixed(2)} mm)`}</b><span>Size</span><b>${d.L} × ${d.w} mm</b>
+    ${r ? `<span>Safe pressure</span><b>${r.Ps.toFixed(1)} bar · ERF ${r.erf.toFixed(2)}</b><span>Growth</span><b>${d.d21}% → ${d.d}% since 2021 (${d.rate}%/yr)</b><span>Remaining life</span><b style="color:${l < 3 ? 'var(--bad)' : 'inherit'}">${l === 0 ? 'Now' : l > 30 ? '> 30 years' : l + ' years'}</b>` : ''}</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">${ML(d) ? '<button class="btn sm go" id="toLab" type="button">Assess in lab →</button>' : ''}<button class="btn sm" id="toBrief" type="button">✦ Dig brief →</button></div>`;
+  const tl = $('toLab'); if (tl) tl.addEventListener('click', () => { $('labModule').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); });
+  $('toBrief').addEventListener('click', () => { $('copModule').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); setTimeout(() => $('cBrief').click(), reduce ? 0 : 600); }); }
+$('pPlay').addEventListener('click', () => { if (PIG.done){ resetRun(); return; } PIG.play = !PIG.play; $('pPlay').textContent = PIG.play ? '❚❚ Pause' : '▶ Play'; });
+$('pSpeed').addEventListener('click', () => { PIG.speed = PIG.speed === 1 ? 4 : PIG.speed === 4 ? 10 : 1; $('pSpeed').textContent = PIG.speed + '×'; });
+$('pFollow').addEventListener('click', () => { PIG.follow = !PIG.follow; $('pFollow').classList.toggle('on', PIG.follow); });
+function resetRun(){ PIG.p = 0; PIG.done = false; PIG.play = true; DEF.forEach(d => d.det = false); feedQ.length = 0; renderFeed(); renderDD(); if (wm) wm.update(); $('pPlay').textContent = '❚❚ Pause'; }
+$('pReset').addEventListener('click', resetRun);
+
+/* wall map */
+let wm = null;
+function buildMap(){
+  const w = 1000, h = 330, m = { l: 46, r: 12 }, s = d3.select('#wmap').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Unrolled wall map of the pipeline with elevation profile');
+  const x = d3.scaleLinear().domain([0, KM]).range([m.l, w - m.r]), ye = d3.scaleLinear().domain([180, 240]).range([84, 18]), yc = d3.scaleLinear().domain([0, 12]).range([104, 300]);
+  ZONES.forEach(z => { s.append('rect').attr('x', x(z.a)).attr('width', x(z.b) - x(z.a)).attr('y', 12).attr('height', 288).attr('fill', z.k === 'river' ? '#2F86C9' : z.k === 'hca' ? '#F5C518' : z.k === 'cp' ? '#E5484D' : '#8A97A0').attr('opacity', .09);
+    s.append('text').attr('x', (x(z.a) + x(z.b)) / 2).attr('y', 11).attr('text-anchor','middle').attr('font-size', 10).attr('font-weight', 700).attr('fill', '#5D6A72').text(z.n); });
+  const E = range(97).map(i => [i / 4, elev(i / 4)]);
+  s.append('path').attr('d', d3.area().x(d => x(d[0])).y0(88).y1(d => ye(d[1])).curve(d3.curveMonotoneX)(E)).attr('fill', '#DDE4E7');
+  s.append('path').attr('d', d3.line().x(d => x(d[0])).y(d => ye(d[1])).curve(d3.curveMonotoneX)(E)).attr('fill','none').attr('stroke','#5D6A72').attr('stroke-width', 1.4);
+  s.append('text').attr('x', 4).attr('y', 50).attr('font-size', 10).attr('fill', '#5D6A72').text('elev. m');
+  s.append('rect').attr('x', m.l).attr('y', 104).attr('width', w - m.l - m.r).attr('height', 196).attr('fill', '#F4F7F8').attr('stroke', '#DDE4E7');
+  [0, 3, 6, 9, 12].forEach(c => { s.append('line').attr('x1', m.l).attr('x2', w - m.r).attr('y1', yc(c)).attr('y2', yc(c)).attr('stroke', '#DDE4E7').attr('stroke-dasharray','3 3'); s.append('text').attr('x', m.l - 6).attr('y', yc(c) + 4).attr('text-anchor','end').attr('font-size', 10).attr('fill','#5D6A72').text((c || 12) + ':00'); });
+  s.append('text').attr('x', 4).attr('y', yc(6) - 14).attr('font-size', 9.5).attr('fill','#5D6A72').text('bottom');
+  s.append('g').attr('class','axis').attr('transform', `translate(0,302)`).call(d3.axisBottom(x).ticks(12).tickFormat(v => 'km ' + v).tickSize(0).tickPadding(8));
+  const pigL = s.append('line').attr('y1', 14).attr('y2', 300).attr('stroke', '#F5C518').attr('stroke-width', 3), gD = s.append('g'), selR = s.append('circle').attr('fill','none').attr('stroke','#161D22').attr('stroke-width', 2.4).attr('r', 11);
+  const sym = { EML: d3.symbolCircle, IML: d3.symbolCircle, DENT: d3.symbolTriangle, GWA: d3.symbolDiamond, MFG: d3.symbolSquare };
+  function update(){ pigL.attr('x1', x(PIG.p * KM)).attr('x2', x(PIG.p * KM));
+    gD.selectAll('path').data(DEF.filter(d => d.det), d => d.i).join(en => en.append('path').attr('transform', d => `translate(${x(d.km)},${yc(d.clock)}) scale(0)`).call(e => e.transition().duration(DUR).attr('transform', d => `translate(${x(d.km)},${yc(d.clock)}) scale(1)`)))
+      .attr('d', d => d3.symbol().type(sym[d.type]).size(ML(d) ? 30 + d.d * 5 : 90)()).attr('fill', d => TYPES[d.type][1]).attr('stroke', d => ['rep','cut'].includes(assess(d).st) ? '#161D22' : '#fff').attr('stroke-width', d => ['rep','cut'].includes(assess(d).st) ? 1.6 : 1)
+      .attr('opacity', d => visible(d) ? .92 : .08).style('cursor','pointer').on('click', (ev, d) => select(d, 'map'))
+      .on('mousemove', (ev, d) => { const a = assess(d); showTip(`<div class="t">${d.id} · ${TYPES[d.type][0]}</div>km ${d.km.toFixed(2)} · ${fmtClock(d.clock)} · ${d.type === 'DENT' ? d.d + '% OD' : '<b>' + d.d + '%</b> wall'}<br>${a.txt}${a.r ? ' · ERF ' + a.r.erf.toFixed(2) : ''}`, ev); }).on('mouseleave', hideTip);
+    selR.attr('opacity', SEL && SEL.det ? 1 : 0).attr('cx', SEL ? x(SEL.km) : -50).attr('cy', SEL ? yc(SEL.clock) : -50); }
+  update(); wm = { update }; setInterval(() => { if (!PIG.done && PIG.play) update(); }, 350);
+}
+$('typeChips').innerHTML = Object.entries(TYPES).map(([k, v]) => `<button type="button" class="chipb" data-ty="${k}"><i style="background:${v[1]}"></i>${v[0]}</button>`).join('');
+$('typeChips').addEventListener('click', e => { const b = e.target.closest('[data-ty]'); if (!b) return; TON[b.dataset.ty] = !TON[b.dataset.ty]; b.classList.toggle('off', !TON[b.dataset.ty]); if (wm) wm.update(); });
+selectHooks.push(() => { renderDD(); if (wm) wm.update(); });
+
+/* ======================================================================
+   LIVE GENAI · key + helper
+   ====================================================================== */
+let KEY = '', MODEL = 'gpt-4o-mini';
+try { const k = localStorage.getItem('hmc_bp_key'), mo = localStorage.getItem('hmc_bp_model'); if (k){ KEY = k; $('apiKey').value = k; $('remember').checked = true; } if (mo){ MODEL = mo; $('model').value = mo; } } catch (e){}
+function setMode(){ document.querySelectorAll('.aipill').forEach(el => { el.className = 'pill2 aipill ' + (KEY ? 'on' : 'off'); el.innerHTML = `<i></i>${KEY ? 'Live · ' + esc(MODEL) : 'Templates'}`; }); }
+$('keySave').addEventListener('click', async () => { const k = $('apiKey').value.trim(), mo = $('model').value.trim() || 'gpt-4o-mini';
+  if (!/^sk-/.test(k)){ $('keyMsg').innerHTML = '<span style="color:var(--bad)">That does not look like an OpenAI key (it should start with "sk-").</span>'; return; }
+  $('keyMsg').textContent = 'Checking the key…';
+  try { const r = await fetch('https://api.openai.com/v1/models', { headers: { Authorization: 'Bearer ' + k } }); if (r.status === 401) throw new Error('OpenAI rejected this key (401).'); if (!r.ok) throw new Error('OpenAI returned ' + r.status + '.');
+    KEY = k; MODEL = mo; try { if ($('remember').checked){ localStorage.setItem('hmc_bp_key', k); localStorage.setItem('hmc_bp_model', mo); } else { localStorage.removeItem('hmc_bp_key'); localStorage.removeItem('hmc_bp_model'); } } catch (e){}
+    setMode(); $('keyMsg').innerHTML = `<b style="color:var(--good)">Connected.</b> All ✦ buttons now use ${esc(mo)}.`; toast('Live GenAI connected'); }
+  catch (err){ $('keyMsg').innerHTML = `<span style="color:var(--bad)">${esc(err.message || 'Could not reach OpenAI from this browser.')}</span>`; } });
+$('keyClear').addEventListener('click', () => { KEY = ''; $('apiKey').value = ''; try { localStorage.removeItem('hmc_bp_key'); } catch (e){} setMode(); $('keyMsg').textContent = 'Disconnected. The ✦ buttons are back on templates.'; });
+$('model').addEventListener('change', () => { MODEL = $('model').value.trim() || 'gpt-4o-mini'; setMode(); });
+async function openai(messages, { json = false, onDelta } = {}){
+  const body = { model: MODEL, messages, temperature: .3 }; if (json) body.response_format = { type:'json_object' }; if (onDelta) body.stream = true;
+  const r = await fetch('https://api.openai.com/v1/chat/completions', { method:'POST', headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + KEY }, body: JSON.stringify(body) });
+  if (!r.ok){ let msg = 'OpenAI error ' + r.status; try { const j = await r.json(); if (j.error && j.error.message) msg += ': ' + j.error.message; } catch (e){} throw new Error(msg); }
+  if (!onDelta){ const j = await r.json(); return j.choices[0].message.content; }
+  const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '', full = '';
+  for (;;){ const { value, done } = await rd.read(); if (done) break; buf += dec.decode(value, { stream: true }); const parts = buf.split('\n'); buf = parts.pop();
+    for (const ln of parts){ const s2 = ln.trim(); if (!s2.startsWith('data:')) continue; const dd = s2.slice(5).trim(); if (dd === '[DONE]') continue; try { const j = JSON.parse(dd), t = j.choices && j.choices[0].delta && j.choices[0].delta.content; if (t){ full += t; onDelta(full); } } catch (e){} } }
+  return full; }
+function busy(btn, on, label){ if (on){ btn.dataset.l = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<span class="spark">✦</span> ' + label; } else { btn.disabled = false; if (btn.dataset.l) btn.innerHTML = btn.dataset.l; } }
+function fail(err){ toast('Live AI unavailable (' + String(err && err.message || err).slice(0, 60) + '). Using templates.'); }
+
+/* ask the run */
+const ASKP = ['Internal corrosion at the bottom of the line near the river','External metal loss over 40% in the CP low zone','Defects inside the village or at the river crossing','Defects that will need repair before 2029'];
+function parseAsk(q){ const t = q.toLowerCase(), f = { title: q, types: [], min_depth: null, max_depth: null, zones: [], clock: null, status: [], max_years: null, km_from: null, km_to: null };
+  if (/internal/.test(t)) f.types.push('IML'); if (/external/.test(t)) f.types.push('EML'); if (/\bdents?\b/.test(t)) f.types.push('DENT'); if (/weld/.test(t)) f.types.push('GWA'); if (/lamination|mill|manufactur/.test(t)) f.types.push('MFG'); if (/metal loss|corrosion/.test(t) && !f.types.length) f.types.push('EML','IML');
+  const dm = t.match(/(over|above|deeper than|more than|>)\s*(\d+)\s*%/); if (dm) f.min_depth = +dm[2]; const dm2 = t.match(/(under|below|less than|<)\s*(\d+)\s*%/); if (dm2) f.max_depth = +dm2[2];
+  if (/river/.test(t)) f.zones.push('river'); if (/village|hca|town|populat/.test(t)) f.zones.push('hca'); if (/road|highway/.test(t)) f.zones.push('road'); if (/\bcp\b|cathodic/.test(t)) f.zones.push('cp');
+  if (/bottom/.test(t)) f.clock = 'bottom'; if (/\btop\b/.test(t)) f.clock = 'top';
+  if (/repair|dig|excavat/.test(t)) f.status.push('rep','cut'); if (/cut[- ]?out/.test(t)) f.status = ['cut']; if (/monitor/.test(t)) f.status.push('mon');
+  const by = t.match(/before (20\d\d)/) || t.match(/by (20\d\d)/); if (by){ f.max_years = +by[1] - 2026; f.status = []; } const wy = t.match(/within (\d+) years?/); if (wy){ f.max_years = +wy[1]; f.status = []; }
+  const kr = t.match(/between km\s*([\d.]+)\s*(?:and|-|to)\s*(?:km\s*)?([\d.]+)/); if (kr){ f.km_from = +kr[1]; f.km_to = +kr[2]; }
+  const any = f.types.length || f.min_depth != null || f.max_depth != null || f.zones.length || f.clock || f.status.length || f.max_years != null || f.km_from != null; return any ? f : null; }
+function cleanSpec(j, q){ const arr = (v, ok) => Array.isArray(v) ? v.filter(x => ok.includes(x)) : [], num = v => typeof v === 'number' && isFinite(v) ? v : null;
+  return { title: typeof j.title === 'string' && j.title ? j.title.slice(0, 90) : q, types: arr(j.types, Object.keys(TYPES)), min_depth: num(j.min_depth), max_depth: num(j.max_depth), zones: arr(j.zones, ['river','hca','road','cp']), clock: ['top','bottom'].includes(j.clock) ? j.clock : null, status: arr(j.status, ['ok','mon','rep','cut','ver']), max_years: num(j.max_years), km_from: num(j.km_from), km_to: num(j.km_to) }; }
+function matchF(d, f){ const a = assess(d);
+  if (f.types.length && !f.types.includes(d.type)) return false; if (f.min_depth != null && (d.type === 'DENT' || d.d < f.min_depth)) return false; if (f.max_depth != null && d.d > f.max_depth) return false;
+  if (f.zones.length && !(d.zone && f.zones.includes(d.zone.k))) return false; if (f.clock === 'bottom' && !(d.clock >= 4 && d.clock <= 8)) return false; if (f.clock === 'top' && !(d.clock >= 10 || d.clock <= 2)) return false;
+  if (f.status.length && !f.status.includes(a.st)) return false; if (f.max_years != null && !(life(d) <= f.max_years)) return false;
+  if (f.km_from != null && d.km < f.km_from) return false; if (f.km_to != null && d.km > f.km_to) return false; return true; }
+function renderAsk(){ const box = $('askRes'); if (!FILTER){ box.style.display = 'none'; return; } const L = DEF.filter(d => FILTER.ids.has(d.i)).sort((a, b) => b.d - a.d), rep = L.filter(d => ['rep','cut'].includes(assess(d).st)).length;
+  const bottom = L.filter(d => d.clock >= 4 && d.clock <= 8).length, ints = L.filter(d => d.type === 'IML').length, cpz = L.filter(d => d.zone && d.zone.k === 'cp').length;
+  const ins = !L.length ? 'No defects match. Try fewer conditions.' : ints && bottom >= L.length * .6 ? 'Clustered at the bottom of the line at low points: consistent with water and sediment drop-out. Review pigging frequency and inhibitor dosing.' : cpz >= L.length * .5 ? 'Concentrated where cathodic protection readings are low: check rectifier output, coating disbondment and CP shielding.' : `Deepest is ${L[0].id} at km ${L[0].km.toFixed(2)} (${L[0].type === 'DENT' ? L[0].d + '% OD' : L[0].d + '% wall'}).`;
+  box.style.display = ''; box.innerHTML = `<div class="h"><b>✦ ${esc(FILTER.title)}</b><span style="display:flex;gap:6px;align-items:center"><span class="pill2 ${FILTER.src === 'live' ? 'on' : 'off'}"><i></i>${FILTER.src === 'live' ? 'Read by ' + esc(MODEL) : 'Template parser'}</span><button class="chipb" id="askClr" type="button">✕ Clear</button></span></div>
+    <div class="nums"><div><b>${L.length}</b>defects match</div><div><b>${L.some(d => d.type !== 'DENT') ? Math.max(...L.filter(d => d.type !== 'DENT').map(d => d.d)) + '%' : '–'}</b>deepest wall loss</div><div><b>${rep}</b>need repair</div><div><b>${L.length ? (v => v === 0 ? 'now' : v > 30 ? '>30' : v.toFixed(1))(Math.min(...L.map(life))) : '–'}</b>shortest life (yrs)</div></div><p>${ins}</p>`;
+  $('askClr').addEventListener('click', () => { FILTER = null; $('askI').value = ''; document.querySelectorAll('#askChips .chipb').forEach(c => c.classList.remove('on')); renderAsk(); if (wm) wm.update(); }); }
+async function ask(q){ q = (q || '').trim(); if (!q) return; let f = null; const btn = $('askGo');
+  if (KEY){ busy(btn, true, 'Reading…'); try { const out = await openai([{ role:'system', content:'Convert a question about a pipeline inline-inspection run into a JSON filter. Return only JSON with keys: title (short restatement), types (subset of ["EML","IML","DENT","GWA","MFG"]: external metal loss, internal metal loss, dent, girth weld anomaly, lamination), min_depth and max_depth (% of wall), zones (subset of ["river","hca","road","cp"]: river crossing, village/high consequence area, road crossing, cathodic protection low zone), clock ("top", "bottom" or null), status (subset of ["ok","mon","rep","cut","ver"]: acceptable, monitor, repair, cut-out, verify), max_years (remaining life in years from 2026, or null), km_from, km_to. Use [] or null when not mentioned.' }, { role:'user', content: q }], { json: true }); f = cleanSpec(JSON.parse(out), q); f.src = 'live'; } catch (err){ fail(err); } finally { busy(btn, false); } }
+  if (!f){ f = parseAsk(q); if (f) f.src = 'tpl'; }
+  if (!f){ toast(KEY ? 'Could not read that question. Try rephrasing.' : 'Try a suggested question, or add your OpenAI key to ask anything.'); return; }
+  if (!PIG.done){ PIG.p = 1; PIG.done = true; DEF.forEach(d => d.det = true); onRunDone(); feedQ.length = 0; renderFeed(); }
+  f.ids = new Set(DEF.filter(d => matchF(d, f)).map(d => d.i)); FILTER = f; const top = DEF.filter(d => f.ids.has(d.i)).sort((a, b) => b.d - a.d)[0]; if (top) select(top, 'ask'); renderAsk(); if (wm) wm.update(); }
+$('askChips').innerHTML = ASKP.map((q, i) => `<button type="button" class="chipb pre" data-q="${i}">${esc(q)}</button>`).join('');
+$('askChips').addEventListener('click', e => { const b = e.target.closest('[data-q]'); if (!b) return; document.querySelectorAll('#askChips .chipb').forEach(c => c.classList.toggle('on', c === b)); $('askI').value = ASKP[+b.dataset.q]; ask(ASKP[+b.dataset.q]); });
+$('askGo').addEventListener('click', () => ask($('askI').value)); $('askI').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); ask($('askI').value); } });
+
+/* ======================================================================
+   02 · ASSESSMENT LAB
+   ====================================================================== */
+let LD = SEL && ML(SEL) ? SEL : DEF.find(ML), labD = LD.d, labL = LD.L, labF = DF(LD), accSvg = null, xsSvg = null;
+function fillDefSel(sel, pred){ document.querySelector(sel).innerHTML = DEF.filter(pred).sort((a, b) => b.d - a.d).map(d => `<option value="${d.i}">${d.id} · ${TYPES[d.type][0]} · ${d.type === 'DENT' ? d.d + '% OD' : d.d + '%'} · km ${d.km.toFixed(2)}</option>`).join(''); }
+function setLab(d){ LD = d; labD = d.d; labL = d.L; labF = DF(d); $('lDef').value = d.i; $('lD').value = labD; $('lL').value = labL; $('lF').value = String(labF); renderLab(true); }
+function renderLab(anim){
+  const r = b31g(labD, labL, PIPE, labF, MAOP), st = labD >= 80 ? 'cut' : r.erf > 1 ? 'rep' : r.erf > .85 ? 'mon' : 'ok', txt = { cut:'Cut-out', rep:'Repair', mon:'Monitor', ok:'Acceptable' }[st];
+  $('lDv').textContent = labD + '% · ' + (labD / 100 * PIPE.t).toFixed(2) + ' mm'; $('lLv').textContent = labL + ' mm'; $('lMv').textContent = MAOP + ' bar';
+  $('verdict').innerHTML = `<span class="big" style="color:${SC[st]}">${r.erf.toFixed(2)}</span><div><div style="font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:800">Estimated repair factor (MAOP ÷ safe pressure)</div><span class="st ${st}" style="font-size:.72rem">${txt}</span> ${st === 'rep' ? '<span class="note" style="display:inline">· Type B sleeve or composite repair</span>' : st === 'cut' ? '<span class="note" style="display:inline">· replace the pipe spool</span>' : st === 'mon' ? '<span class="note" style="display:inline">· re-inspect at next run</span>' : ''}</div>`;
+  const mx = Math.max(r.P0, MAOP) * 1.05, bars = [['Intact pipe', r.P0, '#9FB2BA'], ['Failure pressure', r.Pf, '#3FB3C9'], ['Safe pressure', r.Ps, SC[st] === '#2B1012' ? '#E5484D' : SC[st]], ['MAOP', MAOP, '#161D22']];
+  $('pbars').innerHTML = bars.map(b => `<div class="pbar"><span>${b[0]}</span><div class="b"><i style="width:${b[1] / mx * 100}%;background:${b[2]}"></i></div><b>${b[1].toFixed(0)} bar</b></div>`).join('');
+  $('calc').innerHTML = `Modified B31G (0.85 dL)\nD = ${PIPE.D} mm   t = ${PIPE.t} mm   SMYS = ${PIPE.smys} MPa (${PIPE.g})\nd = ${(labD / 100 * PIPE.t).toFixed(2)} mm   L = ${labL} mm\nz = L²/(D·t) = <b>${r.z.toFixed(2)}</b>\nM = ${r.z <= 50 ? '√(1 + 0.6275z − 0.003375z²)' : '0.032z + 3.3'} = <b>${r.M.toFixed(3)}</b>\nS_flow = SMYS + 69 = ${r.Sfl} MPa\nS_f = S_flow·(1 − 0.85d/t)/(1 − 0.85d/t/M) = <b>${r.Sf.toFixed(0)} MPa</b>\nP_f = 2·S_f·t/D = <b>${r.Pf.toFixed(1)} bar</b>\nP_safe = P_f × F(${labF}) = <b>${r.Ps.toFixed(1)} bar</b>   ERF = <b>${r.erf.toFixed(2)}</b>`;
+  if (!hasD3) return;
+  /* acceptance chart */
+  const w = 560, h = 380, m = { t: 16, r: 18, b: 42, l: 50 };
+  if (!accSvg){ accSvg = d3.select('#acc').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Acceptance curve of defect depth against length'); ['g1','ar','cu','dt','me'].forEach(c => accSvg.append('g').attr('class', c)); }
+  const x = d3.scaleLinear().domain([0, 500]).range([m.l, w - m.r]), y = d3.scaleLinear().domain([0, 90]).range([h - m.b, m.t]);
+  const g1 = accSvg.select('g.g1'); g1.selectAll('*').remove();
+  g1.append('g').attr('class','grid').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(6).tickSize(-(w - m.l - m.r)).tickFormat(''));
+  g1.append('g').attr('class','axis').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(6).tickFormat(v => v + '%').tickSize(0).tickPadding(6));
+  g1.append('g').attr('class','axis').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(6).tickFormat(v => v + ' mm').tickSize(0).tickPadding(8));
+  g1.append('text').attr('x', (m.l + w - m.r) / 2).attr('y', h - 6).attr('text-anchor','middle').attr('font-size', 11).attr('fill','#5D6A72').text('Axial length of defect');
+  g1.append('text').attr('transform', `translate(13,${(m.t + h - m.b) / 2}) rotate(-90)`).attr('text-anchor','middle').attr('font-size', 11).attr('fill','#5D6A72').text('Depth, % of wall');
+  const crit = (L, target) => { let lo = 1, hi = 85; for (let k = 0; k < 30; k++){ const mid = (lo + hi) / 2; if (b31g(mid, L, PIPE, labF, MAOP).erf * target > 1) hi = mid; else lo = mid; } return lo; };
+  const Ls = range(50).map(i => 10 + i * 10), C1 = Ls.map(L => [L, Math.min(80, crit(L, 1))]), C2 = Ls.map(L => [L, Math.min(80, crit(L, 1 / .85))]);
+  const ar = accSvg.select('g.ar'); ar.selectAll('*').remove();
+  ar.append('path').attr('d', d3.area().x(d => x(d[0])).y0(y(0)).y1(d => y(d[1])).curve(d3.curveMonotoneX)(C2)).attr('fill', '#2E9E5B').attr('opacity', .1);
+  ar.append('path').attr('d', d3.area().x(d => x(d[0])).y0(d => y(C2[Ls.indexOf(d[0])][1])).y1(d => y(d[1])).curve(d3.curveMonotoneX)(C1)).attr('fill', '#F08A3E').attr('opacity', .12);
+  ar.append('path').attr('d', d3.area().x(d => x(d[0])).y0(d => y(d[1])).y1(y(80)).curve(d3.curveMonotoneX)(C1)).attr('fill', '#E5484D').attr('opacity', .1);
+  ar.append('rect').attr('x', m.l).attr('width', w - m.l - m.r).attr('y', y(90)).attr('height', y(80) - y(90)).attr('fill', '#2B1012').attr('opacity', .14);
+  const cu = accSvg.select('g.cu'); cu.selectAll('*').remove();
+  cu.append('path').attr('d', d3.line().x(d => x(d[0])).y(d => y(d[1])).curve(d3.curveMonotoneX)(C1)).attr('fill','none').attr('stroke','#E5484D').attr('stroke-width', 2.4);
+  cu.append('path').attr('d', d3.line().x(d => x(d[0])).y(d => y(d[1])).curve(d3.curveMonotoneX)(C2)).attr('fill','none').attr('stroke','#F08A3E').attr('stroke-width', 1.4).attr('stroke-dasharray','5 4');
+  cu.append('line').attr('x1', m.l).attr('x2', w - m.r).attr('y1', y(80)).attr('y2', y(80)).attr('stroke', '#2B1012').attr('stroke-width', 1.4);
+  cu.append('text').attr('x', w - m.r - 4).attr('y', y(80) - 5).attr('text-anchor','end').attr('font-size', 10.5).attr('font-weight', 700).attr('fill', '#2B1012').text('80% wall · cut-out');
+  cu.append('text').attr('x', x(C1[30][0])).attr('y', y(C1[30][1]) - 8).attr('font-size', 10.5).attr('font-weight', 700).attr('fill', '#E5484D').text(`safe pressure = MAOP ${MAOP} bar`);
+  accSvg.select('g.dt').selectAll('circle').data(DEF.filter(ML), d => d.i).join('circle').attr('r', 4).attr('fill', d => SC[assess(d).st]).attr('opacity', .55).attr('stroke','#fff').style('cursor','pointer')
+    .on('click', (ev, d) => { select(d, 'lab'); }).on('mousemove', (ev, d) => showTip(`<div class="t">${d.id}</div>${d.d}% · ${d.L} mm · ${assess(d).txt}`, ev)).on('mouseleave', hideTip)
+    .transition().duration(anim ? DUR : 0).attr('cx', d => x(d.L)).attr('cy', d => y(d.d));
+  const me = accSvg.select('g.me'); me.selectAll('*').remove();
+  me.append('circle').attr('cx', x(labL)).attr('cy', y(labD)).attr('r', 14).attr('fill', SC[st]).attr('opacity', .18);
+  me.append('circle').attr('cx', x(labL)).attr('cy', y(labD)).attr('r', 8).attr('fill', '#fff').attr('stroke', '#161D22').attr('stroke-width', 2.6);
+  me.append('text').attr('x', x(labL) + 13).attr('y', y(labD) - 10).attr('font-size', 11).attr('font-weight', 800).attr('fill', '#161D22').text(LD && LD.d === labD && LD.L === labL ? LD.id : 'custom');
+  /* cross-section */
+  const xs = 220, cxx = 110, cyy = 104, Ro = 86, ti = 18;
+  if (!xsSvg){ xsSvg = d3.select('#xsec').append('svg').attr('viewBox', `0 0 ${xs} 208`).attr('role','img').attr('aria-label','Pipe cross-section showing the corrosion pit'); xsSvg.append('circle').attr('cx', cxx).attr('cy', cyy).attr('r', Ro).attr('fill', '#9FB2BA'); xsSvg.append('circle').attr('cx', cxx).attr('cy', cyy).attr('r', Ro - ti).attr('fill', '#F7FAFB'); xsSvg.append('path').attr('class','pit').attr('fill', '#F7FAFB'); xsSvg.append('path').attr('class','pitl').attr('fill','none').attr('stroke','#E5484D').attr('stroke-width', 2); xsSvg.append('text').attr('class','pt').attr('font-size', 11).attr('font-weight', 800).attr('fill','#E5484D'); xsSvg.append('text').attr('x', cxx).attr('y', cyy + 4).attr('text-anchor','middle').attr('font-size', 10).attr('fill','#5D6A72').attr('class','ptype'); }
+  const ext = !(LD && LD.type === 'IML'), ang = (LD ? LD.clock : 6) / 12 * Math.PI * 2, span = clamp(.12 + labL / 1600, .12, .45), dep = labD / 100 * ti;
+  const pitP = () => { const pts = range(25).map(k => { const a = ang - span + 2 * span * k / 24, f = Math.pow(Math.sin(Math.PI * k / 24), .8), r = ext ? Ro - dep * f : Ro - ti + dep * f; return [cxx + Math.sin(a) * r, cyy - Math.cos(a) * r]; });
+    const r0 = ext ? Ro + 1 : Ro - ti - 1, a0 = ang + span, a1 = ang - span; return { pts, close: `L${cxx + Math.sin(a0) * r0},${cyy - Math.cos(a0) * r0} A${r0},${r0} 0 0 0 ${cxx + Math.sin(a1) * r0},${cyy - Math.cos(a1) * r0} Z` }; };
+  const pp = pitP(); xsSvg.select('path.pit').transition().duration(anim ? DUR : 0).attr('d', 'M' + pp.pts.join('L') + pp.close).attr('fill', '#F7FAFB');
+  xsSvg.select('path.pitl').transition().duration(anim ? DUR : 0).attr('d', 'M' + pp.pts.join('L'));
+  xsSvg.select('text.pt').attr('x', cxx + Math.sin(ang) * (Ro + 6) - 14).attr('y', cyy - Math.cos(ang) * (Ro + 8)).text(labD + '%');
+  xsSvg.select('text.ptype').text((ext ? 'external' : 'internal') + ' · ' + fmtClock(LD ? LD.clock : 6) + " o'clock");
+}
+fillDefSel('#lDef', ML);
+$('lDef').addEventListener('change', () => select(DEF[+$('lDef').value], 'lab'));
+$('lD').addEventListener('input', e => { labD = +e.target.value; renderLab(false); }); $('lL').addEventListener('input', e => { labL = +e.target.value; renderLab(false); });
+$('lF').addEventListener('change', e => { labF = +e.target.value; renderLab(false); });
+$('lPipe').addEventListener('change', e => { PIPE = Object.assign({}, PIPES[+e.target.value]); renderLab(true); refreshAll(); });
+$('lM').addEventListener('input', e => { MAOP = +e.target.value; renderLab(false); clearTimeout(refreshAll.h); refreshAll.h = setTimeout(refreshAll, 250); });
+selectHooks.push(from => { if (ML(SEL) && from !== 'labslider') setLab(SEL); $('cDef').value = SEL.i; renderRC(); });
+
+/* ======================================================================
+   03 · GROWTH & DIG PLAN
+   ====================================================================== */
+let YEAR = 2026, grSvg = null, RMF = null;
+function renderGrowth(anim){
+  $('yV').textContent = YEAR; const yrs = YEAR - 2026, digsBy = DEF.filter(d => life(d) <= yrs && d.type !== 'MFG' && d.type !== 'GWA').length; $('yDigs').className = 'pill2 ' + (digsBy ? 'on' : 'off'); $('yDigs').innerHTML = `<i></i>${digsBy} digs due by ${YEAR}`;
+  if (!hasD3) return; const w = 760, h = 300, m = { t: 22, r: 14, b: 34, l: 44 };
+  if (!grSvg){ grSvg = d3.select('#growth').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Projected defect depth along the pipeline by year');
+    const x = d3.scaleLinear().domain([0, KM]).range([m.l, w - m.r]), y = d3.scaleLinear().domain([0, 100]).range([h - m.b, m.t]);
+    ZONES.forEach(z => grSvg.append('rect').attr('x', x(z.a)).attr('width', x(z.b) - x(z.a)).attr('y', m.t).attr('height', h - m.t - m.b).attr('fill', z.k === 'river' ? '#2F86C9' : z.k === 'hca' ? '#F5C518' : z.k === 'cp' ? '#E5484D' : '#8A97A0').attr('opacity', .08));
+    grSvg.append('g').attr('class','grid').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickSize(-(w - m.l - m.r)).tickFormat(''));
+    grSvg.append('g').attr('class','axis').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickFormat(v => v + '%').tickSize(0).tickPadding(6));
+    grSvg.append('g').attr('class','axis').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(12).tickFormat(v => 'km ' + v).tickSize(0).tickPadding(8));
+    grSvg.append('line').attr('x1', m.l).attr('x2', w - m.r).attr('y1', y(80)).attr('y2', y(80)).attr('stroke','#2B1012').attr('stroke-dasharray','5 4'); grSvg.append('text').attr('x', w - m.r - 4).attr('y', y(80) - 5).attr('text-anchor','end').attr('font-size', 10.5).attr('font-weight', 700).attr('fill','#2B1012').text('80% wall');
+    grSvg.append('text').attr('x', m.l + 4).attr('y', 14).attr('font-size', 10.5).attr('fill','#5D6A72').text('Projected metal-loss depth (% wall); arrows show growth since 2021');
+    grSvg.append('g').attr('class','tr'); grSvg.append('g').attr('class','pt'); grSvg.x = x; grSvg.y = y; }
+  const x = grSvg.x, y = grSvg.y, D = DEF.filter(ML), dep = d => Math.min(95, d.d + d.rate * yrs), stY = d => assess(d, dep(d)).st;
+  grSvg.select('g.tr').selectAll('line').data(D, d => d.i).join('line').attr('stroke', '#9FB2BA').attr('stroke-width', 1).attr('x1', d => x(d.km)).attr('x2', d => x(d.km)).attr('y1', d => y(d.d21)).transition().duration(anim ? DUR : 0).attr('y2', d => y(dep(d)));
+  grSvg.select('g.pt').selectAll('circle').data(D, d => d.i).join('circle').attr('stroke', d => d === SEL ? '#161D22' : '#fff').attr('stroke-width', d => d === SEL ? 2.5 : 1).style('cursor','pointer')
+    .on('click', (ev, d) => select(d, 'growth')).on('mousemove', (ev, d) => showTip(`<div class="t">${d.id} · ${TYPES[d.type][0]}</div>${YEAR}: <b>${dep(d).toFixed(0)}%</b> wall (${d.rate}%/yr)<br>${assess(d, dep(d)).txt}`, ev)).on('mouseleave', hideTip)
+    .transition().duration(anim ? DUR : 0).attr('cx', d => x(d.km)).attr('cy', d => y(dep(d))).attr('r', d => 3 + Math.sqrt(d.L) / 4).attr('fill', d => SC[stY(d)]);
+  /* dig bars */
+  const bw = 760, bh = 92, bm = { l: 44, r: 14, t: 8, b: 22 }, YS = range(11).map(i => 2026 + i), cnt = YS.map(yy => DEF.filter(d => d.type !== 'MFG' && d.type !== 'GWA' && life(d) <= yy - 2026 && (yy === 2026 || life(d) > yy - 2027)).length);
+  let bs = d3.select('#digBars').select('svg'); if (bs.empty()) bs = d3.select('#digBars').append('svg').attr('viewBox', `0 0 ${bw} ${bh}`).attr('role','img').attr('aria-label','New digs due per year');
+  const bx = d3.scaleBand().domain(YS).range([bm.l, bw - bm.r]).padding(.25), by = d3.scaleLinear().domain([0, Math.max(4, ...cnt)]).range([bh - bm.b, bm.t + 12]);
+  bs.selectAll('rect').data(YS).join('rect').attr('x', yy => bx(yy)).attr('width', bx.bandwidth()).attr('rx', 3).attr('fill', yy => yy === YEAR ? '#0A8FA8' : yy < YEAR ? '#9FB2BA' : '#DDE4E7').transition().duration(anim ? DUR : 0).attr('y', (yy, i) => by(cnt[i])).attr('height', (yy, i) => by(0) - by(cnt[i]));
+  bs.selectAll('text.c').data(YS).join('text').attr('class','c').attr('x', yy => bx(yy) + bx.bandwidth() / 2).attr('text-anchor','middle').attr('font-size', 10).attr('font-weight', 700).attr('fill','#161D22').attr('y', (yy, i) => by(cnt[i]) - 3).text((yy, i) => cnt[i] || '');
+  bs.selectAll('text.y').data(YS).join('text').attr('class','y').attr('x', yy => bx(yy) + bx.bandwidth() / 2).attr('y', bh - 6).attr('text-anchor','middle').attr('font-size', 10).attr('fill','#5D6A72').text(yy => yy);
+  if (!bs.select('text.t').node()) bs.append('text').attr('class','t').attr('x', 4).attr('y', 14).attr('font-size', 10).attr('fill','#5D6A72').text('new digs');
+}
+function renderRM(){ const M = range(5).map(() => range(5).map(() => [])); DEF.forEach(d => { if (d.type === 'MFG') return; M[5 - likeOf(d)][consOf(d) - 1].push(d); });
+  const col = (l, c) => { const s = l * c; return s >= 15 ? '#E5484D' : s >= 8 ? '#F08A3E' : s >= 4 ? '#F5D36B' : '#BFE3C9'; };
+  let html = ''; range(5).forEach(r => { html += `<span>${5 - r}</span>`; range(5).forEach(c => { const n = M[r][c].length, on = RMF && RMF[0] === 5 - r && RMF[1] === c + 1; html += `<div class="${on ? 'on' : ''}" data-l="${5 - r}" data-c="${c + 1}" style="background:${col(5 - r, c + 1)};opacity:${n ? 1 : .35}" title="Likelihood ${5 - r} × consequence ${c + 1}: ${n} defects">${n || ''}</div>`; }); });
+  html += '<span></span>' + range(5).map(c => `<span>${c + 1}</span>`).join(''); $('rm').innerHTML = html;
+  const L = DEF.filter(d => d.type !== 'MFG' && (RMF ? likeOf(d) === RMF[0] && consOf(d) === RMF[1] : life(d) <= 5)).sort((a, b) => life(a) - life(b) || likeOf(b) * consOf(b) - likeOf(a) * consOf(a));
+  $('digT').textContent = RMF ? `Defects at likelihood ${RMF[0]} × consequence ${RMF[1]}` : 'Dig plan · next 5 years';
+  const win = l => l === 0 ? 'Immediate · reduce pressure' : l < 1 ? 'Within 6 months' : l < 2 ? 'By ' + (2027) : 'By ' + Math.floor(2026 + l);
+  $('digs').innerHTML = L.map(d => { const a = assess(d), l = life(d); return `<div class="dg" data-i="${d.i}"><b>${d.id} · ${TYPES[d.type][0]}</b><span class="st ${a.st}">${a.txt}</span><span>km ${d.km.toFixed(2)}${d.zone ? ' · ' + esc(d.zone.n) : ''} · ${d.type === 'DENT' ? d.d + '% OD' : d.d + '%'}</span><span style="font-weight:700;color:${l < 1 ? 'var(--bad)' : 'var(--deep)'}">${d.type === 'GWA' ? 'NDT at next dig' : win(l)}</span></div>`; }).join('') || '<p class="note">No defects in this cell.</p>'; }
+$('rm').addEventListener('click', e => { const c = e.target.closest('[data-l]'); if (!c) return; const k = [+c.dataset.l, +c.dataset.c]; RMF = RMF && RMF[0] === k[0] && RMF[1] === k[1] ? null : k; renderRM(); });
+$('digs').addEventListener('click', e => { const c = e.target.closest('[data-i]'); if (c) select(DEF[+c.dataset.i], 'digs'); });
+$('yS').addEventListener('input', e => { YEAR = +e.target.value; stopY(); renderGrowth(true); });
+let yH = null; function stopY(){ clearInterval(yH); yH = null; $('yPlay').textContent = '▶'; }
+$('yPlay').addEventListener('click', () => { if (yH){ stopY(); return; } if (YEAR >= 2036) YEAR = 2025; $('yPlay').textContent = '❚❚'; yH = setInterval(() => { if (YEAR >= 2036){ stopY(); return; } YEAR++; $('yS').value = YEAR; renderGrowth(true); }, reduce ? 200 : 750); });
+selectHooks.push(() => renderGrowth(false));
+function refreshAll(){ renderGrowth(false); renderRM(); renderDD(); if (wm) wm.update(); fillDefSel('#cDef', d => d.type !== 'MFG'); $('cDef').value = SEL.i; renderRC(); }
+
+/* ======================================================================
+   04 · COPILOT
+   ====================================================================== */
+fillDefSel('#cDef', d => d.type !== 'MFG');
+function cause(d){ if (d.type === 'IML') return d.clock >= 4 && d.clock <= 8 ? ['Water and sediment drop-out at a low point', 'Bottom-of-line internal corrosion where water separates from product at low flow, typical at sag bends and river crossings.', 'Check water content in product, increase cleaning-pig frequency, review corrosion inhibitor dosing.'] : ['Internal corrosion, atypical position', 'Internal metal loss away from the 6 o\'clock band; possible microbial corrosion or tool sizing error.', 'Verify with UT at the dig; sample deposits for microbial testing.'];
+  if (d.type === 'EML') return d.zone && d.zone.k === 'cp' ? ['Cathodic protection shortfall', 'External corrosion clustered where CP survey potentials were less negative than −850 mV (CSE).', 'Check rectifier output and anode bed, run a CIPS/DCVG survey, repair coating holidays.'] : d.zone && (d.zone.k === 'road' || d.zone.k === 'river') ? ['Coating damage at a crossing', 'External corrosion at a crossing where casing contact or coating damage during construction is common.', 'Inspect casing isolation and coating; consider additional test posts.'] : ['Coating disbondment', 'Local external corrosion under disbonded coating; CP current may be shielded.', 'Assess coating type and condition at the dig; recoat with compatible system.'];
+  if (d.type === 'DENT') return ['Third-party or rock impingement', 'Top-side dent near a road crossing, typical of third-party damage or settlement.', 'Check for gouges or cracks with MPI; record one-call / patrolling coverage.'];
+  if (d.type === 'GWA') return ['Girth weld feature', 'Indication at a girth weld; may be a construction flaw rather than active damage.', 'Confirm with UT/RT at the next nearby dig; check the weld record.'];
+  return ['Mill feature', 'Lamination from manufacture; non-growing.', 'No action unless it reaches the surface or a weld.']; }
+function renderRC(){ const d = DEF[+$('cDef').value] || SEL, c = cause(d); $('rcBox').innerHTML = `<div class="rc"><b>Likely cause · ${esc(c[0])}</b><br>${esc(c[1])}<br><span style="color:var(--muted)">Next: ${esc(c[2])}</span></div><div class="kv" style="margin-top:10px"><span>Defect</span><b>${d.id} · ${TYPES[d.type][0]}</b><span>Location</span><b>km ${d.km.toFixed(3)} · ${fmtClock(d.clock)}</b><span>Status</span><b><span class="st ${assess(d).st}">${assess(d).txt}</span></b></div>`; }
+$('cDef').addEventListener('change', () => select(DEF[+$('cDef').value], 'cop'));
+function briefTpl(d){ const a = assess(d), r = a.r, c = cause(d), l = life(d), red = Math.round(MAOP * .8);
+  return `**Dig brief · ${d.id} · km ${d.km.toFixed(3)}${d.zone ? ' (' + d.zone.n + ')' : ''}**
+**Expected anomaly**
+- ${TYPES[d.type][0]} at ${fmtClock(d.clock)} o'clock, ${d.type === 'DENT' ? d.d + '% of OD deep' : d.d + '% of wall (' + (d.d / 100 * PIPE.t).toFixed(2) + ' mm of ' + PIPE.t + ' mm)'}, about ${d.L} × ${d.w} mm.
+- Pipe: ${PIPE.D} mm OD, ${PIPE.t} mm wall, API 5L ${PIPE.g}; MAOP ${MAOP} bar; design factor ${DF(d)}.
+**Assessment**
+- ${r ? `Modified B31G safe pressure ${r.Ps.toFixed(1)} bar, ERF ${r.erf.toFixed(2)}: ${a.txt.toLowerCase()}.` : a.txt + (a.note ? ' (' + a.note + ').' : '.')}
+- ${ML(d) ? `Grew from ${d.d21}% in 2021 at about ${d.rate}% of wall per year; remaining life ${l === 0 ? 'none: act now' : l > 30 ? 'over 30 years' : l + ' years'}.` : 'Non-corrosion feature; no growth assumed.'}
+**Likely cause**
+- ${c[0]}: ${c[1]}
+**Before the dig**
+- ${a.st === 'rep' || a.st === 'cut' ? `Reduce operating pressure to ${red} bar or lower until repaired.` : 'No pressure reduction needed.'}
+- Permits: excavation and work permit; locate with pipeline locator and mark the centreline.
+- Hand-dig within 1 m of the pipe; confirm no other services.
+**At the dig**
+- Remove coating, clean to bare metal; UT thickness grid over the area and 300 mm either side.
+- Measure the depth profile of the pit for RSTRENG; MPI for cracks${d.type === 'DENT' ? ' and gouges' : ''}.
+- Record coating condition, soil resistivity and pipe-to-soil potential; photograph with scale.
+**Repair**
+- ${a.st === 'cut' ? 'Cut out and replace the spool under a planned shutdown.' : a.st === 'rep' ? (d.type === 'IML' ? 'Type B full-encirclement steel sleeve (internal defect).' : 'Composite wrap or Type B sleeve as per measured profile.') : d.type === 'GWA' ? 'Repair only if UT/RT confirms a planar flaw.' : 'Recoat and backfill; monitor at the next run.'}
+- Follow-up: ${c[2]}`; }
+async function stream(el, text, tok){ if (reduce){ el.innerHTML = md(text); return; } const parts = text.split(/(\s+)/); let s = ''; for (let i = 0; i < parts.length; i++){ if (tok !== streamTok) return; s += parts[i]; if (i % 5 === 0){ el.innerHTML = md(s); await new Promise(r => setTimeout(r, 12)); } } el.innerHTML = md(text); }
+let streamTok = 0;
+async function runOut(btn, title, tplText, sys, user){ const tok = ++streamTok, out = $('out'); $('outT').textContent = title; busy(btn, true, 'Writing…'); out.innerHTML = '<div class="dots"><span></span><span></span><span></span></div>'; let done = false;
+  if (KEY){ try { await openai([{ role:'system', content: sys }, { role:'user', content: user }], { onDelta: t => { if (tok === streamTok) out.innerHTML = md(t) + `<p class="note" style="margin-top:8px">✦ Written by ${esc(MODEL)}</p>`; } }); done = true; } catch (err){ fail(err); } }
+  if (!done){ await sleep(400); await stream(out, tplText, tok); if (tok === streamTok) out.insertAdjacentHTML('beforeend', '<p class="note" style="margin-top:8px">Template brief · add an OpenAI key for AI-written briefs</p>'); }
+  busy(btn, false); }
+const SYS = 'You are a senior pipeline integrity engineer at an Indian oil marketing company. Write concise, technical, practical documents for field crews and managers. Use standard integrity practice (ASME B31G / Modified B31G, ASME B31.8S style risk thinking). Use only the data provided; do not invent measurements. Use short headings in bold and bullet points.';
+$('cBrief').addEventListener('click', () => { const d = DEF[+$('cDef').value] || SEL, a = assess(d), r = a.r;
+  const data = { id: d.id, type: TYPES[d.type][0], km: +d.km.toFixed(3), clock: fmtClock(d.clock), depth: d.type === 'DENT' ? d.d + '% of OD' : d.d + '% of wall', length_mm: d.L, width_mm: d.w, depth_2021: d.d21, growth_pct_per_year: d.rate, location: d.zone ? d.zone.n : 'open field, class 1', pipe: `${PIPE.D} mm OD, ${PIPE.t} mm wall, API 5L ${PIPE.g}`, MAOP_bar: MAOP, design_factor: DF(d), status: a.txt, safe_pressure_bar: r ? +r.Ps.toFixed(1) : null, ERF: r ? +r.erf.toFixed(2) : null, remaining_life_years: life(d) > 30 ? '>30' : life(d), likely_cause: cause(d)[0] };
+  runOut($('cBrief'), 'Dig brief · ' + d.id, briefTpl(d), SYS, 'Write a dig brief for the field crew with sections: Expected anomaly, Assessment, Likely cause, Before the dig (pressure reduction if repair is needed: 80% of MAOP), At the dig (NDT and measurements), Repair, Follow-up. Data: ' + JSON.stringify(data)); });
+$('cSum').addEventListener('click', () => { const st = s => DEF.filter(d => assess(d).st === s).length, ml = DEF.filter(ML), deep = ml.slice().sort((a, b) => b.d - a.d).slice(0, 3), five = DEF.filter(d => d.type !== 'MFG' && life(d) <= 5).length;
+  const iml = DEF.filter(d => d.type === 'IML'), cpz = DEF.filter(d => d.type === 'EML' && d.zone && d.zone.k === 'cp');
+  const tpl = `**Inspection run summary · 24 km product pipeline segment**
+- ${DEF.length} anomalies reported: ${DEF.filter(d => d.type === 'EML').length} external metal loss, ${iml.length} internal metal loss, ${DEF.filter(d => d.type === 'DENT').length} dents, ${DEF.filter(d => d.type === 'GWA').length} girth weld anomalies, ${DEF.filter(d => d.type === 'MFG').length} laminations.
+- Decisions: ${st('cut')} cut-out, ${st('rep')} repair, ${st('mon')} monitor, ${st('ver')} verify by NDT, ${st('ok')} acceptable.
+- Deepest: ${deep.map(d => `${d.id} (${d.d}%, km ${d.km.toFixed(1)})`).join(', ')}.
+**Where and why**
+- External corrosion is concentrated in the CP low zone (km 18–21): ${cpz.length} defects growing at up to ${Math.max(...cpz.map(d => d.rate))}% of wall per year. Cathodic protection needs attention.
+- Internal corrosion sits at the bottom of the line at the river crossing low point (km 7.3–8.4): water drop-out. Increase cleaning pigging and review inhibitor.
+**Plan**
+- ${five} digs needed within 5 years; immediate actions with pressure reduction to ${Math.round(MAOP * .8)} bar on cut-out and repair features.
+- Re-run inline inspection in 3 years on km 17–22 to confirm growth after CP fixes.`;
+  runOut($('cSum'), 'Run summary for management', tpl, SYS, 'Summarise this inline inspection run for management in under 200 words with sections: Headline, Where and why, Plan. Data: ' + JSON.stringify({ anomalies: DEF.length, by_type: Object.fromEntries(Object.keys(TYPES).map(k => [TYPES[k][0], DEF.filter(d => d.type === k).length])), decisions: { cut_out: st('cut'), repair: st('rep'), monitor: st('mon'), verify: st('ver'), acceptable: st('ok') }, deepest: deep.map(d => ({ id: d.id, depth: d.d, km: +d.km.toFixed(2), type: TYPES[d.type][0] })), digs_within_5_years: five, cp_low_zone_external_defects: cpz.length, river_low_point_internal_defects: iml.filter(d => d.zone && d.zone.k === 'river').length, MAOP_bar: MAOP })); });
+$('cCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('out').innerText); toast('Copied'); } catch (e){ toast('Copy is not allowed here; select the text instead'); } });
+
+/* ======================================================================
+   IMPACT · circle packing + horizon chart
+   ====================================================================== */
+function drawPack(){
+  const DATA = { before: { 'Awaiting assessment': { EML: 62, IML: 31, DENT: 9, GWA: 12 }, 'Monitor': { EML: 16, IML: 6 }, 'Repair planned': { EML: 3, IML: 2 } },
+    after: { 'Monitor': { EML: 66, IML: 30, DENT: 8, MFG: 6 }, 'Repair planned': { EML: 9, IML: 7, DENT: 1 }, 'Verify by NDT': { GWA: 12 } } };
+  const GC = { 'Awaiting assessment':'#9AA6AD', 'Monitor':'#0A8FA8', 'Repair planned':'#E5484D', 'Verify by NDT':'#C9A200' };
+  const w = 520, h = 420, s = d3.select('#pack').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Circle packing of anomaly backlog by status and type, before and after');
+  const gG = s.append('g'), gL = s.append('g'), gT = s.append('g'), total = s.append('text').attr('x', 6).attr('y', 18).attr('font-size', 12).attr('font-weight', 800);
+  function upd(k){ const root = d3.hierarchy({ children: Object.entries(DATA[k]).map(([g, o]) => ({ name: g, children: Object.entries(o).map(([t, v]) => ({ name: t, g, value: v })) })) }).sum(d => d.value || 0);
+    d3.pack().size([w - 10, h - 40]).padding(d => d.depth === 0 ? 26 : 4)(root); root.each(n => { n.x += 5; n.y += 26; });
+    const groups = root.children, leaves = root.leaves();
+    gG.selectAll('circle').data(groups, d => d.data.name).join(en => en.append('circle').attr('cx', w / 2).attr('cy', h / 2).attr('r', 0), up => up, ex => ex.transition().duration(DUR).attr('r', 0).remove())
+      .attr('fill', d => GC[d.data.name]).attr('fill-opacity', .1).attr('stroke', d => GC[d.data.name]).attr('stroke-width', 1.5).transition().duration(DUR + 200).attr('cx', d => d.x).attr('cy', d => d.y).attr('r', d => d.r);
+    gL.selectAll('circle').data(leaves, d => d.data.g + d.data.name).join(en => en.append('circle').attr('cx', w / 2).attr('cy', h / 2).attr('r', 0), up => up, ex => ex.transition().duration(DUR).attr('r', 0).remove())
+      .attr('fill', d => TYPES[d.data.name][1]).attr('stroke', '#fff').attr('stroke-width', 1.5)
+      .on('mousemove', (ev, d) => showTip(`<div class="t">${d.data.g}</div>${TYPES[d.data.name][0]}: <b>${d.value}</b>`, ev)).on('mouseleave', hideTip)
+      .transition().duration(DUR + 200).attr('cx', d => d.x).attr('cy', d => d.y).attr('r', d => d.r);
+    const lab = [...groups.map(d => ({ id: 'g' + d.data.name, x: d.x, y: d.y - d.r - 4, t: d.data.name + ' · ' + d.value, f: 11.5, c: GC[d.data.name], wgt: 800 })), ...leaves.filter(d => d.r > 15).map(d => ({ id: 'l' + d.data.g + d.data.name, x: d.x, y: d.y + 4, t: d.value, f: Math.min(14, d.r / 2), c: '#fff', wgt: 800 }))];
+    gT.selectAll('text').data(lab, d => d.id).join(en => en.append('text').attr('opacity', 0), up => up, ex => ex.remove()).attr('text-anchor','middle').attr('font-size', d => d.f).attr('font-weight', d => d.wgt).attr('fill', d => d.c).text(d => d.t)
+      .transition().duration(DUR + 200).attr('x', d => d.x).attr('y', d => Math.max(12, d.y)).attr('opacity', 1);
+    const aw = (DATA[k]['Awaiting assessment'] ? sum(Object.values(DATA[k]['Awaiting assessment'])) : 0); total.attr('fill', aw ? '#E5484D' : '#2E9E5B').text(aw ? `${aw} anomalies still awaiting assessment` : 'Every anomaly has a decision'); }
+  upd('after'); segBind('pk', upd);
+}
+function drawHorizon(){
+  const R = mulberry32(12), XS = range(97).map(i => i / 4), bump = (k, c, wd, a) => a * Math.exp(-Math.pow((k - c) / wd, 2));
+  const rows = [['External corrosion', k => .05 + bump(k, 19.5, 1.4, .34) + bump(k, 3.2, .4, .08) + R() * .03, k => .04 + bump(k, 19.5, 1.4, .1) + R() * .02], ['Internal corrosion', k => .03 + bump(k, 7.85, .5, .32) + bump(k, 2.3, .3, .12) + R() * .02, k => .03 + bump(k, 7.85, .5, .11) + bump(k, 2.3, .3, .05) + R() * .015]];
+  const V = { before: rows.map(r => XS.map(k => [k, r[1](k)])), after: rows.map(r => XS.map(k => [k, r[2](k)])) };
+  V.before.push(XS.map((k, i) => [k, Math.max(V.before[0][i][1], V.before[1][i][1])])); V.after.push(XS.map((k, i) => [k, Math.max(V.after[0][i][1], V.after[1][i][1])]));
+  const names = ['External corrosion', 'Internal corrosion', 'Worst of both'], w = 520, rh = 64, gap = 30, m = { l: 12, r: 12, t: 26 }, h = m.t + 3 * (rh + gap) + 10, band = .1, COLS = ['#BFE6EE', '#3FB3C9', '#0A6F84', '#E5484D'];
+  const s = d3.select('#horizon').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Horizon chart of corrosion rate along the pipeline, before and after');
+  const x = d3.scaleLinear().domain([0, KM]).range([m.l, w - m.r]), yb = d3.scaleLinear().domain([0, band]).range([rh, 0]);
+  s.append('g').attr('class','axis').attr('transform', `translate(0,${h - 12})`).call(d3.axisBottom(x).ticks(8).tickFormat(v => 'km ' + v).tickSize(0).tickPadding(2));
+  const G = names.map((n, i) => { const g = s.append('g').attr('transform', `translate(0,${m.t + i * (rh + gap)})`); g.append('text').attr('x', m.l).attr('y', -6).attr('font-size', 11.5).attr('font-weight', 800).attr('fill', '#161D22').text(n);
+    g.append('rect').attr('x', m.l).attr('width', w - m.l - m.r).attr('height', rh).attr('fill', '#F4F7F8'); ZONES.filter(z => z.k === 'river' || z.k === 'cp').forEach(z => g.append('rect').attr('x', x(z.a)).attr('width', x(z.b) - x(z.a)).attr('height', rh).attr('fill', 'none').attr('stroke', '#9AA6AD').attr('stroke-dasharray','2 3'));
+    const ps = range(4).map(b => g.append('path').attr('fill', COLS[b])); const pk = g.append('text').attr('font-size', 10.5).attr('font-weight', 800).attr('text-anchor','end'); return { ps, pk }; });
+  const area = b => d3.area().x(d => x(d[0])).y0(rh).y1(d => yb(clamp(d[1] - b * band, 0, band))).curve(d3.curveMonotoneX);
+  function upd(k){ G.forEach((g, i) => { const D = V[k][i]; g.ps.forEach((p, b) => p.transition().duration(DUR + 200).attr('d', area(b)(D)));
+      const mx = D.reduce((a, c) => c[1] > a[1] ? c : a, D[0]); g.pk.transition().duration(DUR).attr('x', w - m.r).attr('y', -6).attr('fill', mx[1] > .3 ? '#E5484D' : '#0A6F84').text(`peak ${mx[1].toFixed(2)} mm/yr · km ${mx[0].toFixed(1)}`); });
+    G[0].ps.forEach(p => p.on('mousemove', ev => showTip('<div class="t">External corrosion</div>Fastest in the CP low zone (km 18–21)', ev)).on('mouseleave', hideTip)); }
+  upd('after'); segBind('hz', upd);
+}
+
+/* boot */
+setMode(); renderFeed(); renderDD(); renderRC();
+if (hasD3){ buildMap(); renderLab(false); renderGrowth(false); renderRM(); whenVisible($('pack'), drawPack); whenVisible($('horizon'), drawHorizon); }
+else ['wmap','acc','growth','pack','horizon'].forEach(id => $(id).innerHTML = '<p style="padding:20px;color:var(--muted)">Charts need an internet connection to load their library.</p>');
+if (hasT){ build3D(); if (reduce){ PIG.p = 1; PIG.done = true; DEF.forEach(d => d.det = true); renderFeed(); renderDD(); } PIG.play = false; $('pPlay').textContent = '▶ Play'; whenVisible($('stage'), () => { if (!reduce){ PIG.play = true; $('pPlay').textContent = '❚❚ Pause'; } }); }
+else { $('stage').insertAdjacentHTML('beforeend', '<p style="color:#CFE3E9;padding:60px 20px;text-align:center">3D view needs an internet connection. The wall map below shows the run.</p>'); PIG.p = 1; PIG.done = true; DEF.forEach(d => d.det = true); renderFeed(); renderDD(); if (wm) wm.update(); }
+window.__bp = { DEF, assess, life, b31g, parseAsk, matchF, PIG, get FILTER(){ return FILTER; }, select };
+})();
+</script>
+</body>
+</html>

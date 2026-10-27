@@ -2,629 +2,293 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
-<title>HMC Case Study Library</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Customer Stories | Havish M Consulting</title>
+<meta name="description" content="Havish M Consulting customer stories: GenAI, analytics and automation case studies across HR, finance, sales, procurement, manufacturing and more.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
 <style>
-/* Layout: dark "screening room" hero with a coverflow of live case covers that re-tints to each client's palette,
-   then a filter rail (function / sector / company) over a grid of browser-framed thumbnails that scroll on hover, with a peek drawer. */
-@property --g1{syntax:'<color>';inherits:true;initial-value:#0F1640}
-@property --g2{syntax:'<color>';inherits:true;initial-value:#1E2761}
-@property --g3{syntax:'<color>';inherits:true;initial-value:#C9A227}
 :root{
-  --ink:#0B1530; --brand:#1a5fa8; --brand-soft:#d2e3f5;
-  --bg:#f0f5fb; --surface:#ffffff; --surface-2:#f6f9fd; --line:#e1e9f4;
-  --text:#1f2d4a; --muted:#5a6683; --faint:#8a9ab8; --chip:#ffffff; --chip-on:#1a5fa8; --chip-on-fg:#ffffff;
-  --shadow:0 1px 2px rgba(15,52,96,.06),0 10px 30px rgba(15,52,96,.08);
-  --serif:"DM Serif Display",Georgia,"Times New Roman",serif;
-  --sans:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  --r:14px;
+  --navy:#16325c; --navy-2:#1e4377; --ink:#141b2d; --body:#3d4658; --muted:#6b7385;
+  --line:#dfe3ea; --soft:#f4f6f9; --bg:#ffffff; --card:#ffffff; --accent:#c0392b;
+  --chip-bg:#ffffff; --chip-on:#eaf0f8; --shadow:0 1px 2px rgba(20,27,45,.06),0 6px 20px rgba(20,27,45,.06);
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --brand:#6aa8ec; --brand-soft:#1b3352; --bg:#0a1122; --surface:#111b31; --surface-2:#0e172b; --line:#22304d;
-  --text:#e3e9f5; --muted:#9aa8c4; --faint:#7283a6; --chip:#111b31; --chip-on:#6aa8ec; --chip-on-fg:#06101f;
-  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35); color-scheme:dark}}
-:root[data-theme="dark"]{
-  --brand:#6aa8ec; --brand-soft:#1b3352; --bg:#0a1122; --surface:#111b31; --surface-2:#0e172b; --line:#22304d;
-  --text:#e3e9f5; --muted:#9aa8c4; --faint:#7283a6; --chip:#111b31; --chip-on:#6aa8ec; --chip-on-fg:#06101f;
-  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35); color-scheme:dark}
-
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-h1,h2,h3{font-family:var(--serif);font-weight:400;margin:0;line-height:1.08;text-wrap:balance}
-p{margin:0}
-button{font:inherit;color:inherit}
-a{color:inherit}
-.wrap{max-width:1240px;margin:0 auto;padding-inline:24px}
-:focus-visible{outline:2px solid var(--brand);outline-offset:3px;border-radius:6px}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+body.lock{overflow:hidden}
+.wrap{max-width:1200px;margin:0 auto;padding:40px 20px 64px}
+h1{font-size:30px;line-height:1.2;margin:0 0 8px;font-weight:700;letter-spacing:-.01em}
+.sub{color:var(--body);font-size:15.5px;margin:0 0 28px;line-height:1.5}
+.sub b{color:var(--ink);font-weight:600}
 
-/* ---------- HERO (always dark, tinted by active case) ---------- */
-.hero{position:relative;color:#fff;overflow:hidden;isolation:isolate;
-  background:
-    radial-gradient(1200px 600px at 78% 40%, color-mix(in srgb,var(--g2) 70%,transparent), transparent 70%),
-    radial-gradient(700px 420px at 10% 100%, color-mix(in srgb,var(--g3) 22%,transparent), transparent 70%),
-    linear-gradient(160deg,#060b18 0%, var(--g1) 55%, #060b18 100%);
-  transition:--g1 1.1s ease,--g2 1.1s ease,--g3 1.1s ease;padding-block:0 56px}
-.hero::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.5;
-  background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
-  background-size:48px 48px;mask-image:linear-gradient(180deg,#000 0%,transparent 85%)}
-.nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:22px;flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:14px;text-decoration:none}
-.logo{height:52px;width:auto;border-radius:4px;box-shadow:0 6px 18px rgba(0,0,0,.35);display:block}
-.lib-name{padding-left:14px;border-left:1px solid rgba(255,255,255,.2)}
-.mono{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:#fff;color:#0B1530;font-family:var(--serif);font-size:1.05rem;letter-spacing:-.02em}
-.brand b{display:block;font-family:var(--serif);font-weight:400;font-size:1.12rem;letter-spacing:.01em}
-.brand small{display:block;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.6)}
-.nav-stats{display:flex;gap:22px;font-size:.8rem;color:rgba(255,255,255,.7);flex-wrap:wrap}
-.nav-stats b{font-family:var(--serif);font-weight:400;font-size:1.25rem;color:#fff;margin-right:6px;font-variant-numeric:tabular-nums}
+.bar{display:flex;gap:10px;align-items:stretch;flex-wrap:wrap}
+.search{flex:1 1 360px;position:relative}
+.search input{width:100%;height:44px;border:1px solid var(--line);border-radius:6px;padding:0 40px 0 40px;font:inherit;font-size:15px;color:var(--ink);background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
+.search input:focus{border-color:var(--navy-2);box-shadow:0 0 0 3px rgba(30,67,119,.12)}
+.search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.search .clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px 8px;display:none}
+.search.has .clear{display:block}
+select{height:44px;border:1px solid var(--line);border-radius:6px;padding:0 36px 0 14px;font:inherit;font-size:15px;color:var(--ink);background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23141b2d' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 14px center;appearance:none;-webkit-appearance:none;cursor:pointer;min-width:190px}
+select:focus{outline:none;border-color:var(--navy-2);box-shadow:0 0 0 3px rgba(30,67,119,.12)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;height:44px}
+.seg button{border:0;background:#fff;color:var(--navy-2);font:inherit;font-size:15px;padding:0 16px;cursor:pointer}
+.seg button.on{background:var(--navy);color:#fff}
 
-.stage-grid{display:grid;grid-template-columns:minmax(0,.84fr) minmax(0,1.5fr);gap:40px;align-items:center;padding-top:22px}
-.intro .eyebrow{font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:var(--g3);font-weight:700;transition:color 1s}
-.intro h1{font-size:clamp(2.3rem,4.6vw,3.6rem);margin-top:10px}
-.intro h1 em{font-style:italic;color:color-mix(in srgb,var(--g3) 75%,#fff)}
-.intro .lede{color:rgba(255,255,255,.72);margin-top:14px;max-width:44ch}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 10px;padding-top:16px;border-top:1px solid var(--line)}
+.chip{border:1px solid var(--line);background:var(--chip-bg);color:var(--body);border-radius:999px;padding:6px 14px;font:inherit;font-size:14px;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+.chip:hover{border-color:#b9c3d3}
+.chip.on{background:var(--chip-on);border-color:var(--navy-2);color:var(--navy);font-weight:600}
+.chip .n{color:var(--muted);font-weight:400;margin-left:4px;font-size:12.5px}
+.count{color:var(--muted);font-size:13.5px;margin:4px 0 18px}
 
-.now{margin-top:28px;padding-top:22px;border-top:1px solid rgba(255,255,255,.14);min-height:236px}
-.now-meta{display:flex;gap:8px;flex-wrap:wrap;font-size:.74rem}
-.tag{border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:3px 10px;color:rgba(255,255,255,.85);background:rgba(255,255,255,.05)}
-.tag.co{background:var(--g3);border-color:transparent;color:#0B1530;font-weight:700}
-.now h2{font-size:clamp(1.6rem,2.6vw,2.1rem);margin-top:12px}
-.now .sub{color:rgba(255,255,255,.72);font-size:.92rem;margin-top:8px;max-width:46ch;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.now-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
-.now-kpis div{min-width:0}
-.now-kpis b{display:block;font-family:var(--serif);font-weight:400;font-size:1.7rem;line-height:1;color:#fff;white-space:nowrap;font-variant-numeric:tabular-nums}
-.now-kpis span{display:block;font-size:.72rem;color:rgba(255,255,255,.62);margin-top:6px;line-height:1.35}
-.now-actions{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
-.btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:10px 18px;font-weight:600;font-size:.88rem;cursor:pointer;text-decoration:none;border:1px solid transparent;transition:transform .2s,background .2s,box-shadow .2s}
-.btn:hover{transform:translateY(-1px)}
-.btn-solid{background:#fff;color:#0B1530}
-.btn-solid:hover{box-shadow:0 8px 24px rgba(0,0,0,.35)}
-.btn-ghost{border-color:rgba(255,255,255,.3);color:#fff;background:rgba(255,255,255,.04)}
-.btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.fade{transition:opacity .35s ease,transform .35s ease}
-.fade.out{opacity:0;transform:translateY(6px)}
+/* grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(264px,1fr));gap:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .2s,transform .2s}
+.card:hover{box-shadow:var(--shadow);transform:translateY(-2px)}
+.thumb{position:relative;aspect-ratio:16/10;background:var(--soft);cursor:pointer;overflow:hidden;border:0;padding:0;display:block;width:100%}
+.thumb img{width:100%;height:100%;object-fit:cover;object-position:top left;display:block;transition:transform .35s}
+.card:hover .thumb img{transform:scale(1.03)}
+.thumb .co{position:absolute;left:10px;bottom:10px;background:rgba(255,255,255,.95);color:var(--navy);font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 8px;border-radius:4px}
+.body{padding:14px 16px 16px;display:flex;flex-direction:column;flex:1}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tag{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:3px;background:var(--soft);color:var(--body)}
+.tag.fam{background:#fdecea;color:var(--accent)}
+.card h3{font-size:17px;line-height:1.3;margin:0 0 4px;font-weight:700;cursor:pointer}
+.card h3:hover{color:var(--navy-2)}
+.org{font-size:13px;color:var(--muted);margin:0 0 8px}
+.desc{font-size:14px;line-height:1.5;color:var(--body);margin:0 0 14px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.fmt{margin-top:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.fbtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:34px;border:1px solid var(--line);border-radius:5px;background:#fff;color:var(--navy);font:inherit;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;transition:background .15s,border-color .15s,color .15s;white-space:nowrap}
+.fbtn:hover{background:var(--navy);border-color:var(--navy);color:#fff}
+.fbtn svg{flex:none}
 
-/* coverflow */
-.flow{position:relative;height:clamp(300px,34vw,440px);perspective:1700px;touch-action:pan-y;user-select:none;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 9%,#000 91%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 9%,#000 91%,transparent 100%)}
-.slide{position:absolute;left:50%;top:50%;width:min(70%,600px);aspect-ratio:16/10.4;margin:0;border-radius:12px;overflow:hidden;cursor:pointer;
-  background:#0d1426;box-shadow:0 30px 60px -12px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.08);
-  transform-style:preserve-3d;transition:transform .9s cubic-bezier(.2,.75,.2,1),opacity .9s,filter .9s;will-change:transform}
-.slide .bar{height:26px;display:flex;align-items:center;gap:6px;padding:0 10px;background:#141c33;border-bottom:1px solid rgba(255,255,255,.06)}
-.slide .bar i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.18)}
-.slide .bar span{margin-left:10px;font-size:.66rem;color:rgba(255,255,255,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
-.slide img{width:100%;height:calc(100% - 26px);object-fit:cover;object-position:top;display:block}
-.slide::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,rgba(0,0,0,.35));pointer-events:none;transition:opacity .9s}
-.slide.is-active::after{opacity:0}
-.slide .glow{position:absolute;inset:-1px;border-radius:12px;pointer-events:none;box-shadow:0 0 0 1px var(--acc),0 0 60px -10px var(--acc);opacity:0;transition:opacity .9s}
-.slide.is-active .glow{opacity:.85}
-.flow-ctrl{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:20px}
-.arrow{width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.05);color:#fff;cursor:pointer;display:grid;place-items:center;transition:background .2s}
-.arrow:hover{background:rgba(255,255,255,.14)}
-.arrow svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:60%}
-.dot{width:26px;height:4px;border-radius:2px;border:0;background:rgba(255,255,255,.2);cursor:pointer;padding:0;position:relative;overflow:hidden}
-.dot.on::after{content:"";position:absolute;inset:0;background:#fff;transform-origin:left;animation:fill var(--dur,6.5s) linear forwards}
-.flow.paused~.flow-ctrl .dot.on::after,.hero.paused .dot.on::after{animation-play-state:paused}
-@keyframes fill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-.counter{font-size:.78rem;color:rgba(255,255,255,.6);font-variant-numeric:tabular-nums;min-width:52px;text-align:center}
+/* list */
+.list{border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.row{display:grid;grid-template-columns:160px 1fr 250px;gap:16px;align-items:center;padding:12px 16px;border-top:1px solid var(--line);background:#fff}
+.row:first-child{border-top:0}
+.row.head{background:var(--soft);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:10px 16px}
+.row .c{font-weight:600;font-size:14px}
+.row .c small{display:block;font-weight:400;color:var(--muted);font-size:12.5px;margin-top:2px}
+.row .t{font-size:15px;font-weight:600;cursor:pointer;line-height:1.35}
+.row .t:hover{color:var(--navy-2)}
+.row .t small{display:block;font-weight:400;color:var(--body);font-size:13px;margin-top:3px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.row .fmt{margin:0}
+.row:not(.head):hover{background:#fafbfd}
 
-/* ---------- FILTERS ---------- */
-.lib{padding-block:48px 24px}
-.lib-head{display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap;margin-bottom:22px}
-.lib-head .eyebrow{font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--brand);font-weight:700;margin-bottom:8px}
-.lib-head h2{font-size:clamp(1.7rem,3vw,2.3rem);color:var(--text)}
-.search{position:relative;flex:0 1 320px;min-width:0;width:100%}
-.search input{width:100%;padding:12px 14px 12px 40px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--text);font:inherit;font-size:.9rem;box-shadow:var(--shadow)}
-.search input::placeholder{color:var(--faint)}
-.search svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--faint);fill:none;stroke-width:2}
+.empty{text-align:center;padding:60px 20px;color:var(--muted);border:1px dashed var(--line);border-radius:8px}
+.empty button{margin-top:12px}
 
-.filters{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:6px 18px}
-.frow{display:grid;grid-template-columns:110px minmax(0,1fr);gap:14px;align-items:start;padding-block:12px}
-.frow+.frow{border-top:1px dashed var(--line)}
-.flabel{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--muted);padding-top:7px}
-.chips{display:flex;flex-wrap:wrap;gap:8px;min-width:0}
-.chip{border:1px solid var(--line);background:var(--chip);border-radius:999px;padding:6px 12px;font-size:.84rem;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:background .15s,border-color .15s,color .15s,opacity .15s}
-.chip:hover{border-color:var(--brand)}
-.chip .n{font-size:.72rem;color:var(--faint);font-variant-numeric:tabular-nums}
-.chip .sw{width:9px;height:9px;border-radius:50%}
-.chip[aria-pressed="true"]{background:var(--chip-on);border-color:var(--chip-on);color:var(--chip-on-fg)}
-.chip[aria-pressed="true"] .n{color:inherit;opacity:.75}
-.chip[disabled]{opacity:.38;cursor:not-allowed}
-.active-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:18px 2px 16px;font-size:.88rem;color:var(--muted)}
-.active-bar b{color:var(--text);font-variant-numeric:tabular-nums}
-.clear{border:0;background:none;color:var(--brand);font-weight:600;cursor:pointer;padding:4px 0}
-.clear[hidden]{display:none}
+/* viewer */
+.ov{position:fixed;inset:0;background:rgba(12,18,32,.72);display:none;align-items:center;justify-content:center;padding:24px;z-index:50}
+.ov.open{display:flex}
+.vw{background:#fff;border-radius:10px;width:min(1180px,100%);height:min(92vh,100%);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.vh{display:flex;align-items:center;gap:14px;padding:10px 12px 10px 18px;border-bottom:1px solid var(--line)}
+.vt{flex:1;min-width:0}
+.vt b{display:block;font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vt span{font-size:12.5px;color:var(--muted)}
+.tabs{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;flex:none}
+.tabs button{border:0;background:#fff;color:var(--navy-2);font:inherit;font-size:13.5px;font-weight:600;padding:7px 14px;cursor:pointer}
+.tabs button.on{background:var(--navy);color:#fff}
+.act{display:flex;gap:4px;flex:none}
+.ib{width:36px;height:36px;border:1px solid transparent;background:none;border-radius:6px;color:var(--body);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none}
+.ib:hover{background:var(--soft);border-color:var(--line);color:var(--ink)}
+.vb{flex:1;position:relative;background:#eef1f5}
+.vb iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
+.vb video{position:absolute;inset:0;margin:auto;max-width:100%;max-height:100%;height:100%;background:#000}
+.vb .vidwrap{position:absolute;inset:0;background:#0d1322;display:flex;align-items:center;justify-content:center}
+.load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px}
 
-/* ---------- GRID ---------- */
-.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;transition:transform .3s,box-shadow .3s;animation:pop .45s ease both}
-.card:hover{transform:translateY(-3px);box-shadow:0 2px 4px rgba(15,52,96,.06),0 22px 44px rgba(15,52,96,.14)}
-@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
-.thumb{position:relative;border:0;padding:0;margin:0;background:var(--surface-2);cursor:zoom-in;display:block;width:100%;text-align:left}
-.thumb .bar{height:22px;display:flex;align-items:center;gap:5px;padding:0 9px;background:var(--deep);}
-.thumb .bar i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.28)}
-.thumb .bar span{margin-left:8px;font-size:.62rem;color:rgba(255,255,255,.6);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.view{position:relative;display:block;aspect-ratio:16/10;overflow:hidden}
-.view img{position:absolute;left:0;top:0;width:100%;height:auto;display:block;transition:transform var(--t,7s) cubic-bezier(.45,.05,.55,.95)}
-.thumb:hover .view img,.thumb:focus-visible .view img{transform:translateY(var(--shift,0))}
-.view .hint{position:absolute;right:10px;bottom:10px;display:inline-flex;align-items:center;gap:6px;background:rgba(6,11,24,.78);color:#fff;font-size:.72rem;font-weight:600;padding:5px 10px;border-radius:999px;backdrop-filter:blur(6px);transition:opacity .3s}
-.view .hint svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2}
-.view .prog{position:absolute;right:4px;top:6px;bottom:6px;width:3px;border-radius:2px;background:rgba(6,11,24,.15);opacity:0;transition:opacity .3s}
-.view .prog i{position:absolute;left:0;right:0;top:0;height:22%;border-radius:2px;background:var(--acc);transition:top var(--t,7s) cubic-bezier(.45,.05,.55,.95)}
-.thumb:hover .prog{opacity:1}
-.thumb:hover .prog i{top:78%}
-.body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:10px;flex:1}
-.meta{display:flex;align-items:center;gap:8px;font-size:.74rem;color:var(--muted);flex-wrap:wrap}
-.co-dot{width:9px;height:9px;border-radius:50%;background:var(--pri);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 35%,transparent)}
-.meta b{color:var(--text);font-weight:600}
-.meta .sep{opacity:.5}
-.card h3{font-size:1.32rem;color:var(--text)}
-.card .sub{font-size:.86rem;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.kp{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding-top:10px;border-top:1px solid var(--line);margin-top:auto}
-.kp b{display:block;font-family:var(--serif);font-weight:400;font-size:1.35rem;line-height:1.05;color:var(--text);font-variant-numeric:tabular-nums}
-.kp span{display:block;font-size:.72rem;color:var(--muted);line-height:1.3;margin-top:3px}
-.card-foot{display:flex;gap:8px;justify-content:space-between;align-items:center}
-.pill{font-size:.7rem;font-weight:600;letter-spacing:.04em;padding:3px 9px;border-radius:999px;background:var(--brand-soft);color:var(--brand)}
-.link{display:inline-flex;gap:6px;align-items:center;font-size:.84rem;font-weight:600;color:var(--brand);text-decoration:none;background:none;border:0;cursor:pointer;padding:0}
-.link svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.empty{grid-column:1/-1;text-align:center;padding:56px 20px;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:var(--r)}
-.empty h3{color:var(--text);font-size:1.4rem;margin-bottom:6px}
-
-.foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:.75rem;color:var(--faint);padding-block:28px 40px}
-
-/* ---------- PEEK ---------- */
-.peek{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:24px}
-.peek[hidden]{display:none!important}
-.scrim{position:absolute;inset:0;background:rgba(4,8,18,.72);backdrop-filter:blur(6px);animation:fadeIn .25s ease}
-.sheet{position:relative;width:min(1240px,100%);height:min(820px,100%);background:var(--surface);border-radius:16px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr) 340px;box-shadow:0 40px 100px rgba(0,0,0,.5);animation:rise .35s cubic-bezier(.2,.8,.2,1)}
-@keyframes fadeIn{from{opacity:0}}
-@keyframes rise{from{opacity:0;transform:translateY(24px) scale(.98)}}
-.screen{position:relative;background:#0d1426;display:flex;flex-direction:column;min-width:0}
-.screen .bar{height:40px;display:flex;align-items:center;gap:7px;padding:0 14px;background:#141c33;flex:none}
-.screen .bar i{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.2)}
-.screen .bar i:nth-child(1){background:#ff5f57}.screen .bar i:nth-child(2){background:#febc2e}.screen .bar i:nth-child(3){background:#28c840}
-.screen .url{flex:1;margin:0 12px;background:rgba(255,255,255,.07);border-radius:6px;font-size:.72rem;color:rgba(255,255,255,.6);padding:5px 10px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dev{display:flex;gap:4px}
-.dev button{border:0;background:rgba(255,255,255,.07);color:rgba(255,255,255,.7);border-radius:6px;padding:4px 8px;font-size:.7rem;font-weight:600;cursor:pointer}
-.dev button[aria-pressed="true"]{background:#fff;color:#0B1530}
-.frame-wrap{position:relative;flex:1;display:flex;justify-content:center;overflow:hidden;background:#0d1426}
-.frame-wrap img.ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;transition:opacity .4s}
-.frame-wrap iframe{position:relative;border:0;width:100%;height:100%;background:#fff;opacity:0;transition:opacity .4s,width .4s}
-.frame-wrap.loaded iframe{opacity:1}
-.frame-wrap.loaded img.ph{opacity:0}
-.frame-wrap.mobile iframe{width:390px;max-width:100%;border-left:1px solid #22304d;border-right:1px solid #22304d}
-.loading{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);background:rgba(6,11,24,.8);color:#fff;font-size:.75rem;padding:6px 12px;border-radius:999px}
-.frame-wrap.loaded .loading{display:none}
-.info{padding:22px;overflow:auto;display:flex;flex-direction:column;gap:14px;border-left:1px solid var(--line);min-width:0}
-.info-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.x{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface);cursor:pointer;display:grid;place-items:center;color:var(--text)}
-.x svg,.nb svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
-.nav-btns{display:flex;gap:6px}
-.nb{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface);cursor:pointer;display:grid;place-items:center;color:var(--text)}
-.info .pos{font-size:.75rem;color:var(--faint);font-variant-numeric:tabular-nums}
-.info .who{display:flex;align-items:center;gap:10px}
-.info .who .co-dot{width:12px;height:12px}
-.info .who b{font-size:.95rem}
-.info h3{font-size:1.75rem;color:var(--text)}
-.info .sub{font-size:.9rem;color:var(--muted)}
-.facts{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 14px;font-size:.84rem;padding:12px 0;border-block:1px solid var(--line)}
-.facts dt{color:var(--faint);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding-top:2px}
-.facts dd{margin:0;color:var(--text)}
-.ikp{display:flex;flex-direction:column;gap:10px}
-.ikp div{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;align-items:baseline}
-.ikp b{font-family:var(--serif);font-weight:400;font-size:1.45rem;color:var(--pri-ink);font-variant-numeric:tabular-nums;white-space:nowrap}
-.ikp span{font-size:.8rem;color:var(--muted);line-height:1.35}
-.info .open{margin-top:auto;justify-content:center;background:var(--brand);color:#fff}
-.keys{font-size:.72rem;color:var(--faint);text-align:center}
-.keys kbd{font-family:inherit;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;font-size:.7rem}
-
-@media (max-width:1020px){
-  .stage-grid{grid-template-columns:1fr}
-  .now{min-height:0}
-  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .sheet{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto;height:100%}
-  .info{border-left:0;border-top:1px solid var(--line);max-height:44vh}
-  .info .open{margin-top:4px}
+@media (max-width:860px){
+  .row{grid-template-columns:1fr;gap:8px}
+  .row.head{display:none}
+  .vh{flex-wrap:wrap}
+  .vt{flex-basis:calc(100% - 130px)}
+  .tabs{order:3;width:100%}
+  .tabs button{flex:1}
 }
-@media (max-width:640px){
-  .wrap{padding-inline:16px}
-  .nav-stats{gap:14px;font-size:.72rem}
-  .logo{height:40px}
-  .lib-name b{font-size:1rem}
-  .nav-stats b{font-size:1.05rem}
-  .flow{height:250px}
-  .slide{width:82%}
-  .grid{grid-template-columns:1fr}
-  .frow{grid-template-columns:1fr;gap:8px}
-  .flabel{padding-top:0}
-  .now-kpis b{font-size:1.35rem}
-  .peek{padding:0}
-  .sheet{border-radius:0}
-  .dev,.keys{display:none}
-  .dots{max-width:70%}
-}
-@media (prefers-reduced-motion:reduce){
-  *{animation:none!important;transition-duration:.01s!important}
-  .dot.on::after{transform:scaleX(1)}
+@media (max-width:600px){
+  .wrap{padding:28px 16px 48px}
+  h1{font-size:25px}
+  select,.seg{flex:1 1 auto}
+  .seg button{flex:1}
+  .ov{padding:0}
+  .vw{border-radius:0;height:100%}
+  .chips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:none}
 }
 </style>
-
 </head>
 <body>
-<header class="hero" id="hero">
-  <div class="wrap">
-    <nav class="nav" aria-label="Library">
-      <a class="brand" href="#library">
-        <img class="logo" src="hmc-one-logo.jpg" alt="HMC One by Havish M Consulting">
-        <span class="lib-name"><b>Case Study Library</b><small>Havish M Consulting</small></span>
-      </a>
-      <div class="nav-stats" id="navStats"></div>
-    </nav>
+<div class="wrap">
+  <h1>Customer Stories</h1>
+  <p class="sub">Havish M Consulting · <b><span id="nStories">42</span> client case studies</b> across <b><span id="nCos">17</span> organisations</b>. Read each one as an interactive case study, a PDF or a short video.</p>
 
-    <div class="stage-grid">
-      <div class="intro">
-        <div class="eyebrow">GenAI in the enterprise · Field-built</div>
-        <h1>Work our clients <em>run on</em> every week</h1>
-        <p class="lede">Twenty-five engagements across finance, energy, manufacturing, retail, infrastructure and more. Each one is a working build, not a slide.</p>
-
-        <div class="now fade" id="now" aria-live="polite"></div>
-      </div>
-
-      <div>
-        <div class="flow" id="flow" role="region" aria-roledescription="carousel" aria-label="Featured case studies"></div>
-        <div class="flow-ctrl">
-          <button class="arrow" id="prev" aria-label="Previous case study"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
-          <div class="dots" id="dots" role="tablist" aria-label="Choose case study"></div>
-          <span class="counter" id="counter"></span>
-          <button class="arrow" id="next" aria-label="Next case study"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
-        </div>
-      </div>
+  <div class="bar">
+    <div class="search" id="searchBox">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Search by keyword, e.g. Power BI, attrition, 3D, VBA, credit…" autocomplete="off" aria-label="Search customer stories">
+      <button class="clear" id="clr" aria-label="Clear search">×</button>
+    </div>
+    <select id="co" aria-label="Filter by company"><option value="">All companies</option></select>
+    <div class="seg" role="group" aria-label="View">
+      <button id="vGrid" class="on">Thumbnails</button><button id="vList">List</button>
     </div>
   </div>
-</header>
 
-<main class="lib" id="library">
-  <div class="wrap">
-    <div class="lib-head">
-      <div>
-        <div class="eyebrow">Browse the library</div>
-        <h2>Filter by function, sector or client</h2>
+  <div class="chips" id="chips"></div>
+  <div class="count" id="count"></div>
+  <div id="out"></div>
+</div>
+
+<div class="ov" id="ov" aria-hidden="true">
+  <div class="vw" role="dialog" aria-modal="true" aria-labelledby="vTitle">
+    <div class="vh">
+      <div class="vt"><b id="vTitle"></b><span id="vMeta"></span></div>
+      <div class="tabs" id="vTabs">
+        <button data-f="html">Case Study</button><button data-f="pdf">PDF</button><button data-f="video">Video</button>
       </div>
-      <label class="search" for="q">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-        <input id="q" type="search" placeholder="Search titles, outcomes, tools…" autocomplete="off" aria-label="Search case studies">
-      </label>
-    </div>
-
-    <div class="filters" id="filters"></div>
-
-    <div class="active-bar">
-      <span id="resultText"></span>
-      <button class="clear" id="clear" hidden>Clear all filters</button>
-    </div>
-
-    <div class="grid" id="grid"></div>
-
-    <div class="foot">
-      <span>Hover a thumbnail to scroll the full page. Click it to peek inside.</span>
-      <span>Figures indicative; validated metrics available on request. · Prepared by Havish M Consulting</span>
-    </div>
-  </div>
-</main>
-
-<div class="peek" id="peek" hidden role="dialog" aria-modal="true" aria-labelledby="pkTitle">
-  <div class="scrim" data-close></div>
-  <div class="sheet">
-    <div class="screen">
-      <div class="bar"><i></i><i></i><i></i><span class="url" id="pkUrl"></span>
-        <div class="dev" role="group" aria-label="Preview width">
-          <button type="button" data-dev="desktop" aria-pressed="true">Desktop</button>
-          <button type="button" data-dev="mobile" aria-pressed="false">Mobile</button>
-        </div>
-      </div>
-      <div class="frame-wrap" id="frameWrap">
-        <img class="ph" id="pkPh" alt="">
-        <iframe id="pkFrame" title="Case study preview" loading="lazy"></iframe>
-        <span class="loading">Loading live preview…</span>
+      <div class="act">
+        <a class="ib" id="vNew" target="_blank" rel="noopener" title="Open in new tab" aria-label="Open in new tab"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>
+        <a class="ib" id="vDl" download title="Download" aria-label="Download"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></a>
+        <button class="ib" id="vClose" title="Close" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
       </div>
     </div>
-    <aside class="info" id="pkInfo"></aside>
+    <div class="vb" id="vBody"></div>
   </div>
 </div>
 
 <script>
-(function(){
-"use strict";
-const CASES = [
- {slug:"jk-cement-sales-sales-beat-planning", company:"JK Cement", sector:"Cement", fn:"Sales", title:"Sales Beat Planning", build:"Route optimisation",
-  sub:"Data-built beats lifted outlet coverage to 91% while cutting travel per beat day by nearly a quarter.",
-  kpis:[["91%","Outlet coverage per beat cycle, from 74%"],["−23%","Travel per beat day"],["11.6","Productive calls per SO per day, from 8.7"]],
-  tools:"Python, Power BI, Power Query, Excel/VBA, Claude", pri:"#1E2761", acc:"#C9A227", deep:"#0F1640"},
- {slug:"rr-kabel-procurement-engineered-bom", company:"RR Kabel", sector:"Wires & Cables", fn:"Procurement", title:"Engineered BOM for Wires & Cables", build:"Calculation engine",
-  sub:"A calibrated BOM engine cut new-SKU BOM time from 1.5 days to 30 minutes and took the guesswork out of copper and compound buys.",
-  kpis:[["30 min","New-SKU BOM turnaround, from 1.5 days"],["98.6%","BOM accuracy vs actual consumption"],["4.8%","Material buy avoided"]],
-  tools:"Python, Excel/VBA, Power Query, Power BI, Claude", pri:"#0B4F6C", acc:"#C26A2E", deep:"#062A3A"},
- {slug:"rr-kabel-sales-sales-agent", company:"RR Kabel", sector:"Wires & Cables", fn:"Sales", title:"Sales Agent", build:"AI agent",
-  sub:"Field sales now get brochure-grounded product answers in seconds, and a clear “I don't know” when the brochure is silent.",
-  kpis:[["30 sec","To answer a product query, from ~4 hours"],["82%","Queries answered from the brochure"],["72%","Field reps using it weekly"]],
-  tools:"Claude, product brochure grounding", pri:"#9A3412", acc:"#E8A317", deep:"#2A1009"},
- {slug:"landmark-buyers-markdown-calculator", company:"Landmark Group", sector:"Retail", fn:"Buying", title:"Markdown Calculator for Buying", build:"Calculator",
-  sub:"From blanket “flat 50%” end-of-season sales to an option-level markdown for every style, set early and set right.",
-  kpis:[["+2.1 pts","Gross margin on clearance options"],["−35%","Season-end leftover stock"],["~30 min","To build a markdown plan, from ~3 days"]],
-  tools:"GenAI, buyer sales & stock data", pri:"#8E1B57", acc:"#0FA3A3", deep:"#2B0A20"},
- {slug:"landmark-customer-experience-sla-guidelines-customer-nps", company:"Landmark Group", sector:"Retail", fn:"Customer Experience", title:"SLA Guidelines & Customer NPS", build:"Text analytics",
-  sub:"GenAI mapped every customer comment to a service SLA, and showed that being on time was not the same as being good enough.",
-  kpis:[["100%","Comments mapped to an SLA"],["8 / 15","Met SLA but still felt slow"],["4 of 6","SLA dimensions breached"]],
-  tools:"GenAI, NPS verbatims, SLA framework", pri:"#1E5AA8", acc:"#F05A4F", deep:"#0B1F44"},
- {slug:"pnb-housing-credit-credit-analysis-module", company:"PNB Housing Finance", sector:"Housing Finance", fn:"Credit", title:"Credit Appraisal Co-pilot", build:"GenAI co-pilot",
-  sub:"A GenAI co-pilot reads the whole loan file, from twelve months of bank statements to legal and technical reports, and drafts the credit appraisal memo.",
-  kpis:[["~40 min","To draft a credit memo, from ~3.5 hours"],["2×","Files per underwriter per day"],["−30%","Files sent back to branch"]],
-  tools:"GenAI co-pilot, bank statement analysis", pri:"#12614F", acc:"#F0883E", deep:"#072B24"},
- {slug:"welspun-trade-marketing-dealer-incentive-calculator", company:"Welspun Living", sector:"Home Textiles", fn:"Trade Marketing", title:"Dealer Incentive Calculator", build:"Scheme simulator",
-  sub:"One scheme engine, a live India dashboard and a scheme simulator: sales leaders design, test and explain dealer incentives before a rupee is committed.",
-  kpis:[["2 hrs","Quarter-close incentive run, from 6 days"],["72%","Fewer dealer payout disputes"],["₹2.4","Incremental margin per ₹1 of incentive"]],
-  tools:"Scheme engine, India dashboard, simulator", pri:"#9D174D", acc:"#0EA5A4", deep:"#2B0A1E"},
- {slug:"welspun-merchandising-store-3d-model", company:"Welspun Living", sector:"Home Textiles", fn:"Merchandising", title:"Store 3D Layout", build:"Interactive 3D",
-  sub:"A 2D floor plan became a walkable 3D stand, so merchandisers could review every room set, sightline and aisle before a fixture was built.",
-  kpis:[["2 days","Floor plan to walkable 3D, vs 2–3 weeks"],["23","Layout issues caught before build"],["8 days","To layout sign-off, from 21"]],
-  tools:"GenAI-built browser 3D", pri:"#2F5BB7", acc:"#C79A4E", deep:"#14204A"},
- {slug:"amber-manufacturing-gantry-3d-model", company:"Amber Enterprises", sector:"Electronics Manufacturing", fn:"Manufacturing", title:"Gantry 3D Model", build:"Interactive 3D",
-  sub:"A GenAI-built model of the AG-3X gantry turned a spec sheet into a machine customers can spin, explode and jog, on any device.",
-  kpis:[["3 days","Spec sheet to interactive model"],["18","Customer demos per month, from 5"],["80 KB","Size of the complete model"]],
-  tools:"GenAI-built browser 3D", pri:"#4C1D95", acc:"#F2A33A", deep:"#1E0B44"},
- {slug:"amber-manufacturing-rfq-to-first-prototype", company:"Amber Enterprises", sector:"Electronics Manufacturing", fn:"Manufacturing", title:"RFQ to First Prototype", build:"GenAI workflow",
-  sub:"GenAI-assisted RFQ handling put a customer-ready machine concept on the table in days and cut the road to first prototype from 22 weeks to 14.",
-  kpis:[["14 wks","RFQ to first prototype, from 22"],["2 days","RFQ to concept sheet, from 10"],["94%","Quotes submitted on time"]],
-  tools:"GenAI, RFQ to concept workflow", pri:"#0F5E4C", acc:"#E9B10A", deep:"#072E26"},
- {slug:"bharat-petroleum-qhse-plant-safety-video-series", company:"Bharat Petroleum", sector:"Oil & Gas", fn:"QHSE", title:"Plant Safety Video Series", build:"Animated video",
-  sub:"Ten bite-size animated safety videos, bilingual and built with GenAI as lightweight HTML. They play on a gate kiosk, a tablet or a phone, even offline.",
-  kpis:[["10","Animated safety videos"],["1 day","Production per video, vs ~6 weeks"],["2","Languages: English and हिंदी"]],
-  tools:"GenAI, HTML/JS animation, Web Speech", pri:"#0B4EA2", acc:"#FFC20E", deep:"#071A3A"},
- {slug:"sterlite-hr-talent-tracker", company:"Sterlite Electric", sector:"Power Transmission", fn:"HR", title:"Executive Talent Tracker", build:"Scorecard tool",
-  sub:"Sterlite Electric's HR team learned to prompt GenAI into building their own tool: one scorecard per leader with rating history, retention risk, readiness and successors.",
-  kpis:[["2 days","Talent review pack, from ~3 weeks"],["89%","Leaders with a named successor"],["30+","Data fields on every scorecard"]],
-  tools:"GenAI prompting, PDF/PPT/Excel export", pri:"#1B5E3F", acc:"#2FBF71", deep:"#0C2B1E"},
- {slug:"bharat-petroleum-plant-operations-dynamic-sop", company:"Bharat Petroleum", sector:"Oil & Gas", fn:"Plant Operations", title:"Dynamic SOPs for LPG Plant Operations", build:"Interactive SOPs",
-  sub:"Long LPG plant SOPs became living flowcharts, sequence diagrams, Gantt plans and mind maps, with step-by-step playback and scenario changes.",
-  kpis:[["48", "SOPs converted to living diagrams"], ["2 days", "To update an SOP on the floor, from ~3 weeks"], ["−42%", "SOP-related audit observations, pilot plants"]],
-  tools:"Claude, Mermaid.js, D3.js, version control, QR codes", pri:"#5B34C7", acc:"#F5A524", deep:"#1C0F3D"},
- {slug:"amber-procurement-copper-price-prediction", company:"Amber Enterprises", sector:"Electronics Manufacturing", fn:"Procurement", title:"Copper Price Intelligence", build:"Forecasting cockpit",
-  sub:"A copper price prediction cockpit brings together global signals, a 3D event timeline and six-month what-if forecasts, linked to copper use inside an AC.",
-  kpis:[["−1.9%", "Copper buy price vs LME monthly average"], ["4.6%", "3-month forecast error, vs 7.9% for no change"], ["2 hrs", "Weekly copper call prep, from ~2 days"]],
-  tools:"Claude, Python, D3.js, Three.js, exchange data, ERP extract", pri:"#9A4E1C", acc:"#1F9A92", deep:"#1B120D"},
- {slug:"k-raheja-project-and-design-3d-product-engineering", company:"K Raheja Corp", sector:"Real Estate", fn:"Projects & Design", title:"3D Product Engineering", build:"Interactive 3D",
-  sub:"A static exploded drawing became an interactive 3D enclosure, configurator and installation guide, aligning design, procurement and site teams on one model.",
-  kpis:[["3.2 hrs", "Install time per enclosure, from ~6.5 hours"], ["−58%", "Snags at handover, per 100 enclosures"], ["15 min", "Bill of materials per tower, from 2 days"]],
-  tools:"Claude, Three.js, D3.js, manufacturer drawing, site tablets", pri:"#2B2B2B", acc:"#B08D57", deep:"#141414"},
- {slug:"landmark-hr-succession-planning-workbench", company:"Landmark Group", sector:"Retail", fn:"HR", title:"Succession Planning Workbench", build:"Talent workbench",
-  sub:"One talent workbench brings eight concepts together with a moving 9-box, critical-role succession pipelines and GenAI summaries of talent notes.",
-  kpis:[["3 wks", "Talent review cycle, from ~9 weeks"], ["71%", "Critical roles with a ready successor, from 42%"], ["−70%", "Calibration prep time with AI summaries"]],
-  tools:"Claude, D3.js, Excel / HRMS extract, optional OpenAI API with HR's own key", pri:"#0E4C61", acc:"#E0A526", deep:"#082F3D"},
- {slug:"amber-supply-chain-logistics-digital-twin", company:"Amber Enterprises", sector:"Electronics Manufacturing", fn:"Supply Chain", title:"Plant Logistics Digital Twin", build:"Interactive 3D",
-  sub:"A live 3D view of each truck, dock and dispatch bay, with a peak-season dock simulator and auto-drafted shift handovers.",
-  kpis:[["−38%", "Inbound truck turnaround time"], ["91%", "Dock utilisation, from 64%"], ["−52%", "Truck detention charges"]],
-  tools:"Three.js, Claude, Python SimPy, D3.js, gate and ERP logs", pri:"#0F5E63", acc:"#F2B705", deep:"#14181D"},
- {"slug":"bajaj-finserv-hr-aop-and-attrition-analytics","company":"Bajaj Finserv","sector":"Financial Services","fn":"HR","title":"AOP & Attrition Analytics","build":"Predictive analytics","sub":"Attrition signals traced through the rural sales hierarchy, linked to AOP targets, with early warnings and a simulator to focus retention spending.","kpis":[["19%","Annualised attrition, down from 25%"],["60 days","Advance warning for high-risk employees"],["−35%","Exits within six months of joining"]],"tools":"Workforce analytics, D3.js, predictive scoring, retention simulator","pri":"#0060B0","acc":"#FF6B3D","deep":"#0A1F44"},
- {"slug":"shell-finance-workflow-automation","company":"Shell · Sprng Energy","sector":"Renewable Energy","fn":"Finance","title":"Workflow Automation","build":"Process automation","sub":"Eight recurring workflows across generation, treasury, regulatory reporting and lease accounting were matched to Excel, VBA, Power Query and Python.","kpis":[["8","Finance and operations workflows automated"],["~159 hrs","Team time returned every month"],["83%","Less manual handling of data"]],"tools":"Excel formulas, VBA, Power Query, Python","pri":"#C8102E","acc":"#F5B800","deep":"#211B16"},
- {"slug":"sterlite-hr-rewire-org-chart","company":"Sterlite Power","sector":"Power Transmission","fn":"HR","title":"Living Org Chart & Reorganisation","build":"Organisation design","sub":"Turn one Excel file into an interactive org chart, expose spans and layers, rehearse reorganisations and flag succession gaps before decisions go live.","kpis":[["1 day","Org chart refresh, from about 3 weeks"],["14","Reorganisation scenarios tested per review"],["68%","Critical roles with ready-now successor"]],"tools":"Excel, D3.js, organisational modelling, succession analytics","pri":"#0E5FAE","acc":"#19B4C8","deep":"#0A1A2F"},
- {"slug":"sterlite-power-project-planning-schedule-automation","company":"Sterlite Power","sector":"Power Transmission","fn":"Project Planning","title":"Tower Schedule Automation","build":"Scheduling engine","sub":"A VBA schedule engine cascades changes to foundation, erection and stringing across every transmission-line stretch, refreshing the Gantt plan in minutes.","kpis":[["2 min","To reforecast after a field change, from ~12 hours"],["168","Scheduling levers in one interface"],["3 weeks","Earlier warning of finish-date slippage"]],"tools":"Excel/VBA, Gantt charts, D3.js, Three.js","pri":"#4338CA","acc":"#F97316","deep":"#15133B"},
- {"slug":"diageo-sensory-and-innovation-flavour-intelligence","company":"Diageo","sector":"Beverages","fn":"Sensory & Innovation","title":"Flavour Intelligence","build":"Sensory dashboard","sub":"Compare sensory profiles, attribute differences and price positioning through linked dashboards and an interactive 3D flavour lab.","kpis":[["3 views","Original dashboard views"],["19 attributes","Attributes in the reference"],["12 dimensions","Dimensions in the live explorer"]],"tools":"Power BI, D3.js, Three.js / WebGL, JavaScript, CSV export","pri":"#8b284e","acc":"#c78b40","deep":"#351529"},
- {"slug":"indigrid-finance-power-query-automation","company":"IndiGrid","sector":"Power Transmission","fn":"Finance","title":"Power Query Automation","build":"Power Query automation","sub":"Power Query consolidates PDF and Excel disbursement advices into one traceable reconciliation table, with six reusable functions handling differences between files.","kpis":[["6","Custom functions handling variability"],["12","Standard output columns"],["PDF + Excel","Source formats consolidated"]],"tools":"Power Query, M language, Excel, mapping tables, validation rules","pri":"#0E7C86","acc":"#E2367A","deep":"#0B1F2A"},
- {"slug":"pnb-housing-marketing-ad-analyzer","company":"PNB Housing Finance","sector":"Housing Finance","fn":"Marketing","title":"Ad Analyzer","build":"AI creative review","sub":"A structured creative review checks colour, copy and call-to-action, with optional OpenAI analysis to help marketing teams assess and refine ads consistently.","kpis":[["3 lenses","Core creative lenses"],["1 framework","Shared review format"],["2 views","Original tool screens"]],"tools":"OpenAI Responses API, REST API + JSON, D3.js, Three.js / WebGL, Canvas","pri":"#8b284e","acc":"#c78b40","deep":"#351529"},
- {"slug":"sterlite-hr-report-automation","company":"Sterlite Power","sector":"Power Transmission","fn":"HR","title":"Report Automation","build":"HR report automation","sub":"A VBA automation turns HRMS exports into a monthly HR MIS with PivotTables, charts and reconciliation checks for consistent reporting.","kpis":[["2 hours","Monthly HR MIS turnaround · indicative"],["88%","Time saved per cycle · indicative"],["3 modules","VBA modules in the reporting workflow"]],"tools":"Excel VBA, PivotTables, Excel charts, HRMS export, reconciliation checks","pri":"#5B2A86","acc":"#1FA67A","deep":"#1F1033"}
+const STORIES = [{"base": "Amber - Manufacturing - Gantry 3D Model", "company": "Amber", "org": "Amber Enterprises", "function": "Manufacturing", "title": "Gantry 3D Model", "desc": "How Havish M Consulting helped Amber Enterprises' robotics team turn a gantry spec sheet into an interactive, browser-based 3D model built with GenAI.", "slug": "amber-manufacturing-gantry-3d-model"}, {"base": "Amber - Manufacturing - RFQ to First Prototype", "company": "Amber", "org": "Amber Enterprises", "function": "Manufacturing", "title": "RFQ to First Prototype", "desc": "How Havish M Consulting helped Amber Enterprises' robotics manufacturing team compress the journey from customer RFQ to first machine prototype.", "slug": "amber-manufacturing-rfq-to-first-prototype"}, {"base": "Amber - Procurement - Copper Price Prediction", "company": "Amber", "org": "Amber Enterprises", "function": "Procurement", "title": "Copper Price Intelligence", "desc": "How Havish M Consulting helped Amber Enterprises' procurement team forecast copper prices with a GenAI-built cockpit: global signal map, 3D event timeline, what-if forecast and a 3D view of copper inside an air conditioner.", "slug": "amber-procurement-copper-price-prediction"}, {"base": "Amber - Procurement - Supplier Evaluation", "company": "Amber", "org": "Amber", "function": "Procurement", "title": "Supplier Evaluation Matrix", "desc": "How Havish M Consulting helped Amber's procurement team score, segment and source room-AC component suppliers with a weighted evaluation matrix, a 3D component risk explorer, a volume split optimiser, a disruption simulator and GenAI quote comparison.", "slug": "amber-procurement-supplier-evaluation"}, {"base": "Amber - Supply Chain - Logistics Digital Twin", "company": "Amber", "org": "Amber Enterprises", "function": "Supply Chain", "title": "Plant Logistics Digital Twin", "desc": "How Havish M Consulting built a live 3D logistics digital twin of an Amber Enterprises room-AC plant: every truck, dock and bay on one screen, a dock what-if simulator and auto-drafted shift briefs.", "slug": "amber-supply-chain-logistics-digital-twin"}, {"base": "BMTC - Business Planning - Leadership Enablement", "company": "BMTC", "org": "BMTC", "function": "Business Planning", "title": "GenAI for Business Planning", "desc": "How Havish M Consulting enabled Bahri & Mazroei Trading Company's leaders to plan with GenAI: a planning cockpit, an LED retrofit savings studio and a BOQ-to-quotation engine, prototyped during the programme.", "slug": "bmtc-business-planning-leadership-enablement"}, {"base": "BMTC - Projects - Pipeline and Tender Intelligence", "company": "BMTC", "org": "BMTC", "function": "Projects", "title": "Project Pipeline & Tender Win-Rate", "desc": "A use case built by BMTC's sales leaders in HMC's GenAI programme: a live map of UAE construction projects, an animated pipeline board, a bid optimiser that finds the discount sweet spot, and a GenAI tender brief.", "slug": "bmtc-projects-pipeline-and-tender-intelligence"}, {"base": "Bajaj Finserv - HR - AOP and Attrition Analytics", "company": "Bajaj Finserv", "org": "Bajaj Finserv", "function": "HR", "title": "Talent Retention Analytics", "desc": "How Havish M Consulting helped Bajaj Finserv's rural sales business decode attrition across its sales hierarchy, link it to AOP achievement, predict who is likely to leave and simulate retention strategies.", "slug": "bajaj-finserv-hr-aop-and-attrition-analytics"}, {"base": "Bharat Petroleum - Marketing - Sales Forecasting and BI", "company": "Bharat Petroleum", "org": "Bharat Petroleum", "function": "Marketing", "title": "Sales Forecast BI", "desc": "How Havish M Consulting consolidated Bharat Petroleum's scattered sales files with Power Query, built a fiscal-year calendar in DAX and delivered Power BI forecasting dashboards.", "slug": "bharat-petroleum-marketing-sales-forecasting-and-bi"}, {"base": "Bharat Petroleum - Pipelines - Defect Analysis", "company": "Bharat Petroleum", "org": "Bharat Petroleum", "function": "Pipelines", "title": "Pipeline Defect Analytics", "desc": "How Havish M Consulting turned in-line inspection data into a 3D defect twin, automated B31G assessments, corrosion growth forecasts and a risk-ranked dig plan for a product pipeline.", "slug": "bharat-petroleum-pipelines-defect-analysis"}, {"base": "Bharat Petroleum - Plant Operations - Dynamic SOP", "company": "Bharat Petroleum", "org": "Bharat Petroleum", "function": "Plant Operations", "title": "Dynamic SOPs for LPG Plant Operations", "desc": "How Havish M Consulting helped Bharat Petroleum's LPG bottling plant operations turn long PDF SOPs into living flowcharts, sequence diagrams, Gantt plans and mind maps built with GenAI.", "slug": "bharat-petroleum-plant-operations-dynamic-sop"}, {"base": "Bharat Petroleum - QHSE - Plant Safety Video Series", "company": "Bharat Petroleum", "org": "Bharat Petroleum", "function": "QHSE", "title": "Plant Safety Video Series", "desc": "How Havish M Consulting helped Bharat Petroleum's plant HSE team create ten animated, bilingual safety videos as lightweight HTML, built with GenAI.", "slug": "bharat-petroleum-qhse-plant-safety-video-series"}, {"base": "Clix Capital - Sales - Sales Productivity Analysis", "company": "Clix Capital", "org": "Clix Capital", "function": "Sales", "title": "Sales Productivity Analytics", "desc": "How Havish M Consulting cleaned Clix Capital's sales data and used Python segmentation and models to separate performers from non-performers, by region and product.", "slug": "clix-capital-sales-sales-productivity-analysis"}, {"base": "Diageo - Sensory and Innovation - Flavour Intelligence", "company": "Diageo", "org": "Diageo", "function": "Sensory and Innovation", "title": "Flavour Profile Intelligence", "desc": "Diageo sensory and product innovation case study by Havish M Consulting: original dashboard references and a hands-on flavour profiling lab with D3 charts and a 3D flavour map.", "slug": "diageo-sensory-and-innovation-flavour-intelligence"}, {"base": "Indigrid - Finance - Power Query Automation", "company": "Indigrid", "org": "IndiGrid", "function": "Finance", "title": "1,000 PDFs to One Table", "desc": "How Havish M Consulting built a Power Query process with custom functions to consolidate 1,000+ POWERGRID disbursement advice files for IndiGrid, handling every format variation.", "slug": "indigrid-finance-power-query-automation"}, {"base": "JK Cement - Finance - Bill Reading", "company": "JK Cement", "org": "JK Cement", "function": "Finance", "title": "Sales Reimbursement Audit", "desc": "How Havish M Consulting helped JK Cement's finance team read every sales reimbursement bill, check it against each salesperson's entitlement and approved tour plan, and verify the bill's location against a geo-fence.", "slug": "jk-cement-finance-bill-reading"}, {"base": "JK Cement - Sales - Sales Beat Planning", "company": "JK Cement", "org": "JK Cement", "function": "Sales", "title": "Sales Beat Planning", "desc": "How Havish M Consulting helped JK Cement's sales team rebuild beat plans with data: higher outlet coverage, fewer kilometres, more productive calls.", "slug": "jk-cement-sales-sales-beat-planning"}, {"base": "K Raheja - Project and Design - 3D Product Engineering", "company": "K Raheja", "org": "K Raheja Corp", "function": "Project and Design", "title": "Stealth Swing Enclosure in 3D", "desc": "How Havish M Consulting helped K Raheja Corp's Projects & Design team turn a static exploded drawing of a swing shower enclosure into an interactive 3D model, configurator and installation guide.", "slug": "k-raheja-project-and-design-3d-product-engineering"}, {"base": "Landmark - Buyers - Markdown Calculator", "company": "Landmark", "org": "Landmark Group", "function": "Buyers", "title": "Markdown Calculator for Buying", "desc": "How Havish M Consulting helped Landmark Group's buying teams replace blanket markdowns with an option-level markdown calculator built with GenAI.", "slug": "landmark-buyers-markdown-calculator"}, {"base": "Landmark - Customer Experience - SLA Guidelines & Customer NPS", "company": "Landmark", "org": "Landmark", "function": "Customer Experience", "title": "SLA Guidelines & Customer NPS", "desc": "How Havish M Consulting helped Landmark's customer experience team map every customer comment to its service SLAs and find the perception gap behind NPS.", "slug": "landmark-customer-experience-sla-guidelines-and-customer-nps"}, {"base": "Landmark - E Commerce - Vision AI Image QC", "company": "Landmark", "org": "Centrepoint", "function": "E Commerce", "title": "AI Photography QC", "desc": "How Havish M Consulting built a dual-tier vision AI pipeline for Centrepoint (Landmark Group) that turns photography style guides into JSON rulebooks, filters junk images cheaply and judges every product image set against the rules.", "slug": "landmark-e-commerce-vision-ai-image-qc"}, {"base": "Landmark - HR - Succession Planning Workbench", "company": "Landmark", "org": "Landmark Group", "function": "HR", "title": "Succession Planning Workbench", "desc": "How Havish M Consulting helped Landmark Group's HR team run succession planning across concepts with an interactive talent workbench and GenAI summaries.", "slug": "landmark-hr-succession-planning-workbench"}, {"base": "Nuvoco Vistas - Procurement - Procurement Cost Intelligence", "company": "Nuvoco Vistas", "org": "Nuvoco", "function": "Procurement", "title": "Procurement Cost Intelligence", "desc": "How Havish M Consulting gave Nuvoco's procurement and finance teams one view of material and fuel cost: a live supply map, a 3D view of where cost enters the cement process, a price volatility lab and a finance desk for landed cost, contracts, variance and inventory.", "slug": "nuvoco-vistas-procurement-procurement-cost-intelligence"}, {"base": "PNB Housing - Credit - Credit Analysis Module", "company": "PNB Housing", "org": "PNB Housing Finance", "function": "Credit", "title": "Credit Appraisal Co-pilot", "desc": "How Havish M Consulting helped PNB Housing Finance's credit team draft credit appraisal memos for affordable home loans with a GenAI co-pilot.", "slug": "pnb-housing-credit-credit-analysis-module"}, {"base": "PNB Housing - Credit Operations - Intelligent Document Processing", "company": "PNB Housing", "org": "PNB Housing", "function": "Credit Operations", "title": "GenAI Loan File Assistant", "desc": "How Havish M Consulting built a GenAI document assistant for PNB Housing's home-loan files: classify every page, extract every field, cross-check documents, answer questions with citations and draft the credit note for the underwriter.", "slug": "pnb-housing-credit-operations-intelligent-document-processing"}, {"base": "PNB Housing - HR - Exit Interviews", "company": "PNB Housing", "org": "PNB Housing", "function": "HR", "title": "AI Voice Exit Interviews", "desc": "How Havish M Consulting built an AI voice exit interviewer for PNB Housing Finance: five dynamic questions spoken with ElevenLabs, answers transcribed and coded by GenAI into a structured exit record and an attrition insights dashboard.", "slug": "pnb-housing-hr-exit-interviews"}, {"base": "PNB Housing - Marketing - Ad Analyzer", "company": "PNB Housing", "org": "PNB Housing", "function": "Marketing", "title": "Ad Creative Intelligence", "desc": "PNB Housing marketing case study by Havish M Consulting: an AI-powered ad analyzer, original tool screens, and an interactive creative review lab with optional live OpenAI analysis.", "slug": "pnb-housing-marketing-ad-analyzer"}, {"base": "PNB Housing - Risk - Early Warning and Smart Collections", "company": "PNB Housing", "org": "PNB Housing", "function": "Risk", "title": "Early Warning, Fraud Rings & Smart Collections", "desc": "How Havish M Consulting helped PNB Housing Finance spot stress before the first missed EMI, catch linked-application fraud before disbursal, and run collections by propensity and capacity with compliant, personalised outreach.", "slug": "pnb-housing-risk-early-warning-and-smart-collections"}, {"base": "PwC - Advisory - Field Data Digitization", "company": "PwC", "org": "PwC", "function": "Advisory", "title": "Signature Extraction for MSDE", "desc": "How Havish M Consulting built an Excel VBA tool for PwC that extracted respondent signatures from noisy, creased A4 scans for a Ministry of Skill Development and Entrepreneurship study, cutting turnaround from 200 hours to 8.", "slug": "pwc-advisory-field-data-digitization"}, {"base": "RR Kabel - Procurement - Engineered BOM", "company": "RR Kabel", "org": "RR Kabel", "function": "Procurement", "title": "Engineered BOM for Wires & Cables", "desc": "How Havish M Consulting helped RR Kabel's procurement team replace spreadsheet BOMs for wires and cables with an engineered, calibrated BOM engine.", "slug": "rr-kabel-procurement-engineered-bom"}, {"base": "RR Kabel - Quality - Root Cause Analysis", "company": "RR Kabel", "org": "RR Kabel", "function": "Quality", "title": "Quality Root Cause Assistant", "desc": "How Havish M Consulting built a root cause analysis assistant for RR Kabel's cable insulation lines: live line monitoring, auto Pareto, evidence-scored fishbone, 5 Whys and an 8D report in minutes.", "slug": "rr-kabel-quality-root-cause-analysis"}, {"base": "RR Kabel - Sales - Sales Agent", "company": "RR Kabel", "org": "RR Kabel", "function": "Sales", "title": "Sales Agent", "desc": "How Havish M Consulting helped RR Kabel's field sales team get instant, brochure-grounded product answers through the Cable Ready Reckoner agent.", "slug": "rr-kabel-sales-sales-agent"}, {"base": "Shell - Finance - Workflow Automation", "company": "Shell", "org": "Shell", "function": "Finance", "title": "Eight Automations", "desc": "How Havish M Consulting automated eight finance and operations workflows for Shell's Indian renewables business (Sprng Energy) with Excel formulas, VBA, Power Query and Python.", "slug": "shell-finance-workflow-automation"}, {"base": "Sterlite - HR - JD CV Matching", "company": "Sterlite", "org": "Sterlite Power", "function": "HR", "title": "CV–JD Match Copilot", "desc": "A GenAI screening copilot for Sterlite Power's talent acquisition team: CV-to-JD matching with dynamic scoring, personalised interview questions, red flags and a CV chatbot, with optional live OpenAI responses.", "slug": "sterlite-hr-jd-cv-matching"}, {"base": "Sterlite - HR - People Analytics", "company": "Sterlite", "org": "Sterlite Power", "function": "HR", "title": "HR Analytics on One Power BI Model", "desc": "How Havish M Consulting replaced VLOOKUP-driven Excel HR working at Sterlite Power with one Power BI data model, Power Query (M) and DAX, powering a cross-filtering people analytics dashboard.", "slug": "sterlite-hr-people-analytics"}, {"base": "Sterlite - HR - Remote Workplace Survey", "company": "Sterlite", "org": "Sterlite Power", "function": "HR", "title": "Remote Workplace Survey", "desc": "How Havish M Consulting ran Sterlite Power's remote workplace survey end to end: a validated Excel VBA survey form, a consolidation macro, Power Query shaping and a Power BI dashboard with a weighted remote-readiness index for every role.", "slug": "sterlite-hr-remote-workplace-survey"}, {"base": "Sterlite - HR - Report Automation", "company": "Sterlite", "org": "Sterlite Power", "function": "HR", "title": "HR MIS in One Click", "desc": "How Havish M Consulting automated Sterlite Power's monthly HR MIS with VBA, cutting report creation from 2 days to 2 hours and removing manual errors.", "slug": "sterlite-hr-report-automation"}, {"base": "Sterlite - HR - Rewire Org Chart", "company": "Sterlite", "org": "Sterlite Power", "function": "HR", "title": "Living Org Design", "desc": "How Havish M Consulting gave Sterlite Power's HR team a living org chart: one Excel in, an interactive org out, with spans and layers X-rayed, reorgs rehearsed on screen and succession gaps flagged early.", "slug": "sterlite-hr-rewire-org-chart"}, {"base": "Sterlite - HR - Talent Tracker", "company": "Sterlite", "org": "Sterlite Electric", "function": "HR", "title": "Executive Talent Tracker", "desc": "How Sterlite Electric's HR team used GenAI prompting to build an executive talent scorecard: ratings, retention risk, readiness and successors on one page.", "slug": "sterlite-hr-talent-tracker"}, {"base": "Sterlite - Project Planning - Schedule Automation", "company": "Sterlite", "org": "Sterlite Power", "function": "Project Planning", "title": "Tower Schedule Engine", "desc": "How Havish M Consulting built an Excel VBA schedule engine for Sterlite Power's transmission line projects: one field change re-plans foundation, erection and stringing across every stretch.", "slug": "sterlite-project-planning-schedule-automation"}, {"base": "Welspun - Merchandising - Store 3D Model", "company": "Welspun", "org": "Welspun Living", "function": "Merchandising", "title": "Store 3D Layout", "desc": "How Havish M Consulting helped Welspun Living's merchandising team turn a 2D floor plan into a walkable 3D stand layout built with GenAI.", "slug": "welspun-merchandising-store-3d-model"}, {"base": "Welspun - Trade Marketing - Dealer Incentive Calculator", "company": "Welspun", "org": "Welspun Living", "function": "Trade Marketing", "title": "Dealer Incentive Calculator", "desc": "How Havish M Consulting helped Welspun Living's sales team replace regional incentive spreadsheets with one scheme engine, a live India dashboard and a scheme simulator.", "slug": "welspun-trade-marketing-dealer-incentive-calculator"}];
+
+const FAMILIES = [
+  ["HR & People", ["HR"]],
+  ["Finance", ["Finance"]],
+  ["Sales & Marketing", ["Sales","Marketing","Trade Marketing","Customer Experience","E Commerce","Merchandising","Buyers"]],
+  ["Procurement & Supply Chain", ["Procurement","Supply Chain"]],
+  ["Manufacturing & Engineering", ["Manufacturing","Project and Design","Quality","Sensory and Innovation"]],
+  ["Operations & Safety", ["Plant Operations","QHSE","Pipelines","Project Planning","Projects"]],
+  ["Credit & Risk", ["Credit","Credit Operations","Risk"]],
+  ["Strategy & Advisory", ["Business Planning","Advisory"]]
 ];
-CASES.forEach((c,i) => { c.i = i; c.url = "cases/" + c.slug + ".html"; c.hero = "thumbs/" + c.slug + "-hero.jpg"; c.scroll = "thumbs/" + c.slug + "-scroll.jpg";
-  c.hay = [c.company,c.sector,c.fn,c.title,c.build,c.sub,c.tools,c.kpis.map(k=>k.join(" ")).join(" ")].join(" ").toLowerCase(); });
+const famOf = {}; FAMILIES.forEach(([f,arr])=>arr.forEach(x=>famOf[x]=f));
+STORIES.forEach(s=>{
+  s.family = famOf[s.function] || "Other";
+  s.html = "html/"+s.slug+".html"; s.pdf = "pdf/"+s.slug+".pdf"; s.video = "video/"+s.slug+".mp4"; s.thumb = "thumbs/"+s.slug+".jpg";
+  s.hay = [s.company,s.org,s.function,s.family,s.title,s.desc,s.base].join(" ").toLowerCase();
+});
 
-const $ = s => document.querySelector(s);
-const esc = s => String(s).replace(/[&<>"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
-const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $ = id=>document.getElementById(id);
+const esc = t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints>1 && /Macintosh/.test(navigator.userAgent));
+const store = {get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+
+const state = {q:"", fam:"", co:"", view: store.get("hmc-cs-view")==="list"?"list":"grid"};
+
 const ICON = {
-  eye:'<svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
-  out:'<svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>',
-  down:'<svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg>'
+  html:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg>',
+  pdf:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5"/></svg>',
+  video:'<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>'
 };
-const uniq = k => [...new Set(CASES.map(c => c[k]))];
-$("#navStats").innerHTML = `<span><b>${CASES.length}</b>case studies</span><span><b>${uniq("company").length}</b>clients</span><span><b>${uniq("sector").length}</b>sectors</span><span><b>${uniq("fn").length}</b>functions</span>`;
+const LABEL = {html:"Case Study", pdf:"PDF", video:"Video"};
+const fmtBtns = s => '<div class="fmt">'+["html","pdf","video"].map(f=>`<button class="fbtn" data-open="${s.slug}" data-f="${f}">${ICON[f]}${LABEL[f]}</button>`).join("")+'</div>';
 
-/* ---------- state ---------- */
-const state = { fn:null, sector:null, company:null, q:"" };
-try { const s = JSON.parse(localStorage.getItem("hmc-lib-filters") || "null"); if (s) Object.assign(state, s, {q:""}); } catch(e){}
-const save = () => { try { localStorage.setItem("hmc-lib-filters", JSON.stringify({fn:state.fn, sector:state.sector, company:state.company})); } catch(e){} };
-const match = (c, skip) => (skip === "fn" || !state.fn || c.fn === state.fn) && (skip === "sector" || !state.sector || c.sector === state.sector)
-  && (skip === "company" || !state.company || c.company === state.company) && (!state.q || state.q.split(/\s+/).every(t => c.hay.includes(t)));
-let list = CASES.slice();
+// companies
+const companies = [...new Set(STORIES.map(s=>s.company))].sort((a,b)=>a.localeCompare(b));
+$("co").insertAdjacentHTML("beforeend", companies.map(c=>`<option value="${esc(c)}">${esc(c)} (${STORIES.filter(s=>s.company===c).length})</option>`).join(""));
+$("nStories").textContent = STORIES.length; $("nCos").textContent = companies.length;
 
-/* ---------- filters ---------- */
-const GROUPS = [["fn","Function"],["sector","Sector"],["company","Company"]];
-const companyColor = {}; CASES.forEach(c => companyColor[c.company] = companyColor[c.company] || c.pri);
-function renderFilters(){
-  $("#filters").innerHTML = GROUPS.map(([k,label]) => {
-    const vals = uniq(k).sort((a,b) => a.localeCompare(b));
-    const pool = CASES.filter(c => match(c, k));
-    const chips = [`<button class="chip" data-k="${k}" data-v="" aria-pressed="${!state[k]}">All <span class="n">${pool.length}</span></button>`]
-      .concat(vals.map(v => { const n = pool.filter(c => c[k] === v).length;
-        const sw = k === "company" ? `<span class="sw" style="background:${companyColor[v]}"></span>` : "";
-        return `<button class="chip" data-k="${k}" data-v="${esc(v)}" aria-pressed="${state[k] === v}" ${n || state[k] === v ? "" : "disabled"}>${sw}${esc(v)} <span class="n">${n}</span></button>`; }));
-    return `<div class="frow"><div class="flabel" id="fl-${k}">${label}</div><div class="chips" role="group" aria-labelledby="fl-${k}">${chips.join("")}</div></div>`;
-  }).join("");
+function base(){ // results ignoring family (for chip counts)
+  const terms = state.q.toLowerCase().split(/\s+/).filter(Boolean);
+  return STORIES.filter(s=>(!state.co||s.company===state.co) && terms.every(t=>s.hay.includes(t)));
 }
-$("#filters").addEventListener("click", e => {
-  const b = e.target.closest(".chip"); if (!b || b.disabled) return;
-  const k = b.dataset.k, v = b.dataset.v || null;
-  state[k] = state[k] === v ? null : v; save(); apply();
+function renderChips(pool){
+  const n = f => pool.filter(s=>s.family===f).length;
+  $("chips").innerHTML = `<button class="chip ${state.fam?"":"on"}" data-fam="">All<span class="n">${pool.length}</span></button>` +
+    FAMILIES.map(([f])=>`<button class="chip ${state.fam===f?"on":""}" data-fam="${esc(f)}">${esc(f)}<span class="n">${n(f)}</span></button>`).join("");
+}
+function render(){
+  const pool = base(); renderChips(pool);
+  const list = pool.filter(s=>!state.fam||s.family===state.fam);
+  $("count").textContent = `${list.length} of ${STORIES.length} stories`;
+  $("vGrid").classList.toggle("on", state.view==="grid"); $("vList").classList.toggle("on", state.view==="list");
+  if(!list.length){ $("out").innerHTML = `<div class="empty">No stories match these filters.<br><button class="chip" id="reset">Clear filters</button></div>`; return; }
+  if(state.view==="grid"){
+    $("out").innerHTML = '<div class="grid">'+list.map(s=>`
+      <article class="card">
+        <button class="thumb" data-open="${s.slug}" data-f="html" aria-label="Open ${esc(s.title)}"><img src="${s.thumb}" alt="" loading="lazy"><span class="co">${esc(s.company)}</span></button>
+        <div class="body">
+          <div class="tags"><span class="tag fam">${esc(s.function)}</span></div>
+          <h3 data-open="${s.slug}" data-f="html">${esc(s.title)}</h3>
+          <p class="org">${esc(s.org)}</p>
+          <p class="desc">${esc(s.desc)}</p>
+          ${fmtBtns(s)}
+        </div>
+      </article>`).join("")+'</div>';
+  } else {
+    $("out").innerHTML = '<div class="list"><div class="row head"><div>Company</div><div>Story</div><div>Open as</div></div>'+list.map(s=>`
+      <div class="row">
+        <div class="c">${esc(s.company)}<small>${esc(s.function)}</small></div>
+        <div class="t" data-open="${s.slug}" data-f="html">${esc(s.title)}<small>${esc(s.desc)}</small></div>
+        ${fmtBtns(s)}
+      </div>`).join("")+'</div>';
+  }
+}
+
+// viewer
+let cur = null, lastFocus = null;
+function openStory(slug, f){
+  const s = STORIES.find(x=>x.slug===slug); if(!s) return;
+  if(f==="pdf" && isMobile){ window.open(s.pdf, "_blank", "noopener"); return; }
+  cur = s; lastFocus = document.activeElement;
+  $("vTitle").textContent = s.title; $("vMeta").textContent = s.org+" · "+s.function;
+  show(f);
+  $("ov").classList.add("open"); $("ov").setAttribute("aria-hidden","false"); document.body.classList.add("lock");
+  try{ history.replaceState(null,"","#"+s.slug+"/"+f); }catch(e){}
+  $("vClose").focus();
+}
+function show(f){
+  const s = cur;
+  [...$("vTabs").children].forEach(b=>b.classList.toggle("on", b.dataset.f===f));
+  const url = s[f];
+  $("vNew").href = url; $("vDl").href = url; $("vDl").setAttribute("download", s.base+(f==="html"?".html":f==="pdf"?".pdf":".mp4"));
+  const body = $("vBody");
+  if(f==="video"){
+    body.innerHTML = `<div class="vidwrap"><video src="${url}" controls autoplay playsinline preload="metadata" poster=""></video></div>`;
+  } else if(f==="pdf" && isMobile){
+    body.innerHTML = `<div class="load"><a class="fbtn" style="padding:0 18px" href="${url}" target="_blank" rel="noopener">${ICON.pdf} Open PDF</a></div>`;
+  } else {
+    body.innerHTML = `<div class="load">Loading…</div><iframe src="${url}${f==="pdf"?"#view=FitH":""}" title="${esc(s.title)} ${LABEL[f]}" loading="eager" allow="fullscreen; autoplay"></iframe>`;
+  }
+  try{ history.replaceState(null,"","#"+s.slug+"/"+f); }catch(e){}
+}
+function closeViewer(){
+  $("ov").classList.remove("open"); $("ov").setAttribute("aria-hidden","true"); document.body.classList.remove("lock");
+  $("vBody").innerHTML = ""; cur = null;
+  try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){}
+  if(lastFocus) lastFocus.focus();
+}
+
+// events
+let t; $("q").addEventListener("input", e=>{ $("searchBox").classList.toggle("has", !!e.target.value); clearTimeout(t); t=setTimeout(()=>{state.q=e.target.value.trim(); render();},120); });
+$("clr").onclick = ()=>{ $("q").value=""; state.q=""; $("searchBox").classList.remove("has"); render(); $("q").focus(); };
+$("co").onchange = e=>{ state.co=e.target.value; render(); };
+$("vGrid").onclick = ()=>{ state.view="grid"; store.set("hmc-cs-view","grid"); render(); };
+$("vList").onclick = ()=>{ state.view="list"; store.set("hmc-cs-view","list"); render(); };
+document.addEventListener("click", e=>{
+  const chip = e.target.closest("[data-fam]"); if(chip){ state.fam = chip.dataset.fam; render(); return; }
+  if(e.target.closest("#reset")){ state.q="";state.fam="";state.co=""; $("q").value=""; $("co").value=""; $("searchBox").classList.remove("has"); render(); return; }
+  const o = e.target.closest("[data-open]"); if(o){ openStory(o.dataset.open, o.dataset.f); return; }
+  const tab = e.target.closest("#vTabs button"); if(tab && cur){ if(tab.dataset.f==="pdf"&&isMobile){window.open(cur.pdf,"_blank","noopener");return;} show(tab.dataset.f); return; }
 });
-$("#q").addEventListener("input", e => { state.q = e.target.value.trim().toLowerCase(); apply(); });
-$("#clear").addEventListener("click", () => { state.fn = state.sector = state.company = null; state.q = ""; $("#q").value = ""; save(); apply(); });
+$("vClose").onclick = closeViewer;
+$("ov").addEventListener("click", e=>{ if(e.target===$("ov")) closeViewer(); });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape" && cur) closeViewer(); });
 
-/* ---------- grid ---------- */
-function card(c){
-  return `<article class="card" style="--pri:${c.pri};--acc:${c.acc};--deep:${c.deep};animation-delay:${Math.min(list.indexOf(c),8)*45}ms">
-    <button class="thumb" data-peek="${c.i}" aria-label="Peek inside ${esc(c.company)}: ${esc(c.title)}">
-      <span class="bar"><i></i><i></i><i></i><span>hmc / ${esc(c.company.toLowerCase())} / ${esc(c.fn.toLowerCase())}</span></span>
-      <span class="view"><img src="${c.scroll}" alt="" loading="lazy" decoding="async"><span class="prog"><i></i></span>
-        <span class="hint">${ICON.down}Hover to scroll · click to peek</span></span>
-    </button>
-    <div class="body">
-      <div class="meta"><span class="co-dot"></span><b>${esc(c.company)}</b><span class="sep">/</span>${esc(c.fn)}<span class="sep">/</span>${esc(c.sector)}</div>
-      <h3>${esc(c.title)}</h3>
-      <p class="sub">${esc(c.sub)}</p>
-      <div class="kp">${c.kpis.slice(0,2).map(k => `<div><b>${esc(k[0])}</b><span>${esc(k[1])}</span></div>`).join("")}</div>
-      <div class="card-foot"><span class="pill">${esc(c.build)}</span>
-        <button class="link" data-peek="${c.i}">${ICON.eye}Peek</button></div>
-    </div></article>`;
-}
-function sizeScroll(img){
-  const view = img.parentElement, H = img.getBoundingClientRect().height, h = view.getBoundingClientRect().height;
-  if (!H || !h) return;
-  const d = Math.max(0, H - h);
-  img.style.setProperty("--shift", -d + "px");
-  view.closest(".thumb").style.setProperty("--t", Math.max(2.5, d / 520).toFixed(2) + "s");
-  view.style.setProperty("--t", Math.max(2.5, d / 520).toFixed(2) + "s");
-}
-function renderGrid(){
-  const g = $("#grid");
-  g.innerHTML = list.length ? list.map(card).join("") :
-    `<div class="empty"><h3>No case studies match</h3><p>Try removing a filter or clearing the search.</p></div>`;
-  g.querySelectorAll(".view img").forEach(img => img.complete ? sizeScroll(img) : img.addEventListener("load", () => sizeScroll(img), {once:true}));
-}
-addEventListener("resize", () => document.querySelectorAll(".view img").forEach(sizeScroll));
-$("#grid").addEventListener("click", e => { const b = e.target.closest("[data-peek]"); if (b) openPeek(+b.dataset.peek); });
-
-function apply(){
-  list = CASES.filter(c => match(c));
-  renderFilters(); renderGrid();
-  const parts = GROUPS.filter(([k]) => state[k]).map(([k]) => state[k]);
-  if (state.q) parts.push(`“${state.q}”`);
-  $("#resultText").innerHTML = `Showing <b>${list.length}</b> of ${CASES.length} case studies` + (parts.length ? ` · ${parts.map(esc).join(" · ")}` : "");
-  $("#clear").hidden = !parts.length;
-  buildFlow();
-}
-
-/* ---------- coverflow ---------- */
-const flow = $("#flow"), hero = $("#hero"), now = $("#now"), dots = $("#dots");
-let cur = 0, timer = null, paused = false;
-const DUR = 6500;
-function flowSet(){ return list.length ? list : CASES; }
-function buildFlow(){
-  const set = flowSet();
-  const keep = set.indexOf(CASES[flow.dataset.cur]); cur = keep >= 0 ? keep : 0;
-  flow.innerHTML = set.map((c,i) => `<figure class="slide" data-i="${i}" style="--acc:${c.acc}" aria-label="${esc(c.company)}: ${esc(c.title)}">
-      <div class="bar"><i></i><i></i><i></i><span>hmc · case study · ${esc(c.company)}</span></div>
-      <img src="${c.hero}" alt="${esc(c.company)} ${esc(c.title)} case study cover" ${i < 3 ? "" : 'loading="lazy"'}><span class="glow"></span></figure>`).join("");
-  dots.innerHTML = set.map((c,i) => `<button class="dot" role="tab" aria-label="${esc(c.company)}: ${esc(c.title)}" data-i="${i}"></button>`).join("");
-  go(cur, true);
-}
-function layout(){
-  const set = flowSet(), n = set.length, narrow = innerWidth < 640;
-  flow.querySelectorAll(".slide").forEach(s => {
-    const i = +s.dataset.i; let d = i - cur;
-    if (n > 2){ if (d > n/2) d -= n; if (d < -n/2) d += n; }
-    const a = Math.abs(d), sign = Math.sign(d);
-    const x = d === 0 ? 0 : sign * ((narrow ? 46 : 42) + (a-1) * (narrow ? 14 : 16));
-    s.style.transform = `translate(-50%,-50%) translateX(${x}%) translateZ(${-a * 170}px) rotateY(${-sign * Math.min(a,2) * 24}deg) scale(${d === 0 ? 1 : .92})`;
-    s.style.opacity = a > 2 ? 0 : a === 2 ? .45 : 1;
-    s.style.filter = d === 0 ? "none" : `brightness(${a === 1 ? .62 : .4}) saturate(.8)`;
-    s.style.zIndex = 50 - a;
-    s.style.pointerEvents = a > 2 ? "none" : "auto";
-    s.classList.toggle("is-active", d === 0);
-    s.setAttribute("aria-hidden", d !== 0);
-  });
-}
-function renderNow(c, instant){
-  const html = `<div class="now-meta"><span class="tag co">${esc(c.company)}</span><span class="tag">${esc(c.fn)}</span><span class="tag">${esc(c.sector)}</span></div>
-    <h2>${esc(c.title)}</h2><p class="sub">${esc(c.sub)}</p>
-    <div class="now-kpis">${c.kpis.map(k => `<div><b>${esc(k[0])}</b><span>${esc(k[1])}</span></div>`).join("")}</div>
-    <div class="now-actions"><button class="btn btn-solid" data-peekc="${c.i}">${ICON.eye}Peek inside</button>
-      <a class="btn btn-ghost" href="${c.url}" target="_blank" rel="noopener">${ICON.out}Open full case study</a></div>`;
-  if (instant || reduce){ now.innerHTML = html; now.classList.remove("out"); return; }
-  now.classList.add("out");
-  setTimeout(() => { now.innerHTML = html; now.classList.remove("out"); }, 280);
-}
-function go(i, instant){
-  const set = flowSet(), n = set.length; cur = ((i % n) + n) % n;
-  const c = set[cur]; flow.dataset.cur = c.i;
-  hero.style.setProperty("--g1", c.deep); hero.style.setProperty("--g2", c.pri); hero.style.setProperty("--g3", c.acc);
-  layout(); renderNow(c, instant);
-  $("#counter").textContent = String(cur+1).padStart(2,"0") + " / " + String(n).padStart(2,"0");
-  dots.querySelectorAll(".dot").forEach((d,k) => { d.classList.remove("on"); d.setAttribute("aria-selected", k === cur); });
-  const on = dots.children[cur]; if (on){ void on.offsetWidth; on.style.setProperty("--dur", DUR + "ms"); on.classList.add("on"); }
-  schedule();
-}
-function schedule(){ clearTimeout(timer); if (!paused && !reduce && flowSet().length > 1) timer = setTimeout(() => go(cur+1), DUR); }
-function pause(p){ paused = p; hero.classList.toggle("paused", p); if (p) clearTimeout(timer); else go(cur, true); }
-$("#prev").onclick = () => go(cur-1);
-$("#next").onclick = () => go(cur+1);
-dots.addEventListener("click", e => { const d = e.target.closest(".dot"); if (d) go(+d.dataset.i); });
-flow.addEventListener("click", e => { const s = e.target.closest(".slide"); if (!s) return;
-  const i = +s.dataset.i; if (i === cur) openPeek(flowSet()[cur].i); else go(i); });
-now.addEventListener("click", e => { const b = e.target.closest("[data-peekc]"); if (b) openPeek(+b.dataset.peekc); });
-flow.addEventListener("mouseenter", () => pause(true)); flow.addEventListener("mouseleave", () => pause(false));
-let sx = null;
-flow.addEventListener("pointerdown", e => sx = e.clientX);
-flow.addEventListener("pointerup", e => { if (sx === null) return; const dx = e.clientX - sx; sx = null; if (Math.abs(dx) > 40) go(cur + (dx < 0 ? 1 : -1)); });
-addEventListener("resize", layout);
-document.addEventListener("visibilitychange", () => { if (document.hidden) clearTimeout(timer); else schedule(); });
-
-/* ---------- peek ---------- */
-const peek = $("#peek"), wrapF = $("#frameWrap"), frame = $("#pkFrame");
-let pk = null, lastFocus = null;
-frame.addEventListener("load", () => { if (frame.getAttribute("src")) wrapF.classList.add("loaded"); });
-function openPeek(i){
-  lastFocus = document.activeElement;
-  pk = i; const c = CASES[i];
-  const pool = list.includes(c) ? list : CASES, pos = pool.indexOf(c);
-  wrapF.classList.remove("loaded");
-  $("#pkPh").src = c.hero;
-  frame.src = c.url;
-  $("#pkUrl").textContent = "havishm.consulting / case-studies / " + c.slug;
-  $("#pkInfo").style.setProperty("--pri", c.pri); $("#pkInfo").style.setProperty("--acc", c.acc);
-  $("#pkInfo").style.setProperty("--pri-ink", `color-mix(in srgb, ${c.pri} 70%, var(--text))`);
-  $("#pkInfo").innerHTML = `
-    <div class="info-top"><span class="pos">${String(pos+1).padStart(2,"0")} of ${String(pool.length).padStart(2,"0")}</span>
-      <div class="nav-btns"><button class="nb" data-step="-1" aria-label="Previous case study"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
-      <button class="nb" data-step="1" aria-label="Next case study"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
-      <button class="x" data-close aria-label="Close preview"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div>
-    <div class="who"><span class="co-dot"></span><b>${esc(c.company)}</b></div>
-    <h3 id="pkTitle">${esc(c.title)}</h3>
-    <p class="sub">${esc(c.sub)}</p>
-    <dl class="facts"><dt>Function</dt><dd>${esc(c.fn)}</dd><dt>Sector</dt><dd>${esc(c.sector)}</dd><dt>Built</dt><dd>${esc(c.build)}</dd><dt>Tools</dt><dd>${esc(c.tools)}</dd></dl>
-    <div class="ikp">${c.kpis.map(k => `<div><b>${esc(k[0])}</b><span>${esc(k[1])}</span></div>`).join("")}</div>
-    <a class="btn open" href="${c.url}" target="_blank" rel="noopener">${ICON.out}Open full case study</a>
-    <p class="keys"><kbd>←</kbd> <kbd>→</kbd> to browse · <kbd>Esc</kbd> to close</p>`;
-  if (peek.hidden){ peek.hidden = false; document.body.style.overflow = "hidden"; pause(true); }
-  $("#pkInfo .x").focus();
-  try { history.replaceState(null, "", "#" + c.slug); } catch(e){}
-}
-function step(d){ const c = CASES[pk], pool = list.includes(c) ? list : CASES; const p = pool.indexOf(c); openPeek(pool[(p + d + pool.length) % pool.length].i); }
-function closePeek(){
-  peek.hidden = true; document.body.style.overflow = ""; frame.removeAttribute("src"); wrapF.classList.remove("loaded"); pk = null; pause(false);
-  try { history.replaceState(null, "", location.pathname + location.search); } catch(e){}
-  if (lastFocus) lastFocus.focus();
-}
-peek.addEventListener("click", e => {
-  if (e.target.closest("[data-close]")) closePeek();
-  const s = e.target.closest("[data-step]"); if (s) step(+s.dataset.step);
-  const d = e.target.closest("[data-dev]"); if (d){ peek.querySelectorAll("[data-dev]").forEach(b => b.setAttribute("aria-pressed", b === d)); wrapF.classList.toggle("mobile", d.dataset.dev === "mobile"); }
-});
-document.addEventListener("keydown", e => {
-  if (!peek.hidden){
-    if (e.key === "Escape") closePeek();
-    else if (e.key === "ArrowRight") step(1);
-    else if (e.key === "ArrowLeft") step(-1);
-    else if (e.key === "Tab"){ const f = [...peek.querySelectorAll("button,a[href]")].filter(x => x.offsetParent); const a = f[0], z = f[f.length-1];
-      if (e.shiftKey && document.activeElement === a){ e.preventDefault(); z.focus(); } else if (!e.shiftKey && document.activeElement === z){ e.preventDefault(); a.focus(); } }
-  } else if (e.target === document.body && (e.key === "ArrowRight" || e.key === "ArrowLeft")) go(cur + (e.key === "ArrowRight" ? 1 : -1));
-});
-
-if (state.q) $("#q").value = state.q;
-apply();
-const h = location.hash.slice(1); const hit = CASES.find(c => c.slug === h); if (hit) openPeek(hit.i);
-})();
+render();
+// deep link: #slug/format
+(function(){ const m = location.hash.slice(1).split("/"); if(m[0]) openStory(m[0], ["html","pdf","video"].includes(m[1])?m[1]:"html"); })();
 </script>
-
 </body>
 </html>
