@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Power Transmission · Living Org Design | HMC Case Study</title>
+<meta name="description" content="How Havish M Consulting gave the power transmission company's HR team a living org chart: one Excel in, an interactive org out, with spans and layers X-rayed, reorgs rehearsed on screen and succession gaps flagged early.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --pri:#0E5FAE; --deep:#0A1A2F; --grey:#7C8696; --acc:#19B4C8; --spark:#9BD13A; --bad:#E5484D; --warn:#F2A93B; --good:#16A34A;
+  --bg:#F3F6FA; --text:#15202E; --muted:#5D6B7E; --card:#FFFFFF; --line:#DFE6EF;
+  --pri-15:rgba(14,95,174,.12); --acc-15:rgba(25,180,200,.14);
+  --radius:12px; --shadow:0 1px 2px rgba(10,26,47,.06),0 8px 24px rgba(10,26,47,.08);
+  --serif:"DM Serif Display",Georgia,serif; --sans:"DM Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--serif);font-weight:400;color:var(--deep);margin:0;line-height:1.15}
+h2{font-size:clamp(1.6rem,3.2vw,2.2rem)}
+h3{font-size:1.2rem}
+p{margin:0}
+.wrap{max-width:1260px;margin:0 auto;padding:0 24px}
+section{padding:64px 0}
+.eyebrow{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--pri);margin-bottom:10px}
+.lead{color:var(--muted);max-width:780px;margin-top:12px}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line)}
+.sec-head{margin-bottom:28px}
+.alt{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+
+.topbar{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+.logos{display:flex;align-items:center;gap:16px}
+.logos img{height:44px;width:auto;object-fit:contain}
+.logos img.cl{height:30px}
+.vdiv{width:1px;height:36px;background:var(--line)}
+.tagline{font-size:.8rem;color:var(--muted);letter-spacing:.04em}
+.tagline b{color:var(--pri);font-weight:700}
+
+/* hero */
+.hero{background:radial-gradient(120% 130% at 85% 0%,#123A66 0%,#0B2140 45%,#06101F 100%);color:#fff;padding:76px 0 64px;position:relative;overflow:hidden}
+.hero canvas{position:absolute;right:0;top:0;width:58%;height:100%;pointer-events:none}
+.hero .eyebrow{color:var(--acc)}
+.hero h1{color:#fff;font-size:clamp(2.3rem,5.6vw,3.9rem);max-width:760px;position:relative;z-index:1}
+.hero h1 em{font-style:normal;color:var(--spark)}
+.hero .sub{font-size:clamp(1.05rem,2vw,1.22rem);color:rgba(255,255,255,.85);max-width:660px;margin-top:18px;position:relative;z-index:1}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px;position:relative;z-index:1}
+.pill{border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:6px 14px;font-size:.85rem;color:#fff;background:rgba(255,255,255,.06)}
+.pill span{color:var(--acc);font-weight:700;margin-right:6px}
+
+.kpis{margin-top:-30px;position:relative;z-index:2;padding:0}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi{padding:22px 20px;border-top:3px solid var(--acc)}
+.kpi .label{font-size:.82rem;color:var(--muted);font-weight:500}
+.kpi .val{font-family:var(--serif);font-size:clamp(1.9rem,4vw,2.6rem);color:var(--pri);line-height:1.1;margin-top:6px;white-space:nowrap}
+.kpi .val small{font-family:var(--sans);font-size:.9rem;color:var(--muted);margin-left:4px}
+.delta{display:inline-flex;align-items:center;gap:4px;font-size:.8rem;font-weight:700;margin-top:8px;padding:2px 8px;border-radius:999px;background:rgba(22,163,74,.1);color:var(--good)}
+.footnote{font-size:.78rem;color:var(--muted);margin-top:14px}
+
+.ch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.chc{padding:24px}
+.ico{width:44px;height:44px;border-radius:10px;background:var(--pri-15);display:grid;place-items:center;margin-bottom:16px}
+.ico svg{width:22px;height:22px;stroke:var(--pri);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.chc h3{margin-bottom:8px}
+.chc p{font-size:.92rem;color:#3E4B5C}
+
+.tl{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.tl::before{content:"";position:absolute;left:10%;right:10%;top:27px;height:3px;background:linear-gradient(90deg,var(--pri),var(--acc),var(--spark));border-radius:2px;opacity:.55}
+.tl-step{position:relative;background:none;border:0;cursor:pointer;font:inherit;color:inherit;display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 4px 8px}
+.tl-dot{width:56px;height:56px;border-radius:50%;background:#fff;border:2px solid var(--line);display:grid;place-items:center;font-family:var(--serif);font-size:1.25rem;color:var(--pri);transition:all .25s;position:relative;z-index:1}
+.tl-name{font-weight:700;font-size:.95rem}
+.tl-dur{font-size:.75rem;color:var(--muted);margin-top:-8px}
+.tl-step:hover .tl-dot{border-color:var(--pri)}
+.tl-step[aria-expanded="true"] .tl-dot{background:var(--pri);border-color:var(--pri);color:#fff;box-shadow:0 0 0 6px var(--pri-15)}
+.tl-step:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:8px}
+.tl-panel{display:none;padding:24px 28px;margin-top:20px;border-left:4px solid var(--acc)}
+.tl-panel.open{display:block;animation:fadeUp .35s ease}
+.tl-panel h3{margin-bottom:6px}
+.tl-panel ul{margin:12px 0 0;padding-left:20px;color:#3E4B5C}
+.tl-panel li{margin:6px 0}
+.tl-panel .deliv{margin-top:14px;font-size:.85rem;color:var(--muted)}
+.tl-panel .deliv b{color:var(--pri)}
+.tl-hint{text-align:center;color:var(--muted);font-size:.8rem;margin-top:6px}
+
+.seg{display:inline-flex;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:22px;padding:4px;gap:4px}
+.seg button{border:0;background:none;font:inherit;font-size:.82rem;font-weight:700;padding:6px 13px;border-radius:999px;cursor:pointer;color:var(--muted);transition:all .2s}
+.seg button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.seg button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.seg.sm button{font-size:.76rem;padding:5px 10px}
+.mod-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.mod-head h3{font-size:1.5rem}
+.mod-head p{font-size:.88rem;color:var(--muted);max-width:680px;margin-top:4px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--deep);color:var(--acc);font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:8px}
+.module{margin-bottom:52px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 12px;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer;color:var(--deep);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:border-color .15s,color .15s}
+.btn:hover{border-color:var(--pri);color:var(--pri)}
+.btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn.pri:hover{color:#fff;background:#0B4E90}
+.btn:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.btn.ico{padding:7px 10px;min-width:34px;justify-content:center}
+
+/* 01 org chart */
+.oc{overflow:hidden}
+.oc-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--line);background:#FBFCFE}
+.oc-bar .grow{flex:1}
+.srch{position:relative}
+.srch input{width:210px;padding:7px 11px 7px 30px;border:1px solid var(--line);border-radius:9px;background:#fff;font:inherit;font-size:.84rem;outline:none}
+.srch input:focus{border-color:var(--pri);box-shadow:0 0 0 3px var(--pri-15)}
+.srch svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:var(--grey);fill:none;stroke-width:2}
+.oc-legend{display:flex;gap:12px;flex-wrap:wrap;padding:8px 14px;border-bottom:1px solid var(--line);font-size:.76rem;color:var(--muted)}
+.oc-legend .lg{display:inline-flex;align-items:center;gap:6px;cursor:pointer;border:0;background:none;font:inherit;color:inherit;padding:2px 0}
+.oc-legend .lg i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.oc-legend .lg.off{opacity:.35}
+.oc-stage{position:relative;height:640px;overflow:hidden;cursor:grab;background:radial-gradient(800px 400px at 15% 0%,rgba(14,95,174,.06),transparent 60%),radial-gradient(700px 380px at 90% 10%,rgba(25,180,200,.06),transparent 60%),#F7F9FC;touch-action:none}
+.oc-stage.drag{cursor:grabbing}
+#ocCam{position:absolute;left:0;top:0;transform-origin:0 0}
+#ocWires{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+.nd{position:absolute;left:0;top:0;width:200px}
+.ncard{position:relative;background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px 10px 9px 13px;box-shadow:0 2px 6px rgba(10,26,47,.07),0 10px 24px rgba(10,26,47,.06);cursor:pointer;overflow:hidden;transition:box-shadow .2s,border-color .2s,opacity .25s,filter .25s}
+.ncard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--dc)}
+.ncard:hover{border-color:var(--dc)}
+.nrow{display:flex;gap:9px;align-items:center}
+.av{width:32px;height:32px;border-radius:10px;flex:none;display:grid;place-items:center;color:#fff;font-weight:700;font-size:11.5px;background:linear-gradient(140deg,var(--dc),color-mix(in srgb,var(--dc) 55%,#000))}
+.av.vac{background:repeating-linear-gradient(135deg,#E9EEF5 0 5px,#fff 5px 10px);color:var(--grey);border:1px dashed #B8C3D2}
+.ntx{min-width:0;flex:1}
+.nnm{font-weight:700;font-size:12.5px;color:var(--deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nrl{font-size:10.8px;color:var(--muted);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nmt{display:flex;justify-content:space-between;gap:6px;margin-top:6px;padding-top:5px;border-top:1px solid #EEF2F7;font-size:10px;color:#8A97A8;white-space:nowrap}
+.nmt b{color:var(--dc)}
+.nd.mini .ncard{padding:6px 9px 6px 12px}
+.nd.mini .av{width:24px;height:24px;border-radius:8px;font-size:9.5px}
+.nd.mini .nmt{display:none}
+.nd.mini .nnm{font-size:11.5px}
+.nd.root .ncard{background:linear-gradient(135deg,#fff,color-mix(in srgb,var(--dc) 8%,#fff))}
+.tog{position:absolute;right:-10px;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:50%;background:#fff;border:1px solid var(--line);display:grid;place-items:center;cursor:pointer;font-size:9.5px;font-weight:800;color:var(--muted);z-index:3;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.nd.root .tog{right:auto;left:50%;top:auto;bottom:-11px;transform:translateX(-50%)}
+.tog.closed{background:var(--dc);border-color:var(--dc);color:#fff}
+.nd.lit .ncard{border-color:var(--dc);box-shadow:0 0 0 2px color-mix(in srgb,var(--dc) 35%,transparent),0 10px 24px rgba(10,26,47,.12)}
+.nd.hit .ncard{border-color:var(--spark);box-shadow:0 0 0 3px rgba(155,209,58,.55),0 10px 24px rgba(10,26,47,.12)}
+.nd.dim .ncard{opacity:.28;filter:saturate(.2)}
+path.w{fill:none;stroke:#C5D0DE;stroke-width:1.5}
+path.w.lit{stroke:var(--pri);stroke-width:2.4}
+path.w.dim{opacity:.25}
+.oc-stats{position:absolute;left:14px;bottom:14px;display:flex;gap:8px;z-index:4;flex-wrap:wrap}
+.sc{background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:10px;padding:7px 12px;backdrop-filter:blur(6px)}
+.sc .v{font-size:1.05rem;font-weight:800;color:var(--deep);line-height:1.1;font-variant-numeric:tabular-nums}
+.sc .k{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--grey);font-weight:700}
+.oc-hint{position:absolute;right:14px;bottom:14px;font-size:.72rem;color:var(--grey);background:rgba(255,255,255,.88);border:1px solid var(--line);border-radius:8px;padding:5px 10px;z-index:4}
+.pn{position:absolute;right:0;top:0;bottom:0;width:320px;background:#fff;border-left:1px solid var(--line);transform:translateX(102%);transition:transform .38s cubic-bezier(.22,.9,.3,1);z-index:6;display:flex;flex-direction:column;box-shadow:-16px 0 40px rgba(10,26,47,.1)}
+.pn.on{transform:none}
+.pn .ph{padding:18px 18px 14px;border-bottom:1px solid var(--line);position:relative}
+.pn .x{position:absolute;right:10px;top:10px;border:0;background:none;cursor:pointer;color:var(--grey);font-size:18px;padding:4px}
+.pn .pav{width:50px;height:50px;border-radius:14px;display:grid;place-items:center;color:#fff;font-weight:700;font-size:17px;background:linear-gradient(140deg,var(--dc),color-mix(in srgb,var(--dc) 55%,#000));margin-bottom:10px}
+.pn h4{margin:0;font-size:1.05rem;color:var(--deep)}
+.pn .pr{font-size:.8rem;color:var(--muted)}
+.pn .tag{display:inline-block;margin-top:8px;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;font-weight:800;color:var(--dc);background:color-mix(in srgb,var(--dc) 12%,transparent);border-radius:999px;padding:2px 9px}
+.pn .pb{padding:14px 18px;overflow:auto;flex:1}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:.8rem;margin:0 0 14px}
+.kv dt{color:var(--grey)} .kv dd{margin:0;text-align:right;font-weight:700;color:var(--deep)}
+.pn h5{margin:6px 0 6px;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--grey)}
+.rep{display:flex;align-items:center;gap:8px;padding:6px 7px;border-radius:8px;cursor:pointer;font-size:.8rem;border:1px solid transparent}
+.rep:hover{background:#F5F8FC;border-color:var(--line)}
+.rep i{width:7px;height:7px;border-radius:50%;flex:none}
+.rep small{display:block;color:var(--muted);font-size:.72rem}
+.rep em{margin-left:auto;font-style:normal;color:var(--grey);font-size:.72rem}
+.rk{display:inline-block;font-size:.66rem;font-weight:800;border-radius:999px;padding:1px 8px}
+.rk.High{background:#FDECEC;color:var(--bad)} .rk.Medium{background:#FEF4E2;color:#B7791F} .rk.Low{background:#E8F6EC;color:var(--good)}
+
+/* 02 ask */
+.ask{display:grid;grid-template-columns:minmax(0,1fr) 360px;overflow:hidden}
+.ask-main{padding:22px}
+.ask-box{display:flex;gap:8px;border:1.5px solid var(--line);border-radius:12px;padding:6px 6px 6px 14px;background:#fff;align-items:center}
+.ask-box:focus-within{border-color:var(--pri);box-shadow:0 0 0 3px var(--pri-15)}
+.ask-box input{flex:1;border:0;outline:none;font:inherit;font-size:.95rem;min-width:0;background:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.ask .chips{margin-top:12px}
+.qchip{border:1px solid var(--line);background:#F7F9FC;border-radius:999px;padding:5px 12px;font:inherit;font-size:.78rem;cursor:pointer;color:var(--deep)}
+.qchip:hover{border-color:var(--pri);color:var(--pri)}
+.ans{margin-top:18px;min-height:150px}
+.ans .say{font-size:1rem;color:var(--deep);line-height:1.55}
+.ans .say b{color:var(--pri)}
+.plist{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(210px,100%),1fr));gap:8px;margin-top:12px}
+.pc{display:flex;gap:9px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:.78rem;background:#fff;animation:fadeUp .3s ease both}
+.pc .av{width:30px;height:30px;font-size:10.5px}
+.pc b{display:block;color:var(--deep);font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc span{color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc>div{min-width:0}
+.ask-side{background:var(--deep);color:#C9D6E6;padding:22px;font-size:.84rem;display:flex;flex-direction:column;gap:12px}
+.ask-side h4{margin:0;color:#fff;font-family:var(--serif);font-weight:400;font-size:1.15rem}
+.ask-side code{display:block;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 12px;font-size:.74rem;color:#9FE3EE;white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace;min-height:84px}
+.caret{display:inline-block;width:7px;height:1em;background:var(--acc);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* 03 x-ray & sandbox */
+.xr{display:grid;grid-template-columns:minmax(0,1fr) 380px;overflow:hidden}
+.xr-main{padding:14px;min-width:0;position:relative;display:flex;flex-direction:column;justify-content:center;gap:10px}
+.xr-main .row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+.xr-side{border-left:1px solid var(--line);background:#FBFCFE;padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.xr-side h4{margin:0;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--grey)}
+.scn{display:flex;flex-direction:column;gap:6px}
+.scn label{display:flex;gap:9px;align-items:flex-start;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;cursor:pointer;font-size:.8rem;transition:border-color .2s,background .2s}
+.scn label:hover{border-color:var(--pri)}
+.scn label.on{border-color:var(--pri);background:#F1F7FE}
+.scn label.na{opacity:.45;cursor:not-allowed}
+.scn input{accent-color:var(--pri);margin-top:3px}
+.scn b{display:block;color:var(--deep);font-size:.84rem}
+.scn small{color:var(--muted)}
+.mv{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center}
+.mv select{width:100%;font:inherit;font-size:.76rem;padding:6px;border:1px solid var(--line);border-radius:8px;background:#fff;min-width:0}
+.mets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.met{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.met .k{font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;color:var(--grey);font-weight:700;line-height:1.25}
+.met .v{font-family:var(--serif);font-size:1.35rem;color:var(--deep);line-height:1.1;font-variant-numeric:tabular-nums}
+.met .d{font-size:.68rem;font-weight:800}
+.d.g{color:var(--good)} .d.b{color:var(--bad)} .d.n{color:var(--grey)}
+.log{font-size:.76rem;color:#3E4B5C;max-height:120px;overflow:auto;border-top:1px dashed var(--line);padding-top:8px}
+.log div{padding:2px 0}
+.log b{color:var(--pri)}
+.xkey{display:flex;gap:12px;flex-wrap:wrap;font-size:.74rem;color:var(--muted)}
+.xkey span{display:inline-flex;align-items:center;gap:5px}
+.xkey i{width:10px;height:10px;border-radius:50%;display:inline-block}
+
+/* 04 bench */
+.bench{display:grid;grid-template-columns:minmax(0,1fr) 340px;overflow:hidden}
+.bench-main{padding:16px 18px;min-width:0}
+.bench-side{border-left:1px solid var(--line);background:#FBFCFE;padding:18px;display:flex;flex-direction:column;gap:12px;font-size:.84rem}
+.bench-side h4{margin:0;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--grey)}
+.meter{display:flex;align-items:center;gap:12px}
+.meter svg{width:92px;height:92px;flex:none}
+.meter b{font-family:var(--serif);font-weight:400;font-size:1.7rem;color:var(--deep);display:block;line-height:1}
+.rc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.rc h5{margin:0;font-size:.98rem;color:var(--deep)}
+.rc .who{font-size:.78rem;color:var(--muted);margin-bottom:8px}
+.succ{display:flex;align-items:center;gap:8px;font-size:.78rem;padding:4px 0;border-top:1px solid #F0F3F7}
+.succ i{font-style:normal;font-size:.64rem;font-weight:800;border-radius:999px;padding:1px 7px;margin-left:auto}
+.succ i.r{background:#E8F6EC;color:var(--good)} .succ i.y{background:#FEF4E2;color:#B7791F}
+
+/* charts */
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.chart svg{width:100%;height:auto;display:block}
+.axis text{font-family:var(--sans);font-size:11px;fill:var(--muted)}
+.axis line{stroke:var(--line)}
+.axis path{display:none}
+.grid line{stroke:var(--line);stroke-dasharray:2 3}
+.grid path{display:none}
+.ckey{display:flex;gap:14px;font-size:.76rem;color:var(--muted);margin-top:8px;flex-wrap:wrap}
+.ckey span{display:inline-flex;align-items:center;gap:6px}
+.ckey i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.cmp-head{display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+.cmp{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.cmp th,.cmp td{padding:16px 18px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);font-size:.92rem;overflow-wrap:anywhere}
+.cmp thead th{font-family:var(--sans);font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);background:#F9FBFD}
+.cmp tbody tr:last-child td,.cmp tbody tr:last-child th{border-bottom:0}
+.cmp tbody th{font-weight:700;color:var(--pri)}
+.cmp col.c1{width:22%}
+.cmp td{transition:background .3s,opacity .3s,color .3s}
+.cmp.hl-before td.b{background:#FDF0F0;color:#7F1D1D}
+.cmp.hl-before td.a{opacity:.38}
+.cmp.hl-after td.a{background:#EEF6FE;color:#0B2E55;font-weight:500}
+.cmp.hl-after td.b{opacity:.38}
+.cmp.hl-after thead th.a{color:var(--pri)}
+.cmp.hl-before thead th.b{color:var(--bad)}
+.tchips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:.9rem;font-weight:500;display:inline-flex;align-items:center;gap:8px;box-shadow:0 1px 2px rgba(10,26,47,.04)}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 3px var(--acc-15)}
+.chip em{font-style:normal;color:var(--muted);font-weight:400;font-size:.82rem}
+.tk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.tk{padding:26px}
+.tk .n{font-family:var(--serif);font-size:2.6rem;color:var(--acc);line-height:1}
+.tk h3{margin:12px 0 8px}
+.tk p{font-size:.92rem;color:#3E4B5C}
+footer{background:var(--deep);color:rgba(255,255,255,.75);padding:48px 0 32px;margin-top:32px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px}
+.f-brand{display:flex;align-items:center;gap:16px}
+.f-brand img{height:44px;width:auto;border-radius:6px;background:#fff;padding:4px}
+.f-brand b{display:block;color:#fff;font-family:var(--serif);font-weight:400;font-size:1.15rem}
+.copy{width:100%;border-top:1px solid rgba(255,255,255,.12);padding-top:18px;font-size:.8rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+#tip{position:fixed;pointer-events:none;z-index:95;background:var(--deep);color:#fff;font-size:.8rem;line-height:1.45;padding:10px 12px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transition:opacity .15s;max-width:290px}
+#tip b{color:var(--acc);font-weight:700}
+#tip .t{font-weight:700;font-size:.85rem;margin-bottom:2px;color:#fff}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,12px);background:var(--deep);color:#fff;padding:10px 16px;border-radius:10px;font-size:.85rem;opacity:0;pointer-events:none;transition:.25s;z-index:96}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.js .reveal{opacity:1;transform:none;transition:none}.tl-panel.open,.pc{animation:none}.caret{animation:none}}
+@media (max-width:1100px){.xr,.bench,.ask{grid-template-columns:minmax(0,1fr)}.xr-side,.bench-side{border-left:0;border-top:1px solid var(--line)}}
+@media (max-width:980px){.kpi-grid,.ch-grid{grid-template-columns:repeat(2,1fr)}.dash{grid-template-columns:1fr}.tk-grid{grid-template-columns:1fr}.hero canvas{width:100%;opacity:.35}}
+@media (max-width:640px){
+  .wrap{padding:0 16px} section{padding:48px 0} .hero{padding:52px 0 56px} .logos img{height:34px} .logos img.cl{height:22px} .vdiv{height:28px}
+  .kpi-grid{gap:10px} .kpi{padding:16px 14px} .ch-grid{grid-template-columns:1fr}
+  .tl::before{top:19px} .tl-dot{width:40px;height:40px;font-size:1rem} .tl-name{font-size:.75rem} .tl-dur{display:none} .tl-panel{padding:18px}
+  .oc-stage{height:540px} .srch{flex:1 1 100%} .srch input{width:100%} #ocOut,#ocIn,#ocFit{display:none} .oc-bar .grow{display:none} .oc-legend{gap:6px 12px} .oc-legend span{display:none} .pn{width:100%} .oc-hint{display:none} .oc-stats .sc:nth-child(n+4){display:none}
+  .mets{grid-template-columns:repeat(2,minmax(0,1fr))} .mv{grid-template-columns:1fr}
+  #spanChart,#hrsChart,#benchChart{overflow-x:auto;-webkit-overflow-scrolling:touch} #spanChart svg,#hrsChart svg,#benchChart svg{min-width:520px}
+  .cmp th,.cmp td{padding:12px 10px;font-size:.82rem} .cmp thead th{font-size:.68rem;letter-spacing:.08em} .chart-card{padding:14px}
+}
+@media print{
+  body{background:#fff;font-size:12px} .topbar{position:static}
+  .hero{background:#0B2140!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:36px 0} .hero canvas{display:none}
+  .card{box-shadow:none;break-inside:avoid} section{padding:28px 0} .js .reveal{opacity:1!important;transform:none!important}
+  .seg,.tl-hint,.oc-bar,.oc-hint,.ask-box,.chips,.mv,.btn{display:none!important} .tl-panel{display:block!important;margin-top:10px} #tip{display:none}
+  .oc-stage{height:480px} footer{background:#fff;color:var(--text)} footer .f-brand b{color:var(--deep)} .kpis{margin-top:16px}
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="logos">
+      <img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting">
+    </div>
+    <div class="tagline">Customer Case Study · <b>HR · Organisation Design</b></div>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas id="grid" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="eyebrow">Power Transmission × Havish M Consulting</div>
+    <h1>Rewire the org <em>before</em> you announce it</h1>
+    <p class="sub">A living org chart for the power transmission company's HR team. One Excel goes in; an interactive organisation comes out, with spans and layers X-rayed, reorganisations rehearsed on screen and succession gaps flagged before they bite.</p>
+    <div class="pills">
+      <span class="pill"><span>Client</span>Power Transmission</span>
+      <span class="pill"><span>Function</span>Human Resources</span>
+      <span class="pill"><span>Theme</span>Living Org Design</span>
+    </div>
+  </div>
+</section>
+
+<section class="kpis">
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="card kpi reveal"><div class="label">Org chart refresh cycle</div><div class="val"><span class="count" data-to="1" data-dec="0">0</span><small>day</small></div><div class="delta">▼ from about 3 weeks of PPT edits</div></div>
+      <div class="card kpi reveal"><div class="label">Reorg scenarios tested before go-live</div><div class="val"><span class="count" data-to="14" data-dec="0">0</span><small>per review</small></div><div class="delta">▲ from 1–2 drawn by hand</div></div>
+      <div class="card kpi reveal"><div class="label">Managers with fewer than 3 reports</div><div class="val">−<span class="count" id="kNarrow" data-to="45" data-dec="0">0</span><small>%</small></div><div class="delta" id="kNarrowD">▼ after the first delayering round</div></div>
+      <div class="card kpi reveal"><div class="label">Critical roles with a ready-now successor</div><div class="val"><span class="count" id="kReady" data-to="68" data-dec="0">0</span><small>%</small></div><div class="delta" id="kReadyD">▲ from 41% before the talent review</div></div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="challenge">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Challenge</div>
+      <h2>Thirty-four org charts, and none of them current</h2>
+      <p class="lead">The power transmission company runs transmission projects, conductor and cable plants and an upgrade business across India. People move between projects every quarter. HR's picture of who reports to whom lived in slide decks that went stale the week they were sent.</p>
+    </div>
+    <div class="ch-grid">
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 9h18M8 21h8"/></svg></div><h3>Charts as slides</h3><p>Every BU kept its own PowerPoint org chart. Thirty-four versions were in circulation, each drawn by hand and out of date within weeks.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v6M6 9h12M6 9v5M18 9v5M4 14h4v6H4zM16 14h4v6h-4z"/></svg></div><h3>Layers nobody chose</h3><p>Some plant teams sat eight layers below the CEO, and a quarter of managers had one or two reports. Nobody could see it, so nobody fixed it.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 12h6l2-3 2 6 2-3h4"/><circle cx="12" cy="12" r="9"/></svg></div><h3>Reorgs on a whiteboard</h3><p>Each restructuring took weeks of redrawing. Leaders saw one option, late, with no view of the cost, the layers or the people affected.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5"/><path d="M16 13v8M12 17h8"/></svg></div><h3>Succession in a drawer</h3><p>Successor lists sat in a separate file. When a project director resigned, HR found out on the same day that there was no ready-now cover.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="approach" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">HMC Approach</div>
+      <h2>From 34 slide decks to one living organisation</h2>
+      <p class="lead">Built with the power transmission company's HR leadership and HR business partners, starting from an HRMS extract and the decks they already had.</p>
+    </div>
+    <div class="tl reveal" aria-label="HMC approach steps">
+      <button class="tl-step" aria-expanded="true" aria-controls="tp0"><span class="tl-dot">1</span><span class="tl-name">Discover</span><span class="tl-dur">2 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp1"><span class="tl-dot">2</span><span class="tl-name">Design</span><span class="tl-dur">2 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp2"><span class="tl-dot">3</span><span class="tl-name">Build</span><span class="tl-dur">4 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp3"><span class="tl-dot">4</span><span class="tl-name">Adopt</span><span class="tl-dur">1 quarter</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp4"><span class="tl-dot">5</span><span class="tl-name">Scale</span><span class="tl-dur">Ongoing</span></button>
+    </div>
+    <p class="tl-hint">Select a step to see what happened.</p>
+    <div class="card tl-panel open" id="tp0"><h3>Discover · Count the charts</h3><p>We gathered every org chart in circulation and compared them with the HRMS.</p><ul><li>Found 34 versions across BUs, with conflicting reporting lines in a fifth of them.</li><li>Mapped which HR decisions need an org view: reorgs, spans, succession, hiring.</li><li>Agreed what must stay private: pay, ratings and risk flags by role.</li></ul><p class="deliv"><b>Deliverable:</b> Org data audit and use-case list.</p></div>
+    <div class="card tl-panel" id="tp1"><h3>Design · One Excel, one truth</h3><p>A single sheet that any HRBP can maintain: one row per person.</p><ul><li>Columns: ID, name, role, business, reports-to, location, since, grade.</li><li>Span-health rules agreed: under 3 is narrow, 3 to 10 is healthy, over 10 is wide.</li><li>Critical-role list and successor readiness added as optional columns.</li></ul><p class="deliv"><b>Deliverable:</b> Org data template and design rules.</p></div>
+    <div class="card tl-panel" id="tp2"><h3>Build · The living org</h3><p>A single HTML file that turns the Excel into an interactive organisation.</p><ul><li>Org chart with search, filters and detail cards; Excel in and out.</li><li>Spans-and-layers X-ray, reorg sandbox and succession bench view.</li><li>Built with Claude as the coding partner; plain-English "Ask the org" questions.</li></ul><p class="deliv"><b>Deliverable:</b> Org Studio (single HTML) and data template.</p></div>
+    <div class="card tl-panel" id="tp3"><h3>Adopt · HRBPs own the sheet</h3><p>The chart refreshes the day the Excel changes.</p><ul><li>HRBPs update their BU tab; the chart rebuilds on upload.</li><li>Every reorg proposal now arrives with its sandbox scenario attached.</li><li>Quarterly talent review runs on the bench view.</li></ul><p class="deliv"><b>Deliverable:</b> Refresh routine and reorg review template.</p></div>
+    <div class="card tl-panel" id="tp4"><h3>Scale · Live from the HRMS</h3><p>From a monthly Excel to a daily feed.</p><ul><li>HRMS export replaces manual updates.</li><li>Role-based views: leaders see their own tree, HR sees all.</li><li>Cost and diversity lenses added with access controls.</li></ul><p class="deliv"><b>Deliverable:</b> Integration roadmap and access model.</p></div>
+  </div>
+</section>
+
+<section id="solution">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Solution</div>
+      <h2>Org Studio: see it, ask it, rewire it</h2>
+      <p class="lead">Four connected views built on one Excel. Everything below is live: click, search, filter, ask a question, rehearse a reorg. Upload your own sheet and every view rebuilds.</p>
+    </div>
+
+    <!-- 01 ORG CHART -->
+    <div class="module reveal" id="ocModule">
+      <div class="mod-head"><div><div class="badge">01 · Living org chart</div><h3>The whole organisation, from one Excel</h3><p>Click a card for detail, the round button to open a team, drag to pan, scroll to zoom. Colour the chart by business, span health, flight risk or tenure.</p></div>
+        <div class="seg sm" role="group" aria-label="Colour by" id="ocColour"><button type="button" data-oc="bu" aria-pressed="true">Business</button><button type="button" data-oc="span" aria-pressed="false">Span health</button><button type="button" data-oc="risk" aria-pressed="false">Flight risk</button><button type="button" data-oc="ten" aria-pressed="false">Tenure</button></div></div>
+      <div class="card oc">
+        <div class="oc-bar">
+          <div class="srch"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="ocQ" type="search" placeholder="Find a person or role" autocomplete="off" aria-label="Find a person or role"></div>
+          <button class="btn" id="ocExp" type="button">Expand all</button><button class="btn" id="ocCol" type="button">Collapse</button>
+          <span class="grow"></span>
+          <button class="btn" id="ocDown" type="button" title="Download everyone as an Excel file">⤓ Excel</button>
+          <button class="btn" id="ocUp" type="button" title="Rebuild every view from your own Excel or CSV">⤒ Upload</button>
+          <input type="file" id="ocFile" accept=".xlsx,.xls,.csv" hidden>
+          <button class="btn ico" id="ocOut" type="button" aria-label="Zoom out">−</button><button class="btn ico" id="ocFit" type="button" aria-label="Fit to screen">⤢</button><button class="btn ico" id="ocIn" type="button" aria-label="Zoom in">+</button>
+        </div>
+        <div class="oc-legend" id="ocLegend"></div>
+        <div class="oc-stage" id="ocStage">
+          <div id="ocCam"><svg id="ocWires"></svg><div id="ocNodes"></div></div>
+          <div class="oc-stats" id="ocStats"></div>
+          <div class="oc-hint" id="ocHint">Click a card · drag to pan · scroll to zoom</div>
+          <aside class="pn" id="ocPn" aria-live="polite"><div class="ph"><button class="x" id="ocPx" type="button" aria-label="Close">×</button><div class="pav" id="pAv"></div><h4 id="pNm"></h4><div class="pr" id="pRl"></div><span class="tag" id="pTag"></span></div><div class="pb"><dl class="kv" id="pKv"></dl><h5>Direct reports</h5><div id="pReps"></div></div></aside>
+        </div>
+      </div>
+      <p class="footnote">All people, names and figures are synthetic and illustrative; no the power transmission company employee data is shown. The download gives the same Excel template HR maintains.</p>
+    </div>
+
+    <!-- 02 ASK -->
+    <div class="module reveal" id="askModule">
+      <div class="mod-head"><div><div class="badge">02 · Ask the org</div><h3>Questions in plain English, answers on the chart</h3><p>Type a question or tap one below. The answer names the people, and one click lights them up on the org chart above.</p></div></div>
+      <div class="card ask">
+        <div class="ask-main">
+          <form class="ask-box" id="askForm"><input id="askQ" type="text" placeholder="e.g. Managers with fewer than 3 reports" aria-label="Ask a question about the organisation" autocomplete="off"><button class="btn pri" type="submit">Ask</button></form>
+          <div class="chips" id="askChips"></div>
+          <div class="ans" id="askAns"><p class="say" style="color:var(--muted)">Try “Who reports to the CFO?” or “Critical roles with no successor”.</p></div>
+        </div>
+        <div class="ask-side"><h4>How it reads your question</h4><p>The question becomes a filter on the org data. The filter is shown, so HR can check the logic before acting on the answer.</p><code id="askCode">// waiting for a question</code><p style="font-size:.74rem;color:#8EA3BC">Rule-based demo. In production Claude reads the question and the org data, with access controls by role.</p></div>
+      </div>
+    </div>
+
+    <!-- 03 X-RAY & SANDBOX -->
+    <div class="module reveal" id="xrModule">
+      <div class="mod-head"><div><div class="badge">03 · X-ray &amp; reorg sandbox</div><h3>See every span and layer, then rehearse the reorg</h3><p>The radial view puts the CEO at the centre and each layer on a ring. Switch on a scenario, or move a team yourself, and watch the organisation re-form with its layers, spans and management cost.</p></div>
+        <div class="seg sm" role="group" aria-label="Colour by" id="xrColour"><button type="button" data-xc="span" aria-pressed="true">Span health</button><button type="button" data-xc="bu" aria-pressed="false">Business</button></div></div>
+      <div class="card xr">
+        <div class="xr-main"><div class="chart" id="xray"></div><div class="xkey" id="xrKey"></div></div>
+        <div class="xr-side">
+          <h4>Reorg scenarios</h4>
+          <div class="scn" id="scnList"></div>
+          <h4>Move a team yourself</h4>
+          <div class="mv"><select id="mvWho" aria-label="Person to move"></select><select id="mvTo" aria-label="New manager"></select><button class="btn pri" id="mvGo" type="button">Move</button></div>
+          <h4>Impact</h4>
+          <div class="mets" id="mets"></div>
+          <h4>Span distribution · dashed = today</h4>
+          <div class="chart" id="spanMini"></div>
+          <div class="log" id="mvLog"><div style="color:var(--grey)">No changes yet. Today's organisation is shown.</div></div>
+          <button class="btn" id="mvReset" type="button">↺ Reset to today</button>
+        </div>
+      </div>
+      <p class="footnote">Span health: under 3 direct reports is narrow, 3 to 10 healthy, above 10 wide. Management cost uses illustrative grade-based CTC.</p>
+    </div>
+
+    <!-- 04 BENCH -->
+    <div class="module reveal" id="benchModule" style="margin-bottom:0">
+      <div class="mod-head"><div><div class="badge">04 · Bench strength</div><h3>Which critical roles would leave a hole tomorrow?</h3><p>Every leadership role plotted by the incumbent's flight risk and the strength of the bench behind them. Top-left is safe; bottom-right needs action now. Toggle to see the bench after the talent review.</p></div>
+        <div class="seg sm" role="group" aria-label="Bench state"><button type="button" data-bn="before" aria-pressed="true">Before review</button><button type="button" data-bn="after" aria-pressed="false">After review</button></div></div>
+      <div class="card bench">
+        <div class="bench-main"><div class="chart" id="benchChart"></div><div class="ckey" id="benchKey"></div></div>
+        <div class="bench-side">
+          <h4>Ready-now cover</h4>
+          <div class="meter"><svg viewBox="0 0 92 92" id="benchMeter"></svg><div><b id="benchPct">—</b><span id="benchTxt" style="color:var(--muted);font-size:.8rem">of critical roles</span></div></div>
+          <h4>Selected role</h4>
+          <div class="rc" id="benchCard"><p style="color:var(--muted);font-size:.82rem;margin:0">Click a bubble to see the incumbent and their successors.</p></div>
+        </div>
+      </div>
+      <p class="footnote">Flight-risk and readiness scores are synthetic. In production they come from the talent review, with access limited to HR and the role's line manager.</p>
+    </div>
+  </div>
+</section>
+
+<section id="impact" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Impact Dashboard</div>
+      <h2>A flatter organisation, and HR hours back</h2>
+      <p class="lead">With narrow spans visible, the first delayering round merged teams that had one or two reports. And HR stopped spending days redrawing slides.</p>
+    </div>
+    <div class="dash">
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>Span of control, every manager</h3><p class="sub">Number of managers by direct reports</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-sp="before" aria-pressed="false">Before</button><button type="button" data-sp="after" aria-pressed="true">After</button></div></div>
+        <div class="chart" id="spanChart"></div>
+        <div class="ckey"><span><i style="background:#E5484D"></i>Narrow (under 3)</span><span><i style="background:#16A34A"></i>Healthy (3–10)</span><span><i style="background:#F2A93B"></i>Wide (11+)</span></div>
+      </div>
+      <div class="card chart-card reveal">
+        <h3>HR hours per month, by task</h3><p class="sub">Before and after Org Studio</p>
+        <div class="chart" id="hrsChart"></div>
+        <div class="ckey"><span><i style="background:#9AA6B6;border-radius:50%"></i>Before</span><span><i style="background:#0E5FAE;border-radius:50%"></i>With Org Studio</span></div>
+      </div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <div class="cmp-head reveal"><div><div class="eyebrow">Before vs After</div><h2>How HR sees and shapes the organisation</h2></div>
+      <div class="seg" role="group" aria-label="Highlight column"><button type="button" data-hl="before" aria-pressed="false">Before</button><button type="button" data-hl="after" aria-pressed="true">After</button></div></div>
+    <div class="card reveal" style="overflow:hidden">
+      <table class="cmp hl-after" id="cmp"><colgroup><col class="c1"><col><col></colgroup>
+        <thead><tr><th scope="col">Dimension</th><th scope="col" class="b">Before</th><th scope="col" class="a">After</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Source of truth</th><td class="b">34 PowerPoint decks, one per team</td><td class="a">One Excel template, maintained by HRBPs</td></tr>
+          <tr><th scope="row">Refresh</th><td class="b">Redrawn by hand, about three weeks behind</td><td class="a">Rebuilt the day the sheet is uploaded</td></tr>
+          <tr><th scope="row">Spans &amp; layers</th><td class="b">Unknown until a consultant counted them</td><td class="a">X-rayed live, with narrow spans flagged</td></tr>
+          <tr><th scope="row">Reorg design</th><td class="b">One option on a whiteboard, late</td><td class="a">Several scenarios rehearsed with cost and layer impact</td></tr>
+          <tr><th scope="row">Succession</th><td class="b">Separate file, rarely opened</td><td class="a">Bench view next to the chart, reviewed each quarter</td></tr>
+          <tr><th scope="row">Questions</th><td class="b">An email to HR and a day's wait</td><td class="a">Asked in plain English, answered on the chart</td></tr>
+        </tbody></table>
+    </div>
+  </div>
+</section>
+
+<section id="tools" style="padding-top:16px">
+  <div class="wrap">
+    <div class="sec-head reveal" style="margin-bottom:20px"><div class="eyebrow">Tools &amp; Tech Used</div><h2>Light tools, owned by HR</h2></div>
+    <div class="tchips reveal">
+      <span class="chip"><i></i>Excel <em>one-sheet org template</em></span>
+      <span class="chip"><i></i>Claude <em>coding partner &amp; "Ask the org"</em></span>
+      <span class="chip"><i></i>D3.js <em>org chart, X-ray &amp; bench views</em></span>
+      <span class="chip"><i></i>SheetJS <em>Excel in and out, in the browser</em></span>
+      <span class="chip"><i></i>HRMS export <em>monthly, then daily</em></span>
+      <span class="chip"><i></i>Single HTML file <em>no server, no install</em></span>
+    </div>
+  </div>
+</section>
+
+<section id="takeaways">
+  <div class="wrap">
+    <div class="sec-head reveal"><div class="eyebrow">Key Takeaways</div><h2>What any HR team can borrow</h2></div>
+    <div class="tk-grid">
+      <div class="card tk reveal"><div class="n">01</div><h3>One sheet beats thirty-four decks</h3><p>When the org chart is generated from data HR already owns, it stays current without anyone redrawing a box.</p></div>
+      <div class="card tk reveal"><div class="n">02</div><h3>Spans and layers are design choices</h3><p>Once narrow spans and deep layers were visible, leaders fixed them in a quarter. They had simply never seen them.</p></div>
+      <div class="card tk reveal"><div class="n">03</div><h3>Rehearse the reorg on screen</h3><p>Seeing the layers, cost and people affected before the announcement turned reorg debates into choices between options.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="f-brand"><img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting"><div><b>Havish M Consulting</b></div></div>
+    <div class="copy"><span>© <span id="yr">2026</span> Havish M Consulting. All rights reserved.</span><span>Figures indicative; validated metrics available on request.</span></div>
+  </div>
+</footer>
+<div id="tip" role="tooltip"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DUR = reduce ? 0 : 700;
+const $ = id => document.getElementById(id);
+$('yr').textContent = new Date().getFullYear();
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hasD3 = typeof d3 !== 'undefined';
+
+/* ---------- page scaffolding ---------- */
+const tip = $('tip');
+function showTip(html, ev){ tip.innerHTML = html; tip.style.opacity = 1; const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = ev.clientX + pad, y = ev.clientY + pad; if (x + w > innerWidth - 8) x = ev.clientX - w - pad; if (y + h > innerHeight - 8) y = ev.clientY - h - pad;
+  tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; }
+function hideTip(){ tip.style.opacity = 0; }
+window.addEventListener('scroll', hideTip, {passive:true});
+function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), 2600); }
+const onView = new Map();
+const io = ('IntersectionObserver' in window) ? new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; e.target.classList.add('in');
+  const fn = onView.get(e.target); if (fn){ fn(); onView.delete(e.target); } io.unobserve(e.target); }), {threshold:.1}) : null;
+function whenVisible(el, fn){ onView.set(el, fn); if (io) io.observe(el); else fn(); }
+document.querySelectorAll('.reveal').forEach(el => io ? io.observe(el) : el.classList.add('in'));
+function countUp(el){ const to = +el.dataset.to, dec = +el.dataset.dec || 0; if (reduce){ el.textContent = to.toFixed(dec); return; }
+  const t0 = performance.now(); (function s(t){ const p = Math.min(1,(t-t0)/1400), e = 1 - Math.pow(1-p,3); el.textContent = (to*e).toFixed(dec); if (p < 1) requestAnimationFrame(s); })(t0); }
+document.querySelectorAll('.count').forEach(el => whenVisible(el.closest('.kpi'), () => countUp(el)));
+const steps = document.querySelectorAll('.tl-step');
+steps.forEach(btn => btn.addEventListener('click', () => { const open = btn.getAttribute('aria-expanded') === 'true';
+  steps.forEach(b => { b.setAttribute('aria-expanded','false'); $(b.getAttribute('aria-controls')).classList.remove('open'); });
+  if (!open){ btn.setAttribute('aria-expanded','true'); $(btn.getAttribute('aria-controls')).classList.add('open'); } }));
+const cmp = $('cmp');
+function segBind(attr, fn){ const bs = document.querySelectorAll(`[data-${attr}]`); bs.forEach(b => b.addEventListener('click', () => { bs.forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); fn(b.dataset[attr]); })); }
+segBind('hl', v => { cmp.classList.toggle('hl-before', v === 'before'); cmp.classList.toggle('hl-after', v === 'after'); });
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const initials = s => (String(s).trim().split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('') || '?').toUpperCase();
+
+/* ======================================================================
+   HERO · the organisation drawn as a power grid, with current pulsing down
+   ====================================================================== */
+(function grid(){
+  const cv = $('grid'), cx = cv.getContext('2d'); let W = 0, H = 0, nodes = [], links = [], pulses = [], run = false, last = 0;
+  const R = mulberry32(5);
+  function build(){
+    const dpr = Math.min(2, devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    nodes = []; links = [];
+    const levels = [1, 4, 9, 16]; const top = H * .16, gap = (H * .74) / (levels.length - 1);
+    levels.forEach((n, li) => { for (let i = 0; i < n; i++){ const x = W * (.12 + .8 * (n === 1 ? .5 : i / (n - 1))) + (R() - .5) * 18, y = top + li * gap + (R() - .5) * 14; nodes.push({x, y, li, i}); } });
+    nodes.forEach(n => { if (!n.li) return; const prev = nodes.filter(m => m.li === n.li - 1); let best = prev[0], bd = 1e9; prev.forEach(m => { const d = Math.abs(m.x - n.x); if (d < bd){ bd = d; best = m; } }); links.push([best, n]); });
+  }
+  function draw(dt){
+    cx.clearRect(0, 0, W, H);
+    links.forEach(([a, b]) => { cx.strokeStyle = 'rgba(126,180,230,.22)'; cx.lineWidth = 1.2; cx.beginPath(); cx.moveTo(a.x, a.y); const my = (a.y + b.y) / 2; cx.bezierCurveTo(a.x, my, b.x, my, b.x, b.y); cx.stroke(); });
+    if (dt && R() < dt * 3.2){ const root = nodes[0]; const kids = links.filter(l => l[0] === root); const l = kids[Math.floor(R() * kids.length)]; if (l) pulses.push({l, t:0}); }
+    pulses = pulses.filter(p => { p.t += dt * .9; if (p.t >= 1){ const nx = links.filter(l => l[0] === p.l[1]); if (nx.length && R() < .85) { p.l = nx[Math.floor(R() * nx.length)]; p.t = 0; } else return false; }
+      const [a, b] = p.l, t = p.t, my = (a.y + b.y) / 2, u = 1 - t;
+      const x = u*u*u*a.x + 3*u*u*t*a.x + 3*u*t*t*b.x + t*t*t*b.x, y = u*u*u*a.y + 3*u*u*t*my + 3*u*t*t*my + t*t*t*b.y;
+      const g = cx.createRadialGradient(x, y, 0, x, y, 10); g.addColorStop(0, 'rgba(155,209,58,.95)'); g.addColorStop(1, 'rgba(155,209,58,0)'); cx.fillStyle = g; cx.beginPath(); cx.arc(x, y, 10, 0, 7); cx.fill(); return true; });
+    nodes.forEach(n => { const r = n.li ? 5 - n.li : 7; cx.fillStyle = n.li ? 'rgba(25,180,200,.85)' : '#9BD13A'; cx.beginPath(); cx.arc(n.x, n.y, r, 0, 7); cx.fill(); cx.strokeStyle = 'rgba(255,255,255,.35)'; cx.lineWidth = 1; cx.stroke(); });
+  }
+  build(); draw(0);
+  window.addEventListener('resize', () => { build(); draw(0); });
+  if (reduce) return;
+  function loop(t){ if (!run) return; const dt = Math.min(.05, (t - last) / 1000); last = t; draw(dt); requestAnimationFrame(loop); }
+  if (io) new IntersectionObserver(es => { const on = es[0].isIntersecting; if (on && !run){ run = true; last = performance.now(); requestAnimationFrame(loop); } else if (!on) run = false; }).observe(cv);
+})();
+
+/* ======================================================================
+   DATA · synthetic the power transmission company organisation (illustrative only)
+   ====================================================================== */
+const BU_BASE = {
+  corp:{ label:'Corporate', c:'#475569' }, fin:{ label:'Finance', c:'#0E5FAE' }, ppl:{ label:'People', c:'#C2417A' }, dig:{ label:'Digital & Technology', c:'#7B4FD1' },
+  tx:{ label:'Transmission Infrastructure', c:'#0F9D8A' }, prd:{ label:'Products', c:'#E08A1E' }, sol:{ label:'Solutions', c:'#19A7C9' }
+};
+let BU = JSON.parse(JSON.stringify(BU_BASE));
+// [title, bu, children, count]
+const SPEC = ['Managing Director & Group CEO','corp',[
+  ['Chief Financial Officer','fin',[
+    ['VP, Controllership','fin',[['Head, Financial Reporting','fin',[['Reporting Manager','fin',0,3]]],['Head, Taxation','fin',[['Tax Manager','fin',0,3]]],['Head, Internal Audit','fin',[['Audit Manager','fin',0,4]]]]],
+    ['VP, Treasury & Investor Relations','fin',[['Head, Treasury','fin',[['Treasury Manager','fin',0,3]]]]],
+    ['Head, Business Finance','fin',[['BU Finance Lead, Transmission','fin',[['Finance Analyst','fin',0,3]]],['BU Finance Lead, Products','fin',[['Finance Analyst','fin',0,2]]],['BU Finance Lead, Solutions','fin',[['Finance Analyst','fin',0,2]]]]]]],
+  ['Chief Human Resources Officer','ppl',[
+    ['VP, Talent & Leadership','ppl',[['Head, Talent Acquisition','ppl',[['Talent Partner','ppl',0,4]]],['Head, Learning & Development','ppl',[['L&D Manager','ppl',0,3]]]]],
+    ['Head, Rewards & HR Operations','ppl',[['Payroll & HRIS Lead','ppl'],['Compensation Manager','ppl'],['HR Operations Executive','ppl',0,2]]],
+    ['HRBP Lead, Transmission','ppl',[['HR Business Partner','ppl',0,3]]],['HRBP Lead, Products','ppl',[['Plant HR Manager, Silvassa','ppl'],['Plant HR Manager, Jharsuguda','ppl'],['HR Executive','ppl']]],['HRBP Lead, Solutions','ppl',[['HR Business Partner','ppl',0,2]]]]],
+  ['Chief Digital & Technology Officer','dig',[
+    ['Head, Enterprise Applications','dig',[['ERP Lead','dig'],['Applications Manager','dig',0,3]]],
+    ['Head, Infrastructure & Cyber Security','dig',[['Cyber Security Lead','dig'],['Infrastructure Manager','dig',0,2]]],
+    ['Head, Data & Analytics','dig',[['Data Scientist','dig',0,3],['Data Engineer','dig',0,2]]]]],
+  ['Chief Strategy Officer','corp',[['Head, Corporate Strategy','corp',[['Strategy Manager','corp',0,3]]]]],
+  ['General Counsel & Company Secretary','corp',[['Head, Contracts & Disputes','corp',[['Legal Manager','corp',0,3]]],['Company Secretary','corp',[['Secretarial Manager','corp']]]]],
+  ['Head, Health, Safety & Environment','corp',[['HSE Lead, Projects','corp',[['Safety Officer','corp',0,4]]],['HSE Lead, Plants','corp',[['Safety Officer','corp',0,3]]]]],
+  ['CEO, Transmission Infrastructure','tx',[
+    ['VP, Business Development','tx',[['Head, Bids & Tendering','tx',[['Bid Manager','tx',0,4]]],['Head, Regulatory Affairs','tx',[['Regulatory Manager','tx',0,2]]]]],
+    ['VP, Projects – North','tx',[['Project Director, Rajasthan Corridor','tx',[['Project Manager','tx',0,4]]],['Project Director, Punjab–Haryana','tx',[['Project Manager','tx',0,3]]]]],
+    ['VP, Projects – South & West','tx',[['Project Director, Maharashtra','tx',[['Project Manager','tx',0,3]]],['Project Director, Karnataka','tx',[['Project Manager','tx',0,2]]]]],
+    ['Head, Asset Management & O&M','tx',[['O&M Manager, North','tx',[['Line Maintenance Engineer','tx',0,5]]],['O&M Manager, West','tx',[['Line Maintenance Engineer','tx',0,4]]]]],
+    ['Head, Engineering & Design','tx',[['Design Manager','tx',0,3],['Analytics Lead, Transmission','tx']]]]],
+  ['CEO, Products (Conductors, Cables & OPGW)','prd',[
+    ['VP, Manufacturing','prd',[
+      ['Plant Head, Silvassa','prd',[['Deputy Plant Head, Silvassa','prd',[['Production Manager, Conductors','prd',[['Shift In-charge','prd',[['Shift Engineer','prd',0,3]],2]]],['Production Manager, OPGW','prd',[['Shift In-charge','prd',[['Shift Engineer','prd',0,3]]]]]]],['Quality Manager, Silvassa','prd',[['QA Engineer','prd',0,3]]],['Maintenance Manager, Silvassa','prd',[['Maintenance Engineer','prd',0,3]]]]],
+      ['Plant Head, Jharsuguda','prd',[['Deputy Plant Head, Jharsuguda','prd',[['Production Manager, Cables','prd',[['Shift In-charge','prd',[['Shift Engineer','prd',0,3]],2]]]]],['Quality Manager, Jharsuguda','prd',[['QA Engineer','prd',0,2]]],['Maintenance Manager, Jharsuguda','prd',[['Maintenance Engineer','prd',0,3]]]]]]],
+    ['VP, Sales – Products','prd',[['Head, Domestic Sales','prd',[['Key Account Manager','prd',0,4]]],['Head, Export Sales','prd',[['Export Sales Manager','prd',0,3]]]]],
+    ['VP, Supply Chain','prd',[['Head, Procurement (Aluminium & Steel)','prd',[['Buyer','prd',0,3]]],['Head, Planning & Logistics','prd',[['Planner','prd',0,3]]]]],
+    ['Head, R&D and Product Development','prd',[['R&D Engineer','prd',0,3],['Analytics Lead, Products','prd']]]]],
+  ['Business Head, Solutions (Upgrade & EPC)','sol',[
+    ['VP, Sales – Solutions','sol',[['Head, Utility Sales','sol',[['Account Manager','sol',0,3]]]]],
+    ['VP, Execution','sol',[['Head, Upgrade Projects','sol',[['Project Manager, Upgrades','sol',0,4]]],['Head, EPC Projects','sol',[['Project Manager, EPC','sol',0,3]]]]],
+    ['Head, Solutions Engineering','sol',[['Solutions Architect','sol',0,3],['Analytics Lead, Solutions','sol']]]]]
+]];
+const FN_M = ['Aarav','Rohan','Vikram','Arjun','Karan','Nikhil','Siddharth','Rahul','Amit','Varun','Manish','Abhishek','Saurabh','Gaurav','Deepak','Pranav','Harsh','Kunal','Mohit','Rajat','Anirudh','Tushar','Vivek','Ashish','Yash','Ankur','Sameer','Ritesh','Naveen','Pankaj','Sandeep','Ajay','Imran','Faisal','Rakesh','Suresh','Dinesh','Hemant','Jatin','Lalit'];
+const FN_F = ['Priya','Ananya','Kavya','Neha','Shreya','Pooja','Ritika','Sneha','Divya','Meera','Aditi','Ishita','Nandini','Tanvi','Radhika','Swati','Komal','Shalini','Aparna','Farah','Sana','Lakshmi','Deepika','Vandana'];
+const LN = ['Sharma','Verma','Iyer','Nair','Reddy','Rao','Patel','Shah','Mehta','Gupta','Agarwal','Bansal','Chopra','Kapoor','Malhotra','Saxena','Joshi','Kulkarni','Deshpande','Pillai','Menon','Bose','Banerjee','Das','Mishra','Pandey','Tiwari','Singh','Chauhan','Rathore','Khanna','Sethi','Ahuja','Grover','Bhatt','Trivedi','Jain','Sinha','Dutta','Mukherjee','Qureshi','Fernandes','Dsouza','Krishnan','Subramanian','Hegde'];
+const GRADE_CTC = { L1:620, L2:230, L3:115, L4:62, L5:34, L6:19, L7:11 };
+function locOf(role, bu, R){
+  if (/Silvassa/.test(role)) return 'Silvassa'; if (/Jharsuguda/.test(role)) return 'Jharsuguda';
+  if (/Rajasthan/.test(role)) return 'Jaipur'; if (/Punjab/.test(role)) return 'Chandigarh'; if (/Maharashtra/.test(role)) return 'Pune'; if (/Karnataka/.test(role)) return 'Bengaluru';
+  const pools = { corp:['Gurugram'], fin:['Gurugram','Mumbai'], ppl:['Gurugram','Mumbai'], dig:['Bengaluru','Gurugram'], tx:['Gurugram','Delhi','Jaipur','Pune'], prd:['Mumbai','Silvassa','Jharsuguda'], sol:['Delhi','Pune','Gurugram'] };
+  const p = pools[bu] || ['Gurugram']; return p[Math.floor(R() * p.length)];
+}
+function genOrg(){
+  const R = mulberry32(2026), rows = [], used = new Set(); let seq = 0, leafN = 0;
+  function name(g){ for (let i = 0; i < 200; i++){ const f = g === 'F' ? FN_F[Math.floor(R() * FN_F.length)] : FN_M[Math.floor(R() * FN_M.length)], l = LN[Math.floor(R() * LN.length)], n = f + ' ' + l; if (!used.has(n)){ used.add(n); return n; } } return 'Person ' + seq; }
+  function add(node, parentId, depth){
+    const [title, bu, kids, count] = node; const n = count || 1;
+    for (let c = 0; c < n; c++){
+      const id = 'SP' + String(++seq).padStart(3, '0');
+      const gender = depth === 0 ? 'M' : R() < (bu === 'ppl' ? .55 : bu === 'fin' || bu === 'dig' ? .3 : .14) * (kids ? .75 : 1) ? 'F' : 'M';
+      const grade = 'L' + Math.min(7, depth + 1);
+      const since = Math.max(2006, Math.min(2026, Math.round(2025 - (6 - depth) * (0.4 + R() * 1.8) - R() * 4 + (depth > 4 ? 2 : 0))));
+      const rs = R(); const risk = rs < .18 ? 'High' : rs < .5 ? 'Medium' : 'Low';
+      const vacant = depth >= 3 && !kids && (++leafN % 19 === 7);
+      rows.push({ id, name: vacant ? 'Open position' : name(gender), role:title, bu, reportsTo:parentId || '', location:locOf(title, bu, R), since: vacant ? '' : since, gender: vacant ? '' : gender, grade, risk: vacant ? '' : risk, vacant });
+      if (kids) kids.forEach(k => add(k, id, depth + 1));
+    }
+  }
+  add(SPEC, null, 0);
+  return rows;
+}
+let BASE = genOrg();
+
+/* tree utilities on flat rows */
+function buildTree(rows){
+  const map = new Map(rows.map(r => [r.id, Object.assign({}, r, { k:[], p:null })]));
+  let root = null;
+  map.forEach(n => { const m = n.reportsTo && map.get(n.reportsTo); if (m && m !== n) { n.p = m; m.k.push(n); } else if (!root) root = n; else { root.k.push(n); n.p = root; } });
+  (function walk(n, d){ n.depth = d; n.k.forEach(c => walk(c, d + 1)); n.total = n.k.reduce((a, c) => a + c.total + 1, 0); })(root, 0);
+  return { root, map, all:[...map.values()] };
+}
+function metrics(rows){
+  const T = buildTree(rows), mgrs = T.all.filter(n => n.k.length);
+  const spans = mgrs.map(n => n.k.length);
+  return { head: T.all.length, managers: mgrs.length, layers: d3.max(T.all, n => n.depth) + 1, avgSpan: d3.mean(spans) || 0,
+    narrow: spans.filter(s => s < 3).length, wide: spans.filter(s => s > 10).length, mgmtCost: d3.sum(mgrs, n => GRADE_CTC[n.grade] || 40) / 100, spans };
+}
+const spanClass = s => s === 0 ? 'ic' : s < 3 ? 'narrow' : s <= 10 ? 'ok' : 'wide';
+const SPAN_C = { narrow:'#E5484D', ok:'#16A34A', wide:'#F2A93B', ic:'#A8B4C4' };
+const RISK_C = { High:'#E5484D', Medium:'#F2A93B', Low:'#16A34A', '':'#A8B4C4' };
+const tenC = y => !y ? '#A8B4C4' : d3.interpolateRgbBasis(['#9BD13A','#19B4C8','#0E5FAE','#0A1A2F'])(Math.max(0, Math.min(1, (2026 - y) / 16)));
+
+/* ======================================================================
+   01 · LIVING ORG CHART
+   ====================================================================== */
+const OC = (function(){
+  const NW = 200, NH = 72, CH = 44, GX = 26, GY = 60, IND = 22, VG = 8;
+  const stage = $('ocStage'), cam = $('ocCam'), nodesEl = $('ocNodes'), wires = d3.select('#ocWires');
+  let T = null, mode = 'bu', query = '', off = new Set(), sel = null, hover = null, hits = null, C = {x:0, y:0, k:1}, CT = {x:0, y:0, k:1}, camAnim = 0;
+  const own = n => n.depth >= 2 ? CH : NH;
+  const visible = n => { for (let p = n.p; p; p = p.p) if (!p.open) return false; return true; };
+  const vis = () => T.all.filter(visible);
+  const colorOf = n => mode === 'span' ? SPAN_C[spanClass(n.k.length)] : mode === 'risk' ? RISK_C[n.risk || ''] : mode === 'ten' ? tenC(+n.since) : (BU[n.bu] ? BU[n.bu].c : '#475569');
+  function load(rows){ T = buildTree(rows); T.all.forEach(n => n.open = n.depth < (stage.clientWidth < 700 ? 1 : 2)); sel = null; hits = null; hover = null; query = ''; $('ocQ').value = ''; off.clear(); $('ocPn').classList.remove('on'); legend(); refresh(true); }
+  function colW(n){ let w = NW; (function walk(m, ind){ w = Math.max(w, ind + NW); if (m.open) m.k.forEach(c => walk(c, ind + IND)); })(n, 0); return w; }
+  function colH(n){ let h = own(n); if (n.open) n.k.forEach(c => { h += VG + colH(c); }); return h; }
+  function placeCol(n, x, y){ n.tx = x; n.ty = y; if (!n.open) return; let cy = y + own(n); n.k.forEach(c => { cy += VG; placeCol(c, x + IND, cy); cy += colH(c); }); }
+  function layout(){
+    const R0 = T.root, cols = R0.open ? R0.k : [];
+    if (!cols.length){ R0.tx = 0; R0.ty = 0; return; }
+    const ws = cols.map(colW), span = d3.sum(ws) + GX * (cols.length - 1); let x = 0;
+    cols.forEach((c, i) => { placeCol(c, x, NH + GY); x += ws[i] + GX; });
+    R0.tx = (span - NW) / 2; R0.ty = 0;
+  }
+  function cardHTML(n){
+    const closed = n.k.length && !n.open, vac = n.vacant;
+    return `<div class="ncard"><div class="nrow"><div class="av${vac ? ' vac' : ''}">${vac ? '?' : esc(initials(n.name))}</div><div class="ntx"><div class="nnm">${esc(n.name)}</div><div class="nrl">${esc(n.role)}</div></div></div>`
+      + `<div class="nmt"><span>${esc(n.location || '')}</span>${n.total ? `<b>${n.total} in team</b>` : n.since ? `<span>since ${esc(n.since)}</span>` : ''}</div></div>`
+      + (n.k.length ? `<div class="tog${closed ? ' closed' : ''}" data-tog="${n.id}">${closed ? n.k.length : '−'}</div>` : '');
+  }
+  function fit(instant){
+    const V = vis(); if (!V.length) return;
+    const x0 = d3.min(V, n => n.tx), x1 = d3.max(V, n => n.tx + NW), y0 = d3.min(V, n => n.ty), y1 = d3.max(V, n => n.ty + own(n));
+    const pw = stage.clientWidth - ($('ocPn').classList.contains('on') && stage.clientWidth > 700 ? 320 : 0), ph = stage.clientHeight - 70;
+    let k = Math.min((pw - 40) / (x1 - x0), (ph - 30) / (y1 - y0), 1.35); k = Math.max(k, stage.clientWidth < 700 ? .74 : .62);
+    CT.k = k; CT.x = Math.max(20 + (pw - 40 - (x1 - x0) * k) / 2, Math.min(20, pw - 20 - (x1 - x0) * k)) - x0 * k;
+    if ((x1 - x0) * k > pw - 40) CT.x = pw / 2 - (T.root.tx + NW / 2) * k;
+    CT.y = 26 + Math.max(0, Math.min(60, (ph - 30 - (y1 - y0) * k) / 2)) - y0 * k;
+    animCam(instant ? 0 : DUR);
+  }
+  function animCam(dur){
+    cancelAnimationFrame(camAnim); const c0 = {...C}, t0 = performance.now();
+    (function f(t){ const e = dur ? d3.easeCubicInOut(Math.min(1, (t - t0) / dur)) : 1; C.x = c0.x + (CT.x - c0.x) * e; C.y = c0.y + (CT.y - c0.y) * e; C.k = c0.k + (CT.k - c0.k) * e;
+      cam.style.transform = `translate(${C.x}px,${C.y}px) scale(${C.k})`; if (e < 1) camAnim = requestAnimationFrame(f); })(t0);
+  }
+  const fx = v => v.toFixed(1);
+  function wirePath(p, c, P, Q){
+    if (c.depth <= 1){ const x1 = P.x + NW / 2, y1 = P.y + own(p), x2 = Q.x + NW / 2, y2 = Q.y, m = (y1 + y2) / 2; return `M${fx(x1)},${fx(y1)} C${fx(x1)},${fx(m)} ${fx(x2)},${fx(m)} ${fx(x2)},${fx(y2)}`; }
+    const x1 = P.x + 14, y1 = P.y + own(p), y2 = Q.y + own(c) / 2, x2 = Q.x, r = Math.min(9, Math.max(0, (y2 - y1) / 2));
+    return `M${fx(x1)},${fx(y1)} L${fx(x1)},${fx(y2 - r)} Q${fx(x1)},${fx(y2)} ${fx(x1 + r)},${fx(y2)} L${fx(x2)},${fx(y2)}`;
+  }
+  function refresh(instant){
+    layout();
+    const V = vis(), dur = instant || reduce ? 0 : 520;
+    const sel_ = d3.select(nodesEl).selectAll('div.nd').data(V, n => n.id);
+    sel_.exit().transition().duration(dur * .6).style('opacity', 0).remove();
+    const ent = sel_.enter().append('div').attr('class','nd').style('opacity', 0)
+      .style('transform', n => { const s = n.p && n.p.cx != null ? n.p : n; return `translate(${s.tx}px,${s.ty}px)`; });
+    const all = ent.merge(sel_);
+    all.attr('class', n => 'nd' + (n.depth === 0 ? ' root' : n.depth === 1 ? ' l1' : ' mini')).style('--dc', colorOf).html(cardHTML).attr('title', n => n.name + ' — ' + n.role);
+    all.transition().duration(dur).style('opacity', 1).style('transform', n => `translate(${n.tx}px,${n.ty}px)`);
+    V.forEach(n => { n.cx = n.tx; n.cy = n.ty; });
+    const L = V.filter(n => n.p).map(n => ({ id:n.id, p:n.p, c:n }));
+    const pw = wires.selectAll('path.w').data(L, d => d.id);
+    pw.exit().remove();
+    pw.enter().append('path').attr('class','w').attr('d', d => wirePath(d.p, d.c, {x:d.p.tx, y:d.p.ty}, {x:d.p.tx, y:d.p.ty})).attr('opacity', 0)
+      .merge(pw).transition().duration(dur).attr('opacity', 1).attr('d', d => wirePath(d.p, d.c, {x:d.p.tx, y:d.p.ty}, {x:d.c.tx, y:d.c.ty}));
+    fit(instant); stats(); marks();
+  }
+  function stats(){
+    const M = metrics(T.all.map(n => n)), V = vis();
+    $('ocStats').innerHTML = [[M.head, 'Headcount'], [V.length, 'On screen'], [M.layers, 'Layers'], [M.avgSpan.toFixed(1), 'Avg span'], [T.all.filter(n => n.vacant).length, 'Open roles']]
+      .map(([v, k]) => `<div class="sc"><div class="v">${v}</div><div class="k">${k}</div></div>`).join('');
+  }
+  function marks(){
+    const focus = hover || sel, chain = new Set();
+    if (focus) for (let p = focus; p; p = p.p) chain.add(p.id);
+    if (sel && !hover) (function down(n){ n.k.forEach(c => { chain.add(c.id); down(c); }); })(sel);
+    const q = query ? new Set(T.all.filter(n => (n.name + ' ' + n.role + ' ' + n.location).toLowerCase().includes(query)).map(n => n.id)) : null;
+    const H = hits || q;
+    d3.select(nodesEl).selectAll('div.nd').each(function(n){
+      const muted = off.size && off.has(n.bu);
+      this.classList.toggle('lit', chain.has(n.id)); this.classList.toggle('hit', !!H && H.has(n.id));
+      this.classList.toggle('dim', (!!focus && !chain.has(n.id)) || (!!H && !H.has(n.id)) || !!muted);
+    });
+    wires.selectAll('path.w').each(function(d){ const lit = chain.has(d.p.id) && chain.has(d.c.id); this.classList.toggle('lit', lit); this.classList.toggle('dim', (!!focus && !lit) || !!H); });
+  }
+  function legend(){
+    let items;
+    if (mode === 'bu') items = Object.keys(BU).filter(k => T.all.some(n => n.bu === k)).map(k => [k, BU[k].label, BU[k].c, true]);
+    else if (mode === 'span') items = [['n','Narrow span (1–2)',SPAN_C.narrow],['o','Healthy span (3–10)',SPAN_C.ok],['w','Wide span (11+)',SPAN_C.wide],['i','No reports',SPAN_C.ic]];
+    else if (mode === 'risk') items = [['h','High flight risk',RISK_C.High],['m','Medium',RISK_C.Medium],['l','Low',RISK_C.Low]];
+    else items = [['a','Under 2 years',tenC(2025)],['b','5 years',tenC(2021)],['c','10 years',tenC(2016)],['d','15+ years',tenC(2010)]];
+    $('ocLegend').innerHTML = items.map(([k, l, c, f]) => `<button type="button" class="lg${f && off.has(k) ? ' off' : ''}" ${f ? `data-bu="${esc(k)}"` : ''}><i style="background:${c}"></i>${esc(l)}</button>`).join('') + (mode === 'bu' ? '<span style="margin-left:auto;color:var(--grey)">Tap a business to fade it</span>' : '');
+  }
+  $('ocLegend').addEventListener('click', e => { const b = e.target.closest('[data-bu]'); if (!b) return; const k = b.dataset.bu; off.has(k) ? off.delete(k) : off.add(k); legend(); marks(); });
+  segBind('oc', v => { mode = v; d3.select(nodesEl).selectAll('div.nd').style('--dc', colorOf); if (sel) openPanel(sel); legend(); });
+  nodesEl.addEventListener('mouseover', e => { const el = e.target.closest('.nd'); if (!el) return; hover = d3.select(el).datum(); marks(); });
+  nodesEl.addEventListener('mouseout', e => { if (e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('.nd')) return; hover = null; marks(); });
+  nodesEl.addEventListener('click', e => {
+    const tg = e.target.closest('[data-tog]');
+    if (tg){ e.stopPropagation(); const n = T.map.get(tg.dataset.tog); n.open = !n.open; if (!n.open) (function c(m){ m.k.forEach(x => { x.open = false; c(x); }); })(n); refresh(); return; }
+    const el = e.target.closest('.nd'); if (el){ hits = null; openPanel(d3.select(el).datum()); }
+  });
+  function openPanel(n){
+    sel = n; const p = $('ocPn'); p.style.setProperty('--dc', colorOf(n));
+    $('pAv').textContent = n.vacant ? '?' : initials(n.name); $('pNm').textContent = n.name; $('pRl').textContent = n.role; $('pTag').textContent = BU[n.bu] ? BU[n.bu].label : n.bu;
+    const sp = n.k.length, cls = spanClass(sp);
+    $('pKv').innerHTML = `<dt>Location</dt><dd>${esc(n.location || '—')}</dd><dt>With the company since</dt><dd>${esc(n.since || '—')}</dd><dt>Grade</dt><dd>${esc(n.grade || '—')}</dd>`
+      + `<dt>Reports to</dt><dd>${n.p ? esc(n.p.name) : '— top of chart'}</dd><dt>Direct reports</dt><dd>${sp}${sp ? ` <span class="rk ${cls === 'narrow' ? 'High' : cls === 'wide' ? 'Medium' : 'Low'}">${cls === 'narrow' ? 'narrow' : cls === 'wide' ? 'wide' : 'healthy'}</span>` : ''}</dd>`
+      + `<dt>Total team</dt><dd>${n.total}</dd><dt>Layer</dt><dd>L${n.depth + 1}</dd>` + (n.risk ? `<dt>Flight risk</dt><dd><span class="rk ${n.risk}">${n.risk}</span></dd>` : '');
+    $('pReps').innerHTML = n.k.length ? n.k.map(c => `<div class="rep" data-go="${c.id}"><i style="background:${colorOf(c)}"></i><span>${esc(c.name)}<small>${esc(c.role)}</small></span>${c.total ? `<em>+${c.total}</em>` : ''}</div>`).join('') : '<p style="color:var(--grey);font-size:.8rem;margin:0">No direct reports.</p>';
+    if (!p.classList.contains('on')){ p.classList.add('on'); fit(false); }
+    marks(); $('ocHint').hidden = true;
+  }
+  $('pReps').addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (!g) return; const n = T.map.get(g.dataset.go); for (let a = n.p; a; a = a.p) a.open = true; refresh(); openPanel(n); });
+  $('ocPx').addEventListener('click', () => { sel = null; $('ocPn').classList.remove('on'); fit(false); marks(); });
+  $('ocQ').addEventListener('input', e => {
+    query = e.target.value.trim().toLowerCase(); hits = null;
+    if (query){ T.all.forEach(n => { if ((n.name + ' ' + n.role + ' ' + n.location).toLowerCase().includes(query)) for (let a = n.p; a; a = a.p) a.open = true; }); refresh(); } else marks();
+  });
+  $('ocExp').addEventListener('click', () => { T.all.forEach(n => n.open = true); refresh(); });
+  $('ocCol').addEventListener('click', () => { T.all.forEach(n => n.open = n.depth < 1); hits = null; refresh(); });
+  $('ocFit').addEventListener('click', () => fit(false));
+  const zoom = f => { const cx = stage.clientWidth / 2, cy = stage.clientHeight / 2, k = Math.max(.25, Math.min(2.4, C.k * f)); CT.x = cx - (cx - C.x) * (k / C.k); CT.y = cy - (cy - C.y) * (k / C.k); CT.k = k; animCam(reduce ? 0 : 220); };
+  $('ocIn').addEventListener('click', () => zoom(1.2)); $('ocOut').addEventListener('click', () => zoom(1 / 1.2));
+  let drag = null; const ptrs = new Map(); let pinch = 0;
+  stage.addEventListener('pointerdown', e => { if (e.target.closest('.nd,.pn,.sc,button')) return; ptrs.set(e.pointerId, e); stage.setPointerCapture(e.pointerId); drag = {x:e.clientX, y:e.clientY, cx:C.x, cy:C.y}; stage.classList.add('drag'); });
+  stage.addEventListener('pointermove', e => { if (!drag) return; if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, e);
+    if (ptrs.size === 2){ const [a, b] = [...ptrs.values()], d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY); if (pinch){ const k = Math.max(.25, Math.min(2.4, C.k * d / pinch)); C.k = CT.k = k; cam.style.transform = `translate(${C.x}px,${C.y}px) scale(${C.k})`; } pinch = d; return; }
+    C.x = CT.x = drag.cx + e.clientX - drag.x; C.y = CT.y = drag.cy + e.clientY - drag.y; cam.style.transform = `translate(${C.x}px,${C.y}px) scale(${C.k})`; });
+  const up = e => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = 0; if (!ptrs.size){ drag = null; stage.classList.remove('drag'); } };
+  stage.addEventListener('pointerup', up); stage.addEventListener('pointercancel', up);
+  stage.addEventListener('wheel', e => { e.preventDefault(); const r = stage.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top, k = Math.max(.25, Math.min(2.4, C.k * (e.deltaY < 0 ? 1.1 : 1 / 1.1)));
+    C.x = CT.x = mx - (mx - C.x) * (k / C.k); C.y = CT.y = my - (my - C.y) * (k / C.k); C.k = CT.k = k; cam.style.transform = `translate(${C.x}px,${C.y}px) scale(${C.k})`; }, {passive:false});
+  function focusIds(ids){
+    hits = new Set(ids); query = ''; $('ocQ').value = '';
+    T.all.forEach(n => n.open = n.depth < 1);
+    ids.forEach(id => { const n = T.map.get(id); if (n) for (let a = n.p; a; a = a.p) a.open = true; });
+    sel = null; $('ocPn').classList.remove('on'); refresh();
+  }
+  return { load, focusIds, get tree(){ return T; } };
+})();
+
+/* Excel in and out (SheetJS; CSV fallback) */
+const COLS = ['ID','Name','Role','Business','Reports To','Location','Since','Grade','Gender','Flight Risk','Manager name'];
+function toSheetRows(rows){ const nm = new Map(rows.map(r => [r.id, r.name])); return rows.map(r => [r.id, r.name, r.role, BU[r.bu] ? BU[r.bu].label : r.bu, r.reportsTo, r.location, r.since, r.grade, r.gender, r.risk, nm.get(r.reportsTo) || '']); }
+$('ocDown').addEventListener('click', () => {
+  const data = [COLS, ...toSheetRows(BASE)];
+  if (typeof XLSX !== 'undefined'){
+    const wb = XLSX.utils.book_new(), ws = XLSX.utils.aoa_to_sheet(data); ws['!cols'] = [8,22,40,26,10,12,7,6,7,10,22].map(w => ({wch:w}));
+    XLSX.utils.book_append_sheet(wb, ws, 'People');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['How to use'],['One row per person. Reports To = the ID of that person’s manager; leave it blank for the person at the top.'],['Business is any label you like; each gets its own colour.'],['Upload the file back to rebuild every view.']]), 'How to use');
+    XLSX.writeFile(wb, 'org-template.xlsx');
+  } else {
+    const csv = data.map(r => r.map(v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); a.download = 'org-template.csv'; a.click();
+  }
+  toast('Org template downloaded');
+});
+$('ocUp').addEventListener('click', () => $('ocFile').click());
+$('ocFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return; e.target.value = '';
+  try {
+    let aoa;
+    if (/\.csv$/i.test(f.name) || typeof XLSX === 'undefined'){ const txt = await f.text(); aoa = txt.split(/\r?\n/).filter(Boolean).map(l => (l.match(/("([^"]|"")*"|[^,]*)(,|$)/g) || []).map(c => c.replace(/,$/, '').replace(/^"|"$/g, '').replace(/""/g, '"'))); }
+    else { const wb = XLSX.read(await f.arrayBuffer()); aoa = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1, defval:''}); }
+    const hd = aoa[0].map(h => String(h).trim().toLowerCase()), ix = k => hd.findIndex(h => k.some(x => h === x || h.startsWith(x)));
+    const iId = ix(['id']), iNm = ix(['name']), iRl = ix(['role','title','designation']), iBu = ix(['business','department','dept','bu','function']), iRt = ix(['reports to','manager id','reports']), iLc = ix(['location','city']), iSn = ix(['since','joined','doj']), iGr = ix(['grade','band','level']), iGe = ix(['gender']), iRk = ix(['flight risk','risk']);
+    if (iId < 0 || iNm < 0 || iRt < 0) throw new Error('Need ID, Name and Reports To columns');
+    const labels = {}, pal = ['#0E5FAE','#0F9D8A','#E08A1E','#C2417A','#7B4FD1','#19A7C9','#475569','#B45309','#16A34A','#9333EA'];
+    BU = {};
+    const rows = aoa.slice(1).filter(r => String(r[iId]).trim()).map(r => {
+      const lab = iBu >= 0 ? String(r[iBu]).trim() || 'Other' : 'Organisation';
+      if (!labels[lab]){ const k = 'b' + Object.keys(labels).length; labels[lab] = k; BU[k] = { label:lab, c: pal[(Object.keys(labels).length - 1) % pal.length] }; }
+      return { id:String(r[iId]).trim(), name:String(r[iNm]).trim(), role: iRl >= 0 ? String(r[iRl]) : '', bu:labels[lab], reportsTo:String(r[iRt]).trim(), location: iLc >= 0 ? String(r[iLc]) : '', since: iSn >= 0 ? r[iSn] : '', grade: iGr >= 0 ? String(r[iGr]) : '', gender: iGe >= 0 ? String(r[iGe]) : '', risk: iRk >= 0 ? String(r[iRk]) : '', vacant:false };
+    });
+    const ids = new Map(rows.map(r => [r.id, r])), names = new Map(rows.map(r => [r.name.toLowerCase(), r.id]));
+    rows.forEach(r => { if (r.reportsTo && !ids.has(r.reportsTo) && names.has(r.reportsTo.toLowerCase())) r.reportsTo = names.get(r.reportsTo.toLowerCase()); });
+    const T = buildTree(rows);
+    rows.forEach(r => { if (!r.grade){ r.grade = 'L' + Math.min(7, T.map.get(r.id).depth + 1); } });
+    BASE = rows; rebuildAll(); toast(`Rebuilt from ${f.name}: ${rows.length} people`);
+  } catch(err){ toast('Could not read that file: ' + err.message); }
+});
+
+/* ======================================================================
+   02 · ASK THE ORG (rule-based demo)
+   ====================================================================== */
+const ASK_CHIPS = ['Who reports to the CFO?','Managers with fewer than 3 reports','Critical roles with no successor','High flight risk in Products','Women leaders in Finance','Open roles','Who joined after 2023 in Silvassa?','How big is the CHRO’s team?'];
+$('askChips').innerHTML = ASK_CHIPS.map(q => `<button type="button" class="qchip">${esc(q)}</button>`).join('');
+$('askChips').addEventListener('click', e => { const b = e.target.closest('.qchip'); if (!b) return; $('askQ').value = b.textContent; ask(b.textContent); });
+$('askForm').addEventListener('submit', e => { e.preventDefault(); ask($('askQ').value); });
+const ROLE_ALIAS = { cfo:'Chief Financial Officer', chro:'Chief Human Resources Officer', ceo:'Managing Director & Group CEO', cto:'Chief Digital & Technology Officer', cdto:'Chief Digital & Technology Officer', cso:'Chief Strategy Officer', 'general counsel':'General Counsel' };
+function findPerson(T, txt){
+  const t = txt.toLowerCase().replace(/[?.!’']/g, ' ').trim();
+  for (const k in ROLE_ALIAS) if (new RegExp('\\b' + k + '\\b').test(t)) return T.all.find(n => n.role.startsWith(ROLE_ALIAS[k]));
+  let best = null; T.all.forEach(n => { const nm = n.name.toLowerCase(); if (!n.vacant && t.includes(nm)) best = n; }); if (best) return best;
+  T.all.forEach(n => { if (!best && t.includes(n.role.toLowerCase())) best = n; }); if (best) return best;
+  const words = t.split(/\s+/).filter(w => w.length > 3); let sc = 0;
+  T.all.forEach(n => { const r = (n.role + ' ' + n.name).toLowerCase(); const s = words.filter(w => r.includes(w)).length; if (s > sc){ sc = s; best = n; } });
+  return sc ? best : null;
+}
+function buOf(t){ for (const k in BU) if (t.includes(BU[k].label.toLowerCase().split(' ')[0])) return k; return null; }
+let askTimer = 0;
+function ask(q){
+  q = (q || '').trim(); if (!q) return;
+  const T = buildTree(BASE), t = q.toLowerCase(), crit = BENCH.roles();
+  let res = [], say = '', code = '';
+  const bu = buOf(t), buTxt = bu ? ` in <b>${esc(BU[bu].label)}</b>` : '', buF = n => !bu || n.bu === bu;
+  const num = (t.match(/\d+/) || [])[0];
+  if (/report(s)? to|reporting to|direct reports of|team of|under\b|how big|team size/.test(t)){
+    const p = findPerson(T, t.replace(/who reports to|reports to|reporting to|direct reports of|team of|how big is|team size|under/g, ' '));
+    if (p){ const all = /how big|team of|whole|everyone|under/.test(t); const list = []; if (all) (function w(n){ n.k.forEach(c => { list.push(c); w(c); }); })(p); else list.push(...p.k);
+      res = list; say = all ? `<b>${esc(p.name)}</b> (${esc(p.role)}) leads a team of <b>${list.length}</b> people across ${d3.max(list, n => n.depth) - p.depth || 0} layers.` : `<b>${list.length}</b> people report directly to <b>${esc(p.name)}</b>, ${esc(p.role)}.`;
+      code = `people.filter(p => ${all ? 'isBelow(p, ' : 'p.reportsTo === '}"${p.id}"${all ? ')' : ''})\n// ${p.name} · ${p.role}`; }
+  }
+  if (!code && /(fewer|less) than|narrow|span|under \d/.test(t)){
+    const n = +(num || 3); res = T.all.filter(m => m.k.length && m.k.length < n && buF(m));
+    say = `<b>${res.length}</b> managers${buTxt} have fewer than <b>${n}</b> direct reports. These are the first candidates for merging teams.`; code = `managers.filter(m => m.directReports < ${n}${bu ? ` && m.business === "${BU[bu].label}"` : ''})`;
+  }
+  if (!code && /successor|succession|bench|cover/.test(t)){
+    const gap = crit.filter(r => r.ready === 0 && (!bu || r.n.bu === bu)); res = gap.map(r => r.n);
+    say = `<b>${res.length}</b> of ${crit.length} critical roles${buTxt} have <b>no ready-now successor</b>. Bench strength in module 04 shows who could step up within two years.`; code = `criticalRoles.filter(r => r.readyNowSuccessors === 0${bu ? ` && r.business === "${BU[bu].label}"` : ''})`;
+  }
+  if (!code && /risk|flight|attrition|leave/.test(t)){
+    res = T.all.filter(n => n.risk === 'High' && buF(n) && n.k.length).sort((a, b) => a.depth - b.depth);
+    say = `<b>${res.length}</b> people managers${buTxt} carry a <b>high flight risk</b>. Together they lead ${d3.sum(res, n => n.total)} people.`; code = `people.filter(p => p.flightRisk === "High" && p.isManager${bu ? ` && p.business === "${BU[bu].label}"` : ''})`;
+  }
+  if (!code && /wom[ae]n|female/.test(t)){
+    const lead = /leader|head|manager|senior/.test(t); res = T.all.filter(n => n.gender === 'F' && buF(n) && (!lead || n.k.length));
+    const base = T.all.filter(n => buF(n) && (!lead || n.k.length) && !n.vacant).length;
+    say = `<b>${res.length}</b> ${res.length === 1 ? 'woman' : 'women'} ${lead ? (res.length === 1 ? 'leads a team' : 'lead teams') : (res.length === 1 ? 'works' : 'work')}${buTxt}, ${Math.round(res.length / Math.max(1, base) * 100)}% of ${lead ? 'people managers' : 'the headcount'} there.`; code = `people.filter(p => p.gender === "F"${lead ? ' && p.isManager' : ''}${bu ? ` && p.business === "${BU[bu].label}"` : ''})`;
+  }
+  if (!code && /open|vacan|hiring/.test(t)){
+    res = T.all.filter(n => n.vacant && buF(n)); say = `<b>${res.length}</b> open position${res.length === 1 ? '' : 's'}${buTxt}, each shown as a dashed card on the chart.`; code = `people.filter(p => p.name === "Open position")`;
+  }
+  if (!code && /joined|since|after|new joiner|tenure/.test(t)){
+    const y = +(num || 2024), loc = ['silvassa','jharsuguda','gurugram','mumbai','pune','bengaluru','delhi','jaipur','chandigarh'].find(l => t.includes(l));
+    res = T.all.filter(n => +n.since > y && (!loc || (n.location || '').toLowerCase() === loc) && buF(n));
+    const LC = loc ? loc[0].toUpperCase() + loc.slice(1) : ''; say = `<b>${res.length}</b> ${res.length === 1 ? 'person' : 'people'} joined after ${y}${loc ? ` in <b>${LC}</b>` : ''}${buTxt}.`; code = `people.filter(p => p.since > ${y}${loc ? ` && p.location === "${LC}"` : ''})`;
+  }
+  if (!code){ const p = findPerson(T, t); if (p){ res = [p, ...p.k]; say = `<b>${esc(p.name)}</b> is ${esc(p.role)}, reporting to ${p.p ? esc(p.p.name) : 'no one'}, with ${p.k.length} direct reports.`; code = `people.find(p => p.id === "${p.id}")`; }
+    else { say = 'I could not match that question. Try one of the suggestions, or ask about a role, a team, spans, successors, flight risk, women leaders, open roles or joiners.'; code = '// no rule matched'; } }
+  renderAnswer(say, res, code);
+}
+function renderAnswer(say, res, code){
+  const box = $('askAns'), show = res.slice(0, 12);
+  box.innerHTML = `<p class="say" id="askSay"></p><div class="plist">${show.map((n, i) => `<div class="pc" style="animation-delay:${i * 40}ms"><div class="av${n.vacant ? ' vac' : ''}" style="--dc:${BU[n.bu] ? BU[n.bu].c : '#475569'}">${n.vacant ? '?' : esc(initials(n.name))}</div><div><b>${esc(n.name)}</b><span>${esc(n.role)}</span></div></div>`).join('')}</div>`
+    + (res.length ? `<p style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">${res.length > 12 ? `<span style="color:var(--muted);font-size:.8rem">+${res.length - 12} more</span>` : ''}<button class="btn pri" id="askShow" type="button">◎ Show ${res.length} on the org chart</button></p>` : '');
+  const sayEl = $('askSay'); clearInterval(askTimer);
+  if (reduce) sayEl.innerHTML = say; else { const plain = say.replace(/<[^>]+>/g, ''); let i = 0; askTimer = setInterval(() => { i += 3; sayEl.textContent = plain.slice(0, i); if (i >= plain.length){ clearInterval(askTimer); sayEl.innerHTML = say; } }, 16); }
+  $('askCode').textContent = code;
+  const b = $('askShow'); if (b) b.addEventListener('click', () => { OC.focusIds(res.map(n => n.id)); $('ocModule').scrollIntoView({behavior:reduce ? 'auto' : 'smooth', block:'start'}); });
+}
+
+/* ======================================================================
+   03 · X-RAY & REORG SANDBOX
+   ====================================================================== */
+const SCN = [
+  { id:'delayer', t:'Delayer the plants', d:'Remove the deputy plant head layer; production managers report to plant heads.',
+    ok: rows => rows.some(r => r.role.startsWith('Deputy Plant Head')),
+    run(rows, log){ rows.filter(r => r.role.startsWith('Deputy Plant Head')).forEach(dp => { rows.filter(r => r.reportsTo === dp.id).forEach(c => c.reportsTo = dp.reportsTo); log.push(['removed', dp, 'deputy layer removed; reports move up to the plant head']); dp._gone = true; }); } },
+  { id:'commercial', t:'One commercial team', d:'Merge Products and Solutions sales under one VP, Commercial.',
+    ok: rows => rows.some(r => r.role === 'VP, Sales – Products') && rows.some(r => r.role === 'VP, Sales – Solutions'),
+    run(rows, log){ const a = rows.find(r => r.role === 'VP, Sales – Products'), b = rows.find(r => r.role === 'VP, Sales – Solutions'); if (!a || !b || b._gone) return;
+      rows.filter(r => r.reportsTo === b.id).forEach(c => c.reportsTo = a.id); a.role = 'VP, Commercial – Products & Solutions'; b._gone = true; log.push(['removed', b, 'sales VP role merged into one commercial team']); } },
+  { id:'coe', t:'Digital & analytics CoE', d:'Pull the three BU analytics leads into one CoE under the CDTO.',
+    ok: rows => rows.some(r => r.role.startsWith('Analytics Lead')) && rows.some(r => r.role === 'Head, Data & Analytics'),
+    run(rows, log){ const h = rows.find(r => r.role === 'Head, Data & Analytics'); if (!h) return; h.role = 'Head, Data & Digital CoE';
+      rows.filter(r => r.role.startsWith('Analytics Lead')).forEach(a => { a.reportsTo = h.id; a.bu = 'dig'; log.push(['moved', a, 'moves to the Digital CoE']); }); } },
+  { id:'projects', t:'One projects organisation', d:'Combine the North and South & West project VPs into one VP, Projects.',
+    ok: rows => rows.some(r => r.role === 'VP, Projects – North') && rows.some(r => r.role === 'VP, Projects – South & West'),
+    run(rows, log){ const a = rows.find(r => r.role === 'VP, Projects – North'), b = rows.find(r => r.role === 'VP, Projects – South & West'); if (!a || !b) return;
+      rows.filter(r => r.reportsTo === b.id).forEach(c => c.reportsTo = a.id); a.role = 'VP, Projects'; b._gone = true; log.push(['removed', b, 'regional VP layer combined']); } },
+  { id:'finance', t:'Fold treasury into controllership', d:'The VP, Treasury role, with a single report, merges into the VP, Controllership.',
+    ok: rows => rows.some(r => r.role === 'VP, Treasury & Investor Relations') && rows.some(r => r.role === 'VP, Controllership'),
+    run(rows, log){ const a = rows.find(r => r.role === 'VP, Controllership'), b = rows.find(r => r.role === 'VP, Treasury & Investor Relations'); if (!a || !b) return;
+      rows.filter(r => r.reportsTo === b.id).forEach(c => c.reportsTo = a.id); a.role = 'VP, Controllership & Treasury'; b._gone = true; log.push(['removed', b, 'treasury VP role folded into controllership']); } },
+  { id:'thin', t:'Turn thin teams into expert roles', d:'Managers below L3 with one or two reports become senior specialists; their reports move up a level.',
+    ok: rows => true,
+    run(rows, log){ const live = rows.filter(r => !r._gone), T = buildTree(live);
+      T.all.filter(n => n.depth >= 3 && n.p && n.k.length && n.k.length < 3).sort((a, b) => b.depth - a.depth).forEach(n => {
+        const me = rows.find(r => r.id === n.id), kids = rows.filter(r => !r._gone && r.reportsTo === me.id), boss = me.reportsTo;
+        const bossSpan = rows.filter(r => !r._gone && r.reportsTo === boss).length; if (!kids.length || bossSpan - 1 + kids.length + 1 > 10) return;
+        kids.forEach(c => c.reportsTo = boss); log.push(['moved', me, `becomes a senior specialist; ${kids.length} report${kids.length === 1 ? '' : 's'} move up`]); }); } }
+];
+const SB = { on:new Set(), moves:[] };
+function scenarioRows(){
+  const rows = BASE.map(r => Object.assign({}, r)), log = [];
+  SCN.forEach(s => { if (SB.on.has(s.id) && s.ok(BASE)) s.run(rows, log); });
+  let kept = rows.filter(r => !r._gone);
+  SB.moves.forEach(([who, to]) => { const w = kept.find(r => r.id === who), m = kept.find(r => r.id === to); if (w && m){ w.reportsTo = to; log.push(['moved', w, `now reports to ${m.name}`]); } });
+  return { rows:kept, log, removed: rows.filter(r => r._gone) };
+}
+let xrMode = 'span', xrSvg = null, xrG = null, xrHi = null;
+function drawXray(){
+  const S = scenarioRows(), T = buildTree(S.rows), size = 680, R = size / 2 - 34;
+  if (!xrSvg){
+    xrSvg = d3.select('#xray').append('svg').attr('viewBox', `${-size / 2} ${-size / 2} ${size} ${size}`).attr('role','img').attr('aria-label','Radial org X-ray: CEO at the centre, one ring per layer');
+    xrSvg.append('g').attr('class','rings'); xrSvg.append('g').attr('class','links'); xrSvg.append('g').attr('class','nodes');
+  }
+  const H = d3.hierarchy(T.root, n => n.k), L = (H.height || 1);
+  d3.tree().size([2 * Math.PI, R]).separation((a, b) => (a.parent === b.parent ? 1 : 2) / Math.max(1, a.depth))(H);
+  const ring = d => d / L * R;
+  const rg = xrSvg.select('g.rings').selectAll('g.rg').data(d3.range(1, L + 1), d => d);
+  const rgE = rg.enter().append('g').attr('class','rg'); rgE.append('circle').attr('fill','none').attr('stroke','#E3E9F1').attr('stroke-dasharray','2 4'); rgE.append('text').attr('font-size', 10).attr('fill','#9AA6B6').attr('text-anchor','middle').attr('font-weight', 700);
+  rg.exit().transition().duration(DUR).style('opacity', 0).remove();
+  rgE.merge(rg).select('circle').transition().duration(DUR).attr('r', ring);
+  rgE.merge(rg).select('text').transition().duration(DUR).attr('y', d => -ring(d) - 3).text(d => 'L' + (d + 1));
+  const link = d3.linkRadial().angle(d => d.x).radius(d => d.y);
+  const lk = xrSvg.select('g.links').selectAll('path').data(H.links(), d => d.target.data.id);
+  lk.exit().transition().duration(DUR * .6).style('opacity', 0).remove();
+  lk.enter().append('path').attr('fill','none').attr('stroke','#C9D4E2').attr('stroke-width', 1).attr('d', d => link({source:d.source, target:d.source})).style('opacity', 0)
+    .merge(lk).transition().duration(DUR).style('opacity', 1).attr('d', link);
+  const pt = d => d3.pointRadial(d.x, d.y);
+  const nd = xrSvg.select('g.nodes').selectAll('circle').data(H.descendants(), d => d.data.id);
+  nd.exit().transition().duration(DUR * .6).attr('r', 0).remove();
+  const col = d => xrMode === 'bu' ? (BU[d.data.bu] ? BU[d.data.bu].c : '#475569') : SPAN_C[spanClass(d.data.k.length)];
+  nd.enter().append('circle').attr('r', 0).attr('stroke','#fff').attr('stroke-width', 1.2).attr('cx', d => pt(d.parent || d)[0]).attr('cy', d => pt(d.parent || d)[1]).style('cursor','pointer')
+    .merge(nd).on('mousemove', (ev, d) => showTip(`<div class="t">${esc(d.data.name)}</div>${esc(d.data.role)}<br>Layer L${d.depth + 1} · ${d.data.k.length} direct report${d.data.k.length === 1 ? '' : 's'}${d.data.k.length ? ` · <b>${{narrow:'narrow',ok:'healthy',wide:'wide',ic:''}[spanClass(d.data.k.length)]} span</b>` : ''}`, ev)).on('mouseleave', hideTip)
+    .on('click', (ev, d) => { $('mvWho').value = d.data.id; if (d.parent) $('mvTo').value = d.parent.data.id; })
+    .transition().duration(DUR).attr('cx', d => pt(d)[0]).attr('cy', d => pt(d)[1]).attr('r', d => d.depth === 0 ? 9 : d.data.k.length ? 3 + Math.min(6, Math.sqrt(d.data.k.length) * 1.6) : 2.4).attr('fill', col)
+    .attr('opacity', d => !xrHi || xrHi(d.data) ? 1 : .15);
+  $('xrKey').innerHTML = xrMode === 'bu' ? Object.keys(BU).filter(k => T.all.some(n => n.bu === k)).map(k => `<span><i style="background:${BU[k].c}"></i>${esc(BU[k].label)}</span>`).join('')
+    : '<span><i style="background:#E5484D"></i>Narrow span (1–2)</span><span><i style="background:#16A34A"></i>Healthy (3–10)</span><span><i style="background:#F2A93B"></i>Wide (11+)</span><span><i style="background:#A8B4C4"></i>No reports</span><span style="margin-left:auto">Dot size = span · click a dot to pick it for a move</span>';
+  // metrics
+  const M0 = metrics(BASE), M1 = metrics(S.rows);
+  const tile = (k, a, b, fmt, goodDown) => { const d = b - a, cls = Math.abs(d) < 1e-9 ? 'n' : (d < 0) === goodDown ? 'g' : 'b';
+    return `<div class="met"><div class="k">${k}</div><div class="v">${fmt(b)}</div><div class="d ${cls}">${Math.abs(d) < 1e-9 ? 'no change' : (d > 0 ? '▲ +' : '▼ −') + fmt(Math.abs(d))}</div></div>`; };
+  const moved = S.log.filter(l => l[0] === 'moved').length + d3.sum(S.removed, r => BASE.filter(x => x.reportsTo === r.id).length);
+  $('mets').innerHTML = tile('Layers', M0.layers, M1.layers, v => v, true) + tile('People managers', M0.managers, M1.managers, v => v, true) + tile('Average span', M0.avgSpan, M1.avgSpan, v => v.toFixed(1), false)
+    + tile('Narrow spans', M0.narrow, M1.narrow, v => v, true) + tile('Mgmt cost, ₹ Cr', M0.mgmtCost, M1.mgmtCost, v => v.toFixed(1), true)
+    + `<div class="met"><div class="k">People affected</div><div class="v">${moved + S.removed.length}</div><div class="d n">${S.removed.length} role${S.removed.length === 1 ? '' : 's'} removed</div></div>`;
+  $('mvLog').innerHTML = S.log.length ? S.log.map(([k, r, txt]) => `<div><b>${k === 'removed' ? '− ' : '→ '}${esc(r.name)}</b> (${esc(r.role)}): ${esc(txt)}</div>`).join('') : '<div style="color:var(--grey)">No changes yet. Today’s organisation is shown.</div>';
+  drawSpanMini(M0.spans, M1.spans);
+  return S;
+}
+function spanBins(sp){ const B = [['1',s => s === 1],['2',s => s === 2],['3–4',s => s >= 3 && s <= 4],['5–6',s => s >= 5 && s <= 6],['7–8',s => s >= 7 && s <= 8],['9–10',s => s >= 9 && s <= 10],['11+',s => s > 10]]; return B.map(([k, f]) => ({ k, c: sp.filter(f).length, cls: k === '1' || k === '2' ? 'narrow' : k === '11+' ? 'wide' : 'ok' })); }
+function drawSpanMini(s0, s1){
+  const w = 340, h = 120, m = {t:8, r:6, b:20, l:22}, b0 = spanBins(s0), b1 = spanBins(s1);
+  const el = d3.select('#spanMini'); let s = el.select('svg');
+  if (s.empty()){ s = el.append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Span distribution, today vs scenario'); s.append('g').attr('class','bars'); s.append('g').attr('class','ghost'); s.append('g').attr('class','axis ax'); }
+  const x = d3.scaleBand().domain(b0.map(d => d.k)).range([m.l, w - m.r]).padding(.25), y = d3.scaleLinear().domain([0, Math.max(4, d3.max(b0.concat(b1), d => d.c))]).nice().range([h - m.b, m.t]);
+  s.select('g.ax').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).tickSize(0).tickPadding(5));
+  s.select('g.bars').selectAll('rect').data(b1, d => d.k).join('rect').attr('x', d => x(d.k)).attr('width', x.bandwidth()).attr('rx', 3).attr('fill', d => SPAN_C[d.cls]).style('cursor','pointer')
+    .on('mousemove', (ev, d) => showTip(`<div class="t">Span ${d.k}</div><b>${d.c}</b> managers in this scenario<br>Click to highlight them in the X-ray`, ev)).on('mouseleave', hideTip)
+    .on('click', (ev, d) => { const f = spanBins([0])[0]; const test = {'1':s => s === 1,'2':s => s === 2,'3–4':s => s >= 3 && s <= 4,'5–6':s => s >= 5 && s <= 6,'7–8':s => s >= 7 && s <= 8,'9–10':s => s >= 9 && s <= 10,'11+':s => s > 10}[d.k];
+      xrHi = xrHi && xrHi.k === d.k ? null : Object.assign(n => test(n.k.length), {k:d.k}); drawXray(); })
+    .transition().duration(DUR).attr('y', d => y(d.c)).attr('height', d => h - m.b - y(d.c)).attr('opacity', d => !xrHi || xrHi.k === d.k ? 1 : .35);
+  s.select('g.ghost').selectAll('rect').data(b0, d => d.k).join('rect').attr('x', d => x(d.k) - 2).attr('width', x.bandwidth() + 4).attr('fill','none').attr('stroke','#0A1A2F').attr('stroke-dasharray','3 2').attr('pointer-events','none')
+    .transition().duration(DUR).attr('y', d => y(d.c)).attr('height', d => h - m.b - y(d.c));
+  s.select('g.bars').selectAll('text').data(b1, d => d.k).join('text').attr('text-anchor','middle').attr('font-size', 10).attr('font-weight', 700).attr('fill','#0A1A2F').attr('x', d => x(d.k) + x.bandwidth() / 2)
+    .transition().duration(DUR).attr('y', d => y(d.c) - 3).text(d => d.c || '');
+}
+function sandboxUI(){
+  $('scnList').innerHTML = SCN.map(s => { const ok = s.ok(BASE); return `<label class="${SB.on.has(s.id) ? 'on' : ''}${ok ? '' : ' na'}"><input type="checkbox" data-scn="${s.id}" ${SB.on.has(s.id) ? 'checked' : ''} ${ok ? '' : 'disabled'}><span><b>${esc(s.t)}</b><small>${ok ? esc(s.d) : 'Not applicable to the uploaded organisation'}</small></span></label>`; }).join('');
+  const T = buildTree(BASE), opts = T.all.slice().sort((a, b) => a.depth - b.depth || a.role.localeCompare(b.role));
+  $('mvWho').innerHTML = '<option value="">Person or team…</option>' + opts.filter(n => n.depth > 0).map(n => `<option value="${n.id}">${esc(n.name)} · ${esc(n.role)}</option>`).join('');
+  $('mvTo').innerHTML = '<option value="">New manager…</option>' + opts.filter(n => !n.vacant).map(n => `<option value="${n.id}">${esc(n.name)} · ${esc(n.role)}</option>`).join('');
+}
+$('scnList').addEventListener('change', e => { const c = e.target.closest('[data-scn]'); if (!c) return; c.checked ? SB.on.add(c.dataset.scn) : SB.on.delete(c.dataset.scn); c.closest('label').classList.toggle('on', c.checked); xrHi = null; drawXray(); });
+$('mvGo').addEventListener('click', () => {
+  const who = $('mvWho').value, to = $('mvTo').value; if (!who || !to) { toast('Pick a person and a new manager'); return; }
+  const S = scenarioRows(), T = buildTree(S.rows), w = T.map.get(who), m = T.map.get(to);
+  if (!w || !m){ toast('That person is not in this scenario'); return; }
+  for (let a = m; a; a = a.p) if (a === w){ toast('A manager cannot report into their own team'); return; }
+  if (w.p === m){ toast(`${w.name} already reports to ${m.name}`); return; }
+  SB.moves.push([who, to]); drawXray(); toast(`${w.name} and team (${w.total + 1}) moved under ${m.name}`);
+});
+$('mvReset').addEventListener('click', () => { SB.on.clear(); SB.moves = []; xrHi = null; sandboxUI(); drawXray(); });
+segBind('xc', v => { xrMode = v; drawXray(); });
+
+/* ======================================================================
+   04 · BENCH STRENGTH (risk × bench quadrant)
+   ====================================================================== */
+const BENCH = (function(){
+  let state = 'before', sel = null, svg = null;
+  function roles(){
+    const T = buildTree(BASE), R = mulberry32(77);
+    const list = T.all.filter(n => n.depth >= 1 && n.depth <= 2 && n.k.length && !n.vacant);
+    const rank = new Map(list.map(n => [n.id, R()])), order = list.slice().sort((a, b) => rank.get(a.id) - rank.get(b.id)).map(n => n.id);
+    const nB = Math.round(list.length * .41), nA = Math.round(list.length * .68);
+    return list.map(n => {
+      const riskScore = n.risk === 'High' ? 62 + R() * 33 : n.risk === 'Medium' ? 35 + R() * 28 : 6 + R() * 26;
+      const pool = []; (function w(m){ m.k.forEach(c => { if (!c.vacant && c.depth - n.depth <= 2) pool.push(c); w(c); }); })(n);
+      const pos = order.indexOf(n.id), extra = R() < .25 ? 1 : 0;
+      const ready = pos < nB ? 1 + extra : 0, soon = Math.floor(R() * 3);
+      const readyA = pos < nA ? Math.max(ready, 1) : 0, soonA = Math.min(3, soon + (R() < .5 ? 1 : 0));
+      const pick = (k, off) => pool.slice(off, off + k);
+      const bench = b => Math.min(96, b.r * 34 + b.s * 13 + 6 + R() * 6);
+      const b0 = {r:ready, s:soon}, b1 = {r:readyA, s:soonA};
+      return { n, risk:riskScore, ready, soon, readyA, soonA, benchB:bench(b0), benchA:bench(b1), succ:pick(Math.max(readyA + soonA, 1), 0) };
+    });
+  }
+  function draw(){
+    const data = roles(), w = 700, h = 440, m = {t:24, r:20, b:44, l:50};
+    const el = d3.select('#benchChart');
+    if (!svg){ svg = el.append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Critical roles by incumbent flight risk and bench strength');
+      const x = d3.scaleLinear().domain([0, 100]).range([m.l, w - m.r]), y = d3.scaleLinear().domain([0, 100]).range([h - m.b, m.t]);
+      svg.append('rect').attr('x', x(50)).attr('y', y(50)).attr('width', x(100) - x(50)).attr('height', y(0) - y(50)).attr('fill','rgba(229,72,77,.07)');
+      svg.append('rect').attr('x', x(0)).attr('y', y(100)).attr('width', x(50) - x(0)).attr('height', y(50) - y(100)).attr('fill','rgba(22,163,74,.06)');
+      svg.append('line').attr('x1', x(50)).attr('x2', x(50)).attr('y1', m.t).attr('y2', h - m.b).attr('stroke','#CBD5E1').attr('stroke-dasharray','4 4');
+      svg.append('line').attr('x1', m.l).attr('x2', w - m.r).attr('y1', y(50)).attr('y2', y(50)).attr('stroke','#CBD5E1').attr('stroke-dasharray','4 4');
+      [['Stable', 8, 92, '#16A34A', 'start'], ['Watch', 92, 92, '#B7791F', 'end'], ['Develop the bench', 8, 6, '#5D6B7E', 'start'], ['Act now', 92, 6, '#E5484D', 'end']].forEach(([t, a, b, c, an]) =>
+        svg.append('text').attr('x', x(a)).attr('y', y(b)).attr('text-anchor', an).attr('font-size', 12).attr('font-weight', 800).attr('fill', c).attr('letter-spacing','.06em').text(t.toUpperCase()));
+      svg.append('g').attr('class','axis').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(5).tickSize(0).tickPadding(6));
+      svg.append('g').attr('class','axis').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickSize(0).tickPadding(6));
+      svg.append('text').attr('x', (m.l + w - m.r) / 2).attr('y', h - 8).attr('text-anchor','middle').attr('font-size', 11).attr('fill','#5D6B7E').text('Incumbent flight risk →');
+      svg.append('text').attr('transform', `translate(14,${(m.t + h - m.b) / 2}) rotate(-90)`).attr('text-anchor','middle').attr('font-size', 11).attr('fill','#5D6B7E').text('Bench strength →');
+      svg.append('g').attr('class','bub'); svg.append('g').attr('class','lab');
+      svg.x = x; svg.y = y;
+    }
+    const x = svg.x, y = svg.y, r = d3.scaleSqrt().domain([0, d3.max(data, d => d.n.total) || 1]).range([5, 22]);
+    const by = d => state === 'after' ? d.benchA : d.benchB;
+    const g = svg.select('g.bub').selectAll('circle').data(data, d => d.n.id);
+    g.exit().remove();
+    g.enter().append('circle').attr('cx', d => x(d.risk)).attr('cy', y(0)).attr('r', d => r(d.n.total)).attr('fill-opacity', .82).attr('stroke','#fff').attr('stroke-width', 1.5).style('cursor','pointer')
+      .on('mousemove', (ev, d) => showTip(`<div class="t">${esc(d.n.role)}</div>${esc(d.n.name)} · team ${d.n.total}<br>Flight risk ${Math.round(d.risk)} · bench ${Math.round(by(d))}<br>Ready now: <b>${state === 'after' ? d.readyA : d.ready}</b> · 1–2 yrs: ${state === 'after' ? d.soonA : d.soon}`, ev)).on('mouseleave', hideTip)
+      .on('click', (ev, d) => { sel = d.n.id; card(d); draw(); })
+      .merge(g).attr('fill', d => BU[d.n.bu] ? BU[d.n.bu].c : '#475569').transition().duration(reduce ? 0 : 900).delay((d, i) => reduce ? 0 : i * 18).attr('cy', d => y(by(d))).attr('cx', d => x(d.risk))
+      .attr('stroke', d => d.n.id === sel ? '#0A1A2F' : '#fff').attr('stroke-width', d => d.n.id === sel ? 3 : 1.5);
+    const act = []; data.filter(d => d.risk > 50 && by(d) < 50).sort((a, b) => b.risk - a.risk).forEach(d => { if (act.length < 3 && act.every(o => Math.abs(by(o) - by(d)) > 7 || Math.abs(o.risk - d.risk) > 30)) act.push(d); });
+    svg.select('g.lab').selectAll('text').data(act, d => d.n.id).join('text').attr('font-size', 10.5).attr('font-weight', 700).attr('fill','#0A1A2F').attr('paint-order','stroke').attr('stroke','#fff').attr('stroke-width', 3)
+      .attr('text-anchor', d => x(d.risk) > w - 230 ? 'end' : 'start').text(d => { const t = d.n.role.replace(/^(Head|VP), /, '').replace('Chief Digital & Technology Officer', 'CDTO').replace('Chief Human Resources Officer', 'CHRO').replace('Chief Financial Officer', 'CFO'); return t.length > 26 ? t.slice(0, 25) + '…' : t; })
+      .transition().duration(reduce ? 0 : 900).attr('x', d => x(d.risk) + (x(d.risk) > w - 230 ? -1 : 1) * (r(d.n.total) + 4)).attr('y', d => y(by(d)) + 4);
+    const cov = data.filter(d => (state === 'after' ? d.readyA : d.ready) > 0).length / Math.max(1, data.length);
+    meter(cov);
+    $('benchKey').innerHTML = Object.keys(BU).filter(k => data.some(d => d.n.bu === k)).map(k => `<span><i style="background:${BU[k].c};border-radius:50%"></i>${esc(BU[k].label)}</span>`).join('') + '<span style="margin-left:auto">Bubble size = team size</span>';
+    if (sel){ const d = data.find(z => z.n.id === sel); if (d) card(d); }
+  }
+  function meter(v){
+    const s = d3.select('#benchMeter'); if (s.select('path.bg').empty()){ s.append('path').attr('class','bg').attr('transform','translate(46,46)').attr('d', d3.arc().innerRadius(32).outerRadius(42).startAngle(0).endAngle(2 * Math.PI)()).attr('fill','#E6ECF3'); s.append('path').attr('class','fg').attr('transform','translate(46,46)').attr('fill','#0E5FAE'); s.node().__v = 0; }
+    const from = s.node().__v || 0; s.node().__v = v; const arc = d3.arc().innerRadius(32).outerRadius(42).startAngle(0).cornerRadius(5);
+    s.select('path.fg').transition().duration(reduce ? 0 : 900).attrTween('d', () => { const i = d3.interpolate(from, v); return t => arc({endAngle: 2 * Math.PI * i(t)}); }).attr('fill', v >= .6 ? '#16A34A' : v >= .45 ? '#F2A93B' : '#E5484D');
+    const el = $('benchPct'), i0 = from; if (reduce) el.textContent = Math.round(v * 100) + '%'; else { const t0 = performance.now(); (function f(t){ const p = Math.min(1, (t - t0) / 900); el.textContent = Math.round((i0 + (v - i0) * p) * 100) + '%'; if (p < 1) requestAnimationFrame(f); })(t0); }
+  }
+  function card(d){
+    const rN = state === 'after' ? d.readyA : d.ready, sN = state === 'after' ? d.soonA : d.soon;
+    const list = d.succ.slice(0, rN + sN).map((p, i) => `<div class="succ"><span class="av" style="--dc:${BU[p.bu] ? BU[p.bu].c : '#475569'};width:24px;height:24px;font-size:9px;border-radius:7px">${esc(initials(p.name))}</span><span>${esc(p.name)}<br><small style="color:var(--muted)">${esc(p.role)}</small></span><i class="${i < rN ? 'r' : 'y'}">${i < rN ? 'Ready now' : '1–2 yrs'}</i></div>`).join('');
+    $('benchCard').innerHTML = `<h5>${esc(d.n.role)}</h5><div class="who">${esc(d.n.name)} · flight risk <span class="rk ${d.n.risk}">${esc(d.n.risk)}</span> · team ${d.n.total}</div>${list || '<div class="succ" style="color:var(--bad);font-weight:700">No successor identified</div>'}`;
+  }
+  segBind('bn', v => { state = v; draw(); });
+  return { draw, roles, reset(){ sel = null; if (svg){ svg.remove(); svg = null; } d3.select('#benchMeter').selectAll('*').remove(); } };
+})();
+
+/* ======================================================================
+   IMPACT · span histogram (before/after) and HR hours lollipop
+   ====================================================================== */
+let spMode = 'after', spUpd = null;
+function drawSpan(){
+  const w = 560, h = 260, m = {t:22, r:12, b:34, l:36};
+  const s = d3.select('#spanChart').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Managers by span of control, before and after');
+  const B = spanBins(metrics(BASE).spans), A = spanBins(metrics(scenarioAll()).spans);
+  const x = d3.scaleBand().domain(B.map(d => d.k)).range([m.l, w - m.r]).padding(.28), y = d3.scaleLinear().domain([0, Math.max(...B.map(d => d.c), ...A.map(d => d.c))]).nice().range([h - m.b, m.t]);
+  s.append('g').attr('class','grid').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickSize(-(w - m.l - m.r)).tickFormat(''));
+  s.append('g').attr('class','axis').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).tickSize(0).tickPadding(8));
+  s.append('g').attr('class','axis').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickSize(0).tickPadding(6));
+  s.append('text').attr('x', (m.l + w - m.r) / 2).attr('y', h - 2).attr('text-anchor','middle').attr('font-size', 11).attr('fill','#5D6B7E').text('Direct reports per manager');
+  const bars = s.append('g').selectAll('rect').data(B).join('rect').attr('x', d => x(d.k)).attr('width', x.bandwidth()).attr('rx', 4).attr('fill', d => SPAN_C[d.cls]).attr('y', y(0)).attr('height', 0);
+  const lbl = s.append('g').selectAll('text').data(B).join('text').attr('text-anchor','middle').attr('font-size', 11).attr('font-weight', 800).attr('fill','#0A1A2F').attr('x', d => x(d.k) + x.bandwidth() / 2).attr('y', y(0));
+  const note = s.append('text').attr('x', w - m.r).attr('y', m.t - 6).attr('text-anchor','end').attr('font-size', 11).attr('font-weight', 700).attr('fill','#0E5FAE');
+  bars.on('mousemove', (ev, d) => { const i = B.findIndex(b => b.k === d.k); showTip(`<div class="t">Span ${d.k}</div>Before: <b>${B[i].c}</b> managers<br>After: <b>${A[i].c}</b> managers`, ev); }).on('mouseleave', hideTip);
+  spUpd = () => { const D = spMode === 'after' ? A : B, t = d3.transition().duration(DUR);
+    bars.data(D).transition(t).attr('y', d => y(d.c)).attr('height', d => y(0) - y(d.c));
+    lbl.data(D).transition(t).attr('y', d => y(d.c) - 5).text(d => d.c);
+    const MB = metrics(BASE), MA = metrics(scenarioAll()); note.text(spMode === 'after' ? `Avg span ${MA.avgSpan.toFixed(1)} · ${MA.layers} layers` : `Avg span ${MB.avgSpan.toFixed(1)} · ${MB.layers} layers`); };
+  spUpd();
+}
+function scenarioAll(){ const keep = new Set(SB.on), mv = SB.moves; SB.on = new Set(SCN.map(s => s.id)); SB.moves = []; const r = scenarioRows().rows; SB.on = keep; SB.moves = mv; return r; }
+segBind('sp', v => { spMode = v; if (spUpd) spUpd(); });
+function drawHrs(){
+  const D = [['Updating org charts', 46, 4], ['Modelling a reorg', 38, 9], ['Span & layer audit', 22, 2], ['Succession reporting', 18, 5], ['Answering "who reports to…"', 14, 1], ['Headcount reconciliation', 16, 3]];
+  const w = 560, h = 260, m = {t:10, r:40, b:30, l:178}, s = d3.select('#hrsChart').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','HR hours per month by task, before and after');
+  const x = d3.scaleLinear().domain([0, 50]).range([m.l, w - m.r]), y = d3.scaleBand().domain(D.map(d => d[0])).range([m.t, h - m.b]).padding(.4);
+  s.append('g').attr('class','grid').attr('transform', `translate(0,${m.t})`).call(d3.axisBottom(x).ticks(5).tickSize(h - m.t - m.b).tickFormat(''));
+  s.append('g').attr('class','axis').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(5).tickFormat(v => v + ' h').tickSize(0).tickPadding(6));
+  s.append('g').selectAll('text').data(D).join('text').attr('x', m.l - 10).attr('y', d => y(d[0]) + y.bandwidth() / 2 + 4).attr('text-anchor','end').attr('font-size', 11.5).attr('fill','#15202E').text(d => d[0]);
+  const g = s.append('g').selectAll('g').data(D).join('g').attr('transform', d => `translate(0,${y(d[0]) + y.bandwidth() / 2})`);
+  g.append('line').attr('x1', d => x(d[1])).attr('x2', d => x(d[1])).attr('stroke','#B9C4D2').attr('stroke-width', 3).attr('stroke-linecap','round');
+  g.append('circle').attr('cx', d => x(d[1])).attr('r', 6).attr('fill','#9AA6B6');
+  g.append('circle').attr('class','af').attr('cx', d => x(d[1])).attr('r', 7).attr('fill','#0E5FAE').attr('stroke','#fff').attr('stroke-width', 2);
+  g.append('text').attr('class','sv').attr('x', d => x(d[1]) + 12).attr('y', 4).attr('font-size', 10.5).attr('font-weight', 800).attr('fill','#16A34A').attr('opacity', 0).text(d => `−${Math.round((1 - d[2] / d[1]) * 100)}%`);
+  g.on('mousemove', (ev, d) => showTip(`<div class="t">${esc(d[0])}</div>Before <b>${d[1]} h</b> → with Org Studio <b>${d[2]} h</b> a month`, ev)).on('mouseleave', hideTip);
+  const t = d3.transition().duration(reduce ? 0 : 1100).delay(reduce ? 0 : 200);
+  g.select('line').transition(t).attr('x1', d => x(d[2]));
+  g.select('circle.af').transition(t).attr('cx', d => x(d[2]));
+  g.select('text.sv').transition(t).attr('opacity', 1);
+  s.append('text').attr('x', w - m.r).attr('y', h - m.b - 6).attr('text-anchor','end').attr('font-size', 11).attr('font-weight', 700).attr('fill','#0E5FAE').text(`${d3.sum(D, d => d[1] - d[2])} hours a month back`);
+}
+
+/* ======================================================================
+   BOOT
+   ====================================================================== */
+function rebuildAll(){
+  OC.load(BASE);
+  SB.on.clear(); SB.moves = []; xrHi = null; sandboxUI(); if (xrSvg){ xrSvg.remove(); xrSvg = null; d3.select('#spanMini').selectAll('*').remove(); } drawXray();
+  BENCH.reset(); BENCH.draw();
+  $('askAns').innerHTML = '<p class="say" style="color:var(--muted)">Try “Who reports to the CFO?” or “Critical roles with no successor”.</p>'; $('askCode').textContent = '// waiting for a question';
+}
+function syncKpis(){
+  const a = metrics(BASE), b = metrics(scenarioAll()), red = Math.round((1 - b.narrow / Math.max(1, a.narrow)) * 100);
+  $('kNarrow').dataset.to = red; $('kNarrowD').textContent = `▼ from ${a.narrow} to ${b.narrow} after delayering`;
+  const R = BENCH.roles(), rb = Math.round(R.filter(d => d.ready).length / R.length * 100), ra = Math.round(R.filter(d => d.readyA).length / R.length * 100);
+  $('kReady').dataset.to = ra; $('kReadyD').textContent = `▲ from ${rb}% before the talent review`;
+}
+if (hasD3){
+  syncKpis();
+  whenVisible($('ocModule'), () => OC.load(BASE));
+  sandboxUI(); whenVisible($('xrModule'), drawXray);
+  whenVisible($('benchModule'), () => BENCH.draw());
+  whenVisible($('spanChart'), drawSpan); whenVisible($('hrsChart'), drawHrs);
+} else {
+  ['ocStage','xray','benchChart','spanChart','hrsChart'].forEach(id => { $(id).innerHTML = '<p style="padding:30px;color:var(--muted)">This view needs an internet connection to load its chart library.</p>'; });
+}
+window.__org = { BASE: () => BASE, metrics, scenarioAll, OC };
+})();
+</script>
+</body>
+</html>

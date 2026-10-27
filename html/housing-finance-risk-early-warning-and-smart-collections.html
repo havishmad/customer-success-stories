@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Housing Finance · Early Warning, Fraud Rings &amp; Smart Collections | HMC Case Study</title>
+<meta name="description" content="How Havish M Consulting helped the housing finance company spot stress before the first missed EMI, catch linked-application fraud before disbursal, and run collections by propensity and capacity with compliant, personalised outreach.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+:root{
+  --pri:#5E8C14; --deep:#17191F; --acc:#E5484D; --amb:#F2A60C; --good:#4E7A0F; --bad:#D93A40;
+  --bg:#F5F6F2; --text:#1A1C21; --muted:#5F6470; --card:#FFFFFF; --line:#E1E4DC;
+  --radius:12px; --shadow:0 1px 2px rgba(23,25,31,.06),0 8px 24px rgba(23,25,31,.08);
+  --serif:"DM Serif Display",Georgia,serif; --sans:"DM Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif; --mono:ui-monospace,Menlo,Consolas,monospace;
+  --b0:#C8DCA9; --b1:#F2C14E; --b2:#F08A3E; --b3:#E5484D; --bc:#2B2F36;
+  color-scheme:light;
+}
+
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--serif);font-weight:400;color:var(--deep);margin:0;line-height:1.15}
+h2{font-size:clamp(1.6rem,3.2vw,2.2rem)}
+h3{font-size:1.2rem}
+p{margin:0}
+.wrap{max-width:1260px;margin:0 auto;padding:0 24px}
+section{padding:64px 0}
+.eyebrow{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--pri);margin-bottom:10px}
+.lead{color:var(--muted);max-width:800px;margin-top:12px}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line)}
+.sec-head{margin-bottom:28px}
+.alt{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.topbar{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+.logos{display:flex;align-items:center;gap:16px}
+.logos img{height:44px;width:auto;object-fit:contain}
+.logos img.cl{height:30px}
+.vdiv{width:1px;height:36px;background:var(--line)}
+.tagline{font-size:.8rem;color:var(--muted);letter-spacing:.04em}
+.tagline b{color:var(--pri);font-weight:700}
+.hero{background:radial-gradient(120% 140% at 88% 0%,#4A2470 0%,#2A1446 45%,#120821 100%);color:#fff;padding:76px 0 70px;position:relative;overflow:hidden}
+.hero canvas{position:absolute;right:0;top:0;width:58%;height:100%;pointer-events:none}
+.hero .eyebrow{color:#B5DB6F}
+.hero h1{color:#fff;font-size:clamp(2.3rem,5.4vw,3.8rem);max-width:720px;position:relative;z-index:1}
+.hero h1 em{font-style:normal;color:#B5DB6F}
+.hero .sub{font-size:clamp(1.05rem,2vw,1.2rem);color:rgba(255,255,255,.86);max-width:640px;margin-top:18px;position:relative;z-index:1}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px;position:relative;z-index:1}
+.pill{border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:6px 14px;font-size:.85rem;color:#fff;background:rgba(255,255,255,.06)}
+.pill span{color:#B5DB6F;font-weight:700;margin-right:6px}
+.kpis{margin-top:-30px;position:relative;z-index:2;padding:0}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi{padding:22px 20px;border-top:3px solid var(--acc)}
+.kpi .label{font-size:.82rem;color:var(--muted);font-weight:500}
+.kpi .val{font-family:var(--serif);font-size:clamp(1.9rem,4vw,2.6rem);color:var(--pri);line-height:1.1;margin-top:6px;white-space:nowrap}
+.kpi .val small{font-family:var(--sans);font-size:.9rem;color:var(--muted);margin-left:4px}
+.delta{display:inline-flex;align-items:center;gap:4px;font-size:.8rem;font-weight:700;margin-top:8px;padding:2px 8px;border-radius:999px;background:rgba(31,166,122,.1);color:var(--good)}
+.footnote{font-size:.78rem;color:var(--muted);margin-top:14px}
+.ch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.chc{padding:24px}
+.ico{width:44px;height:44px;border-radius:10px;background:var(--pri-15);display:grid;place-items:center;margin-bottom:16px}
+.ico svg{width:22px;height:22px;stroke:var(--pri);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.chc h3{margin-bottom:8px}
+.chc p{font-size:.92rem;color:#433A52}
+.tl{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.tl::before{content:"";position:absolute;left:10%;right:10%;top:27px;height:3px;background:linear-gradient(90deg,var(--pri),var(--acc));border-radius:2px;opacity:.55}
+.tl-step{position:relative;background:none;border:0;cursor:pointer;font:inherit;color:inherit;display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 4px 8px}
+.tl-dot{width:56px;height:56px;border-radius:50%;background:#fff;border:2px solid var(--line);display:grid;place-items:center;font-family:var(--serif);font-size:1.25rem;color:var(--pri);transition:all .25s;position:relative;z-index:1}
+.tl-name{font-weight:700;font-size:.95rem}
+.tl-dur{font-size:.75rem;color:var(--muted);margin-top:-8px}
+.tl-step:hover .tl-dot{border-color:var(--pri)}
+.tl-step[aria-expanded="true"] .tl-dot{background:var(--pri);border-color:var(--pri);color:#fff;box-shadow:0 0 0 6px var(--pri-15)}
+.tl-step:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:8px}
+.tl-panel{display:none;padding:24px 28px;margin-top:20px;border-left:4px solid var(--acc)}
+.tl-panel.open{display:block;animation:fadeUp .35s ease}
+.tl-panel h3{margin-bottom:6px}
+.tl-panel ul{margin:12px 0 0;padding-left:20px;color:#433A52}
+.tl-panel li{margin:6px 0}
+.tl-panel .deliv{margin-top:14px;font-size:.85rem;color:var(--muted)}
+.tl-panel .deliv b{color:var(--pri)}
+.tl-hint{text-align:center;color:var(--muted);font-size:.8rem;margin-top:6px}
+.seg{display:inline-flex;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:22px;padding:4px;gap:4px}
+.seg button{border:0;background:none;font:inherit;font-size:.82rem;font-weight:700;padding:6px 13px;border-radius:999px;cursor:pointer;color:var(--muted);transition:all .2s}
+.seg button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.seg button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.seg.sm button{font-size:.76rem;padding:5px 10px}
+.mod-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.mod-head h3{font-size:1.5rem}
+.mod-head p{font-size:.88rem;color:var(--muted);max-width:720px;margin-top:4px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--deep);color:#B5DB6F;font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:8px}
+.module{margin-bottom:54px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 12px;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer;color:var(--deep);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:border-color .15s,color .15s,background .15s}
+.btn:hover{border-color:var(--pri);color:var(--pri)}
+.btn.go{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.go:hover{background:#178A65;color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+
+
+.logos img.cl{height:34px}
+.hero{background:radial-gradient(110% 140% at 85% 10%,#2C3A1C 0%,#17191F 50%,#0C0D10 100%)}
+.hero .eyebrow,.hero .pill span{color:#B5DB6F}
+.hero h1 em{color:#FF8A8D;font-style:italic}
+.badge{color:#B5DB6F}
+.kpi{border-top:3px solid var(--pri)}
+.chc p,.tl-panel ul,.tk p{color:#454A55}
+.tl::before{background:linear-gradient(90deg,var(--pri),var(--acc))}
+.module .btn.go,.btn.go{background:var(--deep);border-color:var(--deep);color:#fff}
+.module .btn.go:hover,.btn.go:hover{background:#000;color:#fff}
+.btn.red{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.red:hover{filter:brightness(1.05);color:#fff}
+.btn.sm{padding:6px 10px;font-size:.74rem}
+.chart svg{width:100%;height:auto;display:block}
+.axis text{font-family:var(--sans);font-size:11px;fill:var(--muted)}
+.axis line{stroke:var(--line)} .axis path{display:none}
+.grid line{stroke:var(--line);stroke-dasharray:2 3} .grid path{display:none}
+.ckey{display:flex;gap:12px;font-size:.74rem;color:var(--muted);margin-top:6px;flex-wrap:wrap}
+.ckey span{display:inline-flex;align-items:center;gap:6px}
+.ckey i{width:12px;height:12px;border-radius:3px;display:inline-block}
+h4.lbl{margin:0 0 8px;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.chipb{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;font:700 .74rem var(--sans);color:var(--deep);cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.chipb:hover{border-color:var(--pri)}
+.chipb.on{background:var(--deep);border-color:var(--deep);color:#fff}
+.chipb.off{opacity:.5;text-decoration:line-through}
+.chipb i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.ms{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.ms .k{font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.ms .v{font-family:var(--serif);font-size:1.3rem;color:var(--deep);line-height:1.15;font-variant-numeric:tabular-nums}
+.ms .s{font-size:.68rem;color:var(--muted)}
+.ms.a .v{color:var(--good)} .ms.b .v{color:var(--bad)} .ms.o .v{color:#B7791F}
+.rng{display:flex;flex-direction:column;gap:3px;min-width:0}
+.rng .t{display:flex;justify-content:space-between;font-size:.76rem;font-weight:700;color:var(--deep);gap:8px}
+.rng .t b{color:var(--pri);font-variant-numeric:tabular-nums;white-space:nowrap}
+.rng input{width:100%;accent-color:var(--pri)}
+.note{font-size:.72rem;color:var(--muted);line-height:1.45;margin:0}
+/* EWS */
+.ews{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);overflow:hidden}
+.ews>div{min-width:0;padding:14px}
+.ews>div+div{border-left:1px solid var(--line);background:#F8F9F6}
+.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.mons{display:flex;gap:4px;flex-wrap:wrap}
+.mons button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:5px 9px;font:700 .74rem var(--sans);color:var(--muted);cursor:pointer}
+.mons button.on{background:var(--deep);border-color:var(--deep);color:#fff}
+.play{width:32px;height:32px;border-radius:50%;border:0;background:var(--pri);color:#fff;font-size:.8rem;cursor:pointer;display:grid;place-items:center}
+.bands{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin:8px 0}
+.bands .ms .v{font-size:1.1rem}
+.bands .ms i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}
+.ews-dot{cursor:pointer;transition:r .2s}
+.ews-dot.fl{stroke:#17191F;stroke-width:2.2;animation:ring 1.8s ease-in-out infinite}
+.ews-dot.sel{stroke:#17191F;stroke-width:3.4;animation:none}
+@keyframes ring{50%{stroke-opacity:.15}}
+.sigs{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0 10px}
+.thr{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,2fr);gap:12px;align-items:end;margin-top:6px}
+.thr .stat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.acct h5{margin:0;font:400 1.35rem var(--serif);color:var(--deep)}
+.acct p.m{margin:2px 0 10px;font-size:.76rem;color:var(--muted)}
+.meter{position:relative;height:12px;border-radius:6px;background:linear-gradient(90deg,var(--b0) 0 8%,var(--b1) 8% 20%,var(--b2) 20% 45%,var(--b3) 45% 100%);margin:28px 0 6px}
+.meter b{position:absolute;top:-26px;transform:translateX(-50%);font:400 1.15rem var(--serif);color:var(--deep);transition:left .7s cubic-bezier(.2,.8,.2,1);white-space:nowrap}
+.meter i{position:absolute;top:-4px;width:4px;height:20px;border-radius:2px;background:var(--deep);transform:translateX(-50%);transition:left .7s cubic-bezier(.2,.8,.2,1)}
+.mlab{display:flex;justify-content:space-between;font-size:.6rem;color:var(--muted);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.why{display:flex;flex-direction:column;gap:5px;margin:12px 0}
+.wr{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:3px 8px;font-size:.74rem;align-items:center}
+.wr .b{grid-column:1/3;height:6px;border-radius:3px;background:#ECEEE8;overflow:hidden}
+.wr .b i{display:block;height:100%;background:var(--acc);border-radius:3px;transition:width .6s}
+.wr b{text-align:right;color:var(--deep);font-variant-numeric:tabular-nums}
+.wr.base .b i{background:#A3A8B3}
+.tlg{width:100%;border-collapse:separate;border-spacing:2px;font-size:.64rem}
+.tlg th{font-weight:700;color:var(--muted);text-align:left;white-space:nowrap;padding-right:4px}
+.tlg th.c{text-align:center}
+.tlg td{height:15px;border-radius:3px;background:#ECEEE8}
+.tlg td.on{background:var(--acc)} .tlg td.cur{outline:2px solid var(--deep);outline-offset:-1px}
+.tlg td.d1{background:var(--b1)} .tlg td.d2{background:var(--b2)} .tlg td.d3{background:var(--b3)} .tlg td.d4{background:var(--bc)}
+.act{margin-top:10px;font-size:.78rem;background:#fff;border:1px solid var(--line);border-left:4px solid var(--pri);border-radius:8px;padding:9px 11px;color:#2E323A}
+.act b{color:var(--deep)}
+/* fraud */
+.fr{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);overflow:hidden}
+.fr>div{min-width:0;padding:14px}
+.fr>div+div{border-left:1px solid var(--line);background:#F8F9F6}
+.status{font:600 .78rem var(--mono);color:var(--deep);background:#F1F3EE;border-radius:8px;padding:8px 10px;min-height:36px;margin-bottom:8px}
+.status b{color:var(--acc)}
+#graph svg{background:radial-gradient(circle at 50% 50%,#FBFCFA,#F1F3EE);border-radius:10px;touch-action:none}
+.node{cursor:grab}
+.node:active{cursor:grabbing}
+.hull{fill:rgba(229,72,77,.09);stroke:#E5484D;stroke-width:1.5;stroke-dasharray:5 4;stroke-linejoin:round}
+.ripple{fill:none;stroke:#E5484D;pointer-events:none}
+.rule{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;font-size:.76rem;background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 9px;margin-bottom:6px;animation:fadeUp .3s ease both}
+.rule .sv{font:800 .58rem var(--sans);letter-spacing:.08em;text-transform:uppercase;border-radius:999px;padding:3px 7px;height:fit-content}
+.sv.high{background:#FCE2E3;color:#A32A2F} .sv.med{background:#FFF0CC;color:#8A5A00} .sv.low{background:#ECEEE8;color:#4E535E} .sv.ok{background:#E6F0D6;color:#3F6A08}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 10px;font-size:.76rem;margin:8px 0 10px}
+.kv span{color:var(--muted)} .kv b{color:var(--deep);font-weight:700;overflow-wrap:anywhere}
+/* collections */
+.co{display:grid;grid-template-columns:250px minmax(0,1fr);overflow:hidden}
+.co>div{min-width:0;padding:14px}
+.co>div:first-child{border-right:1px solid var(--line);background:#F8F9F6;display:flex;flex-direction:column;gap:12px}
+.cmp2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
+.cmp2 .card{padding:12px;box-shadow:none;border:1px solid var(--line)}
+.cmp2 .card.win{border-color:var(--pri);box-shadow:0 0 0 3px rgba(94,140,20,.14)}
+.cmp2 h6{margin:0 0 6px;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.cmp2 .row{display:flex;justify-content:space-between;font-size:.78rem;padding:3px 0;border-bottom:1px dashed var(--line)}
+.cmp2 .row b{font-variant-numeric:tabular-nums;color:var(--deep)}
+.delta2{font-size:.78rem;margin-top:8px;color:var(--good);font-weight:700}
+/* copilot */
+.cp{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);overflow:hidden}
+.cp>div{min-width:0;padding:14px}
+.cp>div+div{border-left:1px solid var(--line);background:#F8F9F6}
+.pers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-bottom:10px}
+.per{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;cursor:pointer;text-align:left;font:inherit;color:inherit;transition:all .2s;min-width:0}
+.per b{display:block;font-size:.8rem;color:var(--deep)}
+.per span{display:block;font-size:.68rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.per.on{border-color:var(--deep);box-shadow:0 0 0 3px rgba(23,25,31,.1)}
+.ctl{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.ctl .grp{display:flex;flex-direction:column;gap:4px}
+.ctl .grp>span{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.ctx2{font-size:.74rem;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:8px;color:#2E323A}
+.ctx2 b{color:var(--deep)}
+textarea.draft{width:100%;min-height:250px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:500 .82rem/1.55 var(--sans);resize:vertical;color:var(--text);background:#fff}
+.lint{display:flex;flex-direction:column;gap:5px}
+.li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:6px;font-size:.76rem;align-items:start;background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 8px;transition:border-color .3s}
+.li i{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:.7rem;color:#fff}
+.li.ok i{background:var(--pri)} .li.bad i{background:var(--acc)} .li.na i{background:#B9BEC7}
+.li.bad{border-color:#F3B8BA}
+.li b{display:block;color:var(--deep)} .li span{color:var(--muted);font-size:.7rem}
+.cscore{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.cscore .big{font:400 2rem var(--serif);line-height:1}
+.prev{font-size:.78rem;line-height:1.55;white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;max-height:180px;overflow:auto;margin-top:8px}
+.prev mark{background:#FCE2E3;color:#A32A2F;border-radius:3px;padding:0 2px;text-decoration:underline wavy #E5484D}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.pill2{display:inline-flex;align-items:center;gap:6px;font:800 .62rem var(--sans);letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.pill2.off{background:#ECEEE8;color:#5F6470} .pill2.on{background:#E6F0D6;color:#3F6A08}
+.pill2 i{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block}
+.pill2.on i{animation:blink 1.4s infinite}
+@keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
+.aikey{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:18px;padding:16px 18px;margin:0 0 32px;align-items:center;border:2px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(120deg,#5E8C14,#E5484D,#F2A60C,#5E8C14,#E5484D) border-box;background-size:100% 100%,300% 100%;animation:bord 9s linear infinite}
+@keyframes bord{to{background-position:0 0,300% 0}}
+.aikey h3{margin:0;font:400 1.35rem var(--serif);color:var(--deep)}
+.aikey .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
+.kf{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.kf input[type=password],.kf input[type=text]{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:500 .8rem var(--mono);color:var(--deep);background:#fff;min-width:0}
+.kf input[type=password]{flex:1 1 220px} .kf input[type=text]{flex:0 1 150px}
+.kf .rem{display:flex;gap:6px;align-items:center;font-size:.74rem;color:var(--deep)}
+.btn.ai{background:linear-gradient(110deg,#17191F 0%,#2F3B1A 38%,#5E8C14 50%,#2F3B1A 62%,#17191F 100%);background-size:260% 100%;color:#fff;border-color:transparent;animation:shim 3.2s linear infinite}
+.btn.ai:hover{color:#fff;filter:brightness(1.12)}
+.btn.ai[disabled]{opacity:.75;cursor:progress}
+@keyframes shim{from{background-position:130% 0}to{background-position:-130% 0}}
+.askrow{display:flex;gap:6px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:4px 4px 4px 10px;transition:box-shadow .2s,border-color .2s}
+.askrow:focus-within{box-shadow:0 0 0 3px rgba(94,140,20,.18);border-color:var(--pri)}
+.askrow input{flex:1;min-width:0;border:0;outline:0;font:500 .84rem var(--sans);padding:7px 0;background:transparent;color:var(--text)}
+.spark{color:var(--pri);font-size:1rem;display:inline-block;animation:tw 2.4s ease-in-out infinite}
+@keyframes tw{50%{opacity:.4;transform:scale(.8) rotate(20deg)}}
+.chipb.pre{font-weight:600;background:#F6F9F0;border-color:#D9E7C2}
+.chipb.pre.on{background:var(--deep);border-color:var(--deep);color:#fff}
+.ask{margin-bottom:10px}
+.askres{margin-top:8px;border-radius:12px;background:linear-gradient(135deg,#F1F7E6,#fff 70%);border:1px solid #D6E6BC;padding:10px 12px;font-size:.8rem;animation:fadeUp .35s ease;color:#2E323A}
+.askres .h{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+.askres .h b{color:var(--deep);font-size:.86rem}
+.askres .nums{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:8px 0}
+.askres .nums div{background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:.68rem;color:var(--muted)}
+.askres .nums b{display:block;font:400 1.3rem var(--serif);color:var(--deep);font-variant-numeric:tabular-nums}
+.askres p{margin:0 0 6px}
+.ids{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.ids button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:3px 7px;font:700 .68rem var(--mono);cursor:pointer;color:var(--deep)}
+.ids button:hover{border-color:var(--acc)}
+.ews-dot.hit{stroke:#17191F;stroke-width:2.6}
+.tabs2{display:flex;gap:6px;margin:0 0 10px;flex-wrap:wrap}
+.tabs2 button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font:700 .8rem var(--sans);color:var(--muted);cursor:pointer;transition:all .2s}
+.tabs2 button[aria-selected="true"]{background:var(--deep);border-color:var(--deep);color:#fff}
+.pers{grid-template-columns:repeat(4,minmax(0,1fr))}
+.cp[hidden],.cpx[hidden]{display:none!important}
+.cpx{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);overflow:hidden}
+.cpx>div{min-width:0;padding:14px}
+.cpx>div+div{border-left:1px solid var(--line);background:#F8F9F6}
+.instr{margin:0 0 8px}
+select.lsel{border:1px solid var(--line);border-radius:999px;padding:7px 10px;font:700 .74rem var(--sans);background:#fff;color:var(--deep);max-width:100%}
+select.lsel.on{background:var(--deep);color:#fff;border-color:var(--deep)}
+.intent{display:inline-flex;align-items:center;gap:8px;font:400 1.5rem var(--serif);color:var(--deep);animation:pop .45s both}
+.flds{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0}
+.fl{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;animation:pop .45s both}
+.fl .k{font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.fl .v{font-size:.9rem;font-weight:700;color:var(--deep);overflow-wrap:anywhere}
+.box{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.8rem;margin-top:8px;animation:pop .45s both;white-space:pre-wrap}
+.box h6{margin:0 0 4px;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--pri)}
+@keyframes pop{from{opacity:0;transform:translateY(6px) scale(.97)}to{opacity:1;transform:none}}
+.pcw{display:flex;flex-direction:column;min-height:520px;padding:0!important}
+.pcw .msgs{flex:1 1 0;min-height:300px}
+.msgs{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:#F8F9F6}
+.bub{max-width:86%;padding:9px 12px;border-radius:14px;font-size:.84rem;line-height:1.5;animation:fadeUp .25s ease}
+.bub.g{align-self:flex-end;background:var(--deep);color:#fff;border-bottom-right-radius:4px}
+.bub.c{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}
+.bub.sys{align-self:center;background:none;color:var(--muted);font-size:.72rem;text-align:center}
+.bub .who{font-size:.6rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--pri);margin-bottom:3px}
+.bub.g .who{color:#B5DB6F}
+.bub ul{margin:4px 0;padding-left:18px}
+.dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--pri);margin-right:3px;animation:blink 1s infinite}
+.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+.askf{display:flex;gap:8px;padding:10px;background:#fff;border-top:1px solid var(--line)}
+.askf input{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:9px 11px;font:500 .84rem var(--sans)}
+.pcchips{display:flex;gap:5px;flex-wrap:wrap;padding:8px 10px 0;background:#fff;border-top:1px solid var(--line)}
+.li.just i{animation:pop .5s}
+.fb{margin-top:10px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--deep);color:#fff;padding:10px 16px;border-radius:999px;font-size:.82rem;font-weight:700;opacity:0;transition:all .3s;z-index:80;pointer-events:none;max-width:calc(100vw - 32px);text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.cmp-head{display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+.cmp{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.cmp th,.cmp td{padding:16px 18px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);font-size:.92rem;overflow-wrap:anywhere}
+.cmp thead th{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);background:#F5F6F2}
+.cmp tbody tr:last-child td,.cmp tbody tr:last-child th{border-bottom:0}
+.cmp tbody th{font-weight:700;color:var(--pri)}
+.cmp col.c1{width:22%}
+.cmp td{transition:background .3s,opacity .3s,color .3s}
+.cmp.hl-before td.b{background:#FCEEF3;color:#7A1236}
+.cmp.hl-before td.a{opacity:.38}
+.cmp.hl-after td.a{background:#ECF8F3;color:#0E4F39;font-weight:500}
+.cmp.hl-after td.b{opacity:.38}
+.cmp.hl-after thead th.a{color:var(--acc)}
+.cmp.hl-before thead th.b{color:var(--bad)}
+.tchips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:.9rem;font-weight:500;display:inline-flex;align-items:center;gap:8px}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 3px var(--acc-15)}
+.chip em{font-style:normal;color:var(--muted);font-weight:400;font-size:.82rem}
+.tk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.tk{padding:26px}
+.tk .n{font-family:var(--serif);font-size:2.6rem;color:var(--acc);line-height:1}
+.tk h3{margin:12px 0 8px}
+.tk p{font-size:.92rem;color:#433A52}
+footer{background:var(--deep);color:rgba(255,255,255,.75);padding:48px 0 32px;margin-top:32px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px}
+.f-brand{display:flex;align-items:center;gap:16px}
+.f-brand img{height:44px;width:auto;border-radius:6px;background:#fff;padding:4px}
+.f-brand b{display:block;color:#fff;font-family:var(--serif);font-weight:400;font-size:1.15rem}
+.copy{width:100%;border-top:1px solid rgba(255,255,255,.12);padding-top:18px;font-size:.8rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+#tip{position:fixed;pointer-events:none;z-index:95;background:var(--deep);color:#fff;font-size:.8rem;line-height:1.45;padding:10px 12px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transition:opacity .15s;max-width:300px}
+#tip b{color:#7DE3BE;font-weight:700}
+#tip .t{font-weight:700;font-size:.85rem;margin-bottom:2px;color:#fff}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.cmp.hl-after td.a{background:#EEF5E2;color:#17191F}
+.chip i{background:var(--acc);box-shadow:0 0 0 3px rgba(229,72,77,.18)}
+.tk .n{color:var(--pri)}
+#tip b{color:#B5DB6F}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.aikey,.btn.ai,.spark,.pill2.on i,.intent,.fl,.box{animation:none!important}html{scroll-behavior:auto}.js .reveal{opacity:1;transform:none;transition:none}.ews-dot.fl{animation:none}.rule,.tl-panel.open{animation:none}.meter b,.meter i,.wr .b i{transition:none}}
+@media (max-width:1100px){.co{grid-template-columns:220px minmax(0,1fr)}.pers{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:980px){.kpi-grid,.ch-grid{grid-template-columns:repeat(2,1fr)}.dash{grid-template-columns:1fr}.tk-grid{grid-template-columns:1fr}.hero canvas{width:100%;opacity:.35}
+  .ews,.fr,.co,.cp,.cpx,.aikey{grid-template-columns:minmax(0,1fr)}.ews>div+div,.fr>div+div,.cp>div+div,.cpx>div+div{border-left:0;border-top:1px solid var(--line)}.co>div:first-child{border-right:0;border-bottom:1px solid var(--line)}}
+@media (max-width:640px){
+  .wrap{padding:0 16px} section{padding:48px 0} .hero{padding:52px 0 56px} .logos img{height:34px} .logos img.cl{height:24px} .vdiv{height:28px}
+  .kpi-grid{gap:10px} .kpi{padding:16px 14px} .ch-grid{grid-template-columns:1fr}
+  .tl::before{top:19px} .tl-dot{width:40px;height:40px;font-size:1rem} .tl-name{font-size:.75rem} .tl-dur{display:none} .tl-panel{padding:18px}
+  .sx{overflow-x:auto;-webkit-overflow-scrolling:touch} .sx svg{min-width:560px}
+  .bands{grid-template-columns:repeat(3,minmax(0,1fr))} .thr{grid-template-columns:minmax(0,1fr)} .pers{grid-template-columns:repeat(2,minmax(0,1fr))} .per b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .flds,.askres .nums{grid-template-columns:repeat(2,minmax(0,1fr))} .pcw{min-height:480px} .cmp2{grid-template-columns:minmax(0,1fr)}
+  .cmp th,.cmp td{padding:12px 10px;font-size:.82rem} .cmp thead th{font-size:.68rem;letter-spacing:.08em} .chart-card{padding:14px}
+}
+@media print{
+  body{background:#fff;font-size:12px} .topbar{position:static}
+  .hero{background:#17191F!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:36px 0} .hero canvas{display:none}
+  .card{box-shadow:none;break-inside:avoid} section{padding:28px 0} .js .reveal{opacity:1!important;transform:none!important}
+  .seg,.tl-hint,.btn,.rng input,.play,.mons,#tip,.toast,.aikey,.ask,.instr,.tabs2,.askf,.pcchips{display:none!important} .tl-panel{display:block!important;margin-top:10px}
+  footer{background:#fff;color:var(--text)} footer .f-brand b{color:var(--deep)} .kpis{margin-top:16px} .prev{max-height:none}
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="logos">
+      <img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting">
+    </div>
+    <div class="tagline">Customer Case Study · <b>Risk, Fraud &amp; Collections</b></div>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas id="heroCv" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="eyebrow">Housing Finance × Havish M Consulting</div>
+    <h1>See stress before the first missed EMI, <em>and act on it fairly</em></h1>
+    <p class="sub">HMC helped the housing finance company's risk and collections teams move from reacting to overdue buckets to acting on early signals: an early-warning score for every live loan, link analysis that exposes fraud rings across applications, a collections plan built on propensity and team capacity, and GenAI outreach that is checked against fair-practice rules before it is sent.</p>
+    <div class="pills">
+      <span class="pill"><span>Client</span>Housing Finance</span>
+      <span class="pill"><span>Function</span>Risk · Fraud · Collections</span>
+      <span class="pill"><span>Theme</span>Early Warning &amp; Smart Collections</span>
+    </div>
+  </div>
+</section>
+
+<section class="kpis">
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="card kpi reveal"><div class="label">Earlier warning of stress</div><div class="val"><span class="count" data-to="45">0</span><small>days</small></div><div class="delta">before the first missed EMI</div></div>
+      <div class="card kpi reveal"><div class="label">Accounts rolling from 1–30 to 31–60 days past due</div><div class="val"><span class="count" data-to="22">0</span><small>% fewer</small></div><div class="delta">▼ more customers cured early</div></div>
+      <div class="card kpi reveal"><div class="label">Linked suspicious applications caught before disbursal</div><div class="val"><span class="count" data-to="2.5" data-dp="1">0</span><small>×</small></div><div class="delta">network checks, not file-by-file</div></div>
+      <div class="card kpi reveal"><div class="label">Collection cost per ₹100 recovered</div><div class="val"><span class="count" data-to="18">0</span><small>% lower</small></div><div class="delta">▼ right channel for each customer</div></div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="challenge">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Challenge</div>
+      <h2>By the time an account was overdue, the best moment had passed</h2>
+      <p class="lead">Risk was measured in days past due, fraud checks looked at one file at a time, and collections treated every customer in a bucket the same way.</p>
+    </div>
+    <div class="ch-grid">
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><h3>Late detection</h3><p>Stress showed up as a missed EMI. Salary delays, bounces and new borrowing that came before it were not tracked together.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="7" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M8 7l7 0M7 8l4 8M17 9l-4 7"/></svg></div><h3>Fraud hidden in the links</h3><p>Each application looked clean on its own. The shared phones, devices, valuers and employers only showed across files.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg></div><h3>One-size collections</h3><p>Agents worked lists by bucket and amount. Customers who would self-cure got calls; customers who needed a plan got pressure.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></div><h3>Conduct risk</h3><p>Recovery messages and calls must follow fair-practice rules on timing, tone and privacy. Checks were manual and sample-based.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="approach" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">HMC Approach</div>
+      <h2>Signals first, then the right treatment</h2>
+      <p class="lead">Explainable models the credit and collections teams can read, with GenAI used for outreach inside clear guardrails.</p>
+    </div>
+    <div class="tl reveal" aria-label="HMC approach steps">
+      <button class="tl-step" aria-expanded="true" aria-controls="tp0"><span class="tl-dot">1</span><span class="tl-name">Discover</span><span class="tl-dur">2 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp1"><span class="tl-dot">2</span><span class="tl-name">Design</span><span class="tl-dur">3 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp2"><span class="tl-dot">3</span><span class="tl-name">Build</span><span class="tl-dur">6 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp3"><span class="tl-dot">4</span><span class="tl-name">Adopt</span><span class="tl-dur">Pilot zones</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp4"><span class="tl-dot">5</span><span class="tl-name">Scale</span><span class="tl-dur">Ongoing</span></button>
+    </div>
+    <p class="tl-hint">Select a step to see what happened.</p>
+    <div class="card tl-panel open" id="tp0"><h3>Discover · Where stress shows first</h3><p>Back-tested past slippages against the data available months earlier.</p><ul><li>Repayment, bureau, bank-statement and contact-centre signals mapped.</li><li>Past fraud cases traced to the attributes they shared.</li><li>Collections journeys and costs by channel measured.</li></ul><p class="deliv"><b>Deliverable:</b> Signal inventory and baseline roll rates.</p></div>
+    <div class="card tl-panel" id="tp1"><h3>Design · Explainable scores and rules</h3><p>Every score shows its reasons.</p><ul><li>Early-warning score from seven monthly signals.</li><li>Link rules: which shared attributes are strong, which are benign.</li><li>Treatment matrix on ability and willingness to pay, with fair-practice guardrails.</li></ul><p class="deliv"><b>Deliverable:</b> Model and policy design signed off by risk and compliance.</p></div>
+    <div class="card tl-panel" id="tp2"><h3>Build · Four working tools</h3><p>One workspace for risk, fraud control and collections.</p><ul><li>Monthly risk radar with account-level reasons.</li><li>Application link graph with ring detection.</li><li>Allocation planner and GenAI message drafts with a compliance check.</li></ul><p class="deliv"><b>Deliverable:</b> Working tools and daily dashboards.</p></div>
+    <div class="card tl-panel" id="tp3"><h3>Adopt · Pilot with zone teams</h3><p>People decide; the tools prepare.</p><ul><li>Pre-due calls for high-risk accounts in pilot zones.</li><li>Fraud control unit reviews every flagged ring before disbursal.</li><li>Agents trained on hardship conversations and the message checker.</li></ul><p class="deliv"><b>Deliverable:</b> Pilot results and playbook.</p></div>
+    <div class="card tl-panel" id="tp4"><h3>Scale · All zones, monthly refresh</h3><p>Models monitored and refreshed.</p><ul><li>Score drift and fairness checks every month.</li><li>New link types added as fraud patterns change.</li><li>Outcome feedback loops into treatment choice.</li></ul><p class="deliv"><b>Deliverable:</b> Model governance and roll-out plan.</p></div>
+  </div>
+</section>
+
+<section id="solution">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Solution</div>
+      <h2>Four tools, from first signal to fair recovery</h2>
+      <p class="lead">Each module below runs live on a synthetic loan book of 480 home loans and 46 applications. Click, drag and play with them.</p>
+    </div>
+
+    <div class="card aikey reveal" id="aiKey">
+      <div><div class="row"><h3><span class="spark">✦</span> Live GenAI</h3><span class="pill2 aipill off"><i></i>Templates</span></div>
+        <p class="note">Optional. Every ✦ button already works on built-in templates. Add an OpenAI key to make them live: ask the portfolio in your own words, draft in eight languages, fix blocked drafts, read customer replies and role-play calls.</p></div>
+      <div class="kf"><input type="password" id="apiKey" placeholder="OpenAI API key (sk-…)" autocomplete="off" spellcheck="false" aria-label="OpenAI API key">
+        <input type="text" id="model" value="gpt-4o-mini" list="models" spellcheck="false" aria-label="Model"><datalist id="models"><option value="gpt-4o-mini"><option value="gpt-4.1-mini"><option value="gpt-4o"><option value="gpt-4.1"></datalist>
+        <label class="rem"><input type="checkbox" id="remember"> Remember on this device</label>
+        <button class="btn sm go" id="keySave" type="button">Connect</button><button class="btn sm" id="keyClear" type="button">Disconnect</button>
+        <p class="note" id="keyMsg" style="flex-basis:100%">The key goes only from this browser to OpenAI and stays in memory unless you tick "remember". Only the synthetic data on this page is sent.</p></div>
+    </div>
+
+    <div class="module reveal" id="ewsModule">
+      <div class="mod-head"><div><div class="badge">01 · Early-warning radar</div><h3>Every live loan, scored every month</h3><p>Each dot is a home loan. Play the months and watch signals build before accounts fall overdue. Switch signals off to see what each one adds, and move the threshold to match team capacity.</p></div></div>
+      <div class="card ews">
+        <div>
+          <div class="bar"><button class="play" id="ewsPlay" type="button" aria-label="Play months">▶</button><div class="mons" id="mons"></div><span style="font-size:.72rem;color:var(--muted)">FY 2026–27 · synthetic</span></div>
+          <div class="ask" id="askBox"><div class="askrow"><span class="spark">✦</span><input id="askI" type="text" placeholder="Ask the portfolio, e.g. self-employed accounts that are critical in August" aria-label="Ask the portfolio"><button class="btn ai sm" id="askGo" type="button">Ask</button></div>
+            <div class="sigs" id="askChips" style="margin:6px 0 0"></div><div id="askRes" class="askres" style="display:none"></div></div>
+          <div class="chart" id="ewsGrid"></div>
+          <div class="bands" id="bands"></div>
+          <h4 class="lbl" style="margin-top:6px">Signals in the score</h4>
+          <div class="sigs" id="sigs"></div>
+          <div class="thr">
+            <div class="rng"><div class="t"><span>Flag accounts with risk ≥</span><b id="thrV"></b></div><input type="range" id="thr" min="5" max="60" value="20" aria-label="Risk threshold"></div>
+            <div class="stat" id="thrStat"></div>
+          </div>
+        </div>
+        <div class="acct" id="acct"></div>
+      </div>
+      <p class="footnote">Synthetic portfolio. Scores use repayment, bureau, bank-statement and contact signals only; no protected attributes.</p>
+    </div>
+
+    <div class="module reveal" id="frModule">
+      <div class="mod-head"><div><div class="badge">02 · Fraud ring detector</div><h3>Look across applications, not just inside them</h3><p>Applications are linked when they share a phone, device, bank account, address, unverified employer, valuer or DSA. Strong links form rings. Drag nodes, switch link types off, and click any application for its reasons.</p></div>
+        <button class="btn red" id="frRun" type="button">▶ Run ring detection</button></div>
+      <div class="card fr">
+        <div><div class="status" id="frStatus">46 applications received this week. Press "Run ring detection".</div>
+          <div class="sigs" id="ltypes"></div>
+          <div class="sx"><div class="chart" id="graph"></div></div></div>
+        <div id="frPanel"></div>
+      </div>
+      <p class="footnote">Synthetic applications. Flags send files for verification by the fraud control unit; nothing is rejected automatically.</p>
+    </div>
+
+    <div class="module reveal" id="coModule">
+      <div class="mod-head"><div><div class="badge">03 · Collections planner</div><h3>The right treatment for each customer, within team capacity</h3><p>September's overdue and high-risk accounts, placed by ability and willingness to pay. Switch to the plan view to see each customer flow into a channel, and compare today's bucket-first allocation with propensity-led allocation.</p></div>
+        <div class="seg" role="group" aria-label="View"><button type="button" data-cv="seg" aria-pressed="true">Segments</button><button type="button" data-cv="plan" aria-pressed="false">Treatment plan</button></div></div>
+      <div class="card co">
+        <div>
+          <div><h4 class="lbl">Allocation</h4><div class="seg sm" role="group" aria-label="Strategy" style="width:100%"><button type="button" data-st="dpd" aria-pressed="false">Bucket-first</button><button type="button" data-st="prop" aria-pressed="true">Propensity-led</button></div></div>
+          <div class="rng"><div class="t"><span>Tele-callers</span><b id="cTv"></b></div><input type="range" id="cT" min="0" max="4" value="2" aria-label="Tele-callers"></div>
+          <div class="rng"><div class="t"><span>Field agents</span><b id="cFv"></b></div><input type="range" id="cF" min="0" max="4" value="2" aria-label="Field agents"></div>
+          <div class="rng"><div class="t"><span>Hardship counsellors</span><b id="cRv"></b></div><input type="range" id="cR" min="0" max="3" value="1" aria-label="Hardship counsellors"></div>
+          <p class="note">Per cycle: a tele-caller handles 15 accounts, a field agent 6 visits and a counsellor 5 restructuring cases. Digital nudges have no limit.</p>
+        </div>
+        <div><div class="sx"><div class="chart" id="coChart"></div></div><div class="ckey" id="coKey"></div><div class="cmp2" id="coCmp"></div></div>
+      </div>
+    </div>
+
+    <div class="module reveal" id="cpModule" style="margin-bottom:0">
+      <div class="mod-head"><div><div class="badge">04 · Collections copilot</div><h3>Personal, respectful outreach, checked before it is sent</h3><p>Pick a customer. Draft a message in their language and check it against fair-practice rules, read what their reply really says, or rehearse the call with the AI playing the customer.</p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="pill2 aipill off"><i></i>Templates</span><span id="cpBtns" style="display:flex;gap:8px"><button class="btn sm" id="cpBad" type="button">Load a non-compliant draft</button><button class="btn sm go" id="cpCopy" type="button">⧉ Copy</button></span></div></div>
+      <div class="pers" id="pers"></div>
+      <div class="ctx2" id="perCtx"></div>
+      <div class="tabs2" role="tablist" id="cpTabs"><button role="tab" type="button" aria-selected="true" data-tab="draft">✎ Draft &amp; check</button><button role="tab" type="button" aria-selected="false" data-tab="reply">↩ Read a reply</button><button role="tab" type="button" aria-selected="false" data-tab="practice">☎ Practice call</button></div>
+      <div class="card cp" id="pnDraft">
+        <div>
+          <div class="ctl">
+            <div class="grp"><span>Channel</span><div class="seg sm" role="group" aria-label="Channel"><button type="button" data-ch="wa" aria-pressed="true">WhatsApp</button><button type="button" data-ch="sms" aria-pressed="false">SMS</button><button type="button" data-ch="call" aria-pressed="false">Call script</button><button type="button" data-ch="mail" aria-pressed="false">Email</button></div></div>
+            <div class="grp"><span>Language</span><div style="display:flex;gap:6px;flex-wrap:wrap"><div class="seg sm" role="group" aria-label="Language"><button type="button" data-lg="en" aria-pressed="true">English</button><button type="button" data-lg="hi" aria-pressed="false">हिन्दी</button></div><select class="lsel" id="lsel" aria-label="More languages (live AI)"><option value="">✦ More languages</option><option value="mr">मराठी Marathi</option><option value="ta">தமிழ் Tamil</option><option value="te">తెలుగు Telugu</option><option value="kn">ಕನ್ನಡ Kannada</option><option value="bn">বাংলা Bengali</option><option value="gu">ગુજરાતી Gujarati</option></select></div></div>
+            <div class="grp"><span>Tone</span><div class="seg sm" role="group" aria-label="Tone"><button type="button" data-tn="gentle" aria-pressed="false">Gentle</button><button type="button" data-tn="hard" aria-pressed="false">Hardship</button><button type="button" data-tn="firm" aria-pressed="false">Firm</button></div></div>
+          </div>
+          <div class="instr"><div class="askrow"><span class="spark">✦</span><input id="insI" type="text" placeholder="Optional instruction, e.g. acknowledge the ₹5,000 already paid" aria-label="Instruction for the draft"><button class="btn ai sm" id="aiDraft" type="button">Draft with AI</button></div><div class="sigs" id="insChips" style="margin:6px 0 0"></div></div>
+          <textarea class="draft" id="draft" aria-label="Draft message" spellcheck="false"></textarea>
+          <div class="rng" style="margin-top:8px"><div class="t"><span>Planned contact time</span><b id="hrV"></b></div><input type="range" id="hr" min="6" max="22" value="11" aria-label="Planned contact time"></div>
+        </div>
+        <div>
+          <h4 class="lbl">Fair-practice check</h4>
+          <div class="cscore"><span class="big" id="cpScore">–</span><span id="cpVerdict" style="font-size:.8rem;font-weight:700"></span><button class="btn ai sm" id="aiFix" type="button" style="margin-left:auto;display:none">✦ Fix with AI</button></div>
+          <div class="lint" id="lint"></div>
+          <div class="prev" id="prev" aria-label="Draft with issues highlighted"></div>
+        </div>
+      </div>
+      <div class="card cpx" id="pnReply" hidden>
+        <div><h4 class="lbl">Customer's reply</h4><div class="sigs" id="rpChips"></div>
+          <textarea class="draft" id="rpText" style="min-height:130px" placeholder="Pick a sample above, or paste or type a reply in any language" aria-label="Customer reply"></textarea>
+          <button class="btn ai" id="rpGo" type="button" style="margin-top:8px">✦ Analyse reply</button></div>
+        <div><h4 class="lbl">What the customer is telling us</h4><div id="rpOut"><p class="note">Pick a sample reply or type one, then press Analyse.</p></div></div>
+      </div>
+      <div class="card cpx" id="pnPractice" hidden>
+        <div class="pcw"><div class="msgs" id="pcMsgs" aria-live="polite"></div><div class="pcchips" id="pcChips"></div>
+          <form class="askf" id="pcF"><input id="pcI" type="text" placeholder="Say something to the customer…" aria-label="Agent line" autocomplete="off"><button class="btn go" type="submit">Say</button></form></div>
+        <div><h4 class="lbl">Live call scorecard</h4><div class="lint" id="pcScore"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn ai sm" id="pcEnd" type="button">✦ End call &amp; get feedback</button><button class="btn sm" id="pcReset" type="button">↻ Restart call</button></div>
+          <div class="fb" id="pcFb"></div></div>
+      </div>
+      <p class="footnote">Synthetic customers. In production an LLM drafts within these templates and guardrails, and every draft passes the checker before it is sent. Placeholders in [brackets] are filled by the system.</p>
+    </div>
+  </div>
+</section>
+
+<section id="impact" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Impact Dashboard</div>
+      <h2>Fewer accounts roll forward, more cure early</h2>
+      <p class="lead">Acting on early signals changed how accounts move between buckets, and the score concentrates future slippages at the top of the list.</p>
+    </div>
+    <div class="dash">
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>Monthly movement between buckets</h3><p class="sub">Accounts per 10,000 moving between days-past-due buckets</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-ch2="before" aria-pressed="false">Before</button><button type="button" data-ch2="after" aria-pressed="true">After</button></div></div>
+        <div class="chart" id="chord"></div>
+        <div class="ckey"><span><i style="background:#E5484D"></i>Rolled forward (worse)</span><span><i style="background:#5E8C14"></i>Cured or moved back</span></div>
+      </div>
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>How well the list finds future slippages</h3><p class="sub">Cumulative gains: share of slippages caught by working the riskiest accounts first</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-gn="before" aria-pressed="false">Before</button><button type="button" data-gn="after" aria-pressed="true">After</button></div></div>
+        <div class="chart" id="gains"></div>
+        <div class="ckey"><span><i style="background:#A3A8B3"></i>Bucket and rules list (before)</span><span><i style="background:#5E8C14"></i>Early-warning score (after)</span><span><i style="background:#fff;border:1px dashed #5F6470"></i>Random order</span></div>
+      </div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <div class="cmp-head reveal"><div><div class="eyebrow">Before vs After</div><h2>How risk and collections work now</h2></div>
+      <div class="seg" role="group" aria-label="Highlight column"><button type="button" data-hl="before" aria-pressed="false">Before</button><button type="button" data-hl="after" aria-pressed="true">After</button></div></div>
+    <div class="card reveal" style="overflow:hidden">
+      <table class="cmp hl-after" id="cmp"><colgroup><col class="c1"><col><col></colgroup>
+        <thead><tr><th scope="col">Dimension</th><th scope="col" class="b">Before</th><th scope="col" class="a">After</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Spotting stress</th><td class="b">After the first missed EMI</td><td class="a">Weeks earlier, from seven monthly signals</td></tr>
+          <tr><th scope="row">Fraud checks</th><td class="b">One application at a time</td><td class="a">Links across applications, rings flagged before disbursal</td></tr>
+          <tr><th scope="row">Allocation</th><td class="b">By bucket and amount</td><td class="a">By ability, willingness and team capacity</td></tr>
+          <tr><th scope="row">Hardship cases</th><td class="b">Same pressure as everyone</td><td class="a">Routed to counsellors for a plan</td></tr>
+          <tr><th scope="row">Customer messages</th><td class="b">Generic templates</td><td class="a">Personal, in the customer's language</td></tr>
+          <tr><th scope="row">Conduct checks</th><td class="b">Sample audits after the fact</td><td class="a">Every message checked before sending</td></tr>
+        </tbody></table>
+    </div>
+  </div>
+</section>
+
+<section id="tools" style="padding-top:16px">
+  <div class="wrap">
+    <div class="sec-head reveal" style="margin-bottom:20px"><div class="eyebrow">Tools &amp; Tech Used</div><h2>The risk and collections stack</h2></div>
+    <div class="tchips reveal">
+      <span class="chip"><i></i>Python <em>scoring and back-testing</em></span>
+      <span class="chip"><i></i>Gradient boosting with reason codes <em>explainable early warning</em></span>
+      <span class="chip"><i></i>Graph analytics <em>application link rings</em></span>
+      <span class="chip"><i></i>Optimisation <em>capacity-aware allocation</em></span>
+      <span class="chip"><i></i>Large language model <em>outreach drafts with guardrails</em></span>
+      <span class="chip"><i></i>Power BI <em>daily risk and collections views</em></span>
+    </div>
+  </div>
+</section>
+
+<section id="takeaways">
+  <div class="wrap">
+    <div class="sec-head reveal"><div class="eyebrow">Key Takeaways</div><h2>What any lender can borrow</h2></div>
+    <div class="tk-grid">
+      <div class="card tk reveal"><div class="n">01</div><h3>Signals beat buckets</h3><p>The month before a missed EMI usually tells the story. Score it, explain it and act before the bucket changes.</p></div>
+      <div class="card tk reveal"><div class="n">02</div><h3>Fraud hides in the links</h3><p>A clean file can sit inside a dirty network. Check what applications share, and know which links are harmless.</p></div>
+      <div class="card tk reveal"><div class="n">03</div><h3>Right treatment, within the rules</h3><p>Match the channel to the customer, help those in hardship, and check every message for fair practice before it goes out.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="f-brand"><img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting"><div><b>Havish M Consulting</b></div></div>
+    <div class="copy"><span>© <span id="yr">2026</span> Havish M Consulting. All rights reserved.</span><span>Figures indicative; validated metrics available on request.</span></div>
+  </div>
+</footer>
+<div id="tip" role="tooltip"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DUR = reduce ? 0 : 650;
+const $ = id => document.getElementById(id);
+$('yr').textContent = new Date().getFullYear();
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hasD3 = typeof d3 !== 'undefined';
+const sleep = ms => new Promise(r => setTimeout(r, reduce ? 0 : ms));
+const sum = a => a.reduce((x, y) => x + y, 0);
+const range = n => Array.from({ length: n }, (_, i) => i);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const sig = z => 1 / (1 + Math.exp(-z));
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const inr = v => '₹' + Math.round(v).toLocaleString('en-IN');
+const lakh = v => v >= 100 ? '₹' + (v / 100).toFixed(2) + ' Cr' : '₹' + v.toFixed(1) + ' L';
+const tip = $('tip');
+function showTip(html, ev){ tip.innerHTML = html; tip.style.opacity = 1; const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = ev.clientX + pad, y = ev.clientY + pad; if (x + w > innerWidth - 8) x = ev.clientX - w - pad; if (y + h > innerHeight - 8) y = ev.clientY - h - pad;
+  tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; }
+function hideTip(){ tip.style.opacity = 0; }
+window.addEventListener('scroll', hideTip, {passive:true});
+function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => el.classList.remove('on'), 2400); }
+const onView = new Map();
+const io = ('IntersectionObserver' in window) ? new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; e.target.classList.add('in');
+  const fn = onView.get(e.target); if (fn){ fn(); onView.delete(e.target); } io.unobserve(e.target); }), {threshold:.12}) : null;
+function whenVisible(el, fn){ onView.set(el, fn); if (io) io.observe(el); else fn(); }
+document.querySelectorAll('.reveal').forEach(el => io ? io.observe(el) : el.classList.add('in'));
+function countUp(el){ const to = +el.dataset.to, dp = +(el.dataset.dp || 0), f = v => v.toFixed(dp); if (reduce || !to){ el.textContent = f(to); return; }
+  const t0 = performance.now(); (function s(t){ const p = Math.min(1,(t-t0)/1400), e = 1 - Math.pow(1-p,3); el.textContent = f(to*e); if (p < 1) requestAnimationFrame(s); })(t0); }
+document.querySelectorAll('.count').forEach(el => whenVisible(el.closest('.kpi'), () => countUp(el)));
+const tlSteps = document.querySelectorAll('.tl-step');
+tlSteps.forEach(btn => btn.addEventListener('click', () => { const open = btn.getAttribute('aria-expanded') === 'true';
+  tlSteps.forEach(b => { b.setAttribute('aria-expanded','false'); $(b.getAttribute('aria-controls')).classList.remove('open'); });
+  if (!open){ btn.setAttribute('aria-expanded','true'); $(btn.getAttribute('aria-controls')).classList.add('open'); } }));
+function segBind(attr, fn){ const bs = document.querySelectorAll(`[data-${attr}]`); bs.forEach(b => b.addEventListener('click', () => { bs.forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); fn(b.dataset[attr]); })); }
+function segSet(attr, v){ document.querySelectorAll(`[data-${attr}]`).forEach(x => x.setAttribute('aria-pressed', x.dataset[attr] === v ? 'true' : 'false')); }
+const cmpT = $('cmp');
+segBind('hl', v => { cmpT.classList.toggle('hl-before', v === 'before'); cmpT.classList.toggle('hl-after', v === 'after'); });
+
+/* HERO · loans stream through an early-warning scanner; risky ones turn red and link into a ring */
+(function hero(){
+  const cv = $('heroCv'), cx = cv.getContext('2d'); let W = 0, H = 0, run = false, last = 0; const R = mulberry32(11);
+  const P = range(80).map(() => ({ x: 0, y: 0, v: 0, c: 0 }));
+  function spawn(p, init){ p.x = W * .3 + (init ? R() * W * .72 : -R() * 40); p.y = 30 + R() * (H - 60); p.v = 28 + R() * 30; const u = R(); p.c = u < .08 ? 2 : u < .22 ? 1 : 0; }
+  function size(){ const dpr = Math.min(2, devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; cx.setTransform(dpr,0,0,dpr,0,0); P.forEach(p => spawn(p, true)); }
+  const COL = ['rgba(181,219,111,.9)','rgba(242,193,78,.95)','rgba(255,107,107,1)'];
+  function draw(dt){ cx.clearRect(0, 0, W, H); const sx = W * .62;
+    const g = cx.createLinearGradient(sx - 40, 0, sx + 40, 0); g.addColorStop(0,'rgba(181,219,111,0)'); g.addColorStop(.5,'rgba(181,219,111,.16)'); g.addColorStop(1,'rgba(181,219,111,0)');
+    cx.fillStyle = g; cx.fillRect(sx - 40, 0, 80, H); cx.fillStyle = 'rgba(181,219,111,.7)'; cx.fillRect(sx - 1, 0, 2, H);
+    cx.font = '800 10px DM Sans, sans-serif'; cx.fillStyle = 'rgba(181,219,111,.85)'; cx.fillText('EARLY-WARNING SCAN', sx + 8, 22);
+    P.forEach(p => { p.x += p.v * dt; if (p.x > W + 10) spawn(p, false); });
+    const reds = P.filter(p => p.c === 2 && p.x > sx);
+    cx.strokeStyle = 'rgba(255,107,107,.45)'; cx.lineWidth = 1;
+    for (let i = 0; i < reds.length; i++) for (let j = i + 1; j < reds.length; j++){ const a = reds[i], b = reds[j]; if (Math.hypot(a.x - b.x, a.y - b.y) < 140){ cx.beginPath(); cx.moveTo(a.x, a.y); cx.lineTo(b.x, b.y); cx.stroke(); } }
+    P.forEach(p => { const past = p.x > sx; cx.fillStyle = past ? COL[p.c] : 'rgba(255,255,255,.32)'; cx.beginPath(); cx.arc(p.x, p.y, past && p.c ? 4 : 3, 0, 7); cx.fill();
+      if (past && p.c === 2){ cx.strokeStyle = 'rgba(255,107,107,.35)'; cx.beginPath(); cx.arc(p.x, p.y, 9, 0, 7); cx.stroke(); } }); }
+  size(); draw(0);
+  window.addEventListener('resize', () => { size(); draw(0); });
+  if (reduce) return;
+  function loop(t){ if (!run) return; const dt = last ? Math.min(.05, (t - last) / 1000) : 0; last = t; draw(dt); requestAnimationFrame(loop); }
+  if (io) new IntersectionObserver(es => { const on = es[0].isIntersecting; if (on && !run){ run = true; last = 0; requestAnimationFrame(loop); } else if (!on) run = false; }).observe(cv);
+})();
+
+if (!hasD3){ ['ewsGrid','graph','coChart','chord','gains'].forEach(id => $(id).innerHTML = '<p style="padding:20px;color:var(--muted)">Charts need an internet connection to load their library.</p>'); }
+
+/* ======================================================================
+   01 · EARLY-WARNING RADAR
+   ====================================================================== */
+const MONTHS = ['Apr','May','Jun','Jul','Aug','Sep'];
+const SEGS = [['sal','Salaried',0],['se','Self-employed',.35],['aff','Affordable',.55]];
+const CITIES = ['Delhi','Gurugram','Lucknow','Jaipur','Mumbai','Pune','Ahmedabad','Surat','Bengaluru','Chennai','Hyderabad','Kochi','Kolkata','Indore','Bhopal','Nagpur'];
+const SIG = [
+  { k:'nach', n:'NACH / EMI bounce', w:1.6, b:.012, a:.62, c:'#E5484D' },
+  { k:'sal', n:'Salary credit delayed', nse:'Business credits down 30%+', w:1.3, b:.02, a:.55, c:'#C2367A' },
+  { k:'enq', n:'Bureau enquiries spike', w:.8, b:.05, a:.42, c:'#7C5CD6' },
+  { k:'uns', n:'New unsecured loan / BNPL', w:.9, b:.04, a:.4, c:'#2F7BD8' },
+  { k:'util', n:'Card utilisation above 80%', w:.7, b:.06, a:.42, c:'#0E9AA7' },
+  { k:'part', n:'Partial EMI payment', w:1.2, b:.01, a:.45, c:'#F08A3E' },
+  { k:'cont', n:'Contact changed / unreachable', w:1.0, b:.01, a:.33, c:'#8A6D3B' }];
+const BANDS = [['Low', 0, 'var(--b0)', '#C8DCA9'],['Watch', 8, 'var(--b1)', '#F2C14E'],['High', 20, 'var(--b2)', '#F08A3E'],['Critical', 45, 'var(--b3)', '#E5484D']];
+const RA = mulberry32(2026), gauss = R => { let u = 0; while (!u) u = R(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * R()); };
+const NACC = 480;
+const ACC = range(NACC).map(i => { const u = RA(), seg = u < .55 ? SEGS[0] : u < .85 ? SEGS[1] : SEGS[2];
+  const amt = seg[0] === 'aff' ? 6 + RA() * 19 : seg[0] === 'se' ? 25 + RA() * 95 : 20 + RA() * 70, emi = Math.round(amt * 1e5 * .0095 / 100) * 100;
+  const r = gauss(RA) + seg[2], def = RA() < sig(-2.75 + 1.15 * r), onset = 2 + Math.floor(RA() * 5);
+  const S = MONTHS.map((_, m) => SIG.map(s => { let p = s.b * (1 + .6 * Math.max(0, r)); if (def) p += s.a * clamp((m - onset + 3.5) / 3, 0, 1); return RA() < p; }));
+  const D = MONTHS.map((_, m) => def && m >= onset ? Math.min(4, m - onset + 1) : (RA() < .022 ? 1 : 0));
+  return { i, id: 'HL-' + (10000 + i * 173 % 89999 + Math.floor(RA() * 9)), seg, city: CITIES[Math.floor(RA() * CITIES.length)], amt, emi, r, def, onset, S, D, vint: 6 + Math.floor(RA() * 90) }; });
+const ON = Object.fromEntries(SIG.map(s => [s.k, true]));
+let M = 0, THR = 20, SEL = null;
+const active = (a, m, j) => a.S[m][j] || (m > 0 && a.S[m - 1][j]);
+const sname = (a, s) => a.seg[0] === 'se' && s.nse ? s.nse : s.n;
+function contrib(a, m){ const c = [{ n:'Baseline · ' + a.seg[1], v: -4.2 + a.seg[2] * .8, base: true }]; SIG.forEach((s, j) => { if (ON[s.k] && active(a, m, j)) c.push({ n: sname(a, s), v: s.w }); }); if (a.D[m] === 1) c.push({ n:'Currently 1–30 days past due', v: 2.0 }); return c; }
+const score = (a, m) => sig(sum(contrib(a, m).map(c => c.v))) * 100;
+const band = s => s >= 45 ? 3 : s >= 20 ? 2 : s >= 8 ? 1 : 0;
+const inColl = (a, m) => a.D[m] >= 2;
+const firstFlag = a => { for (let m = 0; m < MONTHS.length; m++) if (!inColl(a, m) && score(a, m) >= THR) return m; return -1; };
+const COLS = 24, CELL = 26;
+let gSvg = null;
+function ewsStats(){ const live = ACC.filter(a => !inColl(a, M)), sc = new Map(live.map(a => [a, score(a, M)]));
+  const fl = live.filter(a => sc.get(a) >= THR), up = live.filter(a => a.def && a.onset >= M), caught = up.filter(a => sc.get(a) >= THR), dpdRule = up.filter(a => a.D[M] === 1);
+  const prec = fl.length ? fl.filter(a => a.def && a.onset >= M).length / fl.length : 0;
+  const leads = caught.filter(a => a.onset > M).map(a => { const f = firstFlag(a); return f >= 0 ? (a.onset - f) * 30 : 0; }).filter(v => v > 0);
+  return { live, sc, fl, up, caught, dpdRule, prec, lead: leads.length ? Math.round(sum(leads) / leads.length) : 0 }; }
+function renderEWS(anim){
+  if (!hasD3) return; const st = ewsStats();
+  if (!gSvg){ gSvg = d3.select('#ewsGrid').append('svg').attr('viewBox', `0 0 ${COLS * CELL} ${Math.ceil(NACC / COLS) * CELL}`).attr('role','img').attr('aria-label','Grid of 480 home loans coloured by early-warning risk band');
+    gSvg.selectAll('circle').data(ACC, a => a.i).join('circle').attr('class','ews-dot').attr('cx', a => (a.i % COLS) * CELL + CELL / 2).attr('cy', a => Math.floor(a.i / COLS) * CELL + CELL / 2).attr('r', 8.5).attr('fill', '#C8DCA9')
+      .on('click', (ev, a) => { SEL = a; renderEWS(false); })
+      .on('mousemove', (ev, a) => { const s = score(a, M); showTip(`<div class="t">${a.id} · ${a.seg[1]}</div>${a.city} · ${lakh(a.amt)}<br>${inColl(a, M) ? '<b>In collections</b> · ' + ['','1–30','31–60','61–90','90+'][a.D[M]] + ' DPD' : `Risk <b>${s.toFixed(0)}%</b> · ${BANDS[band(s)][0]}`}`, ev); }).on('mouseleave', hideTip); }
+  if (!SEL || inColl(SEL, M)) SEL = st.live.slice().sort((a, b) => st.sc.get(b) - st.sc.get(a))[0];
+  const hit = FILTER ? new Set(ACC.filter(a => matchF(a, FILTER))) : null;
+  gSvg.selectAll('circle').classed('fl', a => !hit && !inColl(a, M) && st.sc.get(a) >= THR && a !== SEL).classed('hit', a => !!hit && hit.has(a) && a !== SEL).classed('sel', a => a === SEL)
+    .transition().duration(anim ? DUR : 0).delay(a => anim && !reduce ? (a.i % COLS) * 14 : 0)
+    .attr('fill', a => inColl(a, M) ? '#2B2F36' : BANDS[band(st.sc.get(a))][3]).attr('opacity', a => !hit || hit.has(a) ? 1 : .12).attr('r', a => a === SEL ? 10.5 : hit && hit.has(a) ? 9.5 : inColl(a, M) ? 7 : 8.5);
+  const cnt = [0, 0, 0, 0]; st.live.forEach(a => cnt[band(st.sc.get(a))]++);
+  $('bands').innerHTML = BANDS.map((b, i) => `<div class="ms"><div class="k"><i style="background:${b[3]}"></i>${b[0]}</div><div class="v">${cnt[i]}</div></div>`).join('') + `<div class="ms"><div class="k"><i style="background:#2B2F36"></i>Collections</div><div class="v">${NACC - st.live.length}</div></div>`;
+  $('thrV').textContent = THR + '%';
+  const rc = st.up.length ? st.caught.length / st.up.length : 0;
+  $('thrStat').innerHTML = `<div class="ms"><div class="k">Flagged</div><div class="v">${st.fl.length}</div><div class="s">${Math.round(st.prec * 100)}% go on to slip</div></div>
+    <div class="ms a"><div class="k">Future slippages caught</div><div class="v">${st.caught.length}/${st.up.length}</div><div class="s">bucket rule: ${st.dpdRule.length}/${st.up.length}</div></div>
+    <div class="ms ${st.lead ? 'a' : ''}"><div class="k">Average lead time</div><div class="v">${st.lead ? st.lead + ' d' : '–'}</div><div class="s">before first missed EMI</div></div>`;
+  document.querySelectorAll('#mons button').forEach((b, i) => b.classList.toggle('on', i === M));
+  renderAcct(); renderAskRes();
+}
+function renderAcct(){
+  const a = SEL; if (!a) return; const c = contrib(a, M), s = score(a, M), bd = band(s), mx = Math.max(...c.filter(x => !x.base).map(x => x.v), 2);
+  const action = bd === 3 ? 'Call within 48 hours. Understand the cause and offer an EMI date change or part-payment plan before the due date.' : bd === 2 ? 'WhatsApp reminder 5 days before the EMI date, then a courtesy call 2 days before.' : bd === 1 ? 'Watch list. Send a pre-due reminder and recheck next month.' : 'No action needed.';
+  const rowsS = SIG.map((sg, j) => `<tr><th>${esc(sname(a, sg))}</th>${MONTHS.map((_, m) => `<td class="${a.S[m][j] ? 'on' : ''}${m === M ? ' cur' : ''}" title="${MONTHS[m]}: ${a.S[m][j] ? 'signal' : 'none'}"></td>`).join('')}</tr>`).join('');
+  $('acct').innerHTML = `<h4 class="lbl">Account under the lens</h4><h5>${a.id}</h5><p class="m">${a.seg[1]} · ${a.city} · loan ${lakh(a.amt)} · EMI ${inr(a.emi)} · ${a.vint} months on book</p>
+    <div class="meter"><b style="left:${clamp(s, 5, 94)}%">${Math.min(99, s).toFixed(0)}%</b><i style="left:${clamp(s, 1, 99)}%"></i></div><div class="mlab"><span>Low</span><span>Watch</span><span>High</span><span>Critical</span></div>
+    <h4 class="lbl" style="margin-top:12px">Why · contributions to the score (${MONTHS[M]})</h4>
+    <div class="why">${c.map(x => `<div class="wr${x.base ? ' base' : ''}"><span>${esc(x.n)}</span><b>${x.base ? (sig(x.v) * 100).toFixed(1) + '%' : '+' + x.v.toFixed(1)}</b><div class="b"><i style="width:${x.base ? 12 : Math.round(x.v / mx * 100)}%"></i></div></div>`).join('')}${c.length === 1 ? '<p class="note">No warning signals in the last 60 days.</p>' : ''}</div>
+    <h4 class="lbl">Signal history</h4>
+    <table class="tlg"><tr><th></th>${MONTHS.map((m, i) => `<th class="c" style="${i === M ? 'color:var(--deep)' : ''}">${m}</th>`).join('')}</tr>${rowsS}<tr><th>Days past due</th>${MONTHS.map((_, m) => `<td class="${a.D[m] ? 'd' + a.D[m] : ''}${m === M ? ' cur' : ''}" title="${['Current','1–30','31–60','61–90','90+'][a.D[m]]}"></td>`).join('')}</tr></table>
+    <div class="act"><b>Next best action.</b> ${action}</div>`;
+}
+$('mons').innerHTML = MONTHS.map((m, i) => `<button type="button" data-m="${i}">${m}</button>`).join('');
+$('mons').addEventListener('click', e => { const b = e.target.closest('[data-m]'); if (!b) return; stopPlay(); M = +b.dataset.m; renderEWS(true); });
+$('sigs').innerHTML = SIG.map(s => `<button type="button" class="chipb" data-sg="${s.k}" aria-pressed="true"><i style="background:${s.c}"></i>${esc(s.n)} <span style="color:var(--muted);font-weight:600">w${s.w}</span></button>`).join('');
+$('sigs').addEventListener('click', e => { const b = e.target.closest('[data-sg]'); if (!b) return; ON[b.dataset.sg] = !ON[b.dataset.sg]; b.classList.toggle('off', !ON[b.dataset.sg]); b.setAttribute('aria-pressed', ON[b.dataset.sg]); renderEWS(true); });
+$('thr').addEventListener('input', e => { THR = +e.target.value; renderEWS(false); });
+let playH = null;
+function stopPlay(){ clearInterval(playH); playH = null; $('ewsPlay').textContent = '▶'; $('ewsPlay').setAttribute('aria-label','Play months'); }
+function startPlay(){ if (M >= MONTHS.length - 1) { M = 0; renderEWS(true); } $('ewsPlay').textContent = '❚❚'; $('ewsPlay').setAttribute('aria-label','Pause');
+  playH = setInterval(() => { if (M >= MONTHS.length - 1){ stopPlay(); return; } M++; renderEWS(true); }, reduce ? 300 : 1300); }
+$('ewsPlay').addEventListener('click', () => playH ? stopPlay() : startPlay());
+
+/* ======================================================================
+   02 · FRAUD RING DETECTOR
+   ====================================================================== */
+const LT = [['phone','Phone',2,'#E5484D'],['device','Device',2,'#C2367A'],['bank','Bank account',2,'#7C5CD6'],['addr','Address',1.5,'#F08A3E'],['emp','Unverified employer',1.5,'#B7791F'],['proj','Builder project',.5,'#0E9AA7'],['valuer','Valuer',.5,'#2F7BD8'],['dsa','DSA',.5,'#6B7280']];
+const LON = Object.fromEntries(LT.map(l => [l[0], true]));
+const RF = mulberry32(77);
+const FN = ['Aarav','Kavya','Rohan','Isha','Vivek','Pooja','Nikhil','Sneha','Amit','Divya','Karan','Neha','Sanjay','Ritu','Manoj','Anjali','Deepak','Priya','Harish','Swati','Gaurav','Lata','Tarun','Shalini'];
+const LN = ['Sharma','Iyer','Patel','Reddy','Gupta','Nair','Joshi','Mehta','Das','Khan','Singh','Verma','Pillai','Bose','Rao','Malhotra'];
+const APPS = [];
+function app(o){ const i = APPS.length; APPS.push(Object.assign({ i, id: 'APP-' + (52310 + i * 37), name: FN[Math.floor(RF() * FN.length)] + ' ' + LN[Math.floor(RF() * LN.length)], amt: 18 + Math.round(RF() * 60),
+  phone: 'P' + i, device: 'D' + i, bank: 'B' + i, addr: 'A' + i, emp: 'E' + i, empV: true, proj: 'J' + i, valuer: 'V' + Math.floor(RF() * 6), dsa: 'S' + Math.floor(RF() * 5), ring: null, flags: [] }, o)); }
+const VERIFIED = ['Large IT employer (EPFO verified)','State PSU (verified)','Bank employee (verified)','Pharma MNC (EPFO verified)','Auto OEM (EPFO verified)'];
+range(6).forEach(k => app({ ring:'A', emp:'Nexora Infotech Pvt Ltd', empV:false, dsa:'DSA-114', device: k < 3 ? 'DV-7731' : 'D-a' + k, addr: k === 1 || k === 4 ? 'Flat 302, Sunrise CHS, Thane' : k === 2 || k === 5 ? 'B-14, Shanti Nagar, Kalyan' : 'A-x' + k, amt: 32 + k * 4,
+  flags:[['high','Employer not found on EPFO; incorporated 7 months ago'],['med','Salary slips show round figures and identical layout'],['med','Same DSA submitted 6 files in 4 days']] }));
+range(5).forEach(k => app({ ring:'B', valuer:'VAL-27', proj:'Green Meadows Phase 2, Indore', dsa:'DSA-203', bank: k < 3 ? 'Down-payment from a/c ••4471' : 'B-b' + k, amt: 44 + k * 6,
+  flags:[['high','Valuation 28–35% above circle rate'],['high','Own contribution paid from one shared account'],['low','Same valuer and builder project']] }));
+range(4).forEach(k => app({ ring:'C', device:'DV-1902', phone: k < 2 ? '+91 98xxx x2210' : 'P-c' + k, addr: k > 1 ? '17, MG Road, Gurugram' : 'A-c' + k, amt: 26 + k * 5,
+  flags:[['high','Same device ID used for 4 applications in 3 days'],['high','Mobile number reused across applicants'],['med','Selfie and KYC photo captured on the same device']] }));
+range(31).forEach(k => { const fam = k === 3 || k === 4; app({ emp: VERIFIED[k % 5], empV: true, addr: fam ? 'C-9, Lake View, Kochi' : 'A' + (100 + k), flags: fam ? [['ok','Shared address: declared co-borrowers (spouses)']] : [] }); });
+const RFL = mulberry32(5); for (let i = APPS.length - 1; i > 0; i--){ const j = Math.floor(RFL() * (i + 1)); [APPS[i], APPS[j]] = [APPS[j], APPS[i]]; } APPS.forEach((a, i) => { a.i = i; a.id = 'APP-' + (52310 + i * 37); });
+const LINKS = []; for (let i = 0; i < APPS.length; i++) for (let j = i + 1; j < APPS.length; j++){ const a = APPS[i], b = APPS[j], types = [];
+  LT.forEach(([k]) => { if (k === 'emp'){ if (!a.empV && !b.empV && a.emp === b.emp) types.push(k); } else if (a[k] === b[k]) types.push(k); });
+  if (a.addr === b.addr && a.flags.some(f => f[0] === 'ok')) { const ix = types.indexOf('addr'); if (ix >= 0) types.splice(ix, 1); types.push('fam'); }
+  if (types.length) LINKS.push({ source: a, target: b, types }); }
+const strength = l => sum(l.types.filter(t => LON[t]).map(t => (LT.find(x => x[0] === t) || [0,0,0])[2]));
+function detect(){ const strong = LINKS.filter(l => strength(l) >= 1.5), adj = new Map(APPS.map(a => [a, []])); strong.forEach(l => { adj.get(l.source).push(l.target); adj.get(l.target).push(l.source); });
+  const seen = new Set(), rings = []; APPS.forEach(a => { if (seen.has(a)) return; const comp = [], q = [a]; seen.add(a); while (q.length){ const x = q.shift(); comp.push(x); adj.get(x).forEach(y => { if (!seen.has(y)){ seen.add(y); q.push(y); } }); } if (comp.length >= 3) rings.push(comp); });
+  rings.sort((x, y) => y.length - x.length); return { rings, strong }; }
+const fscore = (a, det) => { const r = det.rings.find(g => g.includes(a)), L = LINKS.filter(l => l.source === a || l.target === a).map(strength), st = sum(L.filter(v => v >= 1.5)), mx = L.length ? Math.max(...L) : 0; return Math.round(clamp(r ? 60 + st * 3 : 4 + mx * 9 + (mx >= 1.5 ? 12 : 0), 2, 98)); };
+let FG = null, DET = null, FSEL = null, RAN = false, SIM = null;
+function buildGraph(){
+  if (!hasD3) return; const w = 640, h = 470; const svg = d3.select('#graph').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Network of 46 loan applications linked by shared attributes');
+  const gH = svg.append('g'), gL = svg.append('g'), gR = svg.append('g'), gN = svg.append('g'), gT = svg.append('g');
+  const lk = gL.selectAll('line').data(LINKS).join('line').attr('stroke-linecap','round').attr('opacity', 0);
+  const nd = gN.selectAll('g').data(APPS).join('g').attr('class','node');
+  nd.append('circle').attr('r', a => 7 + a.amt / 14).attr('fill','#D7DBD2').attr('stroke','#fff').attr('stroke-width', 2);
+  nd.on('click', (ev, a) => { FSEL = a; paint(); renderFr(); }).on('mousemove', (ev, a) => showTip(`<div class="t">${a.id}</div>${esc(a.name)} · ${lakh(a.amt)}${RAN ? '<br>Fraud score <b>' + fscore(a, DET) + '</b>' : ''}`, ev)).on('mouseleave', hideTip);
+  SIM = d3.forceSimulation(APPS).force('charge', d3.forceManyBody().strength(-70)).force('center', d3.forceCenter(w / 2, h / 2)).force('x', d3.forceX(w / 2).strength(.05)).force('y', d3.forceY(h / 2).strength(.07))
+    .force('link', d3.forceLink(LINKS).distance(l => strength(l) >= 1.5 ? 34 : 90).strength(l => strength(l) >= 1.5 ? .7 : .04)).force('col', d3.forceCollide(a => 10 + a.amt / 14))
+    .force('rx', d3.forceX(a => ({ A: w * .2, B: w * .8, C: w * .5 })[a.ring] || w / 2).strength(a => a.ring ? .12 : 0)).force('ry', d3.forceY(a => ({ A: h * .3, B: h * .3, C: h * .8 })[a.ring] || h / 2).strength(a => a.ring ? .12 : 0));
+  nd.call(d3.drag().on('start', (ev, a) => { if (!ev.active) SIM.alphaTarget(.25).restart(); a.fx = a.x; a.fy = a.y; }).on('drag', (ev, a) => { a.fx = clamp(ev.x, 12, w - 12); a.fy = clamp(ev.y, 12, h - 12); }).on('end', (ev, a) => { if (!ev.active) SIM.alphaTarget(0); a.fx = null; a.fy = null; }));
+  function tick(){ APPS.forEach(a => { a.x = clamp(a.x, 14, w - 14); a.y = clamp(a.y, 14, h - 14); });
+    lk.attr('x1', l => l.source.x).attr('y1', l => l.source.y).attr('x2', l => l.target.x).attr('y2', l => l.target.y); nd.attr('transform', a => `translate(${a.x},${a.y})`);
+    if (RAN && DET){ gH.selectAll('path').data(DET.rings).join('path').attr('class','hull').attr('d', g => { const pts = []; g.forEach(a => { for (let k = 0; k < 8; k++) pts.push([a.x + Math.cos(k * Math.PI / 4) * 24, a.y + Math.sin(k * Math.PI / 4) * 24]); }); const hl = d3.polygonHull(pts); return hl ? 'M' + hl.join('L') + 'Z' : ''; });
+      gT.selectAll('text').data(DET.rings).join('text').attr('font-size', 11).attr('font-weight', 800).attr('fill','#A32A2F').attr('text-anchor','middle').attr('x', g => d3.mean(g, a => a.x)).attr('y', g => d3.min(g, a => a.y) - 30).text((g, i) => `Ring ${String.fromCharCode(65 + i)} · ${g.length} apps · ${lakh(sum(g.map(a => a.amt)))}`); }
+    else { gH.selectAll('path').remove(); gT.selectAll('text').remove(); } }
+  SIM.on('tick', tick); if (reduce){ SIM.stop(); for (let k = 0; k < 300; k++) SIM.tick(); tick(); }
+  FG = { svg, lk, nd, gR, tick };
+}
+function paint(){
+  if (!FG) return; const { lk, nd } = FG; DET = detect(); const inRing = new Set(DET.rings.flat());
+  lk.attr('stroke', l => { const t = l.types.filter(x => LON[x]); if (!t.length) return l.types.includes('fam') ? '#5E8C14' : 'none'; const top = t.sort((x, y) => (LT.find(z => z[0] === y) || [0,0,0])[2] - (LT.find(z => z[0] === x) || [0,0,0])[2])[0]; return (LT.find(z => z[0] === top) || [0,0,0,'#9BA1AC'])[3]; })
+    .attr('stroke-width', l => Math.max(1, strength(l) * 1.4)).attr('stroke-dasharray', l => strength(l) >= 1.5 ? null : '3 4')
+    .transition().duration(DUR / 2).attr('opacity', l => !RAN ? 0 : !l.types.some(x => LON[x] || x === 'fam') ? 0 : strength(l) >= 1.5 ? .85 : l.types.includes('fam') ? .6 : .09);
+  nd.select('circle').transition().duration(DUR / 2).attr('fill', a => !RAN ? '#D7DBD2' : inRing.has(a) ? '#E5484D' : fscore(a, DET) > 20 ? '#F2C14E' : '#B5D08A').attr('stroke', a => a === FSEL ? '#17191F' : '#fff').attr('stroke-width', a => a === FSEL ? 3.5 : 2);
+  FG.tick(); if (SIM && !reduce){ SIM.force('link').distance(l => strength(l) >= 1.5 ? 34 : 90).strength(l => strength(l) >= 1.5 ? .7 : .04); SIM.alpha(.4).restart(); }
+  const nR = DET.rings.flat();
+  if (RAN) $('frStatus').innerHTML = DET.rings.length ? `<b>${DET.rings.length} ring${DET.rings.length > 1 ? 's' : ''} found</b> · ${nR.length} applications · ${lakh(sum(nR.map(a => a.amt)))} held for verification. ${46 - nR.length} applications cleared.` : 'No rings with the current link types. Switch link types back on.';
+}
+function renderFr(){
+  const a = FSEL; if (!a){ $('frPanel').innerHTML = `<h4 class="lbl">How it works</h4><p class="note" style="margin-bottom:10px">Strong links (phone, device, bank account, address, unverified employer) or a combination of weak ones (valuer + builder project + DSA) join applications. Three or more joined applications form a ring.</p>` + LT.map(l => `<div class="rule"><span class="sv ${l[2] >= 1.5 ? 'high' : 'low'}">${l[2] >= 1.5 ? 'strong' : 'weak'}</span><div><b style="color:${l[3]}">${l[1]}</b> · weight ${l[2]}</div></div>`).join(''); return; }
+  const links = LINKS.filter(l => (l.source === a || l.target === a) && l.types.length), ring = DET ? DET.rings.findIndex(g => g.includes(a)) : -1, s = DET ? fscore(a, DET) : 0;
+  const lbl = t => t === 'fam' ? 'Declared co-borrower address' : (LT.find(x => x[0] === t) || [0, t])[1];
+  $('frPanel').innerHTML = `<h4 class="lbl">Application</h4><h5 style="margin:0;font:400 1.35rem var(--serif);color:var(--deep)">${a.id}</h5>
+    <div class="kv"><span>Applicant</span><b>${esc(a.name)}</b><span>Loan asked</span><b>${lakh(a.amt)}</b><span>Employer</span><b>${esc(a.emp.length < 4 ? 'Salaried, employer verified' : a.emp)}</b><span>DSA</span><b>${esc(a.dsa.length < 4 ? 'DSA-0' + a.dsa.slice(1) + '8' : a.dsa)}</b><span>Fraud score</span><b style="color:${s >= 50 ? 'var(--bad)' : s > 20 ? '#B7791F' : 'var(--good)'}">${RAN ? s + '/100' : 'run detection'}</b></div>
+    <h4 class="lbl">Links (${links.length})</h4>${links.length ? links.slice(0, 6).map(l => { const o = l.source === a ? l.target : l.source; return `<div class="rule"><span class="sv ${strength(l) >= 1.5 ? 'high' : l.types.includes('fam') ? 'ok' : 'low'}">${strength(l) >= 1.5 ? 'strong' : l.types.includes('fam') ? 'benign' : 'weak'}</span><div><b>${o.id}</b> · ${l.types.map(lbl).join(', ')}</div></div>`; }).join('') : '<p class="note">No shared attributes with other applications.</p>'}
+    <h4 class="lbl" style="margin-top:10px">Checks</h4>${(RAN ? a.flags : []).map(f => `<div class="rule"><span class="sv ${f[0]}">${f[0] === 'ok' ? 'ok' : f[0] === 'med' ? 'medium' : f[0]}</span><div>${esc(f[1])}</div></div>`).join('') || '<p class="note">' + (RAN ? 'No rule hits.' : 'Run detection to see rule hits.') + '</p>'}
+    <div class="act" style="border-left-color:${ring >= 0 ? 'var(--acc)' : 'var(--pri)'}"><b>Recommended.</b> ${!RAN ? 'Run ring detection.' : ring >= 0 ? `Part of Ring ${String.fromCharCode(65 + ring)}: hold disbursal, refer the ring to the fraud control unit, and verify employer, property and identity in person.` : 'Proceed with standard checks.'}</div>`;
+}
+$('ltypes').innerHTML = LT.map(l => `<button type="button" class="chipb" data-lt="${l[0]}" aria-pressed="true"><i style="background:${l[3]}"></i>${l[1]}</button>`).join('');
+$('ltypes').addEventListener('click', e => { const b = e.target.closest('[data-lt]'); if (!b) return; LON[b.dataset.lt] = !LON[b.dataset.lt]; b.classList.toggle('off', !LON[b.dataset.lt]); b.setAttribute('aria-pressed', LON[b.dataset.lt]); paint(); renderFr(); });
+let running = false;
+async function runDetect(){
+  if (!FG || running) return; running = true; $('frRun').disabled = true; RAN = false; FSEL = null; paint(); renderFr();
+  const st = $('frStatus'); st.textContent = 'Comparing 46 applications on 8 attributes…'; await sleep(700);
+  st.textContent = `${LINKS.length} shared attributes found. Weighing link strength…`; RAN = true; DET = detect(); const keep = DET.rings; DET = { rings: [], strong: DET.strong };
+  FG.lk.attr('stroke', l => (LT.find(z => z[0] === l.types[0]) || [0,0,0,'#9BA1AC'])[3]).attr('stroke-width', 1.2).transition().duration(DUR).delay((l, i) => reduce ? 0 : i * 6).attr('opacity', .35);
+  await sleep(1100); DET = { rings: keep, strong: DET.strong };
+  for (const g of keep){ for (const a of g){ FG.nd.filter(x => x === a).select('circle').transition().duration(250).attr('fill','#E5484D');
+      if (!reduce) FG.gR.append('circle').attr('class','ripple').attr('cx', a.x).attr('cy', a.y).attr('r', 8).attr('stroke-width', 3).attr('opacity', .9).transition().duration(900).attr('r', 42).attr('opacity', 0).remove(); await sleep(110); } await sleep(250); }
+  FSEL = keep[0] ? keep[0][0] : null; paint(); renderFr(); toast(`${keep.length} rings flagged before disbursal`); running = false; $('frRun').disabled = false; $('frRun').textContent = '↻ Run again';
+}
+$('frRun').addEventListener('click', runDetect);
+
+/* ======================================================================
+   03 · COLLECTIONS PLANNER
+   ====================================================================== */
+const MS = MONTHS.length - 1, RC = mulberry32(31);
+const CO = ACC.filter(a => a.D[MS] >= 1 || score(a, MS) >= 30).map(a => { const act = k => active(a, MS, SIG.findIndex(s => s.k === k)) ? 1 : 0;
+  const ab = clamp(.74 - .34 * act('sal') - .15 * act('uns') - .12 * act('util') - (a.seg[0] === 'aff' ? .1 : 0) + .14 * gauss(RC), .05, .95);
+  const wi = clamp(.66 + .2 * act('part') - .36 * act('cont') - .07 * a.D[MS] + .14 * gauss(RC), .05, .95);
+  return { a, ab, wi, q: (ab >= .5 ? 'H' : 'L') + (wi >= .5 ? 'H' : 'L'), b: a.D[MS], due: a.emi * Math.max(1, a.D[MS]) }; });
+const TR = [['dig','Digital nudge',5,'#B5D08A'],['tel','Tele-calling',60,'#2F7BD8'],['fld','Field visit',600,'#F08A3E'],['rst','Hardship plan',900,'#7C5CD6']];
+const PC = { dig:{ HH:.55, LH:.15, HL:.12, LL:.04 }, tel:{ HH:.66, LH:.34, HL:.42, LL:.10 }, fld:{ HH:.70, LH:.40, HL:.56, LL:.24 }, rst:{ HH:.50, LH:.62, HL:.20, LL:.22 } };
+const BF = [1, .9, .7, .5, .3];
+const pc = (c, t) => PC[t][c.q] * BF[c.b];
+const QN = { HH:'Can pay, will pay', LH:'Wants to pay, struggling', HL:'Can pay, avoiding', LL:'Struggling and unreachable' };
+let CV = 'seg', ST = 'prop';
+function allocate(strat){ const cap = { dig: 1e9, tel: +$('cT').value * 15, fld: +$('cF').value * 6, rst: +$('cR').value * 5 }, as = new Map();
+  if (strat === 'dpd'){ const ord = CO.slice().sort((x, y) => y.b - x.b || y.due - x.due); ord.forEach(c => { const t = cap.fld > 0 && c.b >= 2 ? 'fld' : cap.tel > 0 ? 'tel' : 'dig'; cap[t]--; as.set(c, t); }); }
+  else { const pairs = []; CO.forEach(c => ['tel','fld','rst'].forEach(t => { const cost = TR.find(x => x[0] === t)[2], gain = (pc(c, t) - pc(c, 'dig')) * c.due - cost; if (gain > 0) pairs.push({ c, t, gain }); }));
+    pairs.sort((x, y) => y.gain - x.gain); pairs.forEach(p => { if (as.has(p.c) || cap[p.t] <= 0) return; as.set(p.c, p.t); cap[p.t]--; }); CO.forEach(c => { if (!as.has(c)) as.set(c, 'dig'); }); }
+  let rec = 0, cures = 0, cost = (+$('cT').value * 15 * 60) + (+$('cF').value * 6 * 600) + (+$('cR').value * 5 * 900); as.forEach((t, c) => { rec += pc(c, t) * c.due; cures += pc(c, t); if (t === 'dig') cost += 5; });
+  return { as, rec, cures, cost }; }
+let coSvg = null;
+const BC = ['#B5D08A','#F2C14E','#F08A3E','#E5484D','#2B2F36'], BN = ['Pre-due, high risk','1–30 DPD','31–60 DPD','61–90 DPD','90+ DPD'];
+function renderCo(anim){
+  $('cTv').textContent = $('cT').value + ' · ' + $('cT').value * 15 + ' accounts'; $('cFv').textContent = $('cF').value + ' · ' + $('cF').value * 6 + ' visits'; $('cRv').textContent = $('cR').value + ' · ' + $('cR').value * 5 + ' cases';
+  const A = allocate('dpd'), B = allocate('prop'), cur = ST === 'dpd' ? A : B;
+  const cmpCard = (n, x, win) => `<div class="card${win ? ' win' : ''}"><h6>${n}</h6><div class="row"><span>Expected recovery</span><b>${lakh(x.rec / 1e5)}</b></div><div class="row"><span>Expected cures</span><b>${x.cures.toFixed(0)} of ${CO.length}</b></div><div class="row"><span>Team and nudge cost</span><b>${inr(x.cost)}</b></div><div class="row"><span>Cost per ₹100 recovered</span><b>₹${(x.cost / x.rec * 100).toFixed(2)}</b></div></div>`;
+  const dRec = (B.rec - A.rec) / A.rec * 100, dCost = ((B.cost / B.rec) - (A.cost / A.rec)) / (A.cost / A.rec) * 100;
+  $('coCmp').innerHTML = cmpCard('Bucket-first (today)', A, ST === 'dpd') + cmpCard('Propensity-led (new)', B, ST === 'prop') + `<p class="delta2" style="grid-column:1/-1;margin:0">Same team, propensity-led: ${dRec >= 0 ? '+' : ''}${dRec.toFixed(0)}% recovery, ${dCost.toFixed(0)}% cost per ₹100 recovered.</p>`;
+  if (!hasD3) return;
+  const w = 680, h = 420, m = { l: 34, r: 12, t: 16, b: 34 };
+  if (!coSvg){ coSvg = d3.select('#coChart').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Overdue and high-risk accounts by ability and willingness to pay, or by treatment');
+    coSvg.append('g').attr('class','bg'); coSvg.append('g').attr('class','dots'); }
+  const x = d3.scaleLinear().domain([0, 1]).range([m.l, w - m.r]), y = d3.scaleLinear().domain([0, 1]).range([h - m.b, m.t]);
+  const bg = coSvg.select('g.bg'); bg.selectAll('*').remove();
+  const lane = d3.scaleBand().domain(TR.map(t => t[0])).range([m.l, w - m.r]).padding(.08), pos = new Map();
+  if (CV === 'seg'){ const QS = [['LH', 0, .5, '#7C5CD6'],['HH', .5, .5, '#5E8C14'],['LL', 0, 0, '#2B2F36'],['HL', .5, 0, '#2F7BD8']];
+    bg.selectAll('rect').data(QS).join('rect').attr('x', d => x(d[1])).attr('y', d => y(d[2] + .5)).attr('width', x(.5) - x(0)).attr('height', y(0) - y(.5)).attr('fill', d => d[3]).attr('opacity', .06);
+    bg.selectAll('text.q').data(QS).join('text').attr('class','q').attr('x', d => x(d[1]) + 8).attr('y', d => y(d[2] + .5) + 16).attr('font-size', 11).attr('font-weight', 800).attr('fill', d => d[3]).text(d => QN[d[0]]);
+    bg.selectAll('text.q2').data(QS).join('text').attr('class','q2').attr('x', d => x(d[1]) + 8).attr('y', d => y(d[2] + .5) + 30).attr('font-size', 10).attr('fill','#5F6470').text(d => ({ HH:'→ digital nudge', LH:'→ hardship plan', HL:'→ firm tele-calling', LL:'→ field visit' })[d[0]]);
+    bg.append('line').attr('x1', x(.5)).attr('x2', x(.5)).attr('y1', m.t).attr('y2', h - m.b).attr('stroke','#C9CDC4').attr('stroke-dasharray','4 4');
+    bg.append('line').attr('x1', m.l).attr('x2', w - m.r).attr('y1', y(.5)).attr('y2', y(.5)).attr('stroke','#C9CDC4').attr('stroke-dasharray','4 4');
+    bg.append('text').attr('x', w - m.r).attr('y', h - 8).attr('text-anchor','end').attr('font-size', 11).attr('fill','#5F6470').text('Ability to pay →');
+    bg.append('text').attr('transform', `translate(14,${(m.t + h - m.b) / 2}) rotate(-90)`).attr('text-anchor','middle').attr('font-size', 11).attr('fill','#5F6470').text('Willingness to pay →');
+    CO.forEach(c => pos.set(c, [x(c.ab), y(c.wi)])); }
+  else { TR.forEach(t => { const L = CO.filter(c => cur.as.get(c) === t[0]).sort((p, q) => p.b - q.b || q.due - p.due), per = Math.max(1, Math.floor(lane.bandwidth() / 17));
+      bg.append('rect').attr('x', lane(t[0])).attr('y', m.t).attr('width', lane.bandwidth()).attr('height', h - m.t - m.b).attr('rx', 10).attr('fill', t[3]).attr('opacity', .1);
+      bg.append('text').attr('x', lane(t[0]) + lane.bandwidth() / 2).attr('y', h - 16).attr('text-anchor','middle').attr('font-size', 11.5).attr('font-weight', 800).attr('fill','#17191F').text(`${t[1]} · ${L.length}`);
+      bg.append('text').attr('x', lane(t[0]) + lane.bandwidth() / 2).attr('y', h - 3).attr('text-anchor','middle').attr('font-size', 10).attr('fill','#5F6470').text(t[0] === 'dig' ? 'no limit' : `₹${t[2]} each`);
+      L.forEach((c, i) => pos.set(c, [lane(t[0]) + 12 + (i % per) * 17, h - m.b - 22 - Math.floor(i / per) * 17])); }); }
+  coSvg.select('g.dots').selectAll('circle').data(CO, c => c.a.i).join('circle').attr('stroke','#fff').attr('stroke-width', 1.2).attr('fill', c => BC[c.b]).attr('r', c => 4.5 + Math.sqrt(c.due / 1e4))
+    .on('mousemove', (ev, c) => showTip(`<div class="t">${c.a.id} · ${BN[c.b]}</div>${QN[c.q]}<br>Due ${inr(c.due)} · ability ${Math.round(c.ab * 100)} · willingness ${Math.round(c.wi * 100)}<br>Plan: <b>${TR.find(t => t[0] === cur.as.get(c))[1]}</b> · cure chance ${Math.round(pc(c, cur.as.get(c)) * 100)}%`, ev)).on('mouseleave', hideTip)
+    .transition().duration(anim ? DUR + 300 : 0).delay(c => anim && !reduce ? (c.a.i % 23) * 18 : 0).attr('cx', c => pos.get(c)[0]).attr('cy', c => pos.get(c)[1]);
+  $('coKey').innerHTML = BN.map((n, i) => `<span><i style="background:${BC[i]};border-radius:50%"></i>${n}</span>`).join('') + '<span>Dot size = amount due</span>';
+}
+segBind('cv', v => { CV = v; renderCo(true); });
+segBind('st', v => { ST = v; if (CV !== 'plan'){ CV = 'plan'; segSet('cv','plan'); } renderCo(true); });
+['cT','cF','cR'].forEach(id => $(id).addEventListener('input', () => renderCo(CV === 'plan')));
+
+/* ======================================================================
+   04 · COLLECTIONS COPILOT
+   ====================================================================== */
+const PER = [
+  { id:'HL-48127', name:'Rahul Kulkarni', last:'Kulkarni', hn:'राहुल कुलकर्णी', t:'Mr', th:'श्री', seg:'Salaried', city:'Pune', emi:28450, due:28450, date:'5 Oct', dateH:'5 अक्टूबर', dpd:12, st:'1–30 DPD · 12 days', sig:'Salary credit delayed 2 months · 1 NACH bounce', tone:'hard', why:'Salary delays point to a cash-flow problem, not unwillingness.' },
+  { id:'HL-20936', name:'Meena Agarwal', last:'Agarwal', hn:'मीना अग्रवाल', t:'Ms', th:'सुश्री', seg:'Self-employed · trader', city:'Indore', emi:41200, due:41200, date:'10 Oct', dateH:'10 अक्टूबर', dpd:0, st:'Pre-due · risk 38%', sig:'Business credits down 35% · 3 bureau enquiries', tone:'gentle', why:'Not overdue yet; a timely reminder with options can prevent the first miss.' },
+  { id:'HL-66204', name:'Arjun Rao', last:'Rao', hn:'अर्जुन राव', t:'Mr', th:'श्री', seg:'Salaried · IT', city:'Bengaluru', emi:36900, due:73800, date:'5 Sep', dateH:'5 सितंबर', dpd:45, st:'31–60 DPD · 2 EMIs', sig:'Salary credits regular · no response to 3 calls', tone:'firm', why:'Ability to pay looks fine; needs a clear, firm and respectful follow-up.' },
+  { id:'HL-11779', name:'Suman Devi', last:'Devi', hn:'सुमन देवी', t:'Ms', th:'सुश्री', seg:'Affordable housing', city:'Jaipur', emi:9800, due:4800, date:'7 Oct', dateH:'7 अक्टूबर', dpd:18, st:'1–30 DPD · partial payment', sig:'Paid ₹5,000 of ₹9,800 · seasonal income', tone:'hard', why:'She is paying what she can; a part-payment plan fits better than pressure.' }];
+let PI = 0, CH = 'wa', LG = 'en', TN = PER[0].tone, streamTok = 0;
+function compose(p, ch, lg, tn, ins){
+  const xt = (ins || []).map(i => INS[i] && INS[i][1] && INS[i][1][lg]).filter(Boolean).join(' ');
+  const amt = inr(p.due), pre = p.dpd === 0;
+  if (lg === 'en'){
+    const g = `Dear ${p.t} ${p.last},`, intro = `This is [Lender name] about your home loan account ${p.id}.`;
+    const tl = { gentle:'This is a friendly reminder before your EMI date.', hard:'We understand that things can get difficult, and we would like to help you stay on track.', firm:`Your account is now ${p.dpd} days overdue. Please act now to avoid further charges and an impact on your credit score.` }[tn];
+    const al = (pre ? `Your EMI of ${amt} is due on ${p.date}.` : `An amount of ${amt} is overdue on your account (due date ${p.date}).`) + (xt ? ' ' + xt : '');
+    const op = { gentle:'You can pay through the secure payment link [payment link], or ask us about a different EMI date if that suits your cash flow better.', hard:'If paying the full amount is hard right now, we can discuss a part-payment plan or a change in your EMI date. Reply CALL and our team will call you at a time you choose.', firm:'Please pay through the secure payment link [payment link] by 12 Oct, or reply CALL to discuss a payment plan.' }[tn];
+    const help = 'For help, call customer care at [customer care number]. For any concern, you can reach our Grievance Redressal Officer at [grievance link].';
+    if (ch === 'sms') return `Dear ${p.t} ${p.last}, ${pre ? `EMI of ${amt} on [Lender name] loan ${p.id} is due ${p.date}.` : `${amt} is overdue on [Lender name] loan ${p.id} (due ${p.date}).`} Pay via [payment link]${tn === 'firm' ? '' : ' or reply CALL for a payment plan'}. Help: [customer care number]. Grievance: [grievance link]`;
+    if (ch === 'mail') return `Subject: ${pre ? 'Reminder: your home loan EMI is due on ' + p.date : 'Your home loan account ' + p.id + ' needs attention'}\n\n${g}\n\n${intro} ${tl}\n\n${al}\n\n${op}\n\n${help}\n\nRegards,\nCollections Team\n[Lender name]`;
+    if (ch === 'call') return `1. Greet and identify\n"Good morning, may I speak with ${p.t} ${p.last}? My name is [agent name], calling from [Lender name] about your home loan account. Is this a good time to talk?"\n\n2. Verify\nConfirm identity (date of birth) before discussing the account. Do not discuss the account with anyone else.\n\n3. Purpose\n"${tl} ${al}"\n\n4. Listen\n"Could you tell me what is making the payment difficult this month?" Note the reason; do not interrupt.\n\n5. Offer options\n"${op.replace('[payment link]', 'the payment link I will send you')}"\n\n6. Confirm\n"So we agree that you will pay ₹____ on ____ through ____. I will send you a confirmation on WhatsApp."\n\n7. Close\n"Thank you for your time. For help you can call customer care at [customer care number], or reach our Grievance Redressal Officer at [grievance link]."`;
+    return `${g}\n\n${intro} ${tl}\n\n${al}\n\n${op}\n\n${help}\n\nThank you,\n[Lender name]`;
+  }
+  const g = `प्रिय ${p.hn} जी,`, intro = `हम [Lender name] से आपके होम लोन खाते ${p.id} के बारे में संपर्क कर रहे हैं।`;
+  const tl = { gentle:'यह आपकी EMI की तारीख से पहले एक विनम्र याद-दिहानी है।', hard:'हम समझते हैं कि कभी-कभी परिस्थितियाँ कठिन हो जाती हैं, और हम आपकी मदद करना चाहते हैं।', firm:`आपका खाता अब ${p.dpd} दिनों से बकाया है। आगे के शुल्क और क्रेडिट स्कोर पर असर से बचने के लिए कृपया जल्द भुगतान करें।` }[tn];
+  const al = (pre ? `आपकी ${amt} की EMI ${p.dateH} को देय है।` : `आपके खाते में ${amt} की राशि बकाया है (देय तिथि ${p.dateH})।`) + (xt ? ' ' + xt : '');
+  const op = { gentle:'आप सुरक्षित भुगतान लिंक [payment link] से भुगतान कर सकते हैं, या अपनी सुविधा के अनुसार EMI की तारीख बदलने के बारे में हमसे बात कर सकते हैं।', hard:'यदि अभी पूरी राशि का भुगतान कठिन है, तो हम आंशिक भुगतान योजना या EMI की तारीख बदलने पर बात कर सकते हैं। CALL लिखकर जवाब दें, हमारी टीम आपके बताए समय पर कॉल करेगी।', firm:'कृपया 12 अक्टूबर तक सुरक्षित भुगतान लिंक [payment link] से भुगतान करें, या भुगतान योजना पर बात करने के लिए CALL लिखकर जवाब दें।' }[tn];
+  const help = 'सहायता के लिए ग्राहक सेवा [customer care number] पर कॉल करें। किसी भी शिकायत के लिए हमारे शिकायत निवारण अधिकारी से [grievance link] पर संपर्क करें।';
+  if (ch === 'sms') return `प्रिय ${p.hn} जी, ${pre ? `[Lender name] लोन ${p.id} की ${amt} की EMI ${p.dateH} को देय है।` : `[Lender name] लोन ${p.id} पर ${amt} बकाया है (देय ${p.dateH})।`} भुगतान: [payment link]${tn === 'firm' ? '' : ' या योजना के लिए CALL लिखें'}। ग्राहक सेवा: [customer care number]। शिकायत: [grievance link]`;
+  if (ch === 'mail') return `विषय: ${pre ? 'याद-दिहानी: आपकी होम लोन EMI ' + p.dateH + ' को देय है' : 'आपके होम लोन खाते ' + p.id + ' पर ध्यान देने की आवश्यकता है'}\n\n${g}\n\n${intro} ${tl}\n\n${al}\n\n${op}\n\n${help}\n\nसादर,\nकलेक्शन टीम\n[Lender name]`;
+  if (ch === 'call') return `1. अभिवादन और परिचय\n"नमस्ते, क्या मेरी बात ${p.th} ${p.hn} जी से हो रही है? मेरा नाम [agent name] है, मैं [Lender name] से आपके होम लोन खाते के बारे में बात कर रहा/रही हूँ। क्या अभी बात करने का सही समय है?"\n\n2. पुष्टि\nखाते पर बात करने से पहले जन्मतिथि से पहचान की पुष्टि करें। खाते के बारे में किसी और से बात न करें।\n\n3. उद्देश्य\n"${tl} ${al}"\n\n4. सुनें\n"क्या आप बता सकते हैं कि इस महीने भुगतान में क्या कठिनाई है?" कारण नोट करें; बीच में न टोकें।\n\n5. विकल्प दें\n"${op.replace('[payment link]', 'भुगतान लिंक, जो मैं आपको भेजूँगा/भेजूँगी,')}"\n\n6. पुष्टि करें\n"तो हमारी सहमति है कि आप ____ तारीख को ₹____ का भुगतान ____ से करेंगे। मैं WhatsApp पर पुष्टि भेज दूँगा/दूँगी।"\n\n7. समापन\n"आपके समय के लिए धन्यवाद। सहायता के लिए ग्राहक सेवा [customer care number] पर कॉल करें, या हमारे शिकायत निवारण अधिकारी से [grievance link] पर संपर्क करें।"`;
+  return `${g}\n\n${intro} ${tl}\n\n${al}\n\n${op}\n\n${help}\n\nधन्यवाद,\n[Lender name]`;
+}
+const BAD = /\b(police|arrest(ed)?|jail|seize[sd]?|criminal|FIR|goons?|recovery team will visit your house|legal action (today|immediately|within 24 hours))\b|पुलिस|गिरफ्तार|जेल|कुर्की/gi;
+const THIRD = /\b(inform|tell|call|contact|visit)\b[^.\n]{0,25}\b(employer|office|boss|family|relatives|neighbou?rs|colleagues)\b|आपके (ऑफिस|दफ्तर|परिवार|रिश्तेदारों|पड़ोसियों)/gi;
+const RUDE = /\b(defaulter|cheat(er)?|fraudster|liar|shameless|useless)\b|डिफॉल्टर|धोखेबाज|बेईमान/gi;
+function lint(text, hr){ const t = text || '', isCall = CH === 'call' || /^\s*1\./.test(t);
+  const C = [
+    ['Lender identified', /\[Lender name\]/i.test(t), 'Name the lender so the customer knows who is contacting them.'],
+    ['Amount and due date stated', /₹\s?[\d,]+/.test(t) && /\d{1,2}\s?(Oct|Sep|October|September|अक्टूबर|सितंबर)/i.test(t), 'State what is due and when.'],
+    ['Options to pay offered', /\[payment link\]|payment link|payment plan|part-payment|EMI date|भुगतान लिंक|भुगतान योजना|आंशिक भुगतान|EMI की तारीख/i.test(t), 'Give at least one way to pay or a plan.'],
+    ['Help and grievance contact', /\[grievance link\]|\[customer care number\]|grievance|customer care|शिकायत|ग्राहक सेवा/i.test(t), 'Include customer care and grievance redressal details.'],
+    ['No threats or intimidation', !(t.match(BAD) || []).length, 'Remove threats, police or arrest references and false legal claims.'],
+    ['No third-party disclosure', !(t.match(THIRD) || []).length, 'Never involve employers, family or neighbours.'],
+    ['Respectful language', !(t.match(RUDE) || []).length, 'No labels such as "defaulter".'],
+    ['Contact time 8 am to 7 pm', hr >= 8 && hr < 19, 'Calls and messages only between 08:00 and 19:00.'],
+    ['Agent introduces themselves', isCall ? /my name is|मेरा नाम|\[agent name\]/i.test(t) : null, 'Call scripts must start with the agent\'s name and the lender.']];
+  return C; }
+let REVIEW = null;
+function renderLint(){
+  const t = $('draft').value, hr = +$('hr').value, C = lint(t, hr);
+  if (REVIEW && REVIEW.text === t) C.push(['✦ AI review · tone, threats and privacy in any language', REVIEW.threats_ok && REVIEW.privacy_ok && REVIEW.respect_ok, REVIEW.issues.join(' ') || 'The AI reviewer found a tone, threat or privacy issue.']);
+  const app = C.filter(c => c[1] !== null), ok = app.filter(c => c[1]).length;
+  $('hrV').textContent = String(hr).padStart(2, '0') + ':00' + (hr >= 8 && hr < 19 ? '' : ' · outside window'); $('hrV').style.color = hr >= 8 && hr < 19 ? '' : 'var(--bad)';
+  $('lint').innerHTML = C.map(c => `<div class="li ${c[1] === null ? 'na' : c[1] ? 'ok' : 'bad'}"><i>${c[1] === null ? '–' : c[1] ? '✓' : '✗'}</i><div><b>${esc(c[0])}</b>${c[1] === false ? `<span>${esc(c[2])}</span>` : c[1] === null ? '<span>Applies to call scripts</span>' : ''}</div></div>`).join('');
+  const all = ok === app.length; $('cpScore').textContent = `${ok}/${app.length}`; $('cpScore').style.color = all ? 'var(--good)' : 'var(--bad)';
+  $('cpVerdict').innerHTML = all ? '<span style="color:var(--good)">Ready to send</span>' : `<span style="color:var(--bad)">Blocked · ${app.length - ok} issue${app.length - ok > 1 ? 's' : ''} to fix</span>`;
+  $('aiFix').style.display = all || !t.trim() ? 'none' : '';
+  const marks = []; [BAD, THIRD, RUDE].forEach(re => { re.lastIndex = 0; let m; while ((m = re.exec(t))){ marks.push([m.index, m.index + m[0].length]); if (!m[0]) re.lastIndex++; } });
+  if (REVIEW && REVIEW.text === t) REVIEW.phrases.forEach(ph => { let i = t.indexOf(ph); while (i >= 0){ marks.push([i, i + ph.length]); i = t.indexOf(ph, i + ph.length); } });
+  marks.sort((a, b) => a[0] - b[0]); let out = '', p = 0; marks.forEach(([s, e]) => { if (s < p) return; out += esc(t.slice(p, s)) + '<mark>' + esc(t.slice(s, e)) + '</mark>'; p = e; });
+  $('prev').innerHTML = marks.length ? out + esc(t.slice(p)) : '<span style="color:var(--muted)">No risky phrases found in the draft.</span>';
+}
+function renderPers(){ $('pers').innerHTML = PER.map((p, i) => `<button type="button" class="per${i === PI ? ' on' : ''}" data-p="${i}"><b>${esc(p.name)} · ${p.id}</b><span>${esc(p.st)}</span></button>`).join('');
+  const p = PER[PI]; $('perCtx').innerHTML = `<b>${esc(p.seg)} · ${esc(p.city)}</b> · EMI ${inr(p.emi)} · ${esc(p.st)}<br>Signals: ${esc(p.sig)}<br><b>Suggested tone:</b> ${({ gentle:'Gentle', hard:'Hardship support', firm:'Firm and clear' })[p.tone]}. ${esc(p.why)}`; }
+async function streamInto(txt, tok){ const ta = $('draft'); if (reduce){ ta.value = txt; ta.readOnly = false; return tok === streamTok; } ta.readOnly = true; const parts = txt.split(/(\s+)/); let s = '';
+  for (let i = 0; i < parts.length; i++){ if (tok !== streamTok) return false; s += parts[i]; if (i % 4 === 0){ ta.value = s; ta.scrollTop = ta.scrollHeight; await new Promise(r => setTimeout(r, 14)); } }
+  if (tok !== streamTok) return false; ta.value = txt; ta.readOnly = false; ta.scrollTop = 0; return true; }
+async function generate(ins, noAI){ if (!['en','hi'].includes(LG)){ if (KEY && !noAI) return aiDraft(); LG = 'en'; segSet('lg','en'); setLsel(''); }
+  const tok = ++streamTok; REVIEW = null; const done = await streamInto(compose(PER[PI], CH, LG, TN, ins || []), tok); if (done) renderLint(); }
+function setLsel(v){ $('lsel').value = v; $('lsel').classList.toggle('on', !!v); }
+$('pers').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if (!b) return; PI = +b.dataset.p; TN = PER[PI].tone; segSet('tn', TN); renderPers(); generate(); resetPractice(); renderRpChips(); });
+segBind('ch', v => { CH = v; generate(); }); segBind('lg', v => { LG = v; setLsel(''); generate(); }); segBind('tn', v => { TN = v; generate(); });
+$('lsel').addEventListener('change', () => { const v = $('lsel').value; if (!v){ LG = 'en'; segSet('lg','en'); setLsel(''); generate(); return; }
+  if (!KEY){ toast('✦ More languages use live AI. Add your OpenAI key above.'); setLsel(''); $('aiKey').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block:'center' }); return; }
+  LG = v; segSet('lg','none'); setLsel(v); aiDraft(); });
+$('draft').addEventListener('input', renderLint); $('hr').addEventListener('input', renderLint);
+$('cpBad').addEventListener('click', () => { streamTok++; REVIEW = null; $('draft').readOnly = false; CH = 'wa'; segSet('ch','wa');
+  $('draft').value = `Dear defaulter,\n\nYou have not paid ₹73,800 on your loan. Pay today or we will inform your employer and your neighbours. Our recovery team will visit your house tonight and police action will follow.`;
+  $('hr').value = 21; renderLint(); toast('Non-compliant draft loaded. Try ✦ Fix with AI'); });
+$('cpCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('draft').value); toast('Draft copied'); } catch (e){ toast('Copy is not allowed here; select the text instead'); } });
+
+/* ======================================================================
+   LIVE GENAI · key, OpenAI helper
+   ====================================================================== */
+let KEY = '', MODEL = 'gpt-4o-mini';
+try { const k = localStorage.getItem('hmc_pr_key'), m = localStorage.getItem('hmc_pr_model'); if (k){ KEY = k; $('apiKey').value = k; $('remember').checked = true; } if (m){ MODEL = m; $('model').value = m; } } catch (e){}
+function setMode(){ document.querySelectorAll('.aipill').forEach(el => { el.className = 'pill2 aipill ' + (KEY ? 'on' : 'off'); el.innerHTML = `<i></i>${KEY ? 'Live · ' + esc(MODEL) : 'Templates'}`; }); }
+$('keySave').addEventListener('click', async () => { const k = $('apiKey').value.trim(), m = $('model').value.trim() || 'gpt-4o-mini';
+  if (!/^sk-/.test(k)){ $('keyMsg').innerHTML = '<span style="color:var(--bad)">That does not look like an OpenAI key (it should start with "sk-").</span>'; return; }
+  $('keyMsg').textContent = 'Checking the key…';
+  try { const r = await fetch('https://api.openai.com/v1/models', { headers: { Authorization: 'Bearer ' + k } }); if (r.status === 401) throw new Error('OpenAI rejected this key (401).'); if (!r.ok) throw new Error('OpenAI returned ' + r.status + '.');
+    KEY = k; MODEL = m; try { if ($('remember').checked){ localStorage.setItem('hmc_pr_key', k); localStorage.setItem('hmc_pr_model', m); } else { localStorage.removeItem('hmc_pr_key'); localStorage.removeItem('hmc_pr_model'); } } catch (e){}
+    setMode(); $('keyMsg').innerHTML = `<b style="color:var(--good)">Connected.</b> All ✦ buttons now use ${esc(m)}.`; toast('Live GenAI connected'); }
+  catch (err){ $('keyMsg').innerHTML = `<span style="color:var(--bad)">${esc(err.message || 'Could not reach OpenAI from this browser.')}</span>`; } });
+$('keyClear').addEventListener('click', () => { KEY = ''; $('apiKey').value = ''; try { localStorage.removeItem('hmc_pr_key'); } catch (e){} setMode(); $('keyMsg').textContent = 'Disconnected. The ✦ buttons are back on templates.'; if (!['en','hi'].includes(LG)){ LG = 'en'; segSet('lg','en'); setLsel(''); generate(); } });
+$('model').addEventListener('change', () => { MODEL = $('model').value.trim() || 'gpt-4o-mini'; setMode(); });
+async function openai(messages, { json = false, onDelta } = {}){
+  const body = { model: MODEL, messages, temperature: .4 }; if (json) body.response_format = { type:'json_object' }; if (onDelta) body.stream = true;
+  const r = await fetch('https://api.openai.com/v1/chat/completions', { method:'POST', headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + KEY }, body: JSON.stringify(body) });
+  if (!r.ok){ let msg = 'OpenAI error ' + r.status; try { const j = await r.json(); if (j.error && j.error.message) msg += ': ' + j.error.message; } catch (e){} throw new Error(msg); }
+  if (!onDelta){ const j = await r.json(); return j.choices[0].message.content; }
+  const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '', full = '';
+  for (;;){ const { value, done } = await rd.read(); if (done) break; buf += dec.decode(value, { stream: true }); const parts = buf.split('\n'); buf = parts.pop();
+    for (const ln of parts){ const s2 = ln.trim(); if (!s2.startsWith('data:')) continue; const d = s2.slice(5).trim(); if (d === '[DONE]') continue; try { const j = JSON.parse(d), t = j.choices && j.choices[0].delta && j.choices[0].delta.content; if (t){ full += t; onDelta(full); } } catch (e){} } }
+  return full; }
+function busy(btn, on, label){ if (on){ btn.dataset.l = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<span class="spark">✦</span> ' + label; } else { btn.disabled = false; if (btn.dataset.l) btn.innerHTML = btn.dataset.l; } }
+function fail(err){ toast('Live AI unavailable (' + String(err && err.message || err).slice(0, 60) + '). Using templates.'); }
+function md(s){ const lines = esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').split(/\n/); let out = '', inL = false;
+  lines.forEach(l => { const m = l.match(/^\s*(?:[-*•]|\d+[.)])\s+(.*)/); if (m){ if (!inL){ out += '<ul>'; inL = true; } out += '<li>' + m[1] + '</li>'; } else { if (inL){ out += '</ul>'; inL = false; } if (l.trim()) out += '<p style="margin:0 0 4px">' + l + '</p>'; } });
+  if (inL) out += '</ul>'; return out; }
+
+/* ======================================================================
+   01 · ASK THE PORTFOLIO
+   ====================================================================== */
+const ASKP = ['Self-employed accounts that are critical in August','High-risk loans above ₹50 L with a NACH bounce','Salaried customers in Pune or Bengaluru with a salary delay','Who is most likely to miss the next EMI?'];
+const BNAMES = ['Low','Watch','High','Critical','Collections'], SEGN = SEGS.map(x => x[1]), SIGK = SIG.map(x => x.k);
+let FILTER = null;
+function parseAsk(q){ const t = q.toLowerCase(), f = { title: q, month: null, segments: [], cities: [], bands: [], signals: [], min_loan_lakh: null, max_loan_lakh: null, min_risk: null };
+  if (/self[- ]?employed|business|trader/.test(t)) f.segments.push('Self-employed'); if (/salaried/.test(t)) f.segments.push('Salaried'); if (/affordable/.test(t)) f.segments.push('Affordable');
+  CITIES.forEach(c => { if (t.includes(c.toLowerCase())) f.cities.push(c); });
+  const mm = t.match(/\b(april|apr|june|jun|july|jul|august|aug|september|sept|sep)\b/) || t.match(/\bin may\b/); if (mm){ const k = mm[0].replace('in ', '').slice(0, 3); f.month = MONTHS.find(x => x.toLowerCase() === k) || null; }
+  if (/critical/.test(t)) f.bands.push('Critical'); if (/high[- ]risk|risky|most likely|likely to (miss|slip)|next emi|will miss/.test(t)) f.bands.push('High','Critical'); else if (/\bhigh\b/.test(t)) f.bands.push('High');
+  if (/watch/.test(t)) f.bands.push('Watch'); if (/low[- ]risk/.test(t)) f.bands.push('Low'); if (/collection|31\+|60\+|90\+|npa/.test(t)) f.bands.push('Collections');
+  if (/nach|bounce/.test(t)) f.signals.push('nach'); if (/salary|business credit/.test(t)) f.signals.push('sal'); if (/enquir/.test(t)) f.signals.push('enq'); if (/unsecured|bnpl|personal loan/.test(t)) f.signals.push('uns');
+  if (/card|utili[sz]/.test(t)) f.signals.push('util'); if (/partial/.test(t)) f.signals.push('part'); if (/contact|unreachable/.test(t)) f.signals.push('cont');
+  const lo = t.match(/(above|over|more than|>)\s*₹?\s*(\d+)/); if (lo) f.min_loan_lakh = +lo[2]; const hi = t.match(/(below|under|less than|<)\s*₹?\s*(\d+)/); if (hi) f.max_loan_lakh = +hi[2];
+  f.bands = [...new Set(f.bands)];
+  return (f.segments.length || f.cities.length || f.bands.length || f.signals.length || f.min_loan_lakh != null || f.max_loan_lakh != null || f.month) ? f : null; }
+function cleanSpec(j, q){ const arr = (v, ok) => Array.isArray(v) ? v.filter(x => ok.includes(x)) : []; const num = v => typeof v === 'number' && isFinite(v) ? v : null;
+  return { title: typeof j.title === 'string' && j.title ? j.title.slice(0, 90) : q, month: MONTHS.includes(j.month) ? j.month : null, segments: arr(j.segments, SEGN), cities: arr(j.cities, CITIES), bands: arr(j.bands, BNAMES), signals: arr(j.signals, SIGK), min_loan_lakh: num(j.min_loan_lakh), max_loan_lakh: num(j.max_loan_lakh), min_risk: num(j.min_risk) }; }
+function matchF(a, f){ const s = score(a, M), bn = inColl(a, M) ? 'Collections' : BANDS[band(s)][0];
+  if (f.segments.length && !f.segments.includes(a.seg[1])) return false; if (f.cities.length && !f.cities.includes(a.city)) return false; if (f.bands.length && !f.bands.includes(bn)) return false;
+  if (f.signals.length && !f.signals.every(k => active(a, M, SIGK.indexOf(k)))) return false;
+  if (f.min_loan_lakh != null && a.amt < f.min_loan_lakh) return false; if (f.max_loan_lakh != null && a.amt > f.max_loan_lakh) return false;
+  if (f.min_risk != null && (inColl(a, M) || s < f.min_risk)) return false; return true; }
+function animNum(el, to, fmt){ if (reduce){ el.textContent = fmt(to); return; } const t0 = performance.now(); (function s(t){ const p = Math.min(1, (t - t0) / 900), e = 1 - Math.pow(1 - p, 3); el.textContent = fmt(to * e); if (p < 1) requestAnimationFrame(s); })(t0); }
+function renderAskRes(){ const box = $('askRes'); if (!FILTER){ box.style.display = 'none'; return; }
+  const L = ACC.filter(a => matchF(a, FILTER)).sort((a, b) => (inColl(b, M) - inColl(a, M)) || score(b, M) - score(a, M)), n = L.length, book = sum(L.map(a => a.amt)), live = L.filter(a => !inColl(a, M)), avg = live.length ? sum(live.map(a => score(a, M))) / live.length : 0;
+  const cnt = SIG.map((sg, j) => [sg, L.filter(a => active(a, M, j)).length]).sort((a, b) => b[1] - a[1]), d1 = L.filter(a => a.D[M] === 1).length, d0 = live.filter(a => a.D[M] === 0).length;
+  const ins = !n ? 'No accounts match in ' + MONTHS[M] + '. Try another month or fewer conditions.' : `Most common signal: <b>${esc(cnt[0][1] ? cnt[0][0].n : 'none')}</b>${cnt[0][1] ? ` (${cnt[0][1]} of ${n})` : ''}. ${d0 ? `<b>${d0}</b> of these have not missed an EMI yet, so a bucket-based list would not show them.` : 'All of these are already past due.'}`;
+  box.style.display = ''; box.innerHTML = `<div class="h"><b>✦ ${esc(FILTER.title)} · ${MONTHS[M]}</b><span style="display:flex;gap:6px;align-items:center"><span class="pill2 ${FILTER.src === 'live' ? 'on' : 'off'}"><i></i>${FILTER.src === 'live' ? 'Read by ' + esc(MODEL) : 'Template parser'}</span><button class="chipb" id="askClr" type="button">✕ Clear</button></span></div>
+    <div class="nums"><div><b id="anN">0</b>accounts match</div><div><b id="anB">₹0</b>loan book</div><div><b id="anR">0%</b>average risk</div></div><p>${ins}</p>${n ? '<div class="ids"><span style="font-size:.7rem;color:var(--muted)">Riskiest:</span>' + L.slice(0, 6).map(a => `<button type="button" data-ai="${a.i}">${a.id}</button>`).join('') + '</div>' : ''}`;
+  animNum($('anN'), n, v => Math.round(v)); animNum($('anB'), book, v => lakh(v)); animNum($('anR'), avg, v => v.toFixed(0) + '%');
+  $('askClr').addEventListener('click', () => { FILTER = null; $('askI').value = ''; document.querySelectorAll('#askChips .chipb').forEach(c => c.classList.remove('on')); renderEWS(true); });
+  box.querySelectorAll('[data-ai]').forEach(b => b.addEventListener('click', () => { SEL = ACC[+b.dataset.ai]; renderEWS(false); })); }
+async function ask(q){ q = (q || '').trim(); if (!q) return; stopPlay(); const btn = $('askGo'); let f = null;
+  if (KEY){ busy(btn, true, 'Reading…');
+    try { const out = await openai([{ role:'system', content:`Convert a question about a synthetic home-loan portfolio into a JSON filter. Return only JSON with keys: title (short restatement of the question), month (one of ${MONTHS.join(', ')}, or null), segments (subset of ${JSON.stringify(SEGN)}), cities (subset of ${JSON.stringify(CITIES)}), bands (subset of ${JSON.stringify(BNAMES)}; "high risk" means High and Critical; "likely to miss" means High and Critical; overdue more than 30 days means Collections), signals (subset of ${JSON.stringify(SIGK)} where ${SIG.map(x => x.k + ' = ' + x.n).join('; ')}), min_loan_lakh, max_loan_lakh, min_risk (0-100). Use [] or null when not mentioned.` }, { role:'user', content: q }], { json: true });
+      f = cleanSpec(JSON.parse(out), q); f.src = 'live'; }
+    catch (err){ fail(err); } finally { busy(btn, false); } }
+  if (!f){ f = parseAsk(q); if (f) f.src = 'tpl'; }
+  if (!f){ toast(KEY ? 'Could not read that question. Try rephrasing.' : 'Try a suggested question, or add your OpenAI key to ask anything.'); return; }
+  if (f.month) M = MONTHS.indexOf(f.month);
+  FILTER = f; const hits = ACC.filter(a => matchF(a, f)).sort((a, b) => score(b, M) - score(a, M)); if (hits.length) SEL = hits.find(a => !inColl(a, M)) || SEL; renderEWS(true); }
+$('askChips').innerHTML = ASKP.map((q, i) => `<button type="button" class="chipb pre" data-q="${i}">${esc(q)}</button>`).join('');
+$('askChips').addEventListener('click', e => { const b = e.target.closest('[data-q]'); if (!b) return; document.querySelectorAll('#askChips .chipb').forEach(c => c.classList.toggle('on', c === b)); $('askI').value = ASKP[+b.dataset.q]; ask(ASKP[+b.dataset.q]); });
+$('askGo').addEventListener('click', () => ask($('askI').value)); $('askI').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); ask($('askI').value); } });
+
+/* ======================================================================
+   04a · AI DRAFTING, REVIEW, FIX
+   ====================================================================== */
+const LANGS = { en:'English', hi:'Hindi', mr:'Marathi', ta:'Tamil', te:'Telugu', kn:'Kannada', bn:'Bengali', gu:'Gujarati' };
+const INS = [
+  ['Acknowledge the payment already made', { en:'Thank you for the payment you have already made towards this EMI.', hi:'इस EMI के लिए आपके द्वारा पहले से किए गए भुगतान के लिए धन्यवाद।' }],
+  ['Offer to move the EMI date to the 15th', { en:'If it helps, we can move your EMI date to the 15th of each month, closer to when your income comes in.', hi:'यदि इससे मदद मिले, तो हम आपकी EMI की तारीख हर महीने की 15 तारीख कर सकते हैं, जब आपकी आय आती है।' }],
+  ['Mention a 3-month part-payment plan', { en:'We can also set up a 3-month part-payment plan so the overdue amount is cleared in smaller instalments.', hi:'हम 3 महीने की आंशिक भुगतान योजना भी बना सकते हैं, ताकि बकाया राशि छोटी किस्तों में चुकाई जा सके।' }],
+  ['Warmer, more empathetic tone', null]];
+const DSYS = 'You draft collections messages for a home-loan company in India. Follow fair-practice rules strictly: be respectful and empathetic; never threaten; never mention police, arrest or immediate legal action; never involve or mention employers, family, neighbours or colleagues; never call the customer a defaulter. Always: write "[Lender name]" in English letters; state the amount with ₹ and the due date written like "5 Oct" in English letters; offer a way to pay or a plan, using the placeholder [payment link]; include [customer care number] and [grievance link]. For call scripts: number the steps, have the agent say "My name is [agent name]" from [Lender name] first, verify identity before discussing the account, listen, offer options, confirm the agreement, and close. Keep placeholders in square brackets exactly as given. Output only the message text.';
+const CHF = { wa:'WhatsApp message: short paragraphs, under 120 words.', sms:'SMS: one paragraph, under 320 characters.', mail:'Email: first line "Subject: …", then the body.', call:'Call script for a collections agent: numbered steps with what to say in quotes.' };
+function draftBrief(p, ins){ return `Customer: ${p.t} ${p.name}, ${p.seg}, ${p.city}. Home loan account ${p.id}. Monthly EMI ${inr(p.emi)}. Amount ${p.dpd ? 'overdue' : 'due'}: ${inr(p.due)}, due date ${p.date}. Status: ${p.st}. Signals: ${p.sig}. Context: ${p.why}
+Channel: ${CHF[CH]}
+Language: ${LANGS[LG]}${LG === 'en' ? '' : ' (keep "[Lender name]", ₹ amounts, dates and bracketed placeholders in English letters)'}
+Tone: ${({ gentle:'gentle pre-due reminder', hard:'hardship support, empathetic, offer a plan', firm:'firm and clear, but respectful' })[TN]}
+Extra instruction: ${ins || 'none'}`; }
+async function aiReview(){ if (!KEY) return; const t = $('draft').value; if (!t.trim()) return;
+  try { const out = await openai([{ role:'system', content:'You review debt-collection messages from an Indian home-loan lender for fair-practice conduct. The text may be in any Indian language. Return JSON: {"threats_ok": true if there are no threats, intimidation, police or arrest references or false legal claims, "privacy_ok": true if it does not involve or threaten to contact employers, family, neighbours, colleagues or other third parties, "respect_ok": true if the language is respectful with no labels such as defaulter and no shaming, "issues": [short English explanations of any problems], "phrases": [exact substrings of the text that are problematic]}' }, { role:'user', content: t }], { json: true });
+    const r = JSON.parse(out); if ($('draft').value !== t) return;
+    REVIEW = { text: t, threats_ok: r.threats_ok !== false, privacy_ok: r.privacy_ok !== false, respect_ok: r.respect_ok !== false, issues: Array.isArray(r.issues) ? r.issues.filter(x => typeof x === 'string').slice(0, 3) : [], phrases: Array.isArray(r.phrases) ? r.phrases.filter(x => typeof x === 'string' && x.length > 1 && t.includes(x)).slice(0, 8) : [] };
+    renderLint(); } catch (e){} }
+async function aiDraft(){ const ins = $('insI').value.trim(), ii = INS.findIndex(x => x[0] === ins);
+  if (ii === 3 && TN !== 'hard'){ TN = 'hard'; segSet('tn','hard'); }
+  const tplIns = ii >= 0 && ii < 3 ? [ii] : [];
+  if (!KEY){ toast(ins && ii < 0 ? 'Custom instructions use live AI. Add your OpenAI key above; showing the template.' : 'Template draft. Add your OpenAI key above for live AI drafting.'); return generate(tplIns, true); }
+  const tok = ++streamTok, ta = $('draft'), btn = $('aiDraft'); REVIEW = null; busy(btn, true, 'Drafting…'); ta.readOnly = true; ta.value = '';
+  try { const out = await openai([{ role:'system', content: DSYS }, { role:'user', content: draftBrief(PER[PI], ins) }], { onDelta: t => { if (tok === streamTok){ ta.value = t; ta.scrollTop = ta.scrollHeight; } } });
+    if (tok !== streamTok) return; ta.value = out.trim(); ta.readOnly = false; ta.scrollTop = 0; renderLint(); await aiReview(); }
+  catch (err){ fail(err); ta.readOnly = false; if (tok === streamTok) generate(tplIns, true); }
+  finally { busy(btn, false); } }
+$('insChips').innerHTML = INS.map((x, i) => `<button type="button" class="chipb pre" data-in="${i}">${esc(x[0])}</button>`).join('');
+$('insChips').addEventListener('click', e => { const b = e.target.closest('[data-in]'); if (!b) return; const on = !b.classList.contains('on'); document.querySelectorAll('#insChips .chipb').forEach(c => c.classList.toggle('on', on && c === b)); $('insI').value = on ? INS[+b.dataset.in][0] : ''; aiDraft(); });
+$('insI').addEventListener('input', () => { const v = $('insI').value.trim(); document.querySelectorAll('#insChips .chipb').forEach(c => c.classList.toggle('on', INS[+c.dataset.in][0] === v)); });
+$('insI').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); aiDraft(); } });
+$('aiDraft').addEventListener('click', aiDraft);
+$('aiFix').addEventListener('click', async () => { const t = $('draft').value, hr = +$('hr').value, late = hr < 8 || hr >= 19, failed = lint(t, hr).filter(c => c[1] === false).map(c => c[0]);
+  if (REVIEW && REVIEW.text === t && !(REVIEW.threats_ok && REVIEW.privacy_ok && REVIEW.respect_ok)) failed.push('AI review: ' + REVIEW.issues.join(' '));
+  if (late) $('hr').value = 11;
+  if (!KEY){ toast('Rewritten from the compliant template' + (late ? '; contact time moved to 11:00' : '') + '. Add a key for AI rewrites.'); return generate([], true); }
+  const tok = ++streamTok, ta = $('draft'), btn = $('aiFix'); REVIEW = null; busy(btn, true, 'Fixing…'); ta.readOnly = true;
+  try { const out = await openai([{ role:'system', content: DSYS }, { role:'user', content: draftBrief(PER[PI], '') + `\n\nRewrite the draft below so that it passes every rule. Failed checks: ${failed.join('; ') || 'none'}. Draft:\n${t}` }], { onDelta: x => { if (tok === streamTok) ta.value = x; } });
+    if (tok !== streamTok) return; ta.value = out.trim(); ta.readOnly = false; renderLint(); toast('Rewritten by AI' + (late ? '; contact time moved to 11:00' : '') + '. Re-checking…'); await aiReview(); }
+  catch (err){ fail(err); ta.readOnly = false; generate([], true); } finally { busy(btn, false); } });
+
+/* tabs */
+$('cpTabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (!b) return; const v = b.dataset.tab;
+  document.querySelectorAll('#cpTabs [data-tab]').forEach(x => x.setAttribute('aria-selected', x === b ? 'true' : 'false'));
+  $('pnDraft').hidden = v !== 'draft'; $('pnReply').hidden = v !== 'reply'; $('pnPractice').hidden = v !== 'practice'; $('cpBtns').style.display = v === 'draft' ? 'flex' : 'none';
+  if (v === 'practice' && !PCS) resetPractice(); });
+
+/* ======================================================================
+   04b · READ A REPLY
+   ====================================================================== */
+const RP = [['Salary late, will pay by the 15th (Hinglish)', 'Sir salary abhi tak nahi aayi hai, 15 tak pakka pay kar dunga.'], ['Lost job, cannot pay in full', "I lost my job last month. I can't pay the full EMI right now, please understand."], ['Says already paid', 'I already paid on 3 Oct through the app. Please check your records and stop calling me.'], ['Wrong number', 'This is not {first}. You have the wrong number.'], ['Part-payment promise', 'I will pay ₹5,000 today and the rest by 20 Oct.']];
+const INTC = { 'Promise to pay':'#5E8C14', 'Part-payment promise':'#5E8C14', 'Hardship':'#F2A60C', 'Dispute: says already paid':'#2F7BD8', 'Wrong party':'#E5484D', 'Unclear':'#8A8F99' };
+function renderRpChips(){ const first = PER[PI].name.split(' ')[0]; $('rpChips').innerHTML = RP.map((r, i) => `<button type="button" class="chipb pre" data-r="${i}">${esc(r[0])}</button>`).join(''); $('rpChips').dataset.first = first; }
+$('rpChips').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (!b) return; document.querySelectorAll('#rpChips .chipb').forEach(c => c.classList.toggle('on', c === b)); $('rpText').value = RP[+b.dataset.r][1].replace('{first}', PER[PI].name.split(' ')[0]); analyseReply(); });
+function rpOffline(t, p){ const l = t.toLowerCase(), amtM = t.match(/(?:₹|rs\.?\s?)\s?([\d,]+)/i), amount = amtM ? '₹' + amtM[1] : null, l2 = amtM ? l.replace(amtM[0].toLowerCase(), ' ') : l;
+  const dm = l2.match(/\b(\d{1,2})(?:st|nd|rd|th)?\s*(oct|october|nov|november)\b/) || l2.match(/\b(?:by|on|till|until|before)\s+(?:the\s+)?(\d{1,2})(?:st|nd|rd|th)?\b/) || l2.match(/\b(\d{1,2})(?:st|nd|rd|th)?\s+(?:tak|ko)\b/);
+  const date = dm ? `${+dm[1]} ${dm[2] && /nov/.test(dm[2]) ? 'Nov' : 'Oct'}` : null;
+  const lang = /[ऀ-ॿ]/.test(t) ? 'Hindi' : /\b(hai|nahi|kar|tak|aayi|pakka|dunga|dungi|kal)\b/.test(l) ? 'Hinglish' : 'English';
+  let intent = 'Unclear', sent = 'Neutral', next = 'Call back to understand the situation, then agree a plan.', sum2 = 'The reply does not state a clear intent.';
+  if (/wrong number|this is not|not me\b|galat number/.test(l)){ intent = 'Wrong party'; next = 'Stop contact on this number, mark it unverified and trace the correct contact. Share no account details.'; sum2 = 'The person says they are not the customer.'; }
+  else if (/already paid|paid on|payment (is )?done|kar diya|paid through/.test(l)){ intent = 'Dispute: says already paid'; sent = 'Frustrated'; next = 'Check the ledger and app payments, pause reminders until verified, and confirm the outcome within 2 working days.'; sum2 = `Says the EMI was already paid${date ? ' on ' + date : ''}.`; }
+  else if (/lost (my )?job|no job|hospital|medical|unwell|business (is )?(slow|down)|naukri|can'?t pay|cannot pay|unable/.test(l)){ intent = 'Hardship'; sent = 'Stressed'; next = 'Route to a hardship counsellor. Offer a part-payment plan or EMI date change; pause reminders until the call.'; sum2 = 'Reports a loss of income and cannot pay in full.'; }
+  else if (/will pay|pay kar|pay by|dunga|dungi|tomorrow|today|kal\b/.test(l) || date){ intent = amount && /rest|remaining|baaki|balance/.test(l) ? 'Part-payment promise' : 'Promise to pay'; sent = 'Cooperative';
+    next = `Log a promise to pay${amount ? ' of ' + amount : ''}${date ? ' by ' + date : ''}. Send the payment link with a confirmation, and a reminder the day before.`; sum2 = `Commits to pay${amount ? ' ' + amount : ''}${date ? ' by ' + date : ''}${/salary/.test(l) ? ' once the salary arrives' : ''}.`; }
+  const nm = `${p.t} ${p.last}`, reply = {
+    'Promise to pay': `Thank you, ${nm}. We have noted that you will pay ${inr(p.due)}${date ? ' by ' + date : ''}. You can pay any time through the secure link [payment link]. For help, call [customer care number]. Grievance: [grievance link]. – [Lender name]`,
+    'Part-payment promise': `Thank you, ${nm}. We have noted ${amount || 'a part-payment'} now and the balance of your ${inr(p.due)} due by ${date || 'the agreed date'}. Use the secure link [payment link] for both payments. Help: [customer care number]. Grievance: [grievance link]. – [Lender name]`,
+    'Hardship': `We are sorry to hear this, ${nm}. Our counsellor will call you at a time that suits you to discuss a part-payment plan or a new EMI date for the ${inr(p.due)} due on ${p.date}. Please reply with a convenient time. Help: [customer care number]. Grievance: [grievance link]. – [Lender name]`,
+    'Dispute: says already paid': `Thank you, ${nm}. We are checking the payment you mentioned against the ${inr(p.due)} due on ${p.date} and will confirm within 2 working days. We will pause reminders meanwhile. You can share a receipt via [payment link] or call [customer care number]. Grievance: [grievance link]. – [Lender name]`,
+    'Wrong party': 'Sorry for the trouble. We will update our records and will not contact this number again about this matter. – [Lender name]',
+    'Unclear': `Thank you for your reply, ${nm}. Could you tell us a good time to call about your home loan? The amount of ${inr(p.due)} is due on ${p.date}; you can pay via [payment link]. Help: [customer care number]. Grievance: [grievance link].` }[intent];
+  return { intent, promise_date: date, amount, sentiment: sent, language: lang, summary: sum2, next_action: next, suggested_reply: reply, src:'tpl' }; }
+function renderRp(r){ const col = INTC[r.intent] || '#8A8F99', wrong = r.intent === 'Wrong party', C = lint(r.suggested_reply, 11).filter(c => c[1] !== null), ok = C.filter(c => c[1]).length;
+  const F = [['Date mentioned', r.promise_date || '–'], ['Amount', r.amount || '–'], ['Sentiment', r.sentiment || '–'], ['Language', r.language || '–']];
+  $('rpOut').innerHTML = `<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap"><div class="intent"><i style="width:14px;height:14px;border-radius:50%;background:${col};display:inline-block;box-shadow:0 0 0 5px ${col}22"></i>${esc(r.intent)}</div><span class="pill2 ${r.src === 'live' ? 'on' : 'off'}"><i></i>${r.src === 'live' ? 'Read by ' + esc(MODEL) : 'Template reader'}</span></div>
+    <p class="note" style="margin-top:6px">${esc(r.summary || '')}</p>
+    <div class="flds">${F.map((f, i) => `<div class="fl" style="animation-delay:${reduce ? 0 : 120 + i * 90}ms"><div class="k">${f[0]}</div><div class="v">${esc(f[1])}</div></div>`).join('')}</div>
+    <div class="box" style="animation-delay:${reduce ? 0 : 520}ms;border-left:4px solid ${col}"><h6>Next best action</h6>${esc(r.next_action || '')}</div>
+    <div class="box" style="animation-delay:${reduce ? 0 : 680}ms"><h6>Suggested reply · ${wrong ? 'shares no account details with an unverified person' : `fair-practice check ${ok}/${C.length}`}</h6>${esc(r.suggested_reply || '')}</div>
+    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn sm go" id="rpUse" type="button">Use as draft →</button></div>`;
+  $('rpUse').addEventListener('click', () => { streamTok++; REVIEW = null; CH = 'wa'; segSet('ch','wa'); $('draft').value = r.suggested_reply || ''; $('cpTabs').querySelector('[data-tab="draft"]').click(); renderLint(); toast('Reply moved to the draft checker'); }); }
+async function analyseReply(){ const t = $('rpText').value.trim(), p = PER[PI]; if (!t){ toast('Pick a sample reply or type one'); return; }
+  const btn = $('rpGo'); busy(btn, true, 'Reading…'); $('rpOut').innerHTML = '<div class="dots" style="padding:20px 0"><span></span><span></span><span></span></div>'; let r = null;
+  if (KEY){ try { const out = await openai([{ role:'system', content:`You help a collections team at a housing finance company (Indian home loans) read customer replies, which may be in any Indian language or Hinglish. Customer: ${p.t} ${p.name}, account ${p.id}, ${p.st}, amount ${inr(p.due)} due ${p.date}. Return JSON: {"intent": one of ${JSON.stringify(Object.keys(INTC))}, "promise_date": "e.g. 15 Oct" or null, "amount": "₹…" or null, "sentiment": one word, "language": language of the reply, "summary": one short sentence in English, "next_action": one or two sentences for the agent, "suggested_reply": a short respectful WhatsApp reply in the customer's language that follows fair practice (no threats, no third parties), names [Lender name] in English letters, and uses the placeholders [payment link], [customer care number] and [grievance link]; for "Wrong party" share no account details}` }, { role:'user', content: t }], { json: true });
+      const j = JSON.parse(out); r = Object.assign({ src:'live' }, j); if (!INTC[r.intent]) r.intent = 'Unclear'; } catch (err){ fail(err); } }
+  if (!r){ await sleep(500); r = rpOffline(t, p); }
+  busy(btn, false); renderRp(r); }
+$('rpGo').addEventListener('click', analyseReply);
+
+/* ======================================================================
+   04c · PRACTICE CALL
+   ====================================================================== */
+const STORY = [
+  { dob:'12 March 1988', story:"My company has delayed salaries for two months. I'm not avoiding it, I just don't have the money right now.", ask:'Moving the date to the 15th would really help. Can I pay part of it now?' },
+  { dob:'4 July 1979', story:"Business has been slow since the monsoon, and two big customers haven't paid me yet.", ask:'If I could pay a little later this month, that would help. Is that possible?' },
+  { dob:'21 January 1990', story:"Honestly, I've been travelling for work and kept missing your calls. I just forgot.", ask:'Send me the link. I can pay one EMI today and the other next week.' },
+  { dob:'9 November 1985', story:"My husband's work is seasonal. I paid ₹5,000 and will pay the rest when he gets paid.", ask:'Can I pay the remaining ₹4,800 in two parts?' }];
+const PCK = [['Introduced self and lender', t => /my name is/i.test(t) && /\[Lender name\]/i.test(t), 'Open with your name and the lender name so the customer knows who is calling.'],
+  ['Verified identity', t => /date of birth|confirm your (identity|details)|verify/i.test(t), 'Verify identity before discussing the account.'],
+  ['Asked and listened', t => /tell me|what happened|what has made|what is making|could you share|difficult/i.test(t), 'Ask what made the payment difficult, then listen.'],
+  ['Offered an option', t => /part-payment|payment plan|EMI date|restructur|option/i.test(t), 'Offer something concrete: a part-payment plan or an EMI date change.'],
+  ['Confirmed the agreement', t => /so we agree|to confirm|confirmation/i.test(t), 'Close by confirming amount, date and channel, and promise a written confirmation.'],
+  ['Stayed respectful and lawful', null, 'Never threaten, mention legal action or involve employers or family. It breaches fair-practice rules.']];
+let PCS = null;
+const rude = t => { let bad = false; [BAD, THIRD, RUDE].forEach(re => { re.lastIndex = 0; if (re.test(t)) bad = true; re.lastIndex = 0; }); return bad; };
+function agentLines(p){ const amt = p.dpd ? Math.round(p.due / 2 / 100) * 100 : p.emi;
+  return [['Introduce yourself', `Good morning, am I speaking with ${p.t} ${p.last}? My name is Asha, calling from [Lender name] about your home loan. Is this a good time to talk?`],
+    ['Verify identity', 'Before we go on, could you please confirm your date of birth for security?'],
+    ['Ask what happened', `Thank you. I can see this month's EMI ${p.dpd ? 'is pending' : 'is due soon'}. Could you tell me what has made it difficult?`],
+    ['Offer options', 'I understand, and thank you for telling me. We can set up a part-payment plan or move your EMI date closer to when your income comes in. Would either help?'],
+    ['Confirm the agreement', `So we agree you will pay ${inr(amt)} on 15 Oct and the rest by 30 Oct through the payment link. I will send you a confirmation on WhatsApp. Thank you for your time.`],
+    ['✗ Try a threat', 'If you do not pay today we will inform your employer and take legal action immediately.']]; }
+function pcBubble(cls, who, html){ const d = document.createElement('div'); d.className = 'bub ' + cls; d.innerHTML = (who ? `<div class="who">${who}</div>` : '') + html; $('pcMsgs').appendChild(d); $('pcMsgs').scrollTop = $('pcMsgs').scrollHeight; return d; }
+function pcState(){ const ag = PCS.hist.filter(m => m.role === 'agent').map(m => m.text), all = ag.join('\n'); return PCK.map(c => c[1] ? c[1](all) : (ag.length ? !ag.some(rude) : null)); }
+function renderPcScore(){ const st = pcState(), prev = PCS.prev || [];
+  $('pcScore').innerHTML = PCK.map((c, i) => `<div class="li ${st[i] === null ? 'na' : st[i] ? 'ok' : (i === 5 ? 'bad' : 'na')}${st[i] && !prev[i] ? ' just' : ''}"><i>${st[i] === null ? '–' : st[i] ? '✓' : (i === 5 ? '✗' : '·')}</i><div><b>${c[0]}</b>${i === 5 && st[i] === false ? `<span>${esc(c[2])}</span>` : ''}</div></div>`).join(''); PCS.prev = st; }
+function resetPractice(){ const p = PER[PI]; PCS = { hist: [], turn: 0, busy: false, prev: [] }; $('pcMsgs').innerHTML = ''; $('pcFb').innerHTML = '';
+  pcBubble('sys', '', `☎ Call connected · ${esc(p.name)} · ${esc(p.st)}<br>You are the agent. The customer is played by ${KEY ? 'live AI' : 'a scripted persona'}. Use the suggested lines or type your own.`);
+  $('pcChips').innerHTML = agentLines(p).map((l, i) => `<button type="button" class="chipb pre" data-l="${i}">${esc(l[0])}</button>`).join(''); renderPcScore(); }
+async function agentSay(text){ text = (text || '').trim(); if (!text || !PCS || PCS.busy) return; const p = PER[PI], st = STORY[PI]; PCS.busy = true;
+  PCS.hist.push({ role:'agent', text }); pcBubble('g', 'You · agent', esc(text)); renderPcScore();
+  const b = pcBubble('c', esc(p.name.split(' ')[0]), '<span class="dots"><span></span><span></span><span></span></span>'); let reply = null;
+  if (KEY){ try { reply = await openai([{ role:'system', content:`You are role-playing ${p.name}, a housing finance home-loan customer in ${p.city} (${p.seg}). Situation: ${p.st}; EMI ${inr(p.emi)}. Your story: ${st.story} Your date of birth is ${st.dob}. Reply in one or two short sentences of natural Indian English. Only explain your situation if the agent asks with some empathy. If the agent threatens you or mentions your employer, family or legal action, become upset and ask for the grievance officer. If offered a reasonable plan, agree and give a date. Never mention that you are an AI.` }, ...PCS.hist.map(m => ({ role: m.role === 'agent' ? 'user' : 'assistant', content: m.text }))], { onDelta: t => { b.innerHTML = `<div class="who">${esc(p.name.split(' ')[0])} · AI</div>${esc(t)}`; $('pcMsgs').scrollTop = $('pcMsgs').scrollHeight; } }); }
+    catch (err){ fail(err); } }
+  if (!reply){ await sleep(700); const scr = [`Yes, this is ${p.name.split(' ')[0]}. ${p.dpd ? 'Is this about the EMI? I know it is late.' : 'Is everything okay with my loan?'}`, `It's ${st.dob}.`, st.story, st.ask, 'Okay, that works. Thank you for understanding.'];
+    reply = rude(text) ? 'That is not okay. Please do not contact my office or my family. I want to speak to your grievance officer.' : (scr[PCS.turn] || 'Okay, thank you.'); if (!rude(text)) PCS.turn++;
+    b.innerHTML = `<div class="who">${esc(p.name.split(' ')[0])} · script</div>${esc(reply)}`; }
+  PCS.hist.push({ role:'customer', text: reply.trim() }); $('pcMsgs').scrollTop = $('pcMsgs').scrollHeight; PCS.busy = false; }
+$('pcChips').addEventListener('click', e => { const b = e.target.closest('[data-l]'); if (!b) return; agentSay(agentLines(PER[PI])[+b.dataset.l][1]); });
+$('pcF').addEventListener('submit', e => { e.preventDefault(); const v = $('pcI').value; $('pcI').value = ''; agentSay(v); });
+$('pcReset').addEventListener('click', resetPractice);
+$('pcEnd').addEventListener('click', async () => { if (!PCS || !PCS.hist.length){ toast('Say something to the customer first'); return; } const btn = $('pcEnd'), st = pcState(), okN = st.filter(Boolean).length; busy(btn, true, 'Reviewing…');
+  const box = document.createElement('div'); box.className = 'box'; $('pcFb').innerHTML = ''; $('pcFb').appendChild(box); let done = false;
+  if (KEY){ try { const tr = PCS.hist.map(m => (m.role === 'agent' ? 'Agent: ' : 'Customer: ') + m.text).join('\n');
+      await openai([{ role:'system', content:'You are a collections quality coach at an Indian home-loan lender. Review this call transcript for fair practice and effectiveness. Reply in this format: "**Score: N/10**", then "Went well:" with 2 or 3 bullets, "To improve:" with 2 bullets, then "Try saying:" with one better line in quotes. Be specific and brief.' }, { role:'user', content: tr }], { onDelta: t => { box.innerHTML = '<h6>✦ Coach feedback · ' + esc(MODEL) + '</h6>' + md(t); } }); done = true; }
+    catch (err){ fail(err); } }
+  if (!done){ const sc = Math.round(okN / PCK.length * 10), good = PCK.filter((c, i) => st[i]), bad = PCK.filter((c, i) => !st[i]), lines = agentLines(PER[PI]), fixLine = lines[Math.min(4, PCK.indexOf(bad[0]))];
+    box.innerHTML = `<h6>Coach feedback · template</h6>${md(`**Score: ${sc}/10**\nWent well:\n${good.length ? good.map(c => '- ' + c[0]).join('\n') : '- You started the conversation'}\nTo improve:\n${bad.length ? bad.slice(0, 3).map(c => '- ' + c[2]).join('\n') : '- Nothing major. Keep notes of the promised date.'}${bad.length && fixLine ? `\nTry saying: "${fixLine[1]}"` : ''}`)}`; }
+  busy(btn, false); });
+
+/* ======================================================================
+   IMPACT · CHORD + GAINS
+   ====================================================================== */
+function drawChord(){
+  const B = ['Current','1–30','31–60','61–90','90+'], BCOL = ['#8DB04A','#F2C14E','#F08A3E','#E5484D','#2B2F36'];
+  const MX = { before:[[0,420,0,0,0],[230,0,130,0,0],[25,40,0,70,0],[8,0,15,0,45],[4,0,0,6,0]], after:[[0,360,0,0,0],[265,0,101,0,0],[38,52,0,52,0],[12,0,22,0,34],[6,0,0,8,0]] };
+  const w = 520, h = 460, or = 160, ir = 146, s = d3.select('#chord').append('svg').attr('viewBox', `${-w / 2} ${-h / 2} ${w} ${h}`).attr('role','img').attr('aria-label','Chord diagram of monthly account movement between days-past-due buckets, before and after');
+  const chord = d3.chordDirected().padAngle(.06).sortSubgroups(d3.descending), ribbon = d3.ribbonArrow().radius(ir - 2).padAngle(1 / ir).headRadius(10), arc = d3.arc().innerRadius(ir).outerRadius(or);
+  const gR = s.append('g'), gG = s.append('g'), gL = s.append('g'), ctr = s.append('g');
+  ctr.attr('transform', `translate(${-w / 2 + 6},${-h / 2 + 4})`);
+  ctr.append('text').attr('y', 12).attr('text-anchor','start').attr('font-size', 11).attr('font-weight', 800).attr('fill','#5F6470').attr('letter-spacing','.08em').text('1–30 → 31–60');
+  const cn = ctr.append('text').attr('y', 46).attr('text-anchor','start').attr('font-family','DM Serif Display, Georgia, serif').attr('font-size', 36).attr('fill','#17191F');
+  ctr.append('text').attr('y', 62).attr('text-anchor','start').attr('font-size', 10.5).attr('fill','#5F6470').text('per 10,000 a month');
+  const key = c => c.source.index + '-' + c.target.index;
+  function upd(k){ const C = chord(MX[k]);
+    gR.selectAll('path').data(C, key).join(en => en.append('path').attr('opacity', 0).each(function(d){ this.__c = d; }))
+      .attr('fill', c => c.target.index > c.source.index ? '#E5484D' : '#5E8C14').attr('stroke','#fff').attr('stroke-width', .5)
+      .on('mousemove', (ev, c) => showTip(`<div class="t">${B[c.source.index]} → ${B[c.target.index]}</div><b>${MX[k][c.source.index][c.target.index]}</b> accounts per 10,000<br>${c.target.index > c.source.index ? 'Rolled forward' : 'Cured or moved back'}`, ev)).on('mouseleave', hideTip)
+      .transition().duration(DUR + 200).attr('opacity', .72).attrTween('d', function(d){ const i = d3.interpolate(this.__c || d, d); this.__c = d; return t => ribbon(i(t)); });
+    gG.selectAll('path').data(C.groups, g => g.index).join(en => en.append('path').each(function(d){ this.__g = d; })).attr('fill', g => BCOL[g.index])
+      .transition().duration(DUR + 200).attrTween('d', function(d){ const i = d3.interpolate(this.__g || d, d); this.__g = d; return t => arc(i(t)); });
+    gL.selectAll('text').data(C.groups, g => g.index).join('text').attr('font-size', 12).attr('font-weight', 800).attr('fill','#17191F').text(g => B[g.index])
+      .transition().duration(DUR + 200).attr('transform', g => { const a = (g.startAngle + g.endAngle) / 2 - Math.PI / 2; return `translate(${Math.cos(a) * (or + 16)},${Math.sin(a) * (or + 16) + 4})`; })
+      .attr('text-anchor', g => { const a = (g.startAngle + g.endAngle) / 2; return a > .15 && a < Math.PI - .15 ? 'start' : a > Math.PI + .15 && a < 2 * Math.PI - .15 ? 'end' : 'middle'; });
+    const from = +(cn.text() || MX[k][1][2]); cn.attr('fill', k === 'after' ? '#4E7A0F' : '#17191F').transition().duration(DUR + 200).tween('text', function(){ const i = d3.interpolateRound(from, MX[k][1][2]); return t => this.textContent = i(t); }); }
+  upd('after'); segBind('ch2', upd);
+}
+function drawGains(){
+  const w = 520, h = 400, m = { t: 20, r: 18, b: 44, l: 46 }, s = d3.select('#gains').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Cumulative gains curve: share of future slippages caught by working the riskiest accounts first, before and after');
+  const x = d3.scaleLinear().domain([0, 1]).range([m.l, w - m.r]), y = d3.scaleLinear().domain([0, 1]).range([h - m.b, m.t]), P = d3.format('.0%');
+  s.append('g').attr('class','grid').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickSize(-(w - m.l - m.r)).tickFormat(''));
+  s.append('g').attr('class','axis').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickFormat(P).tickSize(0).tickPadding(6));
+  s.append('g').attr('class','axis').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(5).tickFormat(P).tickSize(0).tickPadding(8));
+  s.append('text').attr('x', (m.l + w - m.r) / 2).attr('y', h - 6).attr('text-anchor','middle').attr('font-size', 11).attr('fill','#5F6470').text('Share of accounts worked, riskiest first');
+  s.append('text').attr('transform', `translate(12,${(m.t + h - m.b) / 2}) rotate(-90)`).attr('text-anchor','middle').attr('font-size', 11).attr('fill','#5F6470').text('Share of slippages caught');
+  const X = range(51).map(i => i / 50), C = { before: X.map(v => [v, 1 - Math.pow(1 - v, 2.4)]), after: X.map(v => [v, 1 - Math.pow(1 - v, 6.5)]) };
+  s.append('line').attr('x1', x(0)).attr('y1', y(0)).attr('x2', x(1)).attr('y2', y(1)).attr('stroke','#5F6470').attr('stroke-dasharray','4 4').attr('opacity', .6);
+  const area = s.append('path').attr('opacity', .16), L = d3.line().x(d => x(d[0])).y(d => y(d[1])).curve(d3.curveMonotoneX), A = d3.area().x(d => x(d[0])).y0(y(0)).y1(d => y(d[1])).curve(d3.curveMonotoneX);
+  const pb = s.append('path').datum(C.before).attr('fill','none').attr('d', L), pa = s.append('path').datum(C.after).attr('fill','none').attr('d', L);
+  const vl = s.append('line').attr('x1', x(.2)).attr('x2', x(.2)).attr('y1', y(0)).attr('stroke','#17191F').attr('stroke-dasharray','2 3');
+  const dot = s.append('circle').attr('r', 6).attr('cx', x(.2)).attr('stroke','#fff').attr('stroke-width', 2);
+  const lab = s.append('text').attr('font-size', 12).attr('font-weight', 800).attr('x', x(.2) + 10);
+  const ov = s.append('rect').attr('x', m.l).attr('y', m.t).attr('width', w - m.l - m.r).attr('height', h - m.t - m.b).attr('fill','transparent');
+  let cur = 'after';
+  ov.on('mousemove', ev => { const [px] = d3.pointer(ev), v = clamp(x.invert(px), 0, 1), f = k => 1 - Math.pow(1 - v, k === 'before' ? 2.4 : 6.5); showTip(`<div class="t">Top ${P(v)} of accounts</div>Rules list catches <b>${P(f('before'))}</b><br>Early-warning score catches <b>${P(f('after'))}</b>`, ev); }).on('mouseleave', hideTip);
+  function upd(k){ cur = k; const on = k === 'after' ? pa : pb, off = k === 'after' ? pb : pa, col = k === 'after' ? '#5E8C14' : '#7D828D', v = C[k][10][1];
+    off.transition().duration(DUR / 2).attr('stroke','#C3C7CE').attr('stroke-width', 2).attr('stroke-dasharray','6 5');
+    const len = on.node().getTotalLength(); on.attr('stroke', col).attr('stroke-width', 3.5).attr('stroke-dasharray', `${len} ${len}`).attr('stroke-dashoffset', reduce ? 0 : len).transition().duration(DUR + 500).attr('stroke-dashoffset', 0).on('end', function(){ d3.select(this).attr('stroke-dasharray', null); });
+    area.datum(C[k]).attr('fill', col).transition().duration(DUR).attr('d', A);
+    vl.transition().duration(DUR).attr('y2', y(v)); dot.attr('fill', col).transition().duration(DUR).attr('cy', y(v));
+    lab.attr('fill', col).transition().duration(DUR).attr('y', y(v) + 18).tween('text', function(){ const i = d3.interpolate(+(this.__v || 0), v); this.__v = v; return t => this.textContent = `Top 20% of accounts → ${P(i(t))} of slippages`; }); }
+  upd('after'); segBind('gn', upd);
+}
+
+/* boot */
+if (hasD3){
+  renderEWS(false); whenVisible($('ewsModule'), () => { if (!reduce){ M = 0; renderEWS(true); setTimeout(startPlay, 700); } });
+  buildGraph(); paint(); renderFr(); whenVisible($('frModule'), () => setTimeout(runDetect, 500));
+  renderCo(false);
+  whenVisible($('chord'), drawChord); whenVisible($('gains'), drawGains);
+}
+renderPers(); renderRpChips(); segSet('tn', TN); setMode(); whenVisible($('cpModule'), () => generate()); $('draft').value = compose(PER[0], CH, LG, TN); renderLint();
+window.__pr = { parseAsk, matchF, rpOffline, get FILTER(){ return FILTER; }, ACC, score, ewsStats, get M(){ return M; }, set M(v){ M = v; renderEWS(false); }, APPS, LINKS, detect, CO, allocate, lint, compose, PER };
+})();
+</script>
+</body>
+</html>

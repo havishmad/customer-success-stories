@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lighting and Electrical Distributor · Project Pipeline &amp; Tender Win-Rate | HMC Case Study</title>
+<meta name="description" content="A use case built by the distributor's sales leaders in HMC's GenAI programme: a live map of UAE construction projects, an animated pipeline board, a bid optimiser that finds the discount sweet spot, and a GenAI tender brief.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+:root{
+  --pri:#0FA3A8; --deep:#102A43; --acc:#F25F5C; --sand:#F3E9DC; --bad:#D64545; --good:#1F9D63; --warn:#F2A60C;
+  --bg:#F3F7F8; --text:#13232F; --muted:#5B6B78; --card:#FFFFFF; --line:#DCE6EA;
+  --pri-15:rgba(15,163,168,.11); --acc-15:rgba(242,95,92,.13);
+  --radius:12px; --shadow:0 1px 2px rgba(16,42,67,.06),0 8px 24px rgba(16,42,67,.08);
+  --serif:"DM Serif Display",Georgia,serif; --sans:"DM Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif; --mono:ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--serif);font-weight:400;color:var(--deep);margin:0;line-height:1.15}
+h2{font-size:clamp(1.6rem,3.2vw,2.2rem)}
+h3{font-size:1.2rem}
+p{margin:0}
+.wrap{max-width:1260px;margin:0 auto;padding:0 24px}
+section{padding:64px 0}
+.eyebrow{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--pri);margin-bottom:10px}
+.lead{color:var(--muted);max-width:800px;margin-top:12px}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line)}
+.sec-head{margin-bottom:28px}
+.alt{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.topbar{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+.logos{display:flex;align-items:center;gap:16px}
+.logos img{height:44px;width:auto;object-fit:contain}
+.logos img.cl{height:30px}
+.vdiv{width:1px;height:36px;background:var(--line)}
+.tagline{font-size:.8rem;color:var(--muted);letter-spacing:.04em}
+.tagline b{color:var(--pri);font-weight:700}
+.hero{background:radial-gradient(120% 140% at 88% 0%,#4A2470 0%,#2A1446 45%,#120821 100%);color:#fff;padding:76px 0 70px;position:relative;overflow:hidden}
+.hero canvas{position:absolute;right:0;top:0;width:58%;height:100%;pointer-events:none}
+.hero .eyebrow{color:#7FE3E6}
+.hero h1{color:#fff;font-size:clamp(2.3rem,5.4vw,3.8rem);max-width:720px;position:relative;z-index:1}
+.hero h1 em{font-style:normal;color:#7FE3E6}
+.hero .sub{font-size:clamp(1.05rem,2vw,1.2rem);color:rgba(255,255,255,.86);max-width:640px;margin-top:18px;position:relative;z-index:1}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px;position:relative;z-index:1}
+.pill{border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:6px 14px;font-size:.85rem;color:#fff;background:rgba(255,255,255,.06)}
+.pill span{color:#7FE3E6;font-weight:700;margin-right:6px}
+.kpis{margin-top:-30px;position:relative;z-index:2;padding:0}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi{padding:22px 20px;border-top:3px solid var(--acc)}
+.kpi .label{font-size:.82rem;color:var(--muted);font-weight:500}
+.kpi .val{font-family:var(--serif);font-size:clamp(1.9rem,4vw,2.6rem);color:var(--pri);line-height:1.1;margin-top:6px;white-space:nowrap}
+.kpi .val small{font-family:var(--sans);font-size:.9rem;color:var(--muted);margin-left:4px}
+.delta{display:inline-flex;align-items:center;gap:4px;font-size:.8rem;font-weight:700;margin-top:8px;padding:2px 8px;border-radius:999px;background:rgba(31,166,122,.1);color:var(--good)}
+.footnote{font-size:.78rem;color:var(--muted);margin-top:14px}
+.ch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.chc{padding:24px}
+.ico{width:44px;height:44px;border-radius:10px;background:var(--pri-15);display:grid;place-items:center;margin-bottom:16px}
+.ico svg{width:22px;height:22px;stroke:var(--pri);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.chc h3{margin-bottom:8px}
+.chc p{font-size:.92rem;color:#433A52}
+.tl{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.tl::before{content:"";position:absolute;left:10%;right:10%;top:27px;height:3px;background:linear-gradient(90deg,var(--pri),var(--acc));border-radius:2px;opacity:.55}
+.tl-step{position:relative;background:none;border:0;cursor:pointer;font:inherit;color:inherit;display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 4px 8px}
+.tl-dot{width:56px;height:56px;border-radius:50%;background:#fff;border:2px solid var(--line);display:grid;place-items:center;font-family:var(--serif);font-size:1.25rem;color:var(--pri);transition:all .25s;position:relative;z-index:1}
+.tl-name{font-weight:700;font-size:.95rem}
+.tl-dur{font-size:.75rem;color:var(--muted);margin-top:-8px}
+.tl-step:hover .tl-dot{border-color:var(--pri)}
+.tl-step[aria-expanded="true"] .tl-dot{background:var(--pri);border-color:var(--pri);color:#fff;box-shadow:0 0 0 6px var(--pri-15)}
+.tl-step:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:8px}
+.tl-panel{display:none;padding:24px 28px;margin-top:20px;border-left:4px solid var(--acc)}
+.tl-panel.open{display:block;animation:fadeUp .35s ease}
+.tl-panel h3{margin-bottom:6px}
+.tl-panel ul{margin:12px 0 0;padding-left:20px;color:#433A52}
+.tl-panel li{margin:6px 0}
+.tl-panel .deliv{margin-top:14px;font-size:.85rem;color:var(--muted)}
+.tl-panel .deliv b{color:var(--pri)}
+.tl-hint{text-align:center;color:var(--muted);font-size:.8rem;margin-top:6px}
+.seg{display:inline-flex;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:22px;padding:4px;gap:4px}
+.seg button{border:0;background:none;font:inherit;font-size:.82rem;font-weight:700;padding:6px 13px;border-radius:999px;cursor:pointer;color:var(--muted);transition:all .2s}
+.seg button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.seg button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.seg.sm button{font-size:.76rem;padding:5px 10px}
+.mod-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.mod-head h3{font-size:1.5rem}
+.mod-head p{font-size:.88rem;color:var(--muted);max-width:720px;margin-top:4px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--deep);color:#7FE3E6;font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:8px}
+.module{margin-bottom:54px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 12px;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer;color:var(--deep);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:border-color .15s,color .15s,background .15s}
+.btn:hover{border-color:var(--pri);color:var(--pri)}
+.btn.go{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.go:hover{background:#178A65;color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+
+
+.logos img.cl{height:42px}
+.hero{background:radial-gradient(120% 140% at 82% 0%,#145E73 0%,#102A43 48%,#081624 100%)}
+.hero .eyebrow,.hero .pill span{color:#7FE3E6}
+.hero h1 em{color:#FF8E8B;font-style:italic}
+.badge{color:#7FE3E6}
+.kpi{border-top:3px solid var(--pri)}
+.chc p,.tl-panel ul,.tk p{color:#3D4D5A}
+.tl::before{background:linear-gradient(90deg,var(--pri),var(--acc))}
+.module .btn.go,.btn.go{background:var(--deep);border-color:var(--deep);color:#fff}
+.module .btn.go:hover,.btn.go:hover{background:#0A1C2E;color:#fff}
+.chart svg{width:100%;height:auto;display:block}
+.axis text{font-family:var(--sans);font-size:11px;fill:var(--muted)}
+.axis line{stroke:var(--line)} .axis path{display:none}
+.grid line{stroke:var(--line);stroke-dasharray:2 3} .grid path{display:none}
+.ckey{display:flex;gap:12px;font-size:.74rem;color:var(--muted);margin-top:6px;flex-wrap:wrap}
+.ckey span{display:inline-flex;align-items:center;gap:6px}
+.ckey i{width:12px;height:12px;border-radius:50%;display:inline-block}
+.panel2{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);overflow:hidden}
+.p-main{padding:14px;min-width:0;border-right:1px solid var(--line)}
+.p-side{padding:14px;background:#F7FAFB;display:flex;flex-direction:column;gap:10px;min-width:0}
+.p-side h4,.p-main h4,h4.lbl{margin:0;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.chipb{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;font:700 .74rem var(--sans);color:var(--deep);cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.chipb:hover{border-color:var(--pri)}
+.chipb.on{background:var(--deep);border-color:var(--deep);color:#fff}
+.chipb i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.bar b{font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+.ms{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.ms .k{font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.ms .v{font-family:var(--serif);font-size:1.3rem;color:var(--deep);line-height:1.15;font-variant-numeric:tabular-nums}
+.ms.a .v{color:var(--good)} .ms.b .v{color:var(--bad)} .ms.o .v{color:var(--pri)}
+.mstat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.mstat.m4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.rng{display:flex;flex-direction:column;gap:3px;min-width:0}
+.rng .t{display:flex;justify-content:space-between;font-size:.76rem;font-weight:700;color:var(--deep);gap:8px}
+.rng .t b{color:var(--pri);font-variant-numeric:tabular-nums;white-space:nowrap}
+.rng input{width:100%;accent-color:var(--pri)}
+.player{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.player .rng{flex:1;min-width:220px}
+.player .mo{font-family:var(--serif);font-size:1.5rem;color:var(--deep);min-width:96px}
+/* map */
+#map .proj{cursor:pointer}
+#map .pulse{fill:none;stroke-width:2;animation:pulse 1.8s ease-out infinite;pointer-events:none}
+@keyframes pulse{from{r:4;opacity:.9}to{r:22;opacity:0}}
+#map .city{font:700 10px var(--sans);fill:#5B6B78;pointer-events:none;letter-spacing:.04em}
+.detail{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:.8rem}
+.detail h5{margin:0 0 2px;font:400 1.15rem var(--serif);color:var(--deep)}
+.detail .meta{color:var(--muted);font-size:.74rem;margin-bottom:8px}
+.detail table{width:100%;border-collapse:collapse}
+.detail td{padding:4px 0;border-bottom:1px dashed var(--line)}
+.detail td:last-child{text-align:right;font-weight:700;color:var(--deep)}
+.stg{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.66rem;font-weight:800;color:#fff}
+/* kanban */
+.kb{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.kcol{background:#F5F8FA;border:1px solid var(--line);border-radius:10px;padding:8px;min-height:300px;display:flex;flex-direction:column;gap:6px}
+.kcol h5{margin:0;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--deep);display:flex;justify-content:space-between;gap:4px}
+.kcol h5 b{color:var(--muted);font-weight:700}
+.kcol .sum{font-family:var(--serif);font-size:1.05rem;color:var(--deep)}
+.kc{background:#fff;border:1px solid var(--line);border-left:4px solid var(--pri);border-radius:7px;padding:5px 7px;font-size:.68rem;line-height:1.25;cursor:pointer;box-shadow:0 1px 2px rgba(16,42,67,.05)}
+.kc b{display:block;font-size:.7rem;color:var(--deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kc span{color:var(--muted)}
+.kc.sel{outline:2px solid var(--acc)}
+.more{font-size:.66rem;color:var(--muted);text-align:center}
+/* heat matrix */
+.hm td,.hm th{font-size:.7rem;text-align:center;padding:0}
+.hm{border-collapse:separate;border-spacing:3px;width:100%}
+.hm th{color:var(--muted);font-weight:700;padding:2px}
+.hm td{height:30px;border-radius:5px;font-weight:800;cursor:pointer;transition:transform .15s}
+.hm td:hover{transform:scale(1.06)}
+.hm td.on{outline:2px solid var(--deep)}
+/* brief */
+.tenders{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.tcard{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff;cursor:pointer;transition:all .2s;text-align:left;font:inherit;color:inherit}
+.tcard:hover{border-color:var(--pri)}
+.tcard.on{border-color:var(--deep);box-shadow:0 0 0 3px rgba(15,163,168,.18)}
+.tcard h6{margin:0 0 4px;font-size:.86rem;color:var(--deep)}
+.tcard p{margin:0;font-size:.74rem;color:var(--muted)}
+.tcard .val{font-family:var(--serif);font-size:1.2rem;color:var(--deep);margin-top:6px}
+.pipe{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.pipe span{font-size:.7rem;font-weight:800;padding:4px 10px;border-radius:999px;background:#EEF3F5;color:#8395A3;transition:all .3s}
+.pipe span.run{background:var(--pri);color:#fff}
+.pipe span.ok{background:#DDF3E8;color:#167A4C}
+.memo{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;font-size:.84rem;line-height:1.6;min-height:260px}
+.memo .who{font-size:.66rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--pri);margin-bottom:6px}
+.memo h6{margin:10px 0 2px;font:800 .72rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--deep)}
+.caret{display:inline-block;width:7px;height:1em;background:var(--pri);vertical-align:-2px;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:.2}50%{opacity:1}}
+.comp{display:grid;grid-template-columns:minmax(0,1fr) 54px 60px;gap:6px;font-size:.74rem;padding:6px 0;border-bottom:1px dashed var(--line);align-items:center;animation:fadeUp .3s ease}
+.comp b{color:var(--deep)}
+.out{font-weight:800;font-size:.66rem;border-radius:999px;padding:2px 6px;text-align:center}
+.out.w{background:#DDF3E8;color:#167A4C} .out.l{background:#FBE1E1;color:#A32F2F}
+.sim{height:6px;border-radius:3px;background:#E6EEF1;overflow:hidden}
+.sim i{display:block;height:100%;background:var(--pri)}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.cmp-head{display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+.cmp{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.cmp th,.cmp td{padding:16px 18px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);font-size:.92rem;overflow-wrap:anywhere}
+.cmp thead th{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);background:#F6FAFB}
+.cmp tbody tr:last-child td,.cmp tbody tr:last-child th{border-bottom:0}
+.cmp tbody th{font-weight:700;color:var(--pri)}
+.cmp col.c1{width:22%}
+.cmp td{transition:background .3s,opacity .3s,color .3s}
+.cmp.hl-before td.b{background:#FCEEF3;color:#7A1236}
+.cmp.hl-before td.a{opacity:.38}
+.cmp.hl-after td.a{background:#ECF8F3;color:#0E4F39;font-weight:500}
+.cmp.hl-after td.b{opacity:.38}
+.cmp.hl-after thead th.a{color:var(--acc)}
+.cmp.hl-before thead th.b{color:var(--bad)}
+.tchips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:.9rem;font-weight:500;display:inline-flex;align-items:center;gap:8px}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 3px var(--acc-15)}
+.chip em{font-style:normal;color:var(--muted);font-weight:400;font-size:.82rem}
+.tk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.tk{padding:26px}
+.tk .n{font-family:var(--serif);font-size:2.6rem;color:var(--acc);line-height:1}
+.tk h3{margin:12px 0 8px}
+.tk p{font-size:.92rem;color:#433A52}
+footer{background:var(--deep);color:rgba(255,255,255,.75);padding:48px 0 32px;margin-top:32px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px}
+.f-brand{display:flex;align-items:center;gap:16px}
+.f-brand img{height:44px;width:auto;border-radius:6px;background:#fff;padding:4px}
+.f-brand b{display:block;color:#fff;font-family:var(--serif);font-weight:400;font-size:1.15rem}
+.copy{width:100%;border-top:1px solid rgba(255,255,255,.12);padding-top:18px;font-size:.8rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+#tip{position:fixed;pointer-events:none;z-index:95;background:var(--deep);color:#fff;font-size:.8rem;line-height:1.45;padding:10px 12px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transition:opacity .15s;max-width:300px}
+#tip b{color:#7DE3BE;font-weight:700}
+#tip .t{font-weight:700;font-size:.85rem;margin-bottom:2px;color:#fff}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.cmp.hl-after td.a{background:#E5F5F5;color:#102A43}
+.chip i{background:var(--acc);box-shadow:0 0 0 3px rgba(242,95,92,.18)}
+.tk .n{color:var(--pri)}
+#tip b{color:#7FE3E6}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.js .reveal{opacity:1;transform:none;transition:none}#map .pulse{animation:none;display:none}.comp,.tl-panel.open{animation:none}}
+@media (max-width:1100px){.panel2{grid-template-columns:minmax(0,1fr)}.p-main{border-right:0;border-bottom:1px solid var(--line)}.kb{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:980px){.kpi-grid,.ch-grid{grid-template-columns:repeat(2,1fr)}.dash{grid-template-columns:1fr}.tk-grid{grid-template-columns:1fr}.hero canvas{width:100%;opacity:.35}.tenders{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:640px){
+  .wrap{padding:0 16px} section{padding:48px 0} .hero{padding:52px 0 56px} .logos img{height:34px} .logos img.cl{height:32px} .vdiv{height:28px}
+  .kpi-grid{gap:10px} .kpi{padding:16px 14px} .ch-grid{grid-template-columns:1fr}
+  .tl::before{top:19px} .tl-dot{width:40px;height:40px;font-size:1rem} .tl-name{font-size:.75rem} .tl-dur{display:none} .tl-panel{padding:18px}
+  .mstat,.mstat.m4{grid-template-columns:repeat(2,minmax(0,1fr))} .kb{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sx{overflow-x:auto;-webkit-overflow-scrolling:touch} .sx svg{min-width:540px} .hmw{overflow-x:auto}
+  .cmp th,.cmp td{padding:12px 10px;font-size:.82rem} .cmp thead th{font-size:.68rem;letter-spacing:.08em} .chart-card{padding:14px}
+}
+@media print{
+  body{background:#fff;font-size:12px} .topbar{position:static}
+  .hero{background:#102A43!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:36px 0} .hero canvas{display:none}
+  .card{box-shadow:none;break-inside:avoid} section{padding:28px 0} .js .reveal{opacity:1!important;transform:none!important}
+  .seg,.tl-hint,.btn,.rng input{display:none!important} .tl-panel{display:block!important;margin-top:10px} #tip{display:none}
+  footer{background:#fff;color:var(--text)} footer .f-brand b{color:var(--deep)} .kpis{margin-top:16px}
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="logos">
+      <img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting">
+    </div>
+    <div class="tagline">Customer Case Study · <b>Sales &amp; Projects · Tender Intelligence</b></div>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas id="heroCv" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="eyebrow">Lighting and Electrical Distributor × Havish M Consulting</div>
+    <h1>Win the right projects, <em>at the right price</em></h1>
+    <p class="sub">In HMC's GenAI programme, the distributor's sales and projects leaders built a pipeline radar for the UAE construction market: every live project on one map, an animated pipeline board, a bid optimiser that finds the discount sweet spot, and a GenAI tender brief that turns a new enquiry into a bid plan.</p>
+    <div class="pills">
+      <span class="pill"><span>Client</span>Lighting and Electrical Distributor</span>
+      <span class="pill"><span>Function</span>Sales &amp; Projects</span>
+      <span class="pill"><span>Theme</span>Pipeline &amp; Tender Intelligence · GenAI use case</span>
+    </div>
+  </div>
+</section>
+
+<section class="kpis">
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="card kpi reveal"><div class="label">Live projects on the radar</div><div class="val"><span class="count" data-to="140">0</span><small>projects</small></div><div class="delta">across seven emirates and seven segments</div></div>
+      <div class="card kpi reveal"><div class="label">Tender win rate</div><div class="val"><span class="count" data-to="31">0</span><small>%</small></div><div class="delta">▲ from 24% before the use case</div></div>
+      <div class="card kpi reveal"><div class="label">Average discount on won bids</div><div class="val"><span class="count" data-to="3.5" data-dp="1">0</span><small>pts lower</small></div><div class="delta">price where it wins, not everywhere</div></div>
+      <div class="card kpi reveal"><div class="label">Time to a tender brief</div><div class="val"><span class="count" data-to="2">0</span><small>hours</small></div><div class="delta">from about two days</div></div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="challenge">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Challenge</div>
+      <h2>Lighting is won or lost long before the tender</h2>
+      <p class="lead">In projects business, the brand a consultant specifies, the contractor who buys and the discount offered decide the outcome. The distributor's leaders wanted to see the whole pipeline and bid with evidence, not instinct.</p>
+    </div>
+    <div class="ch-grid">
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></div><h3>Pipeline in many heads</h3><p>Project leads sat with individual salespeople and spreadsheets, with no single view across emirates.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h10M4 17h6"/></svg></div><h3>Specification blind spots</h3><p>Which consultants specify the distributor's brands, and where competitors are written in, was not tracked.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M19 5L5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/></svg></div><h3>Discounting by habit</h3><p>Deep discounts were given to win, even where specification meant the order was likely anyway.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div><h3>Slow tender preparation</h3><p>Reading tender packs and finding comparable past bids took days for each enquiry.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="approach" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">HMC Approach</div>
+      <h2>A programme use case, built by the people who sell</h2>
+      <p class="lead">Developed by the distributor's sales and projects leaders during the GenAI programme, with HMC coaching the build.</p>
+    </div>
+    <div class="tl reveal" aria-label="HMC approach steps">
+      <button class="tl-step" aria-expanded="true" aria-controls="tp0"><span class="tl-dot">1</span><span class="tl-name">Discover</span><span class="tl-dur">Workshop 1</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp1"><span class="tl-dot">2</span><span class="tl-name">Design</span><span class="tl-dur">Workshop 2</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp2"><span class="tl-dot">3</span><span class="tl-name">Build</span><span class="tl-dur">Hackathon</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp3"><span class="tl-dot">4</span><span class="tl-name">Adopt</span><span class="tl-dur">Weekly review</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp4"><span class="tl-dot">5</span><span class="tl-name">Scale</span><span class="tl-dur">Roadmap</span></button>
+    </div>
+    <p class="tl-hint">Select a step to see what happened.</p>
+    <div class="card tl-panel open" id="tp0"><h3>Discover · What wins a lighting package?</h3><p>Leaders mapped the decision.</p><ul><li>Who specifies, who buys, who approves alternatives.</li><li>Where the distributor wins and loses today, and why.</li><li>The questions they want answered every Monday.</li></ul><p class="deliv"><b>Deliverable:</b> Win-loss hypotheses.</p></div>
+    <div class="card tl-panel" id="tp1"><h3>Design · Pipeline model and bid logic</h3><p>Turned hypotheses into a model.</p><ul><li>Project stages from specification to supply.</li><li>Win probability by discount, specification and segment.</li><li>A tender brief template GenAI fills from the documents.</li></ul><p class="deliv"><b>Deliverable:</b> Data model and prompt templates.</p></div>
+    <div class="card tl-panel" id="tp2"><h3>Build · Radar, optimiser, brief</h3><p>Built with GenAI-assisted coding in the hackathon.</p><ul><li>Map and pipeline board.</li><li>Bid optimiser trained on past tenders.</li><li>GenAI tender brief with comparable bids.</li></ul><p class="deliv"><b>Deliverable:</b> Working prototype.</p></div>
+    <div class="card tl-panel" id="tp3"><h3>Adopt · Monday pipeline review</h3><p>Into the sales rhythm.</p><ul><li>One screen for the weekly review.</li><li>Every bid above a threshold run through the optimiser.</li><li>Briefs drafted before the bid meeting.</li></ul><p class="deliv"><b>Deliverable:</b> Review cadence.</p></div>
+    <div class="card tl-panel" id="tp4"><h3>Scale · Earlier in the cycle</h3><p>Where the next gains are.</p><ul><li>Consultant engagement plans to get specified.</li><li>Win-loss reasons captured on every tender.</li><li>Connection to CRM and ERP data.</li></ul><p class="deliv"><b>Deliverable:</b> Six-month roadmap item.</p></div>
+  </div>
+</section>
+
+<section id="solution">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Solution</div>
+      <h2>See the pipeline, price the bid, brief the team</h2>
+      <p class="lead">Four working modules on one synthetic year of UAE projects. Press play to watch the year unfold.</p>
+    </div>
+
+    <div class="module reveal" id="mapModule">
+      <div class="mod-head"><div><div class="badge">01 · Pipeline radar</div><h3>Every live project in the UAE, by stage</h3><p>Bubble size is the lighting package value, colour is the stage. Play the year, filter by segment, scroll or pinch to zoom into Dubai, and click any project for its details and a GenAI next-step.</p></div></div>
+      <div class="player"><button class="btn go" id="play" type="button">▶ Play the year</button><span class="mo" id="moV">Jan</span><div class="rng"><div class="t"><span>Month</span><b id="moN"></b></div><input type="range" id="mo" min="0" max="11" value="11" aria-label="Month"></div></div>
+      <div class="bar" id="segBar"></div>
+      <div class="card panel2">
+        <div class="p-main"><div class="chart" id="map"></div><div class="ckey" id="stKey"></div></div>
+        <div class="p-side">
+          <div class="mstat" id="mapK"></div>
+          <h4>By emirate</h4><div class="chart" id="emi"></div>
+          <div id="detail"></div>
+        </div>
+      </div>
+      <p class="footnote">Synthetic projects, values, consultants and contractors; locations approximate. Boundaries: Natural Earth.</p>
+    </div>
+
+    <div class="module reveal" id="kbModule">
+      <div class="mod-head"><div><div class="badge">02 · Pipeline board</div><h3>Watch projects move from specified to supplied</h3><p>The same year as a board. Cards slide between stages as the month advances; column totals show the lighting value at each stage. Click a card to see it on the map.</p></div></div>
+      <div class="card" style="padding:14px"><div class="kb" id="kb"></div></div>
+    </div>
+
+    <div class="module reveal" id="bdModule">
+      <div class="mod-head"><div><div class="badge">03 · Bid optimiser</div><h3>Find the discount that maximises expected margin</h3><p>A win-probability model fitted on 260 past tenders. Choose the context, slide the discount, and see win probability, margin and expected gross profit. The heat-map shows win rates by consultant and segment; click a cell to use that context.</p></div></div>
+      <div class="card panel2">
+        <div class="p-main">
+          <div class="bar"><b>Segment</b><select id="bdSeg" class="chipb" style="padding:5px 8px"></select><b style="margin-left:6px">Specification</b><span id="bdSpec"></span></div>
+          <div class="chart" id="curve"></div>
+          <div class="ckey"><span><i style="background:#1F9D63"></i>Won tender</span><span><i style="background:#D64545"></i>Lost tender</span><span><i style="background:#0FA3A8;border-radius:2px;height:3px;width:16px"></i>Win probability (fitted)</span><span><i style="background:#F25F5C;border-radius:2px;height:3px;width:16px"></i>Expected gross profit</span></div>
+        </div>
+        <div class="p-side">
+          <div class="rng"><div class="t"><span>Discount offered</span><b id="dV"></b></div><input type="range" id="disc" min="0" max="25" step=".5" value="14" aria-label="Discount offered"></div>
+          <div class="rng"><div class="t"><span>Package value</span><b id="pvV"></b></div><input type="range" id="pv" min="0.5" max="10" step=".5" value="3" aria-label="Package value AED million"></div>
+          <div class="mstat" id="bdK" style="grid-template-columns:repeat(2,minmax(0,1fr))"></div>
+          <h4>Win rate · consultant × segment</h4><div class="hmw"><table class="hm" id="hm"></table></div>
+        </div>
+      </div>
+      <p class="footnote">Synthetic past tenders; logistic model fitted in the page.</p>
+    </div>
+
+    <div class="module reveal" id="tbModule" style="margin-bottom:0">
+      <div class="mod-head"><div><div class="badge">04 · GenAI tender brief</div><h3>From enquiry to bid plan in one pass</h3><p>Pick an incoming tender. The assistant reads the enquiry, retrieves comparable past bids, scores win probability with the bid model, and drafts the brief for the bid meeting.</p></div>
+        <button class="btn go" id="tbRun" type="button">✦ Generate brief</button></div>
+      <div class="tenders" id="tenders"></div>
+      <div class="card panel2">
+        <div class="p-main"><div class="pipe" id="pipe"></div><div class="memo" id="brief"><div class="who">✦ Tender assistant</div><span style="color:var(--muted)">Pick a tender and press "Generate brief".</span></div></div>
+        <div class="p-side"><h4>Comparable past tenders</h4><div id="comps"><p style="font-size:.78rem;color:var(--muted);margin:0">Retrieved comparables appear here, ranked by similarity.</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="impact" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Impact Dashboard</div>
+      <h2>Specified earlier, priced smarter</h2>
+      <p class="lead">With the pipeline visible and bids priced on evidence, discounts tightened where specification already favoured the distributor, and effort moved upstream to consultants.</p>
+    </div>
+    <div class="dash">
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>The distributor's rank among lighting suppliers</h3><p class="sub">By segment, share of awarded lighting value, quarter by quarter</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-bp="before" aria-pressed="false">Before</button><button type="button" data-bp="after" aria-pressed="true">After</button></div></div>
+        <div class="chart" id="bump"></div>
+      </div>
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>Discount on won bids</h3><p class="sub">Distribution by segment</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-rg="before" aria-pressed="false">Before</button><button type="button" data-rg="after" aria-pressed="true">After</button></div></div>
+        <div class="chart" id="ridge"></div>
+      </div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <div class="cmp-head reveal"><div><div class="eyebrow">Before vs After</div><h2>How projects are pursued now</h2></div>
+      <div class="seg" role="group" aria-label="Highlight column"><button type="button" data-hl="before" aria-pressed="false">Before</button><button type="button" data-hl="after" aria-pressed="true">After</button></div></div>
+    <div class="card reveal" style="overflow:hidden">
+      <table class="cmp hl-after" id="cmp"><colgroup><col class="c1"><col><col></colgroup>
+        <thead><tr><th scope="col">Dimension</th><th scope="col" class="b">Before</th><th scope="col" class="a">After</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Pipeline view</th><td class="b">Per salesperson, in spreadsheets</td><td class="a">One map and board for all emirates</td></tr>
+          <tr><th scope="row">Specification</th><td class="b">Discovered at tender</td><td class="a">Tracked by consultant from the start</td></tr>
+          <tr><th scope="row">Discounting</th><td class="b">Deep by default</td><td class="a">Set from win probability and margin</td></tr>
+          <tr><th scope="row">Tender preparation</th><td class="b">About two days per brief</td><td class="a">Draft brief in about two hours</td></tr>
+          <tr><th scope="row">Learning</th><td class="b">Win-loss reasons lost</td><td class="a">Every bid feeds the model</td></tr>
+          <tr><th scope="row">Weekly review</th><td class="b">Status updates</td><td class="a">Decisions on where to focus</td></tr>
+        </tbody></table>
+    </div>
+  </div>
+</section>
+
+<section id="tools" style="padding-top:16px">
+  <div class="wrap">
+    <div class="sec-head reveal" style="margin-bottom:20px"><div class="eyebrow">Tools &amp; Tech Used</div><h2>Built in the programme</h2></div>
+    <div class="tchips reveal">
+      <span class="chip"><i></i>GenAI assistants <em>tender reading and briefs</em></span>
+      <span class="chip"><i></i>GenAI-assisted coding <em>map, board and optimiser</em></span>
+      <span class="chip"><i></i>Logistic regression <em>win probability</em></span>
+      <span class="chip"><i></i>Excel pipeline data <em>projects and past tenders</em></span>
+      <span class="chip"><i></i>HMC safety framework <em>no confidential data in public tools</em></span>
+    </div>
+  </div>
+</section>
+
+<section id="takeaways">
+  <div class="wrap">
+    <div class="sec-head reveal"><div class="eyebrow">Key Takeaways</div><h2>What any projects business can borrow</h2></div>
+    <div class="tk-grid">
+      <div class="card tk reveal"><div class="n">01</div><h3>Win at specification</h3><p>Being written into the consultant's spec moves win probability more than any discount.</p></div>
+      <div class="card tk reveal"><div class="n">02</div><h3>Price to expected margin</h3><p>The best discount maximises win probability times margin, and it is rarely the deepest one.</p></div>
+      <div class="card tk reveal"><div class="n">03</div><h3>Let leaders build</h3><p>A tool built by the people who sell gets used in Monday's review.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="f-brand"><img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting"><div><b>Havish M Consulting</b></div></div>
+    <div class="copy"><span>© <span id="yr">2026</span> Havish M Consulting. All rights reserved.</span><span>Figures indicative; validated metrics available on request.</span></div>
+  </div>
+</footer>
+<div id="tip" role="tooltip"></div>
+
+<script id="geo" type="application/json">{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"MultiPolygon","coordinates":[[[[56.26,25.33],[56.245,25.28],[56.21,25.255],[56.235,25.21],[56.345,25.265],[56.29,25.33],[56.26,25.33]]],[[[56.075,26.06],[56.16,26.075],[56.185,26.015],[56.17,25.875],[56.145,25.805],[56.175,25.765],[56.14,25.735],[56.145,25.67],[56.22,25.615],[56.28,25.63],[56.265,25.67],[56.29,25.74],[56.315,25.75],[56.365,25.805],[56.365,25.835],[56.425,25.935],[56.4,25.99],[56.405,26.035],[56.47,26.1],[56.38,26.1],[56.37,26.14],[56.33,26.175],[56.37,26.205],[56.41,26.16],[56.43,26.195],[56.43,26.24],[56.4,26.27],[56.455,26.32],[56.41,26.365],[56.38,26.36],[56.315,26.29],[56.31,26.22],[56.23,26.215],[56.18,26.245],[56.16,26.2],[56.09,26.105],[56.075,26.06]]],[[[56.38,24.98],[56.33,24.975],[56.31,24.895],[56.225,24.835],[56.17,24.825],[56.12,24.735],[56.06,24.73],[56.035,24.755],[56,24.825],[55.965,24.855],[55.995,24.885],[56.005,24.955],[55.935,24.98],[55.855,24.945],[55.8,24.885],[55.79,24.855],[55.8,24.78],[55.79,24.725],[55.815,24.645],[55.76,24.56],[55.775,24.495],[55.775,24.425],[55.81,24.395],[55.8,24.325],[55.755,24.23],[55.845,24.21],[55.905,24.23],[55.93,24.22],[55.96,24.14],[55.995,24.08],[55.805,24.005],[55.765,24.025],[55.725,24.02],[55.65,24.025],[55.545,23.985],[55.455,23.965],[55.46,23.93],[55.53,23.875],[55.54,23.77],[55.48,23.675],[55.445,23.555],[55.375,23.47],[55.34,23.335],[55.32,23.275],[55.225,23.12],[55.19,22.995],[55.2,22.85],[55.185,22.705],[55.415,22.355],[55.635,22.005],[55.635,21.98],[55.58,21.8],[57.5,21.8],[57.5,23.84],[57.325,23.885],[57.185,23.935],[57.15,23.955],[56.94,24.115],[56.845,24.225],[56.805,24.305],[56.69,24.425],[56.61,24.495],[56.495,24.7],[56.47,24.775],[56.405,24.895],[56.38,24.98]]]]},"properties":{"name":"Oman"}},{"type":"Feature","geometry":{"type":"MultiPolygon","coordinates":[[[[56.28,25.63],[56.22,25.615],[56.145,25.67],[56.14,25.735],[56.175,25.765],[56.145,25.805],[56.17,25.875],[56.185,26.015],[56.16,26.075],[56.075,26.06],[56.015,25.88],[55.84,25.715],[55.76,25.68],[55.735,25.645],[55.66,25.6],[55.625,25.535],[55.565,25.525],[55.525,25.54],[55.47,25.41],[55.44,25.41],[55.405,25.375],[55.36,25.35],[55.285,25.26],[55.26,25.215],[55.16,25.095],[55.05,24.995],[54.965,24.96],[54.87,24.89],[54.71,24.805],[54.645,24.75],[54.66,24.675],[54.635,24.6],[54.585,24.51],[54.54,24.5],[54.48,24.57],[54.44,24.525],[54.5,24.49],[54.555,24.48],[54.525,24.435],[54.485,24.45],[54.485,24.39],[54.445,24.315],[54.385,24.255],[54.325,24.27],[54.255,24.22],[54.185,24.205],[54.135,24.15],[53.95,24.105],[53.855,24.065],[53.73,24.065],[53.705,24.07],[53.655,24.05],[53.59,24.05],[53.52,24.095],[53.495,24.09],[53.435,24.12],[53.31,24.095],[53.255,24.1],[53.19,24.16],[53.14,24.165],[53.065,24.12],[53.01,24.16],[52.95,24.135],[52.83,24.15],[52.78,24.135],[52.72,24.15],[52.67,24.145],[52.635,24.19],[52.58,24.2],[52.575,24.15],[52.43,24.055],[52.38,24.035],[52.345,24.005],[52.28,24],[52.225,23.975],[52.07,23.965],[52.02,23.99],[51.93,23.99],[51.81,24],[51.785,24.06],[51.77,24.175],[51.78,24.26],[51.74,24.275],[51.72,24.235],[51.65,24.22],[51.625,24.26],[51.625,24.34],[51.59,24.33],[51.57,24.255],[51.57,24.13],[51.595,24.08],[51.91,23.7],[52.175,23.39],[52.38,23.145],[52.535,22.955],[52.585,22.93],[52.74,22.91],[53.3,22.845],[53.855,22.775],[54.415,22.705],[54.55,22.69],[55.105,22.62],[55.12,22.625],[55.185,22.705],[55.2,22.85],[55.19,22.995],[55.225,23.12],[55.32,23.275],[55.34,23.335],[55.375,23.47],[55.445,23.555],[55.48,23.675],[55.54,23.77],[55.53,23.875],[55.46,23.93],[55.455,23.965],[55.545,23.985],[55.65,24.025],[55.725,24.02],[55.765,24.025],[55.805,24.005],[55.995,24.08],[55.96,24.14],[55.93,24.22],[55.905,24.23],[55.845,24.21],[55.755,24.23],[55.8,24.325],[55.81,24.395],[55.775,24.425],[55.775,24.495],[55.76,24.56],[55.815,24.645],[55.79,24.725],[55.8,24.78],[55.79,24.855],[55.8,24.885],[55.855,24.945],[55.935,24.98],[56.005,24.955],[55.995,24.885],[55.965,24.855],[56,24.825],[56.035,24.755],[56.06,24.73],[56.12,24.735],[56.17,24.825],[56.225,24.835],[56.31,24.895],[56.33,24.975],[56.38,24.98],[56.36,25.055],[56.37,25.21],[56.38,25.33],[56.36,25.37],[56.37,25.525],[56.35,25.595],[56.28,25.63]],[[56.26,25.33],[56.29,25.33],[56.345,25.265],[56.235,25.21],[56.21,25.255],[56.245,25.28],[56.26,25.33]]],[[[53.655,24.16],[53.745,24.135],[53.81,24.135],[53.835,24.15],[53.885,24.14],[53.95,24.15],[53.955,24.2],[53.89,24.22],[53.84,24.265],[53.77,24.225],[53.72,24.23],[53.64,24.185],[53.655,24.16]]],[[[54.19,24.225],[54.19,24.275],[54.145,24.325],[54.115,24.27],[54.18,24.245],[54.19,24.225]]],[[[52.575,24.345],[52.555,24.31],[52.59,24.255],[52.65,24.325],[52.615,24.375],[52.575,24.345]]],[[[53.32,24.26],[53.335,24.29],[53.44,24.34],[53.45,24.38],[53.4,24.4],[53.36,24.35],[53.23,24.295],[53.32,24.26]]],[[[54.385,24.44],[54.455,24.42],[54.45,24.455],[54.375,24.505],[54.335,24.47],[54.385,24.44]]],[[[54.265,24.295],[54.235,24.36],[54.18,24.32],[54.22,24.285],[54.265,24.295]]]]},"properties":{"name":"United Arab Emirates"}},{"type":"Feature","geometry":{"type":"MultiPolygon","coordinates":[[[[57.5,25.75],[57.5,27.2],[56.365,27.2],[56.465,27.175],[56.53,27.17],[56.585,27.155],[56.715,27.155],[56.74,27.13],[56.815,27.115],[56.855,27.08],[56.855,27.045],[56.92,26.99],[56.97,26.97],[56.975,26.895],[57.025,26.85],[57.09,26.62],[57.095,26.57],[57.075,26.445],[57.09,26.4],[57.12,26.365],[57.135,26.265],[57.2,26.2],[57.215,26.165],[57.165,26.095],[57.2,25.995],[57.255,25.96],[57.325,25.775],[57.46,25.77],[57.5,25.75]]],[[[56.32,27.2],[52.9,27.2],[52.935,27.16],[52.99,27.145],[53.03,27.105],[53.075,27.095],[53.41,26.995],[53.47,26.935],[53.475,26.87],[53.59,26.79],[53.665,26.75],[53.715,26.71],[53.75,26.715],[53.82,26.7],[53.93,26.715],[53.995,26.745],[54.17,26.705],[54.31,26.715],[54.335,26.695],[54.39,26.605],[54.425,26.59],[54.56,26.585],[54.62,26.51],[54.75,26.51],[54.8,26.5],[54.93,26.57],[55.105,26.7],[55.205,26.725],[55.235,26.775],[55.27,26.795],[55.395,26.765],[55.44,26.76],[55.52,26.785],[55.57,26.83],[55.575,26.905],[55.61,26.955],[55.665,26.995],[55.775,27],[55.94,27.025],[55.985,27.065],[56.095,27.125],[56.125,27.16],[56.215,27.17],[56.26,27.19],[56.32,27.2]]],[[[54.04,26.49],[54.035,26.55],[53.945,26.565],[53.9,26.535],[53.955,26.495],[54.04,26.49]]],[[[53.32,26.8],[53.335,26.83],[53.26,26.835],[53.18,26.855],[53.22,26.8],[53.28,26.79],[53.32,26.8]]],[[[56.32,26.835],[56.38,26.84],[56.405,26.895],[56.34,26.88],[56.32,26.835]]],[[[56.215,27.005],[56.175,27.005],[56.04,26.975],[55.935,26.915],[55.895,26.905],[55.76,26.955],[55.785,26.845],[55.75,26.785],[55.705,26.785],[55.64,26.76],[55.575,26.72],[55.405,26.675],[55.33,26.645],[55.275,26.65],[55.3,26.545],[55.44,26.59],[55.505,26.595],[55.705,26.695],[55.775,26.69],[55.88,26.745],[55.945,26.695],[56.08,26.785],[56.135,26.845],[56.195,26.925],[56.255,26.94],[56.28,26.975],[56.215,27.005]]],[[[56.47,27.105],[56.435,27.08],[56.465,27.045],[56.505,27.06],[56.47,27.105]]]]},"properties":{"name":"Iran"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[50.81,24.745],[50.88,24.635],[50.93,24.59],[50.98,24.57],[51.095,24.56],[51.15,24.575],[51.215,24.625],[51.285,24.66],[51.345,24.635],[51.38,24.635],[51.43,24.665],[51.475,24.765],[51.505,24.865],[51.585,24.955],[51.605,25.035],[51.615,25.22],[51.59,25.285],[51.52,25.295],[51.51,25.33],[51.52,25.44],[51.47,25.52],[51.495,25.55],[51.505,25.61],[51.555,25.655],[51.505,25.685],[51.59,25.715],[51.565,25.765],[51.595,25.77],[51.575,25.88],[51.545,25.925],[51.495,25.95],[51.425,25.95],[51.39,25.965],[51.38,26.025],[51.345,26.04],[51.35,26.085],[51.33,26.12],[51.25,26.16],[51.17,26.125],[51.135,26.08],[51.045,26.055],[50.95,25.86],[50.975,25.815],[50.915,25.785],[50.895,25.735],[50.89,25.665],[50.955,25.605],[50.865,25.59],[50.88,25.63],[50.795,25.62],[50.835,25.58],[50.83,25.51],[50.775,25.525],[50.75,25.495],[50.75,25.42],[50.765,25.345],[50.76,25.185],[50.775,25.09],[50.81,25.07],[50.8,24.99],[50.85,24.89],[50.86,24.795],[50.81,24.745]]]},"properties":{"name":"Qatar"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[50.81,24.745],[50.76,24.735],[50.735,24.78],[50.725,24.88],[50.685,24.915],[50.66,24.98],[50.61,25.04],[50.56,25.055],[50.545,25.12],[50.55,25.175],[50.52,25.245],[50.52,25.315],[50.5,25.365],[50.5,21.8],[55.58,21.8],[55.635,21.98],[55.635,22.005],[55.415,22.355],[55.185,22.705],[55.12,22.625],[55.105,22.62],[54.55,22.69],[54.415,22.705],[53.855,22.775],[53.3,22.845],[52.74,22.91],[52.585,22.93],[52.535,22.955],[52.38,23.145],[52.175,23.39],[51.91,23.7],[51.595,24.08],[51.57,24.13],[51.57,24.255],[51.525,24.27],[51.48,24.31],[51.415,24.325],[51.345,24.295],[51.28,24.305],[51.305,24.405],[51.335,24.45],[51.395,24.49],[51.445,24.555],[51.455,24.595],[51.41,24.625],[51.36,24.575],[51.335,24.53],[51.295,24.52],[51.29,24.58],[51.27,24.625],[51.215,24.625],[51.15,24.575],[51.095,24.56],[50.98,24.57],[50.93,24.59],[50.88,24.635],[50.81,24.745]]]},"properties":{"name":"Saudi Arabia"}}]}</script>
+<script>
+(function(){
+"use strict";
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DUR = reduce ? 0 : 600;
+const $ = id => document.getElementById(id);
+$('yr').textContent = new Date().getFullYear();
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hasD3 = typeof d3 !== 'undefined';
+const sleep = ms => new Promise(r => setTimeout(r, reduce ? 0 : ms));
+const sum = a => a.reduce((x, y) => x + y, 0);
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const aedM = n => 'AED ' + n.toFixed(n >= 10 ? 0 : 1) + 'M';
+const tip = $('tip');
+function showTip(html, ev){ tip.innerHTML = html; tip.style.opacity = 1; const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = ev.clientX + pad, y = ev.clientY + pad; if (x + w > innerWidth - 8) x = ev.clientX - w - pad; if (y + h > innerHeight - 8) y = ev.clientY - h - pad;
+  tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; }
+function hideTip(){ tip.style.opacity = 0; }
+window.addEventListener('scroll', hideTip, {passive:true});
+const onView = new Map();
+const io = ('IntersectionObserver' in window) ? new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; e.target.classList.add('in');
+  const fn = onView.get(e.target); if (fn){ fn(); onView.delete(e.target); } io.unobserve(e.target); }), {threshold:.1}) : null;
+function whenVisible(el, fn){ onView.set(el, fn); if (io) io.observe(el); else fn(); }
+document.querySelectorAll('.reveal').forEach(el => io ? io.observe(el) : el.classList.add('in'));
+function countUp(el){ const to = +el.dataset.to, dp = +(el.dataset.dp || 0); if (reduce || !to){ el.textContent = to.toFixed(dp); return; }
+  const t0 = performance.now(); (function s(t){ const p = Math.min(1,(t-t0)/1400), e = 1 - Math.pow(1-p,3); el.textContent = (to*e).toFixed(dp); if (p < 1) requestAnimationFrame(s); })(t0); }
+document.querySelectorAll('.count').forEach(el => whenVisible(el.closest('.kpi'), () => countUp(el)));
+const tlSteps = document.querySelectorAll('.tl-step');
+tlSteps.forEach(btn => btn.addEventListener('click', () => { const open = btn.getAttribute('aria-expanded') === 'true';
+  tlSteps.forEach(b => { b.setAttribute('aria-expanded','false'); $(b.getAttribute('aria-controls')).classList.remove('open'); });
+  if (!open){ btn.setAttribute('aria-expanded','true'); $(btn.getAttribute('aria-controls')).classList.add('open'); } }));
+function segBind(attr, fn){ const bs = document.querySelectorAll(`[data-${attr}]`); bs.forEach(b => b.addEventListener('click', () => { bs.forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); fn(b.dataset[attr]); })); }
+const cmp = $('cmp');
+segBind('hl', v => { cmp.classList.toggle('hl-before', v === 'before'); cmp.classList.toggle('hl-after', v === 'after'); });
+async function stream(el, html, tokRef, tok){ const parts = html.split(/(<[^>]+>|\s+)/).filter(Boolean); let out = '';
+  for (let i = 0; i < parts.length; i++){ if (tokRef() !== tok) return; out += parts[i]; if (!reduce && !parts[i].startsWith('<') && i % 2 === 0){ el.innerHTML = out + '<span class="caret"></span>'; await new Promise(r => setTimeout(r, 14)); } } el.innerHTML = out; }
+
+/* HERO · a city skyline whose windows light up as projects are won */
+(function hero(){
+  const cv = $('heroCv'), cx = cv.getContext('2d'); let W = 0, H = 0, run = false; const R = mulberry32(12);
+  const B = Array.from({ length: 16 }, (_, i) => ({ x: i / 16, w: .035 + R() * .03, h: .25 + R() * .55, sp: R() > .75 }));
+  function size(){ const dpr = Math.min(2, devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; cx.setTransform(dpr,0,0,dpr,0,0); }
+  function draw(time){ cx.clearRect(0, 0, W, H); const t = time / 1000, x0 = W * .48, span = W * .52, base = H * .98;
+    B.forEach((b, i) => { const x = x0 + b.x * span, bw = b.w * span * 1.6, bh = b.h * H * .8, top = base - bh;
+      cx.fillStyle = 'rgba(16,42,67,.85)'; cx.fillRect(x, top, bw, bh); cx.strokeStyle = 'rgba(127,227,230,.25)'; cx.strokeRect(x, top, bw, bh);
+      if (b.sp){ cx.beginPath(); cx.moveTo(x + bw / 2, top); cx.lineTo(x + bw / 2, top - 30); cx.stroke(); }
+      const rows = Math.floor(bh / 12), cols = Math.max(2, Math.floor(bw / 9));
+      for (let r = 1; r < rows; r++) for (let c = 0; c < cols; c++){ const seed = (i * 97 + r * 13 + c * 7) % 100 / 100, on = ((t * .12 + seed) % 1) < .55;
+        cx.fillStyle = on ? (seed > .82 ? 'rgba(242,95,92,.9)' : 'rgba(255,214,140,.75)') : 'rgba(127,227,230,.08)'; cx.fillRect(x + 3 + c * (bw - 6) / cols, top + r * 12, Math.max(2, (bw - 6) / cols - 3), 5); } });
+    const sweep = ((t * .15) % 1) * span; const g = cx.createLinearGradient(x0 + sweep - 80, 0, x0 + sweep + 80, 0); g.addColorStop(0, 'rgba(15,163,168,0)'); g.addColorStop(.5, 'rgba(15,163,168,.18)'); g.addColorStop(1, 'rgba(15,163,168,0)'); cx.fillStyle = g; cx.fillRect(x0 + sweep - 80, 0, 160, H); }
+  size(); draw(reduce ? 3000 : 0);
+  window.addEventListener('resize', () => { size(); draw(reduce ? 3000 : performance.now()); });
+  if (reduce) return;
+  function loop(t){ if (!run) return; draw(t); requestAnimationFrame(loop); }
+  if (io) new IntersectionObserver(es => { const on = es[0].isIntersecting; if (on && !run){ run = true; requestAnimationFrame(loop); } else if (!on) run = false; }).observe(cv);
+})();
+
+if (!hasD3){ ['map','curve','bump','ridge'].forEach(id => $(id).innerHTML = '<p style="padding:30px;color:var(--muted)">These charts need an internet connection to load their chart library.</p>'); return; }
+
+/* ======================================================================
+   SYNTHETIC DATA
+   ====================================================================== */
+const R = mulberry32(2026), gauss = () => { let u = 0; while (!u) u = R(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * R()); };
+const pickW = arr => { let r = R() * sum(arr.map(a => a[1])), a = 0; for (const x of arr){ a += x[1]; if (r < a) return x; } return arr[arr.length - 1]; };
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const SEGS = [['Office','#0FA3A8'],['Residential','#5B8FB9'],['Retail & malls','#F25F5C'],['Hospitality','#F2A60C'],['Healthcare','#1F9D63'],['Transport & infra','#7B5EA7'],['Industrial & logistics','#6B7C8C']];
+const SEGC = Object.fromEntries(SEGS);
+const STAGES = [['Specified','#9FB4C2'],['Tendered','#5B8FB9'],['Shortlisted','#0FA3A8'],['Awarded','#1F9D63'],['Supplied','#102A43'],['Lost','#D64545']];
+const STC = Object.fromEntries(STAGES);
+const AREAS = [['Dubai Marina & JLT',55.14,25.08,'Dubai',10],['Downtown & Business Bay',55.27,25.19,'Dubai',14],['Deira & Creek',55.32,25.26,'Dubai',7],['Dubai South & Expo',55.16,24.92,'Dubai',8],['Jebel Ali',55.04,25.0,'Dubai',5],['Dubai Hills & MBR City',55.25,25.11,'Dubai',9],['Abu Dhabi city',54.37,24.47,'Abu Dhabi',11],['Saadiyat & Yas',54.47,24.5,'Abu Dhabi',8],['KIZAD & Mussafah',54.5,24.35,'Abu Dhabi',4],['Al Ain',55.75,24.21,'Abu Dhabi',4],['Sharjah',55.41,25.33,'Sharjah',8],['Ajman',55.46,25.4,'Ajman',3],['Umm Al Quwain',55.56,25.55,'Umm Al Quwain',1],['Ras Al Khaimah',55.95,25.78,'Ras Al Khaimah',4],['Fujairah',56.33,25.13,'Fujairah',2]];
+const CONS = ['Consultant A','Consultant B','Consultant C','Consultant D','Consultant E','Consultant F','Consultant G','Consultant H'];
+const CONS_SPEC = [.75,.6,.45,.35,.3,.2,.15,.1];
+const CTR = d3.range(1, 11).map(i => 'MEP Contractor ' + i);
+const NAMES = { 'Office':['Tower','Business Centre','HQ','Office Park'], 'Residential':['Residences','Heights','Gardens','Villas'], 'Retail & malls':['Mall','Souk','Retail Park','Galleria'], 'Hospitality':['Resort','Hotel','Beach Club','Suites'], 'Healthcare':['Hospital','Medical Centre','Clinic Wing','Care Campus'], 'Transport & infra':['Station','Interchange','Terminal','Depot'], 'Industrial & logistics':['Logistics Hub','Warehouse Park','Plant','Cold Store'] };
+const PFX = ['Azure','Palm','Crescent','Pearl','Falcon','Oasis','Coral','Horizon','Lumen','Dune','Marina','Sky','Harbour','Cedar','Opal','Zenith','Nova','Lagoon'];
+/* past tenders + logistic model */
+const PAST = d3.range(260).map(i => { const seg = pickW(SEGS.map(s => [s[0], 1]))[0], ci = Math.floor(R() * 8), spec = R() < CONS_SPEC[ci], d = Math.max(0, Math.min(25, (spec ? 10 : 13) + 5.5 * gauss()));
+  const z = -3.1 + .2 * d + (spec ? 1.7 : 0) + ({ 'Hospitality': .3, 'Industrial & logistics': .4, 'Retail & malls': -.2, 'Transport & infra': -.4 }[seg] || 0) - .003 * d * d;
+  return { seg, ci, spec, d, won: R() < 1 / (1 + Math.exp(-z)), v: Math.exp(1 + .7 * gauss()) * .6 }; });
+const FEAT = t => [1, t.d, t.d * t.d, t.spec ? 1 : 0, ...SEGS.slice(1).map(s => t.seg === s[0] ? 1 : 0)];
+const BETA = (function fit(){ const X = PAST.map(FEAT), y = PAST.map(t => t.won ? 1 : 0), k = X[0].length; let b = Array(k).fill(0);
+  const sc = X[0].map((_, j) => j === 0 ? 1 : d3.max(X, r => Math.abs(r[j])) || 1); const Xs = X.map(r => r.map((v, j) => v / sc[j]));
+  for (let it = 0; it < 2500; it++){ const g = Array(k).fill(0); Xs.forEach((r, i) => { const p = 1 / (1 + Math.exp(-sum(r.map((v, j) => v * b[j])))); r.forEach((v, j) => g[j] += (y[i] - p) * v); }); b = b.map((v, j) => v + .6 * g[j] / Xs.length - (j ? .0005 * v : 0)); }
+  return b.map((v, j) => v / sc[j]); })();
+const pwin = (d, spec, seg) => 1 / (1 + Math.exp(-sum(FEAT({ d, spec, seg }).map((v, j) => v * BETA[j]))));
+const BASE_M = .32;
+const ev = (d, spec, seg, V) => pwin(d, spec, seg) * V * (BASE_M - d / 100);
+function bestD(spec, seg, V){ let best = 0, bv = -1; for (let d = 0; d <= 25; d += .5){ const e = ev(d, spec, seg, V); if (e > bv){ bv = e; best = d; } } return best; }
+/* live projects */
+const P = d3.range(140).map(i => { const a = pickW(AREAS.map(x => [x, x[4]]))[0], seg = pickW(SEGS.map(s => [s[0], s[0] === 'Office' || s[0] === 'Residential' ? 1.6 : 1]))[0], ci = Math.floor(R() * 8), spec = R() < CONS_SPEC[ci];
+  const start = Math.floor(R() * 11), v = Math.min(12, Math.exp(.6 + .8 * gauss())), dur = [1 + Math.floor(R() * 2), 1 + Math.floor(R() * 2), 1 + Math.floor(R() * 2), 1 + Math.floor(R() * 3)];
+  const d = bestD(spec, seg, v) + gauss() * 1.5, won = R() < pwin(d, spec, seg) * .62;
+  const nm = `${PFX[Math.floor(R() * PFX.length)]} ${NAMES[seg][Math.floor(R() * 4)]}`;
+  return { id: i, nm, seg, area: a[0], em: a[3], ll: [a[1] + gauss() * .035, a[2] + gauss() * .03], ci, cons: CONS[ci], ctr: CTR[Math.floor(R() * 10)], spec, start, dur, v, won, d: Math.max(0, d) }; });
+P.forEach((p, i) => { if (i < 34) p.start = Math.max(0, p.start - 6); });
+function stageAt(p, t){ if (t < p.start) return null; let s = p.start; for (let k = 0; k < 3; k++){ s += p.dur[k]; if (t < s) return STAGES[k][0]; } if (!p.won) return t < s + 2 ? 'Lost' : 'Lost'; s += p.dur[3]; return t < s ? 'Awarded' : 'Supplied'; }
+
+/* ======================================================================
+   01 · MAP
+   ====================================================================== */
+const GEO = JSON.parse($('geo').textContent);
+(function rewind(fc){ fc.features.forEach(f => { const g = f.geometry; if (!g) return; const polys = g.type === 'Polygon' ? [g.coordinates] : g.coordinates; polys.forEach(poly => { if (d3.geoArea({ type:'Polygon', coordinates: poly }) > 2 * Math.PI) poly.forEach(r => r.reverse()); }); }); })(GEO);
+let T = 11, SEGF = null, SEL = null, mapSvg = null, proj = null, zoomK = 1;
+const MW = 640, MH = 470;
+$('segBar').innerHTML = '<b>Segment</b><button type="button" class="chipb on" data-sg="">All</button>' + SEGS.map(s => `<button type="button" class="chipb" data-sg="${esc(s[0])}"><i style="background:${s[1]}"></i>${esc(s[0])}</button>`).join('');
+$('stKey').innerHTML = STAGES.map(s => `<span><i style="background:${s[1]}"></i>${s[0]}</span>`).join('') + '<span style="margin-left:auto">○ size = lighting package value</span>';
+function drawMap(){
+  if (!mapSvg){
+    mapSvg = d3.select('#map').append('svg').attr('viewBox', `0 0 ${MW} ${MH}`).attr('role','img').attr('aria-label','Map of the UAE with construction projects by stage');
+    proj = d3.geoMercator().fitExtent([[10, 10], [MW - 10, MH - 10]], { type:'MultiPoint', coordinates: [[51.6, 22.6], [56.5, 26.1]] });
+    const path = d3.geoPath(proj);
+    mapSvg.append('rect').attr('width', MW).attr('height', MH).attr('fill','#E4F1F5');
+    const zg = mapSvg.append('g').attr('class','zg');
+    zg.append('g').selectAll('path').data(GEO.features).join('path').attr('d', path).attr('fill', d => d.properties.name === 'United Arab Emirates' ? '#F3E9DC' : '#ECE6DC').attr('stroke', d => d.properties.name === 'United Arab Emirates' ? '#B8A98F' : '#D6CDBE').attr('stroke-width', 1).attr('vector-effect','non-scaling-stroke');
+    zg.append('g').selectAll('text').data([['DUBAI',55.3,25.36],['ABU DHABI',54.3,24.62],['SHARJAH',55.62,25.3],['AL AIN',55.82,24.1],['RAS AL KHAIMAH',56.02,25.9],['FUJAIRAH',56.2,25.25],['AJMAN',55.38,25.5],['OMAN',56.4,24.3],['SAUDI ARABIA',52.6,23.0],['QATAR',51.25,25.25]]).join('text').attr('class','city').attr('transform', d => `translate(${proj([d[1], d[2]])})`).attr('text-anchor','middle').text(d => d[0]).attr('opacity', d => ['OMAN','SAUDI ARABIA','QATAR'].includes(d[0]) ? .5 : 1);
+    zg.append('g').attr('class','pl'); zg.append('g').attr('class','pj');
+    const zoom = d3.zoom().scaleExtent([1, 8]).translateExtent([[0, 0], [MW, MH]]).on('zoom', ev => { zg.attr('transform', ev.transform); zoomK = ev.transform.k; zg.selectAll('.proj circle.b').attr('stroke-width', 1.2 / zoomK).attr('r', d => rScale(d.v) / Math.pow(zoomK, .75)); zg.selectAll('circle.pulse').attr('stroke-width', 2 / zoomK); zg.selectAll('text.city').style('font-size', (10 / zoomK) + 'px'); zg.selectAll('circle.pulse').style('display', zoomK > 1.4 ? 'none' : null); });
+    mapSvg.call(zoom).on('dblclick.zoom', null);
+    mapSvg.append('g').attr('transform', `translate(${MW - 132},12)`).call(g => { [['Zoom to Dubai', () => mapSvg.transition().duration(DUR + 400).call(zoom.transform, d3.zoomIdentity.translate(MW / 2, MH / 2).scale(4.5).translate(...proj([55.22, 25.12]).map(v => -v)))], ['Whole UAE', () => mapSvg.transition().duration(DUR + 400).call(zoom.transform, d3.zoomIdentity)]].forEach(([t, fn], i) => {
+      const b = g.append('g').attr('transform', `translate(0,${i * 30})`).style('cursor','pointer').on('click', fn); b.append('rect').attr('width', 120).attr('height', 24).attr('rx', 12).attr('fill','#102A43'); b.append('text').attr('x', 60).attr('y', 16).attr('text-anchor','middle').attr('font-size', 11).attr('font-weight', 700).attr('fill','#fff').text(t); }); });
+  }
+  renderAll();
+}
+const rScale = d3.scaleSqrt().domain([0, 12]).range([0, 15]);
+function renderMap(){
+  const vis = P.filter(p => stageAt(p, T) && (!SEGF || p.seg === SEGF));
+  const g = mapSvg.select('g.pj').selectAll('g.proj').data(vis, d => d.id).join(en => { const gg = en.append('g').attr('class','proj').attr('transform', d => `translate(${proj(d.ll)})`).attr('opacity', 0); gg.append('circle').attr('class','b').attr('r', 0); return gg; }, up => up, ex => ex.transition().duration(DUR / 2).attr('opacity', 0).remove());
+  g.on('click', (ev, d) => { SEL = d.id; renderAll(); }).on('mousemove', (ev, d) => showTip(`<div class="t">${esc(d.nm)}</div>${esc(d.seg)} · ${esc(d.area)}<br>${aedM(d.v)} lighting · <b>${stageAt(d, T)}</b>`, ev)).on('mouseleave', hideTip);
+  g.transition().duration(DUR).attr('opacity', 1);
+  g.select('circle.b').attr('stroke', d => d.id === SEL ? '#F25F5C' : '#fff').attr('stroke-width', d => (d.id === SEL ? 3 : 1.2) / zoomK).transition().duration(DUR).attr('r', d => rScale(d.v) / Math.pow(zoomK, .75)).attr('fill', d => STC[stageAt(d, T)]).attr('fill-opacity', d => stageAt(d, T) === 'Lost' ? .35 : .85);
+  const fresh = reduce ? [] : vis.filter(p => p.start === T);
+  mapSvg.select('g.pl').selectAll('circle').data(fresh, d => d.id).join('circle').attr('class','pulse').attr('stroke', d => SEGC[d.seg]).attr('cx', d => proj(d.ll)[0]).attr('cy', d => proj(d.ll)[1]);
+  const pipe = vis.filter(p => !['Lost','Supplied'].includes(stageAt(p, T))), wonV = sum(vis.filter(p => ['Awarded','Supplied'].includes(stageAt(p, T))).map(p => p.v)), decided = vis.filter(p => ['Awarded','Supplied','Lost'].includes(stageAt(p, T)));
+  $('mapK').innerHTML = `<div class="ms o"><div class="k">Open pipeline</div><div class="v">${aedM(sum(pipe.map(p => p.v)))}</div></div><div class="ms a"><div class="k">Won to date</div><div class="v">${aedM(wonV)}</div></div><div class="ms"><div class="k">Win rate</div><div class="v">${decided.length ? Math.round(decided.filter(p => p.won).length / decided.length * 100) : 0}%</div></div>`;
+  const em = d3.rollups(vis, v => ({ n: v.length, val: sum(v.map(p => p.v)) }), p => p.em).sort((a, b) => b[1].val - a[1].val);
+  const w = 360, rh = 20, h = em.length * rh + 4, x = d3.scaleLinear().domain([0, d3.max(em, e => e[1].val) || 1]).range([0, w - 190]);
+  let s = d3.select('#emi').select('svg'); if (s.empty()) s = d3.select('#emi').append('svg').attr('role','img').attr('aria-label','Pipeline value by emirate'); s.attr('viewBox', `0 0 ${w} ${Math.max(h, 24)}`);
+  const rows = s.selectAll('g').data(em, e => e[0]).join(en => { const gg = en.append('g'); gg.append('text').attr('class','l').attr('x', 110).attr('text-anchor','end').attr('font-size', 11).attr('fill','#3D4D5A'); gg.append('rect').attr('x', 118).attr('height', 12).attr('rx', 3).attr('fill','#0FA3A8'); gg.append('text').attr('class','v').attr('font-size', 10.5).attr('font-weight', 800).attr('fill','#102A43'); return gg; });
+  rows.transition().duration(DUR).attr('transform', (e, i) => `translate(0,${i * rh + 2})`);
+  rows.select('text.l').attr('y', 11).text(e => e[0]); rows.select('rect').transition().duration(DUR).attr('width', e => x(e[1].val)); rows.select('text.v').attr('y', 11).text(e => `${aedM(e[1].val)} · ${e[1].n}`).transition().duration(DUR).attr('x', e => 122 + x(e[1].val));
+  detail();
+}
+function detail(){ const p = P.find(x => x.id === SEL); if (!p || !stageAt(p, T)){ $('detail').innerHTML = '<p style="font-size:.78rem;color:var(--muted);margin:0">Click a project on the map or the board for details.</p>'; return; }
+  const st = stageAt(p, T), pw = pwin(p.d, p.spec, p.seg), bd = bestD(p.spec, p.seg, p.v);
+  const next = st === 'Specified' ? (p.spec ? `Our brand is specified by ${p.cons}. Lock in the spec with samples and a lighting calculation before tender.` : `${p.cons} has written in a competitor. Request an "or equal" approval meeting with a value-engineering proposal.`) : st === 'Tendered' || st === 'Shortlisted' ? `Bid at about ${bd.toFixed(1)}% discount: win probability ${Math.round(pwin(bd, p.spec, p.seg) * 100)}% and the best expected margin. Engage ${p.ctr} on delivery terms.` : st === 'Awarded' ? 'Confirm the delivery schedule and submittals; flag long-lead items.' : st === 'Supplied' ? 'Ask for a reference and a case photo; log win reasons.' : 'Log the loss reason and debrief the consultant.';
+  $('detail').innerHTML = `<div class="detail"><h5>${esc(p.nm)}</h5><div class="meta">${esc(p.seg)} · ${esc(p.area)}, ${esc(p.em)}</div><table><tr><td>Stage</td><td><span class="stg" style="background:${STC[st]}">${st}</span></td></tr><tr><td>Lighting package</td><td>${aedM(p.v)}</td></tr><tr><td>Consultant</td><td>${esc(p.cons)}</td></tr><tr><td>Contractor</td><td>${esc(p.ctr)}</td></tr><tr><td>Our brand specified</td><td style="color:${p.spec ? '#1F9D63' : '#D64545'}">${p.spec ? 'Yes' : 'No'}</td></tr><tr><td>Model win probability</td><td>${Math.round(pw * 100)}%</td></tr></table><p style="margin:8px 0 0;font-size:.78rem;color:#3D4D5A"><b style="color:var(--pri)">✦ Next step:</b> ${esc(next)}</p></div>`; }
+$('segBar').addEventListener('click', e => { const b = e.target.closest('[data-sg]'); if (!b) return; SEGF = b.dataset.sg || null; $('segBar').querySelectorAll('[data-sg]').forEach(x => x.classList.toggle('on', x === b)); renderAll(); });
+function setT(t){ T = t; $('mo').value = t; $('moV').textContent = MON[t] + ' 2026'; $('moN').textContent = `${t + 1} of 12`; renderAll(); }
+let playing = false;
+$('play').addEventListener('click', async () => { if (playing){ playing = false; return; } playing = true; $('play').textContent = '❚❚ Pause'; for (let t = (T >= 11 ? 0 : T + 1); t <= 11; t++){ if (!playing) break; setT(t); await sleep(1100); } playing = false; $('play').textContent = '▶ Play the year'; });
+$('mo').addEventListener('input', e => { playing = false; setT(+e.target.value); });
+
+/* ======================================================================
+   02 · KANBAN
+   ====================================================================== */
+const KMAX = 7;
+function renderKb(){
+  const vis = P.filter(p => stageAt(p, T) && (!SEGF || p.seg === SEGF)), el = $('kb');
+  if (!el.children.length) el.innerHTML = STAGES.map(s => `<div class="kcol" data-s="${s[0]}"><h5><span style="color:${s[1]}">${s[0]}</span><b class="n"></b></h5><div class="sum"></div><div class="cards" style="display:flex;flex-direction:column;gap:6px"></div><div class="more"></div></div>`).join('');
+  const first = new Map(); el.querySelectorAll('.kc').forEach(c => first.set(c.dataset.id, c.getBoundingClientRect()));
+  STAGES.forEach(([s]) => { const col = el.querySelector(`[data-s="${s}"]`), items = vis.filter(p => stageAt(p, T) === s).sort((a, b) => b.v - a.v);
+    col.querySelector('.n').textContent = items.length; col.querySelector('.sum').textContent = aedM(sum(items.map(p => p.v)));
+    const box = col.querySelector('.cards'), keep = items.slice(0, KMAX);
+    keep.forEach(p => { let c = el.querySelector(`.kc[data-id="${p.id}"]`); if (!c){ c = document.createElement('div'); c.className = 'kc'; c.dataset.id = p.id; c.style.borderLeftColor = SEGC[p.seg]; c.innerHTML = `<b>${esc(p.nm)}</b><span>${esc(p.em)} · ${aedM(p.v)}</span>`; c.addEventListener('click', () => { SEL = p.id; renderAll(); $('mapModule').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); }); } c.classList.toggle('sel', p.id === SEL); box.appendChild(c); });
+    [...box.children].forEach(c => { if (!keep.some(p => String(p.id) === c.dataset.id)) c.remove(); });
+    col.querySelector('.more').textContent = items.length > KMAX ? `+${items.length - KMAX} more` : ''; });
+  if (reduce) return;
+  el.querySelectorAll('.kc').forEach(c => { const a = first.get(c.dataset.id), b = c.getBoundingClientRect(); if (a){ const dx = a.left - b.left, dy = a.top - b.top; if (dx || dy) c.animate([{ transform: `translate(${dx}px,${dy}px)` }, { transform: 'none' }], { duration: 650, easing: 'cubic-bezier(.2,.8,.2,1)' }); } else c.animate([{ opacity: 0, transform: 'scale(.9)' }, { opacity: 1, transform: 'none' }], { duration: 400 }); });
+}
+let kbReady = false, mapReady = false;
+function renderAll(){ if (mapReady) renderMap(); if (kbReady) renderKb(); }
+
+/* ======================================================================
+   03 · BID OPTIMISER
+   ====================================================================== */
+let BSEG = 'Office', BSPEC = false, curveSvg = null, HM = null;
+$('bdSeg').innerHTML = SEGS.map(s => `<option>${esc(s[0])}</option>`).join('');
+$('bdSpec').innerHTML = `<button type="button" class="chipb" data-spc="1">Our brand specified</button><button type="button" class="chipb on" data-spc="0">Competitor specified</button>`;
+$('bdSpec').addEventListener('click', e => { const b = e.target.closest('[data-spc]'); if (!b) return; BSPEC = b.dataset.spc === '1'; $('bdSpec').querySelectorAll('[data-spc]').forEach(x => x.classList.toggle('on', x === b)); drawCurve(); });
+$('bdSeg').addEventListener('change', e => { BSEG = e.target.value; drawCurve(); });
+['disc','pv'].forEach(id => $(id).addEventListener('input', drawCurve));
+function drawCurve(){
+  const d = +$('disc').value, V = +$('pv').value; $('dV').textContent = d.toFixed(1) + '%'; $('pvV').textContent = aedM(V);
+  const w = 640, h = 320, m = { t: 14, r: 66, b: 34, l: 44 }, x = d3.scaleLinear().domain([0, 25]).range([m.l, w - m.r]), y = d3.scaleLinear().domain([0, 1]).range([h - m.b, m.t]);
+  const pts = d3.range(0, 25.01, .25).map(dd => ({ d: dd, p: pwin(dd, BSPEC, BSEG), e: ev(dd, BSPEC, BSEG, V) })), emax = d3.max(pts, q => q.e), y2 = d3.scaleLinear().domain([0, emax * 1.15]).range([h - m.b, m.t]);
+  if (!curveSvg){ curveSvg = d3.select('#curve').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Win probability and expected gross profit by discount');
+    curveSvg.append('g').attr('class','grid').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickSize(-(w - m.l - m.r)).tickFormat(''));
+    curveSvg.append('g').attr('class','axis').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickFormat(d3.format('.0%')).tickSize(0).tickPadding(6));
+    curveSvg.append('g').attr('class','axis').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(6).tickFormat(v => v + '%').tickSize(0).tickPadding(8));
+    curveSvg.append('text').attr('x', (m.l + w - m.r) / 2).attr('y', h - 4).attr('text-anchor','middle').attr('font-size', 11).attr('fill','#5B6B78').text('discount offered');
+    curveSvg.append('g').attr('class','axis y2').attr('transform', `translate(${w - m.r},0)`);
+    curveSvg.append('g').attr('class','dots'); curveSvg.append('path').attr('class','pc').attr('fill','none').attr('stroke','#0FA3A8').attr('stroke-width', 3); curveSvg.append('path').attr('class','ec').attr('fill','rgba(242,95,92,.1)').attr('stroke','#F25F5C').attr('stroke-width', 2.4);
+    curveSvg.append('line').attr('class','opt').attr('stroke','#F25F5C').attr('stroke-dasharray','4 3'); curveSvg.append('text').attr('class','optt').attr('font-size', 11).attr('font-weight', 800).attr('fill','#F25F5C');
+    curveSvg.append('line').attr('class','cur').attr('stroke','#102A43').attr('stroke-width', 1.5); curveSvg.append('circle').attr('class','cp').attr('r', 6).attr('fill','#0FA3A8').attr('stroke','#fff').attr('stroke-width', 2); curveSvg.append('circle').attr('class','ce').attr('r', 6).attr('fill','#F25F5C').attr('stroke','#fff').attr('stroke-width', 2); }
+  curveSvg.select('g.y2').transition().duration(DUR).call(d3.axisRight(y2).ticks(4).tickFormat(v => 'AED ' + (v * 1000).toFixed(0) + 'k').tickSize(0).tickPadding(4));
+  const D = PAST.filter(t => t.seg === BSEG && t.spec === BSPEC), J = mulberry32(5);
+  curveSvg.select('g.dots').selectAll('circle').data(D, (t, i) => PAST.indexOf(t)).join(en => en.append('circle').attr('r', 0)).attr('fill', t => t.won ? '#1F9D63' : '#D64545').attr('fill-opacity', .6)
+    .on('mousemove', (ev2, t) => showTip(`<div class="t">Past tender · ${esc(t.seg)}</div>${t.d.toFixed(1)}% discount · ${t.won ? '<b>won</b>' : 'lost'} · ${esc(CONS[t.ci])}`, ev2)).on('mouseleave', hideTip)
+    .transition().duration(DUR).attr('r', 5).attr('cx', t => x(t.d)).attr('cy', t => t.won ? y(.97 - J() * .06) : y(.03 + J() * .06));
+  curveSvg.select('path.pc').datum(pts).transition().duration(DUR).attr('d', d3.line().x(q => x(q.d)).y(q => y(q.p)).curve(d3.curveMonotoneX));
+  curveSvg.select('path.ec').datum(pts).transition().duration(DUR).attr('d', d3.area().x(q => x(q.d)).y0(h - m.b).y1(q => y2(q.e)).curve(d3.curveMonotoneX));
+  const bd = bestD(BSPEC, BSEG, V);
+  curveSvg.select('line.opt').transition().duration(DUR).attr('x1', x(bd)).attr('x2', x(bd)).attr('y1', m.t).attr('y2', h - m.b); curveSvg.select('text.optt').transition().duration(DUR).attr('x', x(bd) + (bd > 18 ? -6 : 6)).attr('text-anchor', bd > 18 ? 'end' : 'start').attr('y', m.t + 12).text(`best ${bd.toFixed(1)}%`);
+  curveSvg.select('line.cur').attr('x1', x(d)).attr('x2', x(d)).attr('y1', m.t).attr('y2', h - m.b); curveSvg.select('circle.cp').attr('cx', x(d)).attr('cy', y(pwin(d, BSPEC, BSEG))); curveSvg.select('circle.ce').attr('cx', x(d)).attr('cy', y2(ev(d, BSPEC, BSEG, V)));
+  const pw = pwin(d, BSPEC, BSEG), e = ev(d, BSPEC, BSEG, V), eb = ev(bd, BSPEC, BSEG, V);
+  $('bdK').innerHTML = `<div class="ms o"><div class="k">Win probability</div><div class="v">${Math.round(pw * 100)}%</div></div><div class="ms"><div class="k">Margin if won</div><div class="v">${((BASE_M - d / 100) * 100).toFixed(1)}%</div></div><div class="ms"><div class="k">Expected gross profit</div><div class="v">AED ${(e * 1000).toFixed(0)}k</div></div><div class="ms ${eb - e > .002 ? 'b' : 'a'}"><div class="k">${eb - e > .002 ? 'Left on the table' : 'At the sweet spot'}</div><div class="v">${eb - e > .002 ? 'AED ' + ((eb - e) * 1000).toFixed(0) + 'k' : '✓'}</div></div>`;
+  drawHM();
+}
+function drawHM(){
+  const segs = SEGS.map(s => s[0]);
+  $('hm').innerHTML = `<tr><th></th>${segs.map(s => `<th title="${esc(s)}">${esc(s.split(' ')[0].slice(0, 6))}</th>`).join('')}</tr>` + CONS.map((c, ci) => `<tr><th style="text-align:right;white-space:nowrap">${c.replace('Consultant ', 'Cons. ')}</th>${segs.map(s => { const ts = PAST.filter(t => t.ci === ci && t.seg === s), wr = ts.length ? ts.filter(t => t.won).length / ts.length : null;
+    const col = wr == null ? '#F1F4F6' : d3.interpolateRgb('#FBE1E1', '#0FA3A8')(Math.min(1, wr / .7)); return `<td data-ci="${ci}" data-s="${esc(s)}" style="background:${col};color:${wr != null && wr > .45 ? '#fff' : '#3D4D5A'}" title="${c} · ${esc(s)}: ${ts.length} tenders">${wr == null ? '–' : Math.round(wr * 100)}</td>`; }).join('')}</tr>`).join('');
+}
+$('hm').addEventListener('click', e => { const td = e.target.closest('td[data-ci]'); if (!td) return; BSEG = td.dataset.s; $('bdSeg').value = BSEG; const ci = +td.dataset.ci; BSPEC = CONS_SPEC[ci] >= .45; $('bdSpec').querySelectorAll('[data-spc]').forEach(x => x.classList.toggle('on', (x.dataset.spc === '1') === BSPEC)); drawCurve(); });
+
+/* ======================================================================
+   04 · GENAI TENDER BRIEF
+   ====================================================================== */
+const TENDERS = [
+  { n:'Hospital extension, Al Ain', seg:'Healthcare', em:'Abu Dhabi', v:4.2, ci:2, spec:false, ctr:'MEP Contractor 4', note:'Spec names a competitor range "or approved equal"; 2,400 fittings incl. cleanroom and emergency; DALI controls.', due:'14 days' },
+  { n:'Mixed-use tower, Business Bay', seg:'Office', em:'Dubai', v:6.8, ci:0, spec:true, ctr:'MEP Contractor 7', note:'Our panels and linear profiles specified; façade lighting by separate package; tight programme.', due:'10 days' },
+  { n:'Logistics hub, Dubai South', seg:'Industrial & logistics', em:'Dubai', v:2.1, ci:5, spec:false, ctr:'MEP Contractor 2', note:'High-bays and external floodlights; client wants energy savings case; open specification.', due:'7 days' }
+];
+let TI = 0, tbTok = 0;
+$('tenders').innerHTML = TENDERS.map((t, i) => `<button type="button" class="tcard${i === TI ? ' on' : ''}" data-t="${i}"><h6>${esc(t.n)}</h6><p>${esc(t.seg)} · ${esc(CONS[t.ci])} · due in ${t.due}</p><div class="val">${aedM(t.v)}</div></button>`).join('');
+$('tenders').addEventListener('click', e => { const b = e.target.closest('[data-t]'); if (!b) return; TI = +b.dataset.t; $('tenders').querySelectorAll('[data-t]').forEach(x => x.classList.toggle('on', x === b)); tbTok++; $('pipe').innerHTML = PIPE.map(p => `<span>${p}</span>`).join(''); $('comps').innerHTML = '<p style="font-size:.78rem;color:var(--muted);margin:0">Retrieved comparables appear here, ranked by similarity.</p>'; $('brief').innerHTML = '<div class="who">✦ Tender assistant</div><span style="color:var(--muted)">Press "Generate brief".</span>'; });
+const PIPE = ['Read enquiry','Retrieve comparables','Score with bid model','Draft brief'];
+$('pipe').innerHTML = PIPE.map(p => `<span>${p}</span>`).join('');
+$('tbRun').addEventListener('click', async () => { const t = ++tbTok, tn = TENDERS[TI], sp = $('pipe').querySelectorAll('span'); sp.forEach(s => s.className = '');
+  sp[0].className = 'run'; $('brief').innerHTML = `<div class="who">✦ Tender assistant</div><span style="color:var(--muted)">Reading the enquiry: ${esc(tn.note)}</span>`; await sleep(900); if (t !== tbTok) return; sp[0].className = 'ok';
+  sp[1].className = 'run'; const comps = PAST.map(p => ({ p, s: (p.seg === tn.seg ? .5 : 0) + (p.ci === tn.ci ? .25 : 0) + (p.spec === tn.spec ? .15 : 0) + .1 * (1 - Math.min(1, Math.abs(Math.log(p.v / tn.v)) / 2)) })).sort((a, b) => b.s - a.s).slice(0, 5);
+  $('comps').innerHTML = ''; for (const c of comps){ if (t !== tbTok) return; $('comps').insertAdjacentHTML('beforeend', `<div class="comp"><span><b>${esc(c.p.seg)}</b> · ${esc(CONS[c.p.ci])} · ${aedM(c.p.v)}<br><span style="color:var(--muted)">${c.p.spec ? 'Our brand specified' : 'competitor specified'} · ${c.p.d.toFixed(1)}% discount</span><div class="sim"><i style="width:${c.s * 100}%"></i></div></span><span style="text-align:right;font-weight:800;color:var(--deep)">${c.s.toFixed(2)}</span><span class="out ${c.p.won ? 'w' : 'l'}">${c.p.won ? 'WON' : 'LOST'}</span></div>`); await sleep(220); }
+  sp[1].className = 'ok'; sp[2].className = 'run'; await sleep(700); if (t !== tbTok) return; sp[2].className = 'ok'; sp[3].className = 'run';
+  const bd = bestD(tn.spec, tn.seg, tn.v), pw = pwin(bd, tn.spec, tn.seg), deep = Math.min(25, bd + 6), pwDeep = pwin(deep, tn.spec, tn.seg), cw = comps.filter(c => c.p.won).length;
+  const html = `<div class="who">✦ Tender assistant · draft brief</div><h6>Opportunity</h6><p style="margin:0">${esc(tn.n)}: ${aedM(tn.v)} lighting package, ${esc(tn.seg.toLowerCase())}, ${esc(CONS[tn.ci])} with ${esc(tn.ctr)}. ${esc(tn.note)} Bid due in ${tn.due}.</p>` +
+    `<h6>Position</h6><p style="margin:0">${tn.spec ? 'Our brand is specified, so the job is ours to lose: protect the spec and avoid over-discounting.' : 'A competitor is written into the spec. We need an approved-equal route: compliance sheet, samples and a lighting calculation.'} ${cw} of the 5 closest past tenders were won.</p>` +
+    `<h6>Recommended price</h6><p style="margin:0">Bid at about <b>${bd.toFixed(1)}% discount</b>: model win probability ${Math.round(pw * 100)}% and expected gross profit of about AED ${(ev(bd, tn.spec, tn.seg, tn.v) * 1000).toFixed(0)}k. Going to ${deep.toFixed(1)}% only lifts win probability to ${Math.round(pwDeep * 100)}% and lowers expected profit to about AED ${(ev(deep, tn.spec, tn.seg, tn.v) * 1000).toFixed(0)}k.</p>` +
+    `<h6>Risks</h6><p style="margin:0">${tn.spec ? 'Contractor may seek cheaper alternates after award; agree price validity and supply programme early.' : 'Approval of alternates may be refused late; competitor likely to discount hard.'} ${tn.seg === 'Healthcare' ? 'Cleanroom and emergency items carry compliance risk.' : tn.seg === 'Industrial & logistics' ? 'Open spec invites low-cost imports; lead with lifetime energy cost.' : 'Programme is tight; confirm stock on panels and profiles.'}</p>` +
+    `<h6>Next actions</h6><p style="margin:0">1. ${tn.spec ? 'Confirm spec compliance sheet with ' + esc(CONS[tn.ci]) : 'Book an approved-equal meeting with ' + esc(CONS[tn.ci])}. 2. Price review at ${bd.toFixed(1)}% with sales head. 3. ${tn.seg === 'Industrial & logistics' ? 'Attach an LED savings case from the light studio.' : 'Share delivery programme with ' + esc(tn.ctr) + '.'}</p>`;
+  await stream($('brief'), html, () => tbTok, t); if (t === tbTok) sp[3].className = 'ok'; });
+
+/* ======================================================================
+   IMPACT
+   ====================================================================== */
+function drawBump(){
+  const Q = ['Q1','Q2','Q3','Q4','Q5','Q6'], SG = ['Office','Residential','Retail & malls','Hospitality','Healthcare'];
+  const RK = { before: { 'Office':[3,3,4,3,4,4], 'Residential':[2,2,2,3,3,3], 'Retail & malls':[4,4,3,4,4,5], 'Hospitality':[3,4,4,4,5,4], 'Healthcare':[5,5,5,5,4,5] }, after: { 'Office':[3,3,2,2,1,1], 'Residential':[2,2,2,1,1,2], 'Retail & malls':[4,3,3,3,2,2], 'Hospitality':[3,3,2,2,2,1], 'Healthcare':[5,4,4,3,3,3] } };
+  const w = 560, h = 300, m = { t: 20, r: 110, b: 30, l: 34 }, s = d3.select('#bump').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Bump chart of our rank by segment over quarters');
+  const x = d3.scalePoint().domain(Q).range([m.l, w - m.r]), y = d3.scaleLinear().domain([1, 5]).range([m.t + 6, h - m.b - 6]);
+  s.append('g').attr('class','axis').attr('transform', `translate(0,${h - m.b + 8})`).call(d3.axisBottom(x).tickSize(0).tickPadding(6));
+  s.append('g').attr('class','axis').attr('transform', `translate(${m.l - 6},0)`).call(d3.axisLeft(y).ticks(5).tickFormat(v => '#' + v).tickSize(0).tickPadding(4));
+  const g = s.append('g'), lab = s.append('g');
+  function upd(k){ const D = SG.map(sg => ({ sg, r: RK[k][sg] }));
+    const line = d3.line().x((v, i) => x(Q[i])).y(v => y(v)).curve(d3.curveMonotoneX);
+    g.selectAll('path').data(D, d => d.sg).join('path').attr('fill','none').attr('stroke', d => SEGC[d.sg]).attr('stroke-width', 4).attr('stroke-linecap','round').transition().duration(DUR + 300).attr('d', d => line(d.r));
+    const dots = D.flatMap(d => d.r.map((v, i) => ({ sg: d.sg, v, i })));
+    g.selectAll('circle').data(dots, d => d.sg + d.i).join('circle').attr('r', 7).attr('fill','#fff').attr('stroke', d => SEGC[d.sg]).attr('stroke-width', 3)
+      .on('mousemove', (ev, d) => showTip(`<div class="t">${esc(d.sg)} · ${Q[d.i]}</div>Our rank <b>#${d.v}</b>`, ev)).on('mouseleave', hideTip)
+      .transition().duration(DUR + 300).attr('cx', d => x(Q[d.i])).attr('cy', d => y(d.v));
+    const ends = D.map(d => ({ sg: d.sg, y: y(d.r[5]) })).sort((a, b) => a.y - b.y); for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 13) ends[i].y = ends[i - 1].y + 13;
+    lab.selectAll('text').data(ends, d => d.sg).join('text').attr('x', w - m.r + 14).attr('font-size', 11).attr('font-weight', 700).attr('fill', d => SEGC[d.sg]).text(d => d.sg).transition().duration(DUR + 300).attr('y', d => d.y + 4); }
+  upd('after'); segBind('bp', upd);
+}
+function drawRidge(){
+  const SG = ['Office','Residential','Retail & malls','Hospitality','Healthcare','Industrial & logistics'], Rr = mulberry32(44), g = () => { let u = 0; while (!u) u = Rr(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * Rr()); };
+  const DATA = { before: SG.map((s, i) => ({ s, v: d3.range(60).map(() => Math.max(0, 14 + i * .4 + 3.2 * g())) })), after: SG.map((s, i) => ({ s, v: d3.range(60).map(() => Math.max(0, 10.5 + i * .4 + 2.6 * g() - (Rr() < .4 ? 3 : 0))) })) };
+  const w = 560, h = 300, m = { t: 26, r: 20, b: 30, l: 120 }, s = d3.select('#ridge').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Ridgeline of discount distributions on won bids');
+  const x = d3.scaleLinear().domain([0, 25]).range([m.l, w - m.r]), yb = d3.scalePoint().domain(SG).range([m.t + 20, h - m.b]), band = 42;
+  s.append('g').attr('class','axis').attr('transform', `translate(0,${h - m.b + 4})`).call(d3.axisBottom(x).ticks(6).tickFormat(v => v + '%').tickSize(0).tickPadding(6));
+  s.append('g').selectAll('text').data(SG).join('text').attr('x', m.l - 8).attr('y', d => yb(d)).attr('text-anchor','end').attr('font-size', 11).attr('fill','#3D4D5A').text(d => d);
+  const kde = (vals) => { const bw = 1.6, xs = d3.range(0, 25.1, .5); return xs.map(xx => [xx, d3.mean(vals, v => Math.exp(-.5 * ((xx - v) / bw) ** 2)) / (bw * Math.sqrt(2 * Math.PI))]); };
+  const area = d3.area().x(d => x(d[0])).y0(0).y1(d => -d[1] * band * 8).curve(d3.curveBasis);
+  const gg = s.append('g').selectAll('g').data(SG).join('g').attr('transform', d => `translate(0,${yb(d)})`);
+  gg.append('path').attr('class','a').attr('fill-opacity', .75).attr('stroke','#fff');
+  gg.append('line').attr('class','md').attr('stroke','#102A43').attr('stroke-width', 2).attr('y1', -4).attr('y2', 4);
+  const avg = s.append('text').attr('x', w - m.r).attr('y', 12).attr('text-anchor','end').attr('font-size', 12).attr('font-weight', 800);
+  function upd(k){ const D = DATA[k]; gg.select('path.a').attr('fill', k === 'after' ? '#0FA3A8' : '#F25F5C').transition().duration(DUR + 300).attr('d', s2 => area(kde(D.find(d => d.s === s2).v)));
+    gg.select('line.md').transition().duration(DUR + 300).attr('x1', s2 => x(d3.median(D.find(d => d.s === s2).v))).attr('x2', s2 => x(d3.median(D.find(d => d.s === s2).v)));
+    gg.on('mousemove', (ev, s2) => showTip(`<div class="t">${esc(s2)}</div>Median discount on won bids <b>${d3.median(D.find(d => d.s === s2).v).toFixed(1)}%</b>`, ev)).on('mouseleave', hideTip);
+    const a = d3.mean(D.flatMap(d => d.v)); avg.attr('fill', k === 'after' ? '#0FA3A8' : '#F25F5C').text(`average ${a.toFixed(1)}%`); }
+  upd('after'); segBind('rg', upd);
+}
+
+/* boot */
+setT(11);
+whenVisible($('mapModule'), () => { mapReady = true; drawMap(); });
+whenVisible($('kbModule'), () => { kbReady = true; renderKb(); });
+whenVisible($('bdModule'), drawCurve);
+whenVisible($('bump'), drawBump); whenVisible($('ridge'), drawRidge);
+window.__pp = { P, PAST, BETA, pwin, bestD, setT, stageAt };
+})();
+</script>
+</body>
+</html>

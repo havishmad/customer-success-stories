@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Housing Finance · GenAI Loan File Assistant | HMC Case Study</title>
+<meta name="description" content="How Havish M Consulting built a GenAI document assistant for the housing finance company's home-loan files: classify every page, extract every field, cross-check documents, answer questions with citations and draft the credit note for the underwriter.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+:root{
+  --pri:#6D28D9; --deep:#1E1240; --acc:#14B8A6; --hot:#F472B6; --bad:#E0464E; --good:#16A34A; --warn:#F59E0B;
+  --bg:#F6F4FC; --text:#1B1533; --muted:#635C80; --card:#FFFFFF; --line:#E4E0F2;
+  --pri-15:rgba(109,40,217,.10); --acc-15:rgba(20,184,166,.14);
+  --radius:12px; --shadow:0 1px 2px rgba(30,18,64,.06),0 8px 24px rgba(30,18,64,.08);
+  --serif:"DM Serif Display",Georgia,serif; --sans:"DM Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif; --mono:ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--serif);font-weight:400;color:var(--deep);margin:0;line-height:1.15}
+h2{font-size:clamp(1.6rem,3.2vw,2.2rem)}
+h3{font-size:1.2rem}
+p{margin:0}
+.wrap{max-width:1260px;margin:0 auto;padding:0 24px}
+section{padding:64px 0}
+.eyebrow{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--pri);margin-bottom:10px}
+.lead{color:var(--muted);max-width:800px;margin-top:12px}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line)}
+.sec-head{margin-bottom:28px}
+.alt{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.topbar{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+.logos{display:flex;align-items:center;gap:16px}
+.logos img{height:44px;width:auto;object-fit:contain}
+.logos img.cl{height:30px}
+.vdiv{width:1px;height:36px;background:var(--line)}
+.tagline{font-size:.8rem;color:var(--muted);letter-spacing:.04em}
+.tagline b{color:var(--pri);font-weight:700}
+.hero{background:radial-gradient(120% 140% at 88% 0%,#4A2470 0%,#2A1446 45%,#120821 100%);color:#fff;padding:76px 0 70px;position:relative;overflow:hidden}
+.hero canvas{position:absolute;right:0;top:0;width:58%;height:100%;pointer-events:none}
+.hero .eyebrow{color:#5EEAD4}
+.hero h1{color:#fff;font-size:clamp(2.3rem,5.4vw,3.8rem);max-width:720px;position:relative;z-index:1}
+.hero h1 em{font-style:normal;color:#5EEAD4}
+.hero .sub{font-size:clamp(1.05rem,2vw,1.2rem);color:rgba(255,255,255,.86);max-width:640px;margin-top:18px;position:relative;z-index:1}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px;position:relative;z-index:1}
+.pill{border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:6px 14px;font-size:.85rem;color:#fff;background:rgba(255,255,255,.06)}
+.pill span{color:#5EEAD4;font-weight:700;margin-right:6px}
+.kpis{margin-top:-30px;position:relative;z-index:2;padding:0}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi{padding:22px 20px;border-top:3px solid var(--acc)}
+.kpi .label{font-size:.82rem;color:var(--muted);font-weight:500}
+.kpi .val{font-family:var(--serif);font-size:clamp(1.9rem,4vw,2.6rem);color:var(--pri);line-height:1.1;margin-top:6px;white-space:nowrap}
+.kpi .val small{font-family:var(--sans);font-size:.9rem;color:var(--muted);margin-left:4px}
+.delta{display:inline-flex;align-items:center;gap:4px;font-size:.8rem;font-weight:700;margin-top:8px;padding:2px 8px;border-radius:999px;background:rgba(31,166,122,.1);color:var(--good)}
+.footnote{font-size:.78rem;color:var(--muted);margin-top:14px}
+.ch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.chc{padding:24px}
+.ico{width:44px;height:44px;border-radius:10px;background:var(--pri-15);display:grid;place-items:center;margin-bottom:16px}
+.ico svg{width:22px;height:22px;stroke:var(--pri);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.chc h3{margin-bottom:8px}
+.chc p{font-size:.92rem;color:#433A52}
+.tl{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.tl::before{content:"";position:absolute;left:10%;right:10%;top:27px;height:3px;background:linear-gradient(90deg,var(--pri),var(--acc));border-radius:2px;opacity:.55}
+.tl-step{position:relative;background:none;border:0;cursor:pointer;font:inherit;color:inherit;display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 4px 8px}
+.tl-dot{width:56px;height:56px;border-radius:50%;background:#fff;border:2px solid var(--line);display:grid;place-items:center;font-family:var(--serif);font-size:1.25rem;color:var(--pri);transition:all .25s;position:relative;z-index:1}
+.tl-name{font-weight:700;font-size:.95rem}
+.tl-dur{font-size:.75rem;color:var(--muted);margin-top:-8px}
+.tl-step:hover .tl-dot{border-color:var(--pri)}
+.tl-step[aria-expanded="true"] .tl-dot{background:var(--pri);border-color:var(--pri);color:#fff;box-shadow:0 0 0 6px var(--pri-15)}
+.tl-step:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:8px}
+.tl-panel{display:none;padding:24px 28px;margin-top:20px;border-left:4px solid var(--acc)}
+.tl-panel.open{display:block;animation:fadeUp .35s ease}
+.tl-panel h3{margin-bottom:6px}
+.tl-panel ul{margin:12px 0 0;padding-left:20px;color:#433A52}
+.tl-panel li{margin:6px 0}
+.tl-panel .deliv{margin-top:14px;font-size:.85rem;color:var(--muted)}
+.tl-panel .deliv b{color:var(--pri)}
+.tl-hint{text-align:center;color:var(--muted);font-size:.8rem;margin-top:6px}
+.seg{display:inline-flex;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:22px;padding:4px;gap:4px}
+.seg button{border:0;background:none;font:inherit;font-size:.82rem;font-weight:700;padding:6px 13px;border-radius:999px;cursor:pointer;color:var(--muted);transition:all .2s}
+.seg button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.seg button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.seg.sm button{font-size:.76rem;padding:5px 10px}
+.mod-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.mod-head h3{font-size:1.5rem}
+.mod-head p{font-size:.88rem;color:var(--muted);max-width:720px;margin-top:4px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--deep);color:#5EEAD4;font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:8px}
+.module{margin-bottom:54px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 12px;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer;color:var(--deep);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:border-color .15s,color .15s,background .15s}
+.btn:hover{border-color:var(--pri);color:var(--pri)}
+.btn.go{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.go:hover{background:#178A65;color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+
+
+.logos img.cl{height:38px}
+.hero{background:radial-gradient(120% 140% at 85% 0%,#5B21B6 0%,#24125A 45%,#0D0826 100%)}
+.hero .eyebrow,.hero .pill span{color:#5EEAD4}
+.hero h1 em{background:linear-gradient(90deg,#5EEAD4,#C4B5FD);-webkit-background-clip:text;background-clip:text;color:transparent;font-style:italic}
+.badge{color:#5EEAD4}
+.kpi{border-top:3px solid transparent;border-image:linear-gradient(90deg,#6D28D9,#14B8A6) 1}
+.chc p,.tl-panel ul,.tk p{color:#3F3760}
+.tl::before{background:linear-gradient(90deg,var(--pri),var(--acc))}
+.cltxt{font:800 1.05rem var(--sans);color:#1E1240;letter-spacing:.01em;white-space:nowrap}
+.cltxt small{font-weight:600;color:var(--muted);font-size:.72rem;display:block;letter-spacing:.06em;text-transform:uppercase}
+.module .btn.go,.btn.go{background:linear-gradient(90deg,#6D28D9,#0F9F90);border-color:transparent;color:#fff}
+.module .btn.go:hover,.btn.go:hover{background:linear-gradient(90deg,#5B21B6,#0D8A7D);color:#fff}
+.chart svg{width:100%;height:auto;display:block}
+.axis text{font-family:var(--sans);font-size:11px;fill:var(--muted)}
+.axis line{stroke:var(--line)} .axis path{display:none}
+.grid line{stroke:var(--line);stroke-dasharray:2 3} .grid path{display:none}
+.ckey{display:flex;gap:12px;font-size:.74rem;color:var(--muted);margin-top:6px;flex-wrap:wrap}
+.ckey span{display:inline-flex;align-items:center;gap:6px}
+.ckey i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.panel2{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);overflow:hidden}
+.p-main{padding:14px;min-width:0;border-right:1px solid var(--line)}
+.p-side{padding:14px;background:#F9F8FE;display:flex;flex-direction:column;gap:10px;min-width:0}
+.p-side h4,.p-main h4{margin:0;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.scen{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.scen b{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.chipb{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font:700 .76rem var(--sans);color:var(--deep);cursor:pointer;transition:all .2s}
+.chipb:hover{border-color:var(--pri)}
+.chipb.on{background:var(--deep);border-color:var(--deep);color:#fff}
+/* intake */
+.inbox{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.lane{border:1px dashed #CFC8EA;border-radius:10px;padding:8px;min-height:150px;background:#FBFAFF;display:flex;flex-direction:column;gap:6px}
+.lane h5{margin:0 0 2px;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between}
+.pile{display:flex;flex-wrap:wrap;gap:8px;min-height:120px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;margin-bottom:10px;align-content:flex-start}
+.pg{width:118px;border:1px solid #D9D3EE;border-radius:6px;background:#fff;padding:6px 8px;font-size:.66rem;color:var(--muted);box-shadow:0 2px 6px rgba(30,18,64,.06);cursor:pointer;position:relative;overflow:hidden}
+.pg .ln{height:3px;background:#ECE8F7;border-radius:2px;margin:3px 0}
+.pg .ln.s{width:60%}
+.pg b{display:block;color:var(--deep);font-size:.68rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pg .tag{display:none;margin-top:4px;font-weight:800;color:#fff;background:var(--pri);border-radius:4px;padding:1px 5px;font-size:.6rem;width:max-content;max-width:100%}
+.pg.done .tag{display:block}
+.pg.scan::after{content:"";position:absolute;left:0;right:0;height:16px;background:linear-gradient(180deg,transparent,rgba(20,184,166,.55),transparent);animation:beam .6s linear}
+.pg.sel{outline:2px solid var(--acc)}
+.lane .pg{width:100%}
+@keyframes beam{from{top:-16px}to{top:100%}}
+.xgrid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;margin-top:14px}
+.paper{background:#fff;border:1px solid #D9D3EE;border-radius:8px;box-shadow:0 10px 30px rgba(30,18,64,.08);padding:18px 20px;position:relative;overflow:hidden;min-height:330px;font-size:.82rem}
+.paper::before{content:"SAMPLE";position:absolute;right:-30px;top:30px;transform:rotate(30deg);font:800 2.6rem var(--sans);color:rgba(109,40,217,.06);letter-spacing:.2em;pointer-events:none}
+.paper h6{margin:0 0 2px;font:800 1rem var(--sans);color:var(--deep)}
+.paper .sub{font-size:.72rem;color:var(--muted);margin-bottom:12px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.paper .r{display:grid;grid-template-columns:150px minmax(0,1fr);gap:8px;padding:5px 0;border-bottom:1px dotted #ECE8F7}
+.paper .r span:first-child{color:var(--muted);font-size:.74rem}
+.fv{padding:1px 4px;border-radius:3px;transition:background .3s,box-shadow .3s}
+.fv.hit{background:rgba(20,184,166,.14);box-shadow:0 0 0 1.5px var(--acc)}
+.fv.low{background:rgba(245,158,11,.16);box-shadow:0 0 0 1.5px var(--warn)}
+.paper .beam{position:absolute;left:0;right:0;height:40px;background:linear-gradient(180deg,transparent,rgba(20,184,166,.28),transparent);top:-40px;pointer-events:none}
+.paper .beam.go{animation:sweep 1.6s ease-in-out}
+@keyframes sweep{from{top:-40px}to{top:100%}}
+.json{font-family:var(--mono);font-size:.74rem;background:#120B2E;color:#DCD6F5;border-radius:10px;padding:12px;min-height:330px;overflow:auto;line-height:1.65}
+.json .k{color:#C4B5FD} .json .s{color:#5EEAD4} .json .c{color:#8C84B3}
+.cbar{display:inline-block;width:46px;height:6px;background:#2C2357;border-radius:3px;vertical-align:middle;margin-left:6px;overflow:hidden}
+.cbar i{display:block;height:100%;background:#5EEAD4}
+.cbar.low i{background:#F59E0B}
+.doclist{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+/* checks */
+.chk{display:grid;grid-template-columns:30px minmax(0,1.1fr) minmax(0,1.6fr) 84px;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line);font-size:.82rem;transition:background .3s}
+.chk:last-child{border-bottom:0}
+.chk .st{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:.8rem;background:#EEEAF8;color:#9890B8}
+.chk.pass .st{background:#DCF5E5;color:var(--good)} .chk.review .st{background:#FEF3C7;color:#B45309} .chk.fail .st{background:#FDE2E3;color:var(--bad)}
+.chk.run .st{background:none;border:3px solid #E4E0F2;border-top-color:var(--pri);animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.chk .ex{color:#3F3760;font-size:.78rem;min-height:1.2em}
+.chk .lb{font-weight:800;font-size:.7rem;text-align:center;border-radius:999px;padding:3px 0;text-transform:uppercase;letter-spacing:.06em;color:#9890B8;background:#F1EEFA}
+.chk.pass .lb{color:var(--good);background:#DCF5E5} .chk.review .lb{color:#B45309;background:#FEF3C7} .chk.fail .lb{color:var(--bad);background:#FDE2E3}
+.chk.fail{background:#FFF7F7}
+.chk .src{font-size:.68rem;color:var(--muted);display:block;margin-top:2px}
+.ring{display:grid;place-items:center}
+/* chat */
+.chat{display:flex;flex-direction:column;height:520px}
+.msgs{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12px;background:#FBFAFF}
+.bub{max-width:88%;padding:10px 13px;border-radius:14px;font-size:.84rem;line-height:1.5;animation:fadeUp .3s ease}
+.bub.u{align-self:flex-end;background:var(--deep);color:#fff;border-bottom-right-radius:4px}
+.bub.a{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px;color:var(--text)}
+.bub.a .who{font-size:.66rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--pri);margin-bottom:4px;display:flex;gap:6px;align-items:center}
+.cite{display:inline-block;background:var(--acc-15);color:#0F766E;border-radius:5px;padding:0 6px;font-size:.7rem;font-weight:800;cursor:pointer;margin:0 2px;border:1px solid transparent}
+.cite:hover{border-color:var(--acc)}
+.dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--pri);margin-right:3px;animation:blink 1s infinite}
+.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,100%{opacity:.2}50%{opacity:1}}
+.ask{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line);background:#fff}
+.ask input{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:500 .86rem var(--sans)}
+.sugg{display:flex;gap:6px;flex-wrap:wrap;padding:10px 10px 0;background:#fff}
+.sugg button{border:1px solid var(--line);background:#F7F5FD;border-radius:999px;padding:5px 10px;font:600 .72rem var(--sans);color:var(--deep);cursor:pointer}
+.sugg button:hover{border-color:var(--pri)}
+.chunk{background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:.76rem;color:#3F3760;transition:all .3s;animation:fadeUp .3s ease}
+.chunk.on{border-color:var(--acc);box-shadow:0 0 0 3px rgba(20,184,166,.18)}
+.chunk h6{margin:0 0 4px;font-size:.72rem;color:var(--deep);display:flex;justify-content:space-between;gap:8px}
+.chunk .sim{height:5px;background:#EEEAF8;border-radius:3px;overflow:hidden;margin-top:6px}
+.chunk .sim i{display:block;height:100%;background:linear-gradient(90deg,#6D28D9,#14B8A6);width:0;transition:width .8s}
+.chunk mark{background:rgba(20,184,166,.2);color:inherit;padding:0 2px;border-radius:2px}
+/* memo */
+.memo{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 18px;min-height:380px;font-size:.84rem;line-height:1.6}
+.memo h6{margin:12px 0 4px;font:800 .78rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--pri)}
+.memo h6:first-child{margin-top:0}
+.memo p{margin:0;color:#2E2650}
+.memo .flag{display:inline-block;background:#FDE2E3;color:var(--bad);font-weight:800;font-size:.72rem;border-radius:5px;padding:1px 6px;margin-right:4px}
+.memo .okf{display:inline-block;background:#DCF5E5;color:var(--good);font-weight:800;font-size:.72rem;border-radius:5px;padding:1px 6px;margin-right:4px}
+.caret{display:inline-block;width:7px;height:1em;background:var(--pri);vertical-align:-2px;animation:blink 1s infinite}
+.rng{display:flex;flex-direction:column;gap:3px;min-width:0}
+.rng .t{display:flex;justify-content:space-between;font-size:.78rem;font-weight:700;color:var(--deep);gap:8px}
+.rng .t b{color:var(--pri);font-variant-numeric:tabular-nums}
+.rng input{width:100%;accent-color:var(--pri)}
+.mstat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ms{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.ms .k{font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.ms .v{font-family:var(--serif);font-size:1.35rem;color:var(--deep);line-height:1.15;font-variant-numeric:tabular-nums}
+.ms.a .v{color:#0F766E} .ms.b .v{color:var(--bad)}
+.lowlist{display:flex;flex-wrap:wrap;gap:5px}
+.lowlist span{font-size:.68rem;font-weight:700;border-radius:999px;padding:2px 8px;background:#FEF3C7;color:#92400E}
+/* ops */
+.ops{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:14px}
+.opsc canvas{width:100%;height:auto;display:block;border-radius:10px;background:#120B2E}
+.lanestat{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.tw{overflow:auto}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.cmp-head{display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+.cmp{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.cmp th,.cmp td{padding:16px 18px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);font-size:.92rem;overflow-wrap:anywhere}
+.cmp thead th{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);background:#F8F6FD}
+.cmp tbody tr:last-child td,.cmp tbody tr:last-child th{border-bottom:0}
+.cmp tbody th{font-weight:700;color:var(--pri)}
+.cmp col.c1{width:22%}
+.cmp td{transition:background .3s,opacity .3s,color .3s}
+.cmp.hl-before td.b{background:#FCEEF3;color:#7A1236}
+.cmp.hl-before td.a{opacity:.38}
+.cmp.hl-after td.a{background:#ECF8F3;color:#0E4F39;font-weight:500}
+.cmp.hl-after td.b{opacity:.38}
+.cmp.hl-after thead th.a{color:var(--acc)}
+.cmp.hl-before thead th.b{color:var(--bad)}
+.tchips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:.9rem;font-weight:500;display:inline-flex;align-items:center;gap:8px}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 3px var(--acc-15)}
+.chip em{font-style:normal;color:var(--muted);font-weight:400;font-size:.82rem}
+.tk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.tk{padding:26px}
+.tk .n{font-family:var(--serif);font-size:2.6rem;color:var(--acc);line-height:1}
+.tk h3{margin:12px 0 8px}
+.tk p{font-size:.92rem;color:#433A52}
+footer{background:var(--deep);color:rgba(255,255,255,.75);padding:48px 0 32px;margin-top:32px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px}
+.f-brand{display:flex;align-items:center;gap:16px}
+.f-brand img{height:44px;width:auto;border-radius:6px;background:#fff;padding:4px}
+.f-brand b{display:block;color:#fff;font-family:var(--serif);font-weight:400;font-size:1.15rem}
+.copy{width:100%;border-top:1px solid rgba(255,255,255,.12);padding-top:18px;font-size:.8rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+#tip{position:fixed;pointer-events:none;z-index:95;background:var(--deep);color:#fff;font-size:.8rem;line-height:1.45;padding:10px 12px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transition:opacity .15s;max-width:300px}
+#tip b{color:#7DE3BE;font-weight:700}
+#tip .t{font-weight:700;font-size:.85rem;margin-bottom:2px;color:#fff}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.cmp.hl-after td.a{background:#EFEAFD;color:#1E1240}
+.chip i{background:var(--acc);box-shadow:0 0 0 3px rgba(20,184,166,.2)}
+.tk .n{color:var(--pri)}
+#tip b{color:#5EEAD4}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.js .reveal{opacity:1;transform:none;transition:none}.bub,.chunk,.tl-panel.open{animation:none}.pg.scan::after,.paper .beam.go{animation:none;display:none}}
+@media (max-width:1100px){.panel2,.xgrid,.ops{grid-template-columns:minmax(0,1fr)}.p-main{border-right:0;border-bottom:1px solid var(--line)}}
+@media (max-width:980px){.kpi-grid,.ch-grid{grid-template-columns:repeat(2,1fr)}.dash{grid-template-columns:1fr}.tk-grid{grid-template-columns:1fr}.hero canvas{width:100%;opacity:.35}.inbox{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){
+  .wrap{padding:0 16px} section{padding:48px 0} .hero{padding:52px 0 56px} .logos img{height:34px} .logos img.cl{height:28px} .vdiv{height:28px}
+  .kpi-grid{gap:10px} .kpi{padding:16px 14px} .ch-grid{grid-template-columns:1fr}
+  .tl::before{top:19px} .tl-dot{width:40px;height:40px;font-size:1rem} .tl-name{font-size:.75rem} .tl-dur{display:none} .tl-panel{padding:18px}
+  .pg{width:calc(50% - 4px)} .paper .r{grid-template-columns:minmax(0,1fr)} .chk{grid-template-columns:28px minmax(0,1fr) 70px} .chk .ex{grid-column:2/4;grid-row:2} .chk .lb{grid-column:3;grid-row:1} .chk .st{grid-row:1}
+  .mstat{grid-template-columns:repeat(2,minmax(0,1fr))} .lanestat{grid-template-columns:minmax(0,1fr)}
+  .sx{overflow-x:auto;-webkit-overflow-scrolling:touch} .sx svg{min-width:540px}
+  .cmp th,.cmp td{padding:12px 10px;font-size:.82rem} .cmp thead th{font-size:.68rem;letter-spacing:.08em} .chart-card{padding:14px}
+}
+@media print{
+  body{background:#fff;font-size:12px} .topbar{position:static}
+  .hero{background:#24125A!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:36px 0} .hero canvas{display:none}
+  .card{box-shadow:none;break-inside:avoid} section{padding:28px 0} .js .reveal{opacity:1!important;transform:none!important}
+  .seg,.tl-hint,.btn,.rng input,.ask,.sugg{display:none!important} .tl-panel{display:block!important;margin-top:10px} #tip{display:none}
+  footer{background:#fff;color:var(--text)} footer .f-brand b{color:var(--deep)} .kpis{margin-top:16px}
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="logos">
+      <img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting">
+    </div>
+    <div class="tagline">Customer Case Study · <b>Credit Operations · GenAI Document Intelligence</b></div>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas id="heroCv" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="eyebrow">Housing Finance × Havish M Consulting</div>
+    <h1>Every home-loan file, <em>read, checked and explained</em> before the underwriter opens it</h1>
+    <p class="sub">A home-loan file arrives as a stack of scanned identity, income, bank and property documents. HMC built a GenAI assistant that sorts every page, extracts every field, cross-checks the documents against each other, answers questions with citations and drafts the credit note, so underwriters spend their time on judgement, not reading.</p>
+    <div class="pills">
+      <span class="pill"><span>Client</span>Housing Finance</span>
+      <span class="pill"><span>Function</span>Credit Operations &amp; Underwriting</span>
+      <span class="pill"><span>Theme</span>GenAI · Intelligent Document Processing</span>
+    </div>
+  </div>
+</section>
+
+<section class="kpis">
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="card kpi reveal"><div class="label">Document types read automatically</div><div class="val"><span class="count" data-to="11">0</span><small>types</small></div><div class="delta">KYC, income, banking and property</div></div>
+      <div class="card kpi reveal"><div class="label">Fields extracted per loan file</div><div class="val"><span class="count" data-to="38">0</span><small>fields</small></div><div class="delta">each with a confidence score</div></div>
+      <div class="card kpi reveal"><div class="label">Cross-document checks per file</div><div class="val"><span class="count" data-to="10">0</span><small>checks</small></div><div class="delta">name, income, property, LTV, FOIR</div></div>
+      <div class="card kpi reveal"><div class="label">Underwriter reading time saved</div><div class="val"><span class="count" data-to="70">0</span><small>%</small></div><div class="delta">indicative, from the pilot design</div></div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="challenge">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Challenge</div>
+      <h2>Underwriters were reading, re-keying and reconciling</h2>
+      <p class="lead">Each home-loan file carries a dozen or more documents in different formats. Before any credit judgement, someone had to sort them, type the key numbers into the system and check that they agree with each other.</p>
+    </div>
+    <div class="ch-grid">
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg></div><h3>Many document types</h3><p>Identity proofs, salary slips, Form 16, bank statements, sale agreements, title deeds and plans, all as scans.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h2M11 10h2M15 10h2M7 14h10"/></svg></div><h3>Manual re-keying</h3><p>Names, incomes, addresses and values typed in by hand, with typos that surface later.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 7h7M4 12h7M4 17h7"/><path d="M14 7h6M14 12h6M14 17h6"/><path d="M11 12h3"/></svg></div><h3>Late inconsistencies</h3><p>A name variant, a salary that doesn't match the bank credit or a different tower number on the title, found late or not at all.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><h3>Judgement squeezed</h3><p>Most of the underwriter's time went into reading, leaving less for the actual credit decision.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="approach" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">HMC Approach</div>
+      <h2>Read, check, explain, with a human in the loop</h2>
+      <p class="lead">GenAI does the reading and the reconciling; underwriters keep every decision.</p>
+    </div>
+    <div class="tl reveal" aria-label="HMC approach steps">
+      <button class="tl-step" aria-expanded="true" aria-controls="tp0"><span class="tl-dot">1</span><span class="tl-name">Discover</span><span class="tl-dur">2 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp1"><span class="tl-dot">2</span><span class="tl-name">Design</span><span class="tl-dur">2 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp2"><span class="tl-dot">3</span><span class="tl-name">Build</span><span class="tl-dur">6 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp3"><span class="tl-dot">4</span><span class="tl-name">Adopt</span><span class="tl-dur">Pilot</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp4"><span class="tl-dot">5</span><span class="tl-name">Scale</span><span class="tl-dur">Ongoing</span></button>
+    </div>
+    <p class="tl-hint">Select a step to see what happened.</p>
+    <div class="card tl-panel open" id="tp0"><h3>Discover · Shadow the underwriter</h3><p>Mapped how a file is read today.</p><ul><li>Document types, page counts and scan quality.</li><li>The fields every credit note needs.</li><li>The checks underwriters run in their heads.</li></ul><p class="deliv"><b>Deliverable:</b> Document taxonomy and field list.</p></div>
+    <div class="card tl-panel" id="tp1"><h3>Design · Schema, checks, guardrails</h3><p>Turned tacit knowledge into rules.</p><ul><li>A JSON schema per document type.</li><li>Ten cross-document checks with pass, review and fail rules.</li><li>Guardrails: answer only from the file, always cite, never decide.</li></ul><p class="deliv"><b>Deliverable:</b> Extraction schema and check library.</p></div>
+    <div class="card tl-panel" id="tp2"><h3>Build · The assistant</h3><p>Four capabilities on one pipeline.</p><ul><li>Page classification and field extraction with confidence scores.</li><li>Rule-based cross-checks with plain-language explanations.</li><li>Ask-the-file Q&amp;A with retrieval and citations; draft credit note.</li></ul><p class="deliv"><b>Deliverable:</b> Working assistant and review screen.</p></div>
+    <div class="card tl-panel" id="tp3"><h3>Adopt · Pilot with underwriters</h3><p>Human-in-the-loop from day one.</p><ul><li>Low-confidence fields routed to a reviewer.</li><li>Underwriters accept, edit or reject each flag.</li><li>Feedback used to tune prompts and thresholds.</li></ul><p class="deliv"><b>Deliverable:</b> Pilot playbook and review metrics.</p></div>
+    <div class="card tl-panel" id="tp4"><h3>Scale · More documents, more branches</h3><p>The same pipeline grows.</p><ul><li>New document types added by schema, not code.</li><li>Threshold tuning as accuracy is proven.</li><li>Operations dashboard for queue and turnaround.</li></ul><p class="deliv"><b>Deliverable:</b> Roll-out roadmap.</p></div>
+  </div>
+</section>
+
+<section id="solution">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Solution</div>
+      <h2>Five things the assistant does with every file</h2>
+      <p class="lead">One synthetic loan file runs through all five modules. Pick a scenario in module 02 and the questions, answers and credit note in later modules change with it.</p>
+    </div>
+
+    <div class="module reveal" id="inModule">
+      <div class="mod-head"><div><div class="badge">01 · Read the file</div><h3>Sort every page, then pull out every field</h3><p>Eleven scanned pages arrive in random order. Press Process: each page is classified into a document type, then each document is read and its fields extracted as structured data with a confidence score.</p></div>
+        <div style="display:flex;gap:8px"><button class="btn" id="inReset" type="button">↺ Reset</button><button class="btn go" id="inRun" type="button">▶ Process file</button></div></div>
+      <div class="card" style="padding:14px">
+        <div class="pile" id="pile" aria-label="Unsorted pages"></div>
+        <div class="inbox" id="lanes"></div>
+        <div class="xgrid">
+          <div><div class="doclist" id="docTabs"></div><div class="paper" id="paper"></div></div>
+          <div><h4 style="margin:0 0 6px;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Extracted fields · JSON</h4><div class="json" id="json"></div></div>
+        </div>
+      </div>
+      <p class="footnote">Synthetic applicant and documents; identity numbers masked.</p>
+    </div>
+
+    <div class="module reveal" id="ckModule">
+      <div class="mod-head"><div><div class="badge">02 · Cross-check the documents</div><h3>Ten checks, each explained in plain language</h3><p>Choose a scenario and run the checks. The assistant compares fields across documents, applies policy rules and explains every result with its sources.</p></div>
+        <button class="btn go" id="ckRun" type="button">▶ Run checks</button></div>
+      <div class="scen" id="scen"></div>
+      <div class="card panel2">
+        <div class="p-main" style="padding:0"><div id="checks"></div></div>
+        <div class="p-side">
+          <h4>File readiness</h4>
+          <div class="ring" id="ring"></div>
+          <div class="mstat" id="ckStat"></div>
+          <p style="font-size:.76rem;color:var(--muted);margin:0">Pass = consistent. Review = explainable difference for a human to confirm. Fail = must be resolved before sanction.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="module reveal" id="qaModule">
+      <div class="mod-head"><div><div class="badge">03 · Ask the file</div><h3>Questions answered from the file, with citations</h3><p>Ask in plain English. The assistant retrieves the most relevant passages from this file, answers only from them and cites each source. Try asking something the file can't answer.</p></div></div>
+      <div class="card panel2">
+        <div class="p-main" style="padding:0">
+          <div class="chat">
+            <div class="msgs" id="msgs"></div>
+            <div class="sugg" id="sugg"></div>
+            <form class="ask" id="askF"><input id="askI" type="text" placeholder="Ask about this loan file…" aria-label="Ask a question about this loan file" autocomplete="off"><button class="btn go" type="submit">Ask</button></form>
+          </div>
+        </div>
+        <div class="p-side"><h4>Retrieved passages</h4><div id="chunks" style="display:flex;flex-direction:column;gap:8px"><p style="font-size:.78rem;color:var(--muted);margin:0">Passages used for the answer appear here, ranked by similarity.</p></div></div>
+      </div>
+    </div>
+
+    <div class="module reveal" id="uwModule">
+      <div class="mod-head"><div><div class="badge">04 · Underwriter's desk</div><h3>A draft credit note, and a dial for human review</h3><p>Generate the draft note for the current scenario. Then set the confidence threshold: fields below it go to a human reviewer. Higher thresholds mean fewer errors slip through, but less straight-through processing.</p></div>
+        <button class="btn go" id="uwRun" type="button">✦ Draft credit note</button></div>
+      <div class="card panel2">
+        <div class="p-main"><div class="memo" id="memo"><p style="color:var(--muted)">Press "Draft credit note" to generate the underwriter's summary for this file.</p></div></div>
+        <div class="p-side">
+          <div class="rng"><div class="t"><span>Auto-accept fields with confidence ≥</span><b id="thV"></b></div><input type="range" id="th" min="50" max="99" value="90" aria-label="Confidence threshold"></div>
+          <div class="mstat" id="thStat"></div>
+          <div class="chart" id="thChart"></div>
+          <div class="ckey"><span><i style="background:#14B8A6"></i>Straight-through fields</span><span><i style="background:#E0464E"></i>Error rate in auto-accepted fields</span></div>
+          <h4>This file: fields sent to review</h4><div class="lowlist" id="lowlist"></div>
+        </div>
+      </div>
+      <p class="footnote">Threshold curve from a simulated validation set of 4,000 fields; illustrative.</p>
+    </div>
+
+    <div class="module reveal" id="opModule" style="margin-bottom:0">
+      <div class="mod-head"><div><div class="badge">05 · Operations control room</div><h3>A working day of files, manual vs assisted</h3><p>Files arrive through the day. In the top lane, people do data entry, checks and underwriting. In the bottom lane, the assistant reads and checks, people review flagged fields, and underwriters decide. Watch the queues.</p></div>
+        <div style="display:flex;gap:8px"><button class="btn" id="opReset" type="button">↺ Reset</button><button class="btn go" id="opRun" type="button">▶ Run the day</button></div></div>
+      <div class="card" style="padding:14px">
+        <div class="ops">
+          <div class="opsc"><canvas id="opCv" width="1200" height="520" aria-label="Simulation of loan files moving through manual and AI-assisted processing lanes"></canvas></div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div class="rng"><div class="t"><span>Files arriving per day</span><b id="arrV"></b></div><input type="range" id="arr" min="30" max="90" step="5" value="60" aria-label="Files per day"></div>
+            <div class="rng"><div class="t"><span>Underwriters per lane</span><b id="uwV"></b></div><input type="range" id="uwN" min="2" max="6" value="3" aria-label="Underwriters per lane"></div>
+            <div class="ms"><div class="k">Clock</div><div class="v" id="opClock">09:00</div></div>
+            <div class="lanestat" id="opStat"></div>
+          </div>
+        </div>
+      </div>
+      <p class="footnote">Simulation with indicative stage times; not measured data.</p>
+    </div>
+  </div>
+</section>
+
+<section id="impact" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Impact Dashboard</div>
+      <h2>Faster files, sharper judgement</h2>
+      <p class="lead">Reading and re-keying shrink; the minutes left are spent on the credit decision.</p>
+    </div>
+    <div class="dash">
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>Review time per file</h3><p class="sub">Each dot is one loan file, minutes from intake to underwriter-ready</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-bs="before" aria-pressed="false">Before</button><button type="button" data-bs="after" aria-pressed="true">After</button></div></div>
+        <div class="chart" id="swarm"></div>
+      </div>
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>Underwriter minutes by activity</h3><p class="sub">Per file, by type of work</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-rb="before" aria-pressed="false">Before</button><button type="button" data-rb="after" aria-pressed="true">After</button></div></div>
+        <div class="chart" id="radial"></div>
+      </div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <div class="cmp-head reveal"><div><div class="eyebrow">Before vs After</div><h2>How a loan file is handled now</h2></div>
+      <div class="seg" role="group" aria-label="Highlight column"><button type="button" data-hl="before" aria-pressed="false">Before</button><button type="button" data-hl="after" aria-pressed="true">After</button></div></div>
+    <div class="card reveal" style="overflow:hidden">
+      <table class="cmp hl-after" id="cmp"><colgroup><col class="c1"><col><col></colgroup>
+        <thead><tr><th scope="col">Dimension</th><th scope="col" class="b">Before</th><th scope="col" class="a">After</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Sorting documents</th><td class="b">Pages opened one by one</td><td class="a">Every page classified on arrival</td></tr>
+          <tr><th scope="row">Data capture</th><td class="b">Re-keyed by hand</td><td class="a">Extracted with confidence scores</td></tr>
+          <tr><th scope="row">Consistency checks</th><td class="b">Done from memory, often late</td><td class="a">Ten checks, explained with sources</td></tr>
+          <tr><th scope="row">Questions on a file</th><td class="b">Search the PDFs</td><td class="a">Ask in plain English, get cited answers</td></tr>
+          <tr><th scope="row">Credit note</th><td class="b">Written from scratch</td><td class="a">Drafted for the underwriter to edit</td></tr>
+          <tr><th scope="row">Control</th><td class="b">Errors found downstream</td><td class="a">Human review for low-confidence fields</td></tr>
+        </tbody></table>
+    </div>
+  </div>
+</section>
+
+<section id="tools" style="padding-top:16px">
+  <div class="wrap">
+    <div class="sec-head reveal" style="margin-bottom:20px"><div class="eyebrow">Tools &amp; Tech Used</div><h2>The GenAI document stack</h2></div>
+    <div class="tchips reveal">
+      <span class="chip"><i></i>OCR <em>scanned pages to text</em></span>
+      <span class="chip"><i></i>Large language model <em>classification and schema extraction</em></span>
+      <span class="chip"><i></i>Retrieval (embeddings) <em>ask-the-file with citations</em></span>
+      <span class="chip"><i></i>Python rules engine <em>cross-document checks</em></span>
+      <span class="chip"><i></i>Human-in-the-loop review <em>confidence thresholds</em></span>
+    </div>
+  </div>
+</section>
+
+<section id="takeaways">
+  <div class="wrap">
+    <div class="sec-head reveal"><div class="eyebrow">Key Takeaways</div><h2>What any lender can borrow</h2></div>
+    <div class="tk-grid">
+      <div class="card tk reveal"><div class="n">01</div><h3>Extract to a schema, not to prose</h3><p>Structured fields with confidence scores are what make checks, routing and audit possible.</p></div>
+      <div class="card tk reveal"><div class="n">02</div><h3>Cite everything</h3><p>Underwriters trust an answer they can trace to a page; guardrails keep the assistant inside the file.</p></div>
+      <div class="card tk reveal"><div class="n">03</div><h3>Keep the human on the decision</h3><p>Let GenAI read and reconcile; let thresholds route doubt to people, and leave credit judgement with them.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="f-brand"><img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting"><div><b>Havish M Consulting</b></div></div>
+    <div class="copy"><span>© <span id="yr">2026</span> Havish M Consulting. All rights reserved.</span><span>Figures indicative; validated metrics available on request.</span></div>
+  </div>
+</footer>
+<div id="tip" role="tooltip"></div>
+
+<script>
+(function(){
+"use strict";
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DUR = reduce ? 0 : 650;
+const $ = id => document.getElementById(id);
+$('yr').textContent = new Date().getFullYear();
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hasD3 = typeof d3 !== 'undefined';
+const sleep = ms => new Promise(r => setTimeout(r, reduce ? 0 : ms));
+const sum = a => a.reduce((x, y) => x + y, 0);
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const inr = n => '₹' + Math.round(n).toLocaleString('en-IN');
+const tip = $('tip');
+function showTip(html, ev){ tip.innerHTML = html; tip.style.opacity = 1; const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = ev.clientX + pad, y = ev.clientY + pad; if (x + w > innerWidth - 8) x = ev.clientX - w - pad; if (y + h > innerHeight - 8) y = ev.clientY - h - pad;
+  tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; }
+function hideTip(){ tip.style.opacity = 0; }
+window.addEventListener('scroll', hideTip, {passive:true});
+const onView = new Map();
+const io = ('IntersectionObserver' in window) ? new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; e.target.classList.add('in');
+  const fn = onView.get(e.target); if (fn){ fn(); onView.delete(e.target); } io.unobserve(e.target); }), {threshold:.1}) : null;
+function whenVisible(el, fn){ onView.set(el, fn); if (io) io.observe(el); else fn(); }
+document.querySelectorAll('.reveal').forEach(el => io ? io.observe(el) : el.classList.add('in'));
+function countUp(el){ const to = +el.dataset.to; if (reduce || !to){ el.textContent = to; return; }
+  const t0 = performance.now(); (function s(t){ const p = Math.min(1,(t-t0)/1400), e = 1 - Math.pow(1-p,3); el.textContent = Math.round(to*e); if (p < 1) requestAnimationFrame(s); })(t0); }
+document.querySelectorAll('.count').forEach(el => whenVisible(el.closest('.kpi'), () => countUp(el)));
+const tlSteps = document.querySelectorAll('.tl-step');
+tlSteps.forEach(btn => btn.addEventListener('click', () => { const open = btn.getAttribute('aria-expanded') === 'true';
+  tlSteps.forEach(b => { b.setAttribute('aria-expanded','false'); $(b.getAttribute('aria-controls')).classList.remove('open'); });
+  if (!open){ btn.setAttribute('aria-expanded','true'); $(btn.getAttribute('aria-controls')).classList.add('open'); } }));
+function segBind(attr, fn){ const bs = document.querySelectorAll(`[data-${attr}]`); bs.forEach(b => b.addEventListener('click', () => { bs.forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); fn(b.dataset[attr]); })); }
+const cmp = $('cmp');
+segBind('hl', v => { cmp.classList.toggle('hl-before', v === 'before'); cmp.classList.toggle('hl-after', v === 'after'); });
+
+/* HERO · pages fan in, a beam scans them, fields fly out as data */
+(function hero(){
+  const cv = $('heroCv'), cx = cv.getContext('2d'); let W = 0, H = 0, run = false; const R = mulberry32(3);
+  const pages = Array.from({ length: 7 }, (_, i) => ({ a: (i - 3) * .09, dx: (i - 3) * 16 }));
+  const sparks = Array.from({ length: 46 }, () => ({ r: R(), y: R(), sp: .4 + R() * .6, row: Math.floor(R() * 8) }));
+  function size(){ const dpr = Math.min(2, devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; cx.setTransform(dpr,0,0,dpr,0,0); }
+  function draw(time){
+    cx.clearRect(0, 0, W, H); const t = time / 1000, px = W * .66, py = H * .48, pw = Math.min(150, W * .12), ph = pw * 1.35;
+    pages.forEach((p, i) => { cx.save(); cx.translate(px + p.dx * Math.sin(t * .6 + i), py); cx.rotate(p.a + Math.sin(t * .5 + i) * .02);
+      cx.fillStyle = `rgba(255,255,255,${.1 + i * .05})`; cx.strokeStyle = 'rgba(196,181,253,.5)'; cx.lineWidth = 1; cx.fillRect(-pw / 2, -ph / 2, pw, ph); cx.strokeRect(-pw / 2, -ph / 2, pw, ph);
+      if (i === pages.length - 1){ cx.fillStyle = 'rgba(196,181,253,.55)'; for (let k = 0; k < 9; k++){ cx.fillRect(-pw / 2 + 12, -ph / 2 + 16 + k * (ph - 30) / 9, (k % 3 === 0 ? .45 : .75) * (pw - 24), 3); }
+        const by = -ph / 2 + ((t * .45) % 1) * ph; const g = cx.createLinearGradient(0, by - 18, 0, by + 18); g.addColorStop(0, 'rgba(94,234,212,0)'); g.addColorStop(.5, 'rgba(94,234,212,.7)'); g.addColorStop(1, 'rgba(94,234,212,0)'); cx.fillStyle = g; cx.fillRect(-pw / 2 - 6, by - 18, pw + 12, 36); }
+      cx.restore(); });
+    sparks.forEach(s => { const q = ((t * s.sp * .25 + s.r) % 1), x = px + pw / 2 + q * (W * .3), y = py - ph / 2 + 16 + s.row * (ph - 30) / 8 + Math.sin(q * 6 + s.y * 6) * 6;
+      cx.globalAlpha = (1 - q) * .9; cx.fillStyle = s.row % 2 ? '#5EEAD4' : '#C4B5FD'; cx.fillRect(x, y, 10 + s.r * 16, 3); });
+    cx.globalAlpha = 1;
+  }
+  size(); draw(reduce ? 2000 : 0);
+  window.addEventListener('resize', () => { size(); draw(reduce ? 2000 : performance.now()); });
+  if (reduce) return;
+  function loop(t){ if (!run) return; draw(t); requestAnimationFrame(loop); }
+  if (io) new IntersectionObserver(es => { const on = es[0].isIntersecting; if (on && !run){ run = true; requestAnimationFrame(loop); } else if (!on) run = false; }).observe(cv);
+})();
+
+/* ======================================================================
+   THE LOAN FILE (synthetic) and SCENARIOS
+   ====================================================================== */
+const BASE = {
+  appName:'Rahul Kumar Verma', dob:'14-08-1988', addr:'H.No. 221, Sector 21, Gurugram, Haryana 122016', idNo:'XXXX XXXX 4821',
+  panName:'RAHUL KUMAR VERMA', panDob:'14-08-1988', pan:'XXXXX4821K',
+  employer:'Acme Infotech Pvt. Ltd.', slipName:'Rahul Kumar Verma', doj:'02-07-2016', gross:192000, net:[145200,145200,147800],
+  bankName:'RAHUL KUMAR VERMA', credits:[145200,145200,147800], narr:'SAL ACME INFOTECH', emiExisting:8500, bounces:0, avgBal:112400,
+  f16Employer:'Acme Infotech Pvt. Ltd.', f16Gross:2280000,
+  buyer:'Rahul Kumar Verma', propAgr:'Flat 1204, Tower B, Green Meadows, Sector 84, Gurugram', value:8500000,
+  propTitle:'Flat 1204, Tower B, Green Meadows, Sector 84, Gurugram', seller:'Green Meadows Developers LLP',
+  planProj:'Green Meadows, Sector 84 · Towers A–D', planNo:'PLAN/2023/0457 (sample)',
+  loan:6200000, rate:8.75, years:20
+};
+const SCEN = [
+  { k:'clean', n:'Clean file', f:{} },
+  { k:'name', n:'Name variant', f:{ bankName:'RAHUL VERMA', slipName:'R. K. Verma' } },
+  { k:'income', n:'Income mismatch', f:{ credits:[145200,145200,112000] } },
+  { k:'property', n:'Property mismatch', f:{ propTitle:'Flat 1204, Tower C, Green Meadows, Sector 84, Gurugram' } },
+  { k:'ltv', n:'High LTV', f:{ loan:7000000 } },
+  { k:'bounce', n:'EMI bounce', f:{ bounces:2 } }
+];
+let SC = 0;
+const FILE = () => Object.assign({}, BASE, SCEN[SC].f);
+const MON = ['Apr 2026','May 2026','Jun 2026'];
+function emi(P, rate, yrs){ const r = rate / 1200, n = yrs * 12; return P * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1); }
+const ltvCap = P => P <= 3000000 ? .9 : P <= 7500000 ? .8 : .75;
+
+/* ======================================================================
+   01 · READ THE FILE
+   ====================================================================== */
+const CATS = [['KYC','#6D28D9'],['Income','#0F9F90'],['Banking','#DB2777'],['Property','#D97706']];
+const PAGES = [
+  { f:'Scan_007.pdf', d:'bank1', t:'Bank statement · p1', c:'Banking', conf:.98 }, { f:'Scan_002.pdf', d:'id', t:'Identity proof', c:'KYC', conf:.99 },
+  { f:'Scan_010.pdf', d:'title', t:'Title deed', c:'Property', conf:.95 }, { f:'Scan_004.pdf', d:'slip1', t:'Salary slip · Apr', c:'Income', conf:.99 },
+  { f:'Scan_011.pdf', d:'plan', t:'Approved building plan', c:'Property', conf:.91 }, { f:'Scan_001.pdf', d:'pan', t:'PAN card', c:'KYC', conf:.99 },
+  { f:'Scan_005.pdf', d:'slip2', t:'Salary slip · May', c:'Income', conf:.99 }, { f:'Scan_009.pdf', d:'agr', t:'Sale agreement', c:'Property', conf:.97 },
+  { f:'Scan_008.pdf', d:'bank2', t:'Bank statement · p2', c:'Banking', conf:.97 }, { f:'Scan_006.pdf', d:'slip3', t:'Salary slip · Jun', c:'Income', conf:.98 },
+  { f:'Scan_003.pdf', d:'f16', t:'Form 16', c:'Income', conf:.96 }
+];
+function DOCS(){ const F = FILE(), e = Math.round(emi(F.loan, F.rate, F.years));
+  return [
+    { k:'id', n:'Identity proof', sub:'Government identity card · front', rows:[['Name','name',F.appName,.99],['Date of birth','dob',F.dob,.98],['Address','address',F.addr,.93],['ID number','id_number',F.idNo,.97]] },
+    { k:'pan', n:'PAN card', sub:'Income Tax Department', rows:[['Name','name',F.panName,.99],['Date of birth','dob',F.panDob,.97],['PAN','pan',F.pan,.99]] },
+    { k:'slip', n:'Salary slips', sub:F.employer + ' · ' + MON.join(', '), rows:[['Employee name','employee_name',F.slipName,.98],['Employer','employer',F.employer,.99],['Date of joining','date_of_joining',F.doj,.88],['Gross monthly','gross_monthly',inr(F.gross),.97],['Net pay Apr','net_pay_apr',inr(F.net[0]),.98],['Net pay May','net_pay_may',inr(F.net[1]),.98],['Net pay Jun','net_pay_jun',inr(F.net[2]),.96]] },
+    { k:'bank', n:'Bank statement', sub:'Savings account · Apr–Jun 2026 · 2 pages', rows:[['Account holder','account_holder',F.bankName,.97],['Salary credit Apr','salary_credit_apr',inr(F.credits[0]) + ' · ' + F.narr,.96],['Salary credit May','salary_credit_may',inr(F.credits[1]) + ' · ' + F.narr,.96],['Salary credit Jun','salary_credit_jun',inr(F.credits[2]) + ' · ' + F.narr,.95],['Existing EMI','existing_emi',inr(F.emiExisting) + ' / month (car loan)',.93],['EMI / cheque returns','returns',String(F.bounces),.9],['Average balance','avg_balance',inr(F.avgBal),.94]] },
+    { k:'f16', n:'Form 16', sub:'FY 2025-26 · Part B', rows:[['Employer','employer',F.f16Employer,.97],['Gross salary (annual)','gross_annual',inr(F.f16Gross),.95],['Assessment year','assessment_year','2026-27',.92]] },
+    { k:'agr', n:'Sale agreement', sub:'Agreement to sell · registered', rows:[['Buyer','buyer',F.buyer,.97],['Property','property',F.propAgr,.94],['Agreement value','agreement_value',inr(F.value),.96],['Agreement date','agreement_date','18-05-2026',.78]] },
+    { k:'title', n:'Title deed', sub:'Conveyance / title chain · extract', rows:[['Owner / seller','owner',F.seller,.93],['Property','property',F.propTitle,.92],['Encumbrance noted','encumbrance','None recorded',.84]] },
+    { k:'plan', n:'Approved building plan', sub:'Sanctioned plan · extract', rows:[['Project','project',F.planProj,.9],['Approval reference','approval_ref',F.planNo,.86],['Units per floor','units_per_floor','4',.74]] },
+    { k:'app', n:'Loan application', sub:'Captured at branch', rows:[['Loan requested','loan_amount',inr(F.loan),.99],['Tenure','tenure_years',F.years + ' years',.99],['Indicative rate','rate',F.rate + '%',.99],['Proposed EMI','proposed_emi',inr(e),.99]] }
+  ]; }
+let inDone = false, curDoc = 'id', inBusy = false;
+function inInit(){ inDone = false; $('pile').style.display = '';
+  $('pile').innerHTML = PAGES.map((p, i) => `<div class="pg" id="pg${i}" data-i="${i}"><b>${p.f}</b><div class="ln"></div><div class="ln s"></div><div class="ln"></div><div class="ln s"></div><span class="tag"></span></div>`).join('');
+  $('lanes').innerHTML = CATS.map(([c, col]) => `<div class="lane" data-c="${c}"><h5><span style="color:${col}">${c}</span><span class="cnt">0</span></h5></div>`).join('');
+  $('docTabs').innerHTML = ''; $('paper').innerHTML = '<p style="color:var(--muted);margin:60px 0;text-align:center">Process the file to read the documents.</p>'; $('json').innerHTML = '<span class="c">// extracted fields appear here</span>'; }
+function flip(el, target){ const a = el.getBoundingClientRect(); target.appendChild(el); const b = el.getBoundingClientRect(); if (reduce) return;
+  el.animate([{ transform: `translate(${a.left - b.left}px,${a.top - b.top}px)`, width: a.width + 'px' }, { transform: 'none', width: b.width + 'px' }], { duration: 520, easing: 'cubic-bezier(.2,.8,.2,1)' }); }
+function docTabs(){ $('docTabs').innerHTML = DOCS().map(d => `<button type="button" class="chipb${d.k === curDoc ? ' on' : ''}" data-d="${d.k}">${esc(d.n)}</button>`).join(''); }
+async function showDoc(k, animate){ curDoc = k; docTabs(); const d = DOCS().find(x => x.k === k);
+  $('paper').innerHTML = `<div class="beam"></div><h6>${esc(d.n)}</h6><div class="sub">${esc(d.sub)}</div>` + d.rows.map(r => `<div class="r"><span>${esc(r[0])}</span><span><span class="fv" data-k="${r[1]}">${esc(r[2])}</span></span></div>`).join('');
+  const js = $('json'); js.innerHTML = '';
+  const line = r => `  <span class="k">"${r[1]}"</span>: <span class="s">"${esc(r[2])}"</span>, <span class="c">// ${r[3].toFixed(2)}</span><span class="cbar${r[3] < .9 ? ' low' : ''}"><i style="width:${r[3] * 100}%"></i></span>`;
+  if (!animate || reduce){ js.innerHTML = `{ <span class="k">"doc_type"</span>: <span class="s">"${d.k}"</span>,\n` + d.rows.map(line).join('\n') + '\n}'; $('paper').querySelectorAll('.fv').forEach((f, i) => f.classList.add(d.rows[i][3] < .9 ? 'low' : 'hit')); js.style.whiteSpace = 'pre'; return; }
+  js.style.whiteSpace = 'pre'; $('paper').querySelector('.beam').classList.add('go');
+  js.innerHTML = `{ <span class="k">"doc_type"</span>: <span class="s">"${d.k}"</span>,`;
+  const fv = $('paper').querySelectorAll('.fv');
+  for (let i = 0; i < d.rows.length; i++){ await sleep(1400 / d.rows.length); if (curDoc !== k) return; fv[i].classList.add(d.rows[i][3] < .9 ? 'low' : 'hit'); js.innerHTML += '\n' + line(d.rows[i]); }
+  js.innerHTML += '\n}'; }
+$('docTabs').addEventListener('click', e => { const b = e.target.closest('[data-d]'); if (b) showDoc(b.dataset.d, true); });
+$('inRun').addEventListener('click', async () => { if (inBusy) return; inBusy = true; if (inDone) inInit();
+  for (let i = 0; i < PAGES.length; i++){ const p = PAGES[i], el = $('pg' + i); el.classList.add('scan'); await sleep(180);
+    const tag = el.querySelector('.tag'); tag.textContent = `${p.t} · ${(p.conf * 100).toFixed(0)}%`; tag.style.background = CATS.find(c => c[0] === p.c)[1]; el.classList.add('done');
+    const lane = $('lanes').querySelector(`[data-c="${p.c}"]`); flip(el, lane); lane.querySelector('.cnt').textContent = lane.querySelectorAll('.pg').length; await sleep(160); }
+  $('pile').style.display = 'none'; inDone = true; await showDoc('id', true); inBusy = false; });
+$('inReset').addEventListener('click', () => { if (!inBusy) inInit(); });
+$('lanes').addEventListener('click', e => { const p = e.target.closest('.pg'); if (!p || !inDone) return; const d = PAGES[+p.dataset.i].d.replace(/\d$/, ''); showDoc(d === 'slip' ? 'slip' : d === 'bank' ? 'bank' : d, true); });
+inInit();
+
+/* ======================================================================
+   02 · CROSS-CHECKS
+   ====================================================================== */
+const norm = s => s.toUpperCase().replace(/[.,]/g, ' ').split(/\s+/).filter(Boolean);
+function nameSim(a, b){ const A = norm(a), B = norm(b), [S, L] = A.length <= B.length ? [A, B] : [B, A]; let m = 0, ini = false; const used = new Set();
+  S.forEach(t => { const j = L.findIndex((u, k) => !used.has(k) && (u === t || (t.length === 1 && u[0] === t) || (u.length === 1 && t[0] === u))); if (j >= 0){ used.add(j); m++; if (t.length === 1 || L[j].length === 1) ini = true; } });
+  return { s: m / L.length, ini }; }
+function CHECKS(){ const F = FILE(), e = emi(F.loan, F.rate, F.years), netAvg = sum(F.net) / 3, foir = (F.emiExisting + e) / netAvg, ltv = F.loan / F.value, cap = ltvCap(F.loan);
+  const names = [['PAN', F.panName], ['Salary slip', F.slipName], ['Bank', F.bankName], ['Agreement', F.buyer]].map(([d, n]) => ({ d, n, ...nameSim(F.appName, n) }));
+  const worst = names.reduce((a, b) => b.s < a.s ? b : a), anyIni = names.some(n => n.ini && n.s === 1);
+  const diffs = F.credits.map((c, i) => Math.abs(c - F.net[i]) / F.net[i]), maxD = Math.max(...diffs), bad = diffs.findIndex(d => d === maxD);
+  const sd = d3.deviation(F.net) / d3.mean(F.net);
+  return [
+    { n:'Applicant name across documents', src:'ID · PAN · slip · bank · agreement', r: worst.s === 1 ? (anyIni ? 'review' : 'pass') : worst.s >= .6 ? 'review' : 'fail',
+      x: worst.s === 1 ? (anyIni ? `All match; salary slip uses initials ("${F.slipName}"). Confirm initials map to the applicant.` : `"${F.appName}" matches on all four documents.`) : `${worst.d} shows "${worst.n}" (${Math.round(worst.s * 100)}% token match). Likely the same person without the middle name; confirm with KYC.` },
+    { n:'Date of birth: ID vs PAN', src:'ID · PAN', r: F.dob === F.panDob ? 'pass' : 'fail', x: F.dob === F.panDob ? `Both show ${F.dob}.` : `ID ${F.dob} vs PAN ${F.panDob}.` },
+    { n:'Employer consistency', src:'Slips · Form 16 · bank narration', r: F.employer === F.f16Employer && F.narr.includes('ACME') ? 'pass' : 'review', x:`"${F.employer}" on slips and Form 16; bank credits narrated "${F.narr}".` },
+    { n:'Net salary vs bank credits', src:'Slips · bank statement', r: maxD <= .02 ? 'pass' : maxD <= .1 ? 'review' : 'fail',
+      x: maxD <= .02 ? 'All three months credited within 2% of net pay.' : `${MON[bad]}: credit ${inr(F.credits[bad])} vs net pay ${inr(F.net[bad])} (${Math.round(maxD * 100)}% short). Ask for an explanation or a later statement.` },
+    { n:'Income stability (3 months)', src:'Salary slips', r: sd < .05 ? 'pass' : 'review', x:`Net pay varies ${(sd * 100).toFixed(1)}% month to month; gross ${inr(F.gross)} consistent with Form 16 (${inr(F.f16Gross / 12)} / month).` },
+    { n:'EMI or cheque returns', src:'Bank statement', r: F.bounces === 0 ? 'pass' : 'fail', x: F.bounces === 0 ? 'No returned EMIs or cheques in Apr–Jun 2026.' : `${F.bounces} returned EMI debits found (May and Jun). Needs explanation before sanction.` },
+    { n:'Property identity across documents', src:'Agreement · title · plan', r: F.propAgr === F.propTitle ? 'pass' : 'fail', x: F.propAgr === F.propTitle ? 'Unit, tower, project and sector match on agreement and title; project appears on the approved plan.' : `Agreement says "${F.propAgr.split(',')[1].trim()}", title says "${F.propTitle.split(',')[1].trim()}". Resolve before legal sign-off.` },
+    { n:'Buyer on agreement is the applicant', src:'Agreement · application', r: nameSim(F.appName, F.buyer).s === 1 ? 'pass' : 'review', x:`Buyer "${F.buyer}".` },
+    { n:'Loan-to-value within cap', src:'Application · agreement', r: ltv <= cap ? 'pass' : 'fail', x:`${inr(F.loan)} on ${inr(F.value)} = ${(ltv * 100).toFixed(1)}% LTV vs ${cap * 100}% cap for this loan size.` },
+    { n:'FOIR within policy', src:'Application · slips · bank', r: foir <= .5 ? 'pass' : foir <= .6 ? 'review' : 'fail', x:`(Existing EMI ${inr(F.emiExisting)} + proposed ${inr(e)}) / net ${inr(netAvg)} = ${(foir * 100).toFixed(1)}% (policy limit 50% assumed).` }
+  ]; }
+$('scen').innerHTML = '<b>Scenario</b>' + SCEN.map((s, i) => `<button type="button" class="chipb${i === SC ? ' on' : ''}" data-sc="${i}">${s.n}</button>`).join('');
+const ICON = { pass:'✓', review:'!', fail:'✕' };
+let ckBusy = false, ckToken = 0;
+function ckBlank(){ $('checks').innerHTML = CHECKS().map((c, i) => `<div class="chk" id="ck${i}"><span class="st">${i + 1}</span><span><b>${esc(c.n)}</b><span class="src">${esc(c.src)}</span></span><span class="ex"></span><span class="lb">queued</span></div>`).join(''); ring(null); }
+let ringSvg = null;
+function ring(cs){
+  const done = cs || [], score = done.length ? sum(done.map(c => c.r === 'pass' ? 1 : c.r === 'review' ? .5 : 0)) / 10 : 0;
+  if (!ringSvg){ ringSvg = d3.select('#ring').append('svg').attr('viewBox','0 0 200 200').attr('width', 180).attr('role','img').attr('aria-label','File readiness score');
+    ringSvg.append('circle').attr('cx', 100).attr('cy', 100).attr('r', 78).attr('fill','none').attr('stroke','#EEEAF8').attr('stroke-width', 16);
+    ringSvg.append('path').attr('class','arc').attr('transform','translate(100,100)');
+    ringSvg.append('text').attr('class','v').attr('x', 100).attr('y', 106).attr('text-anchor','middle').attr('font-family','DM Serif Display, Georgia, serif').attr('font-size', 40).attr('fill','#1E1240');
+    ringSvg.append('text').attr('class','l').attr('x', 100).attr('y', 130).attr('text-anchor','middle').attr('font-size', 11).attr('font-weight', 800).attr('letter-spacing', '.1em').attr('fill','#635C80'); }
+  const arc = d3.arc().innerRadius(70).outerRadius(86).cornerRadius(8).startAngle(0), col = score >= .9 ? '#16A34A' : score >= .7 ? '#F59E0B' : '#E0464E';
+  ringSvg.select('path.arc').attr('fill', cs ? col : '#EEEAF8').transition().duration(DUR).attrTween('d', function(){ const from = this._v || 0; this._v = score * Math.PI * 2; const i = d3.interpolate(from, score * Math.PI * 2); return t => arc({ endAngle: i(t) }); });
+  ringSvg.select('text.v').text(cs ? Math.round(score * 100) : '–');
+  ringSvg.select('text.l').text(!cs ? 'NOT RUN' : done.length < 10 ? 'CHECKING…' : score >= .9 ? 'READY' : score >= .7 ? 'NEEDS REVIEW' : 'ON HOLD');
+  const c = k => done.filter(x => x.r === k).length;
+  $('ckStat').innerHTML = `<div class="ms a"><div class="k">Pass</div><div class="v">${c('pass')}</div></div><div class="ms"><div class="k">Review</div><div class="v" style="color:#B45309">${c('review')}</div></div><div class="ms b"><div class="k">Fail</div><div class="v">${c('fail')}</div></div>`; }
+async function typeInto(el, text, tok, speed = 9){ if (reduce){ el.textContent = text; return; } el.textContent = ''; for (let i = 0; i < text.length; i += 3){ if (tok !== ckToken) return; el.textContent = text.slice(0, i + 3); await new Promise(r => setTimeout(r, speed)); } }
+async function runChecks(){ const tok = ++ckToken; ckBusy = true; ckBlank(); const cs = CHECKS(), done = [];
+  for (let i = 0; i < cs.length; i++){ if (tok !== ckToken) return; const row = $('ck' + i); row.classList.add('run'); row.querySelector('.st').textContent = ''; row.querySelector('.lb').textContent = '…'; await sleep(260);
+    if (tok !== ckToken) return; row.classList.remove('run'); row.classList.add(cs[i].r); row.querySelector('.st').textContent = ICON[cs[i].r]; row.querySelector('.lb').textContent = cs[i].r;
+    done.push(cs[i]); ring(done); await typeInto(row.querySelector('.ex'), cs[i].x, tok); }
+  ckBusy = false; }
+$('ckRun').addEventListener('click', runChecks);
+$('scen').addEventListener('click', e => { const b = e.target.closest('[data-sc]'); if (!b) return; SC = +b.dataset.sc; $('scen').querySelectorAll('[data-sc]').forEach(x => x.classList.toggle('on', +x.dataset.sc === SC));
+  runChecks(); if (inDone) showDoc(curDoc, false); memoStale(); renderLow(); });
+
+/* ======================================================================
+   03 · ASK THE FILE
+   ====================================================================== */
+function QA(){ const F = FILE(), e = emi(F.loan, F.rate, F.years), netAvg = sum(F.net) / 3, foir = (F.emiExisting + e) / netAvg, ltv = F.loan / F.value, cap = ltvCap(F.loan);
+  const C = {
+    s1:{ t:'Salary slip · Apr 2026', b:`Net pay <mark>${inr(F.net[0])}</mark> · Gross ${inr(F.gross)} · ${esc(F.employer)}`, sim:.91 },
+    s2:{ t:'Salary slip · May 2026', b:`Net pay <mark>${inr(F.net[1])}</mark> · Gross ${inr(F.gross)}`, sim:.9 },
+    s3:{ t:'Salary slip · Jun 2026', b:`Net pay <mark>${inr(F.net[2])}</mark> · includes allowance arrears`, sim:.89 },
+    b1:{ t:'Bank statement · p1', b:`30-Apr ${esc(F.narr)} <mark>${inr(F.credits[0])}</mark> · 05-May CAR LOAN EMI ${inr(F.emiExisting)}`, sim:.86 },
+    b2:{ t:'Bank statement · p2', b:`30-Jun ${esc(F.narr)} <mark>${inr(F.credits[2])}</mark> · ${F.bounces ? `<mark>ECS RETURN – INSUFFICIENT FUNDS ×${F.bounces}</mark>` : 'no returns'} · avg bal ${inr(F.avgBal)}`, sim:.84 },
+    ag:{ t:'Sale agreement · p2', b:`Property: <mark>${esc(F.propAgr)}</mark> · consideration <mark>${inr(F.value)}</mark>`, sim:.9 },
+    ti:{ t:'Title deed · p1', b:`Schedule of property: <mark>${esc(F.propTitle)}</mark> · owner ${esc(F.seller)}`, sim:.88 },
+    pl:{ t:'Approved plan · p1', b:`Project <mark>${esc(F.planProj)}</mark> · ref ${esc(F.planNo)}`, sim:.74 },
+    ap:{ t:'Loan application', b:`Loan requested <mark>${inr(F.loan)}</mark> · ${F.years} years · ${F.rate}%`, sim:.82 },
+    f6:{ t:'Form 16 · Part B', b:`Employer ${esc(F.f16Employer)} · gross salary <mark>${inr(F.f16Gross)}</mark>`, sim:.8 },
+    sl:{ t:'Salary slip · Apr 2026', b:`Employer <mark>${esc(F.employer)}</mark> · date of joining <mark>${F.doj}</mark>`, sim:.93 }
+  };
+  return [
+    { q:'What is the average net salary over the last 3 months?', kw:/salary|income|net pay|earn/i, c:['s1','s2','s3'], a:`Average net pay is <b>${inr(netAvg)}</b> a month: ${inr(F.net[0])} in April [1], ${inr(F.net[1])} in May [2] and ${inr(F.net[2])} in June [3], which includes allowance arrears.` },
+    { q:'Do the salary credits match the slips?', kw:/credit|match|bank.*salary|salary.*bank/i, c:['b1','b2','s3'], a: Math.max(...F.credits.map((c, i) => Math.abs(c - F.net[i]) / F.net[i])) <= .02 ? `Yes. The April credit of ${inr(F.credits[0])} [1] and the June credit of ${inr(F.credits[2])} [2] match net pay on the slips [3]; May is the same.` : `Not for June. The bank shows ${inr(F.credits[2])} [2] against net pay of ${inr(F.net[2])} on the June slip [3]. April matches [1]. Worth asking the applicant why.` },
+    { q:'Any EMI bounces or cheque returns?', kw:/bounce|return|dishono|ecs|nach/i, c:['b2','b1'], a: F.bounces ? `Yes: <b>${F.bounces} ECS returns</b> for insufficient funds appear on page 2 [1]. The existing car loan EMI is ${inr(F.emiExisting)} [2].` : `None found. Page 2 shows no returns [1]; the existing car loan EMI of ${inr(F.emiExisting)} is paid on time [2].` },
+    { q:'What is the FOIR with the proposed loan?', kw:/foir|obligation|emi|afford/i, c:['ap','b1','s1'], a:`The proposed EMI on ${inr(F.loan)} [1] is ${inr(e)}. Adding the existing EMI of ${inr(F.emiExisting)} [2] against average net pay of ${inr(netAvg)} [3] gives a FOIR of <b>${(foir * 100).toFixed(1)}%</b>.` },
+    { q:'Does the property match across documents?', kw:/property|address|flat|tower|title|agreement/i, c:['ag','ti','pl'], a: F.propAgr === F.propTitle ? `Yes. The agreement [1] and title deed [2] both describe ${esc(F.propAgr)}, and the project appears on the approved plan [3].` : `No. The agreement says ${esc(F.propAgr.split(',')[1].trim())} [1] but the title deed says ${esc(F.propTitle.split(',')[1].trim())} [2]. The plan covers Towers A–D [3], so either could be valid; this needs legal confirmation.` },
+    { q:'What is the LTV, and is it within the cap?', kw:/ltv|loan.to.value|value/i, c:['ap','ag'], a:`LTV is <b>${(ltv * 100).toFixed(1)}%</b>: ${inr(F.loan)} requested [1] on an agreement value of ${inr(F.value)} [2]. The cap for this loan size is ${cap * 100}%, so it is ${ltv <= cap ? 'within' : '<b>above</b>'} the cap.` },
+    { q:'Who is the employer and since when?', kw:/employer|company|job|joining|tenure|work/i, c:['sl','f6'], a:`${esc(F.employer)}, since ${F.doj} [1], about ${2026 - 2016} years. Form 16 confirms the same employer with gross salary of ${inr(F.f16Gross)} [2].` }
+  ].map(x => ({ ...x, C: x.c.map(k => C[k]) })); }
+const GUARD = [{ kw:/approve|reject|sanction|should (i|we)|decide|decision|recommend/i, a:'I don’t make credit decisions. I can summarise the facts in this file (income, FOIR, LTV, checks) so the underwriter can decide. Try "What is the FOIR with the proposed loan?"' }];
+let qaBusy = false;
+function addMsg(cls, html){ const d = document.createElement('div'); d.className = 'bub ' + cls; d.innerHTML = html; $('msgs').appendChild(d); $('msgs').scrollTop = $('msgs').scrollHeight; return d; }
+$('sugg').innerHTML = QA().map((x, i) => `<button type="button" data-q="${i}">${esc(x.q)}</button>`).join('');
+addMsg('a', '<div class="who">✦ File assistant</div>Hi. I have read the 11 pages in this loan file. Ask me anything about the applicant, income, banking or the property, and I will answer from the documents with citations.');
+async function ask(text){ if (qaBusy || !text.trim()) return; qaBusy = true; addMsg('u', esc(text));
+  const g = GUARD.find(x => x.kw.test(text)); const qa = QA(); const hit = g ? null : (qa.find(x => x.q.toLowerCase() === text.toLowerCase()) || qa.find(x => x.kw.test(text)));
+  const th = addMsg('a', '<div class="who">✦ File assistant</div><span class="dots"><span></span><span></span><span></span></span> Retrieving passages…');
+  const ch = $('chunks'); ch.innerHTML = '';
+  if (hit){ hit.C.forEach((c, i) => { ch.insertAdjacentHTML('beforeend', `<div class="chunk" id="chk${i}"><h6><span>[${i + 1}] ${esc(c.t)}</span><span>${c.sim.toFixed(2)}</span></h6>${c.b}<div class="sim"><i></i></div></div>`); });
+    await sleep(80); ch.querySelectorAll('.sim i').forEach((el, i) => el.style.width = hit.C[i].sim * 100 + '%'); }
+  else ch.innerHTML = `<div class="chunk"><h6><span>No passage above the relevance threshold</span><span>&lt; 0.55</span></h6>${g ? 'Decision requests are out of scope by design.' : 'The question isn’t covered by this file.'}</div>`;
+  await sleep(900);
+  const ans = hit ? hit.a : g ? g.a : 'I can only answer from the documents in this file, and I couldn’t find that here. Try asking about salary, bank credits, EMI returns, FOIR, LTV, the property or the employer.';
+  const words = ans.split(/(\s+)/); let out = ''; th.innerHTML = '<div class="who">✦ File assistant</div><span class="body"></span>'; const body = th.querySelector('.body');
+  const fmt = s => s.replace(/\[(\d)\]/g, (m, n) => `<span class="cite" data-c="${n - 1}">${n}</span>`);
+  for (let i = 0; i < words.length; i++){ out += words[i]; if (!reduce && i % 2 === 0){ body.innerHTML = fmt(out) + '<span class="caret"></span>'; await new Promise(r => setTimeout(r, 22)); } }
+  body.innerHTML = fmt(out); $('msgs').scrollTop = $('msgs').scrollHeight; qaBusy = false; }
+$('sugg').addEventListener('click', e => { const b = e.target.closest('[data-q]'); if (b) ask(QA()[+b.dataset.q].q); });
+$('askF').addEventListener('submit', e => { e.preventDefault(); const v = $('askI').value; $('askI').value = ''; ask(v); });
+$('msgs').addEventListener('click', e => { const c = e.target.closest('.cite'); if (!c) return; document.querySelectorAll('#chunks .chunk').forEach(x => x.classList.remove('on')); const el = $('chk' + c.dataset.c); if (el){ el.classList.add('on'); el.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' }); } });
+
+/* ======================================================================
+   04 · UNDERWRITER'S DESK
+   ====================================================================== */
+let memoTok = 0;
+function memoStale(){ memoTok++; $('memo').innerHTML = `<p style="color:var(--muted)">Scenario: <b>${SCEN[SC].n}</b>. Press "Draft credit note" to generate the summary for this file.</p>`; }
+$('uwRun').addEventListener('click', async () => { const tok = ++memoTok, F = FILE(), cs = CHECKS(), e = emi(F.loan, F.rate, F.years), netAvg = sum(F.net) / 3, foir = (F.emiExisting + e) / netAvg, ltv = F.loan / F.value;
+  const flags = cs.filter(c => c.r !== 'pass');
+  const S = [
+    ['Applicant', `${F.appName}, born ${F.dob}, salaried with ${F.employer} since ${F.doj}. KYC documents present and readable.`],
+    ['Income', `Average net pay ${inr(netAvg)} a month over Apr–Jun 2026; gross ${inr(F.gross)} consistent with Form 16 (${inr(F.f16Gross)} a year).`],
+    ['Banking', `Salary credited monthly as "${F.narr}". Average balance ${inr(F.avgBal)}. Existing car loan EMI ${inr(F.emiExisting)}. ${F.bounces ? F.bounces + ' EMI returns in the period.' : 'No EMI or cheque returns.'}`],
+    ['Property & LTV', `${F.propAgr}; agreement value ${inr(F.value)}. Requested ${inr(F.loan)} over ${F.years} years: LTV ${(ltv * 100).toFixed(1)}% against a ${ltvCap(F.loan) * 100}% cap.`],
+    ['Obligations', `Proposed EMI ${inr(e)} at ${F.rate}%. FOIR ${(foir * 100).toFixed(1)}% including the existing EMI.`],
+    ['For the underwriter', flags.length ? flags.map(f => `<span class="${f.r === 'fail' ? 'flag' : 'flag" style="background:#FEF3C7;color:#B45309'}">${f.r.toUpperCase()}</span>${esc(f.n)}: ${esc(f.x)}`).join('<br>') : '<span class="okf">ALL CLEAR</span>All ten checks passed. Decision rests with the underwriter.']
+  ];
+  const m = $('memo'); m.innerHTML = `<p style="font-size:.72rem;color:var(--muted);margin-bottom:6px">DRAFT · generated from 11 pages · scenario: ${esc(SCEN[SC].n)} · for underwriter review</p>`;
+  for (const [h, t] of S){ if (tok !== memoTok) return; m.insertAdjacentHTML('beforeend', `<h6>${h}</h6><p></p>`); const p = m.lastElementChild;
+    if (h === 'For the underwriter' || reduce){ p.innerHTML = t; await sleep(200); continue; }
+    for (let i = 0; i <= t.length; i += 4){ if (tok !== memoTok) return; p.innerHTML = esc(t.slice(0, i)) + '<span class="caret"></span>'; await new Promise(r => setTimeout(r, 12)); } p.textContent = t; }
+});
+memoStale();
+/* threshold model */
+const RT = mulberry32(77);
+const VAL = Array.from({ length: 4000 }, () => { const u = RT(), conf = Math.min(.999, .5 + .5 * Math.pow(u, .35)); return { conf, ok: RT() < Math.pow(conf, 1.8) * 1.015 }; });
+let thSvg = null;
+function renderLow(){ const th = +$('th').value / 100, low = DOCS().flatMap(d => d.rows.filter(r => r[3] < th).map(r => `${d.n}: ${r[0]}`));
+  $('lowlist').innerHTML = low.length ? low.map(l => `<span>${esc(l)}</span>`).join('') : '<span style="background:#DCF5E5;color:#166534">None: every field auto-accepted</span>';
+  return low.length; }
+function drawTh(){
+  const th = +$('th').value / 100; $('thV').textContent = th.toFixed(2);
+  const acc = VAL.filter(v => v.conf >= th), stp = acc.length / VAL.length, err = acc.length ? acc.filter(v => !v.ok).length / acc.length : 0, nLow = renderLow(), nAll = DOCS().reduce((a, d) => a + d.rows.length, 0);
+  $('thStat').innerHTML = `<div class="ms a"><div class="k">Straight-through</div><div class="v">${(stp * 100).toFixed(0)}%</div></div><div class="ms b"><div class="k">Error in accepted</div><div class="v">${(err * 100).toFixed(1)}%</div></div><div class="ms"><div class="k">This file to review</div><div class="v">${nLow}/${nAll}</div></div>`;
+  const w = 420, h = 200, m = { t: 12, r: 40, b: 26, l: 36 };
+  if (!thSvg){ thSvg = d3.select('#thChart').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Straight-through rate and error rate by threshold');
+    const x = d3.scaleLinear().domain([.5, .99]).range([m.l, w - m.r]), y1 = d3.scaleLinear().domain([0, 1]).range([h - m.b, m.t]), y2 = d3.scaleLinear().domain([0, .12]).range([h - m.b, m.t]);
+    const pts = d3.range(.5, .991, .01).map(t => { const a = VAL.filter(v => v.conf >= t); return { t, s: a.length / VAL.length, e: a.length ? a.filter(v => !v.ok).length / a.length : 0 }; });
+    thSvg.append('g').attr('class','grid').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y1).ticks(4).tickSize(-(w - m.l - m.r)).tickFormat(''));
+    thSvg.append('g').attr('class','axis').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(5).tickFormat(d3.format('.2f')).tickSize(0).tickPadding(6));
+    thSvg.append('g').attr('class','axis').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y1).ticks(4).tickFormat(d3.format('.0%')).tickSize(0).tickPadding(4));
+    thSvg.append('g').attr('class','axis').attr('transform', `translate(${w - m.r},0)`).call(d3.axisRight(y2).ticks(4).tickFormat(d3.format('.0%')).tickSize(0).tickPadding(4));
+    thSvg.append('path').datum(pts).attr('fill','rgba(20,184,166,.12)').attr('d', d3.area().x(d => x(d.t)).y0(h - m.b).y1(d => y1(d.s)));
+    thSvg.append('path').datum(pts).attr('fill','none').attr('stroke','#14B8A6').attr('stroke-width', 2.5).attr('d', d3.line().x(d => x(d.t)).y(d => y1(d.s)));
+    thSvg.append('path').datum(pts).attr('fill','none').attr('stroke','#E0464E').attr('stroke-width', 2.5).attr('d', d3.line().x(d => x(d.t)).y(d => y2(d.e)));
+    thSvg.append('line').attr('class','mk').attr('y1', m.t).attr('y2', h - m.b).attr('stroke','#1E1240').attr('stroke-dasharray','4 3');
+    thSvg.append('circle').attr('class','ms1').attr('r', 5).attr('fill','#14B8A6').attr('stroke','#fff').attr('stroke-width', 2);
+    thSvg.append('circle').attr('class','ms2').attr('r', 5).attr('fill','#E0464E').attr('stroke','#fff').attr('stroke-width', 2);
+    thSvg.node().__s = { x, y1, y2 }; }
+  const { x, y1, y2 } = thSvg.node().__s;
+  thSvg.select('line.mk').attr('x1', x(th)).attr('x2', x(th)); thSvg.select('circle.ms1').attr('cx', x(th)).attr('cy', y1(stp)); thSvg.select('circle.ms2').attr('cx', x(th)).attr('cy', y2(err));
+}
+$('th').addEventListener('input', drawTh);
+
+/* ======================================================================
+   05 · OPERATIONS CONTROL ROOM (discrete-time simulation)
+   ====================================================================== */
+const OP = { cv: $('opCv'), run: false, t: 0, raf: 0 };
+const LANES = [
+  { n:'Manual', col:'#F472B6', st:[['Data entry', 2, 45], ['Document checks', 2, 35], ['Underwriter', 3, 40]] },
+  { n:'AI-assisted', col:'#5EEAD4', st:[['AI read & check', 99, 4], ['Field review', 2, 10], ['Underwriter', 3, 18]] }
+];
+function opInit(){ const R = mulberry32(11), n = +$('arr').value, uw = +$('uwN').value;
+  OP.t = 0; OP.files = [];
+  const times = Array.from({ length: n }, () => Math.floor(R() * 480)).sort((a, b) => a - b);
+  LANES.forEach((L, li) => { L.st[2][1] = uw; L.stages = L.st.map(([nm, cap, dur]) => ({ nm, cap, dur, q: [], busy: [] })); L.done = []; times.forEach((tt, k) => OP.files.push({ lane: li, arr: tt, k, jit: .75 + mulberry32(k * 7 + li)() * .5 })); });
+  $('arrV').textContent = n + ' files'; $('uwV').textContent = uw; opDraw(); opStat(); }
+function opStep(){ OP.t += 1;
+  OP.files.forEach(f => { if (f.arr === OP.t - 1 && f.stage == null){ f.stage = 0; LANES[f.lane].stages[0].q.push(f); } });
+  LANES.forEach(L => { L.stages.forEach((S, si) => {
+    S.busy = S.busy.filter(f => { if (OP.t >= f.end){ if (si + 1 < L.stages.length){ f.stage = si + 1; L.stages[si + 1].q.push(f); } else { f.fin = OP.t; L.done.push(f); } return false; } return true; });
+    while (S.busy.length < S.cap && S.q.length){ const f = S.q.shift(); f.end = OP.t + Math.round(S.dur * f.jit); f.startS = OP.t; S.busy.push(f); } }); }); }
+function opStat(){ const fmtT = m => { const h = 9 + Math.floor(m / 60), mm = m % 60; return `${String(h).padStart(2, '0')}:${String(mm).padStart(2, '0')}`; };
+  $('opClock').textContent = fmtT(Math.min(OP.t, 600)) + (OP.t >= 600 ? ' · day end' : '');
+  $('opStat').innerHTML = LANES.map(L => { const d = L.done, tat = d.length ? d3.mean(d, f => f.fin - f.arr) : 0, wip = sum(L.stages.map(s => s.q.length + s.busy.length));
+    return `<div class="ms" style="border-left:4px solid ${L.col}"><div class="k">${L.n}</div><div class="v">${d.length}</div><div style="font-size:.72rem;color:var(--muted)">done · ${wip} in progress<br>avg turnaround ${tat ? Math.round(tat) + ' min' : '–'}</div></div>`; }).join(''); }
+function opDraw(){ const cv = OP.cv, cx = cv.getContext('2d'), W = cv.width, H = cv.height; cx.clearRect(0, 0, W, H);
+  cx.fillStyle = '#120B2E'; cx.fillRect(0, 0, W, H);
+  LANES.forEach((L, li) => { const y0 = 30 + li * 250, bx = [200, 520, 840], bw = 230;
+    cx.fillStyle = L.col; cx.font = '800 22px DM Sans, sans-serif'; cx.fillText(L.n.toUpperCase(), 24, y0 + 30);
+    cx.font = '600 15px DM Sans, sans-serif'; cx.fillStyle = 'rgba(255,255,255,.5)'; cx.fillText('arrivals →', 24, y0 + 120);
+    L.stages.forEach((S, si) => { const x = bx[si];
+      cx.strokeStyle = 'rgba(255,255,255,.18)'; cx.lineWidth = 2; cx.strokeRect(x, y0 + 50, bw, 160);
+      cx.fillStyle = 'rgba(255,255,255,.85)'; cx.font = '700 16px DM Sans, sans-serif'; cx.fillText(S.nm, x + 10, y0 + 74);
+      cx.fillStyle = 'rgba(255,255,255,.5)'; cx.font = '500 13px DM Sans, sans-serif'; cx.fillText(`${S.cap > 50 ? '∞' : S.cap} ${S.cap > 50 ? 'parallel' : 'people'} · ~${S.dur} min`, x + 10, y0 + 94);
+      S.busy.forEach((f, k) => { const p = Math.min(1, (OP.t - f.startS) / Math.max(1, f.end - f.startS)); const yy = y0 + 112 + (k % 6) * 16, xx = x + 14 + p * (bw - 28);
+        cx.fillStyle = L.col; cx.beginPath(); cx.arc(xx, yy, 5, 0, 7); cx.fill(); });
+      S.q.forEach((f, k) => { const col = Math.floor(k / 6), row = k % 6; cx.fillStyle = 'rgba(255,255,255,.7)'; cx.beginPath(); cx.arc(x - 14 - col * 11, y0 + 112 + row * 16, 4, 0, 7); cx.fill(); });
+      if (S.q.length > 30){ cx.fillStyle = '#FCA5A5'; cx.font = '800 14px DM Sans, sans-serif'; cx.fillText(`queue ${S.q.length}`, x - 120, y0 + 220); } });
+    const dn = L.done.length; cx.fillStyle = 'rgba(255,255,255,.85)'; cx.font = '800 15px DM Sans, sans-serif'; cx.fillText('Done', 1090, y0 + 74);
+    for (let k = 0; k < Math.min(dn, 90); k++){ cx.fillStyle = L.col; cx.globalAlpha = .9; cx.fillRect(1090 + (k % 9) * 11, y0 + 86 + Math.floor(k / 9) * 11, 8, 8); } cx.globalAlpha = 1;
+    cx.fillStyle = L.col; cx.font = '800 26px DM Serif Display, Georgia, serif'; cx.fillText(String(dn), 1150, y0 + 70); }); }
+function opLoop(){ if (!OP.run) return; for (let i = 0; i < 2; i++){ if (OP.t < 600) opStep(); } opDraw(); opStat(); if (OP.t >= 600){ OP.run = false; $('opRun').textContent = '▶ Run again'; return; } OP.raf = requestAnimationFrame(opLoop); }
+$('opRun').addEventListener('click', () => { if (OP.run){ OP.run = false; $('opRun').textContent = '▶ Resume'; return; } if (OP.t >= 600) opInit();
+  if (reduce){ while (OP.t < 600) opStep(); opDraw(); opStat(); return; } OP.run = true; $('opRun').textContent = '❚❚ Pause'; opLoop(); });
+$('opReset').addEventListener('click', () => { OP.run = false; cancelAnimationFrame(OP.raf); $('opRun').textContent = '▶ Run the day'; opInit(); });
+['arr','uwN'].forEach(id => $(id).addEventListener('input', () => { OP.run = false; cancelAnimationFrame(OP.raf); $('opRun').textContent = '▶ Run the day'; opInit(); }));
+opInit();
+
+if (!hasD3){ ['swarm','radial','thChart','ring'].forEach(id => $(id).innerHTML = '<p style="padding:20px;color:var(--muted)">This chart needs an internet connection to load its chart library.</p>'); return; }
+
+/* ======================================================================
+   IMPACT
+   ====================================================================== */
+function drawSwarm(){
+  const R = mulberry32(5), g = () => { let u = 0; while (!u) u = R(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * R()); };
+  const D = d3.range(120).map(i => ({ i, b: Math.max(55, 135 + 32 * g()), a: Math.max(12, 38 + 11 * g()) }));
+  const w = 560, h = 280, m = { t: 20, r: 20, b: 36, l: 20 }, x = d3.scaleLinear().domain([0, 240]).range([m.l, w - m.r]);
+  const s = d3.select('#swarm').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Beeswarm of review minutes per file');
+  s.append('g').attr('class','grid').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(6).tickSize(-(h - m.b - m.t)).tickFormat(''));
+  s.append('g').attr('class','axis').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(6).tickFormat(v => v + ' min').tickSize(0).tickPadding(8));
+  const pos = k => { const nodes = D.map(d => ({ id: d.i, v: d[k], x: x(d[k]), y: (h - m.b + m.t) / 2 })); const sim = d3.forceSimulation(nodes).force('x', d3.forceX(d => x(d.v)).strength(1)).force('y', d3.forceY((h - m.b + m.t) / 2)).force('c', d3.forceCollide(4.6)).stop(); for (let i = 0; i < 160; i++) sim.tick(); return nodes; };
+  const P = { before: pos('b'), after: pos('a') };
+  const med = s.append('g'); med.append('line').attr('stroke','#1E1240').attr('stroke-dasharray','4 3').attr('y1', m.t).attr('y2', h - m.b); med.append('text').attr('font-size', 12).attr('font-weight', 800).attr('fill','#1E1240').attr('y', m.t + 2);
+  const c = s.append('g').selectAll('circle').data(D).join('circle').attr('r', 4).attr('cx', x(0)).attr('cy', (h - m.b + m.t) / 2)
+    .on('mousemove', (ev, d) => showTip(`<div class="t">File #${d.i + 1}</div>Before <b>${Math.round(d.b)} min</b> · after <b>${Math.round(d.a)} min</b>`, ev)).on('mouseleave', hideTip);
+  function upd(mode){ const p = P[mode], md = d3.median(D, d => mode === 'after' ? d.a : d.b);
+    c.transition().duration(DUR + 400).delay((d, i) => reduce ? 0 : i * 4).attr('cx', (d, i) => p[i].x).attr('cy', (d, i) => p[i].y).attr('fill', mode === 'after' ? '#6D28D9' : '#F472B6');
+    med.select('line').transition().duration(DUR).attr('x1', x(md)).attr('x2', x(md)); med.select('text').transition().duration(DUR).attr('x', x(md) + 6).text(`median ${Math.round(md)} min`); }
+  upd('after'); segBind('bs', upd);
+}
+function drawRadial(){
+  const A = [['Reading documents', 40, 8, '#6D28D9'], ['Re-keying data', 30, 2, '#A78BFA'], ['Consistency checks', 30, 6, '#F472B6'], ['Credit judgement', 20, 22, '#14B8A6']];
+  const w = 560, h = 280, cx = 150, cy = h / 2, s = d3.select('#radial').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Radial bar chart of underwriter minutes per activity');
+  const a = d3.scaleLinear().domain([0, 45]).range([0, 1.5 * Math.PI]), rIn = i => 40 + i * 24, arc = (i) => d3.arc().innerRadius(rIn(i)).outerRadius(rIn(i) + 18).startAngle(0).cornerRadius(9);
+  A.forEach((d, i) => s.append('path').attr('transform', `translate(${cx},${cy})`).attr('d', arc(i)({ endAngle: 1.5 * Math.PI })).attr('fill','#F1EEFA'));
+  const p = s.append('g').attr('transform', `translate(${cx},${cy})`).selectAll('path').data(A).join('path').attr('fill', d => d[3])
+    .on('mousemove', (ev, d) => showTip(`<div class="t">${esc(d[0])}</div>Before <b>${d[1]} min</b> · after <b>${d[2]} min</b>`, ev)).on('mouseleave', hideTip);
+  const lg = s.append('g').attr('transform','translate(320,70)').selectAll('g').data(A).join('g').attr('transform', (d, i) => `translate(0,${i * 36})`);
+  lg.append('rect').attr('width', 12).attr('height', 12).attr('rx', 3).attr('fill', d => d[3]); lg.append('text').attr('x', 18).attr('y', 10).attr('font-size', 12).attr('fill','#1B1533').text(d => d[0]);
+  const vt = lg.append('text').attr('x', 18).attr('y', 26).attr('font-size', 11).attr('font-weight', 800).attr('fill','#635C80');
+  const tot = s.append('text').attr('x', 320).attr('y', 230).attr('font-size', 13).attr('font-weight', 800).attr('fill','#1E1240');
+  const share = s.append('text').attr('x', 320).attr('y', 250).attr('font-size', 11.5).attr('fill','#635C80');
+  function upd(mode){ const k = mode === 'after' ? 2 : 1;
+    p.transition().duration(DUR + 300).attrTween('d', function(d, i){ const from = this._v || 0, to = a(d[k]); this._v = to; const ip = d3.interpolate(from, to); return t => arc(i)({ endAngle: ip(t) }); });
+    vt.text(d => d[k] + ' min'); const T = sum(A.map(d => d[k])); tot.text(`${T} minutes per file`); share.text(`${Math.round(A[3][k] / T * 100)}% of time on credit judgement`); }
+  upd('after'); segBind('rb', upd);
+}
+
+ring(null); ckBlank();
+whenVisible($('ckModule'), runChecks);
+whenVisible($('uwModule'), drawTh);
+whenVisible($('swarm'), drawSwarm); whenVisible($('radial'), drawRadial);
+window.__pnb = { FILE, CHECKS, QA, emi, setScen: i => $('scen').querySelector(`[data-sc="${i}"]`).click() };
+})();
+</script>
+</body>
+</html>

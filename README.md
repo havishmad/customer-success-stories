@@ -1,14 +1,14 @@
 # HMC Customer Stories
 
-Showcase page for Havish M Consulting's 42 client case studies. Each one is available as an interactive HTML case study, a PDF and a short video.
+Showcase page for Havish M Consulting's 42 client case studies. Client names are anonymised; stories are labelled by industry. Each one is available as an interactive HTML case study, a PDF and a short video.
 
 ## Structure
-- `index.html`: the showcase page (search, function filters, company filter, thumbnail/list view, in-page viewer)
+- `index.html`: the showcase page (search, function filters, industry filter, thumbnail/list view, in-page viewer)
 - `html/`: interactive case studies
 - `pdf/`: PDF versions
 - `video/`: MP4 videos
 - `thumbs/`: card thumbnails
-- `stories.csv`: index of all stories with their original file names
+- `stories.csv`: index of all stories (industry, function, title, description)
 
 ## Publish on GitHub Pages
 1. Create a new public repository and upload everything in this folder, keeping the folders as they are.
@@ -27,8 +27,8 @@ Or use Add → Embed Code → Embed HTML and paste:
 ```
 
 ## Deep links
-Any story can be linked directly, e.g. `index.html#amber-manufacturing-gantry-3d-model/video` (format: `html`, `pdf` or `video`).
+Any story can be linked directly, e.g. `index.html#consumer-durables-manufacturing-gantry-3d-model/video` (format: `html`, `pdf` or `video`).
 
 ## Adding a new story
 1. Add `html/<slug>.html`, `pdf/<slug>.pdf`, `video/<slug>.mp4` and `thumbs/<slug>.jpg` (640×400).
-2. Add an entry to the `STORIES` array at the top of the script in `index.html` (company, org, function, title, desc, slug, base). If the function is new, add it to one of the `FAMILIES`.
+2. Add an entry to the `STORIES` array at the top of the script in `index.html` (`company` holds the industry; also org, function, title, desc, slug, base). If the function is new, add it to one of the `FAMILIES`.

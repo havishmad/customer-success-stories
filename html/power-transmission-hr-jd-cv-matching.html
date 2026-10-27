@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Power Transmission · CV–JD Match Copilot | HMC Case Study</title>
+<meta name="description" content="A GenAI screening copilot for the power transmission company's talent acquisition team: CV-to-JD matching with dynamic scoring, personalised interview questions, red flags and a CV chatbot, with optional live OpenAI responses.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+:root{
+  --pri:#0E9F6E; --deep:#0F2E2A; --acc:#F4B740; --sky:#3BA7D9; --bad:#E04F4F; --good:#0E9F6E; --warn:#F2A60C;
+  --bg:#F3F7F5; --text:#132622; --muted:#5A6D68; --card:#FFFFFF; --line:#DCE7E3;
+  --pri-15:rgba(14,159,110,.10); --acc-15:rgba(244,183,64,.16);
+  --radius:12px; --shadow:0 1px 2px rgba(15,46,42,.06),0 8px 24px rgba(15,46,42,.08);
+  --serif:"DM Serif Display",Georgia,serif; --sans:"DM Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif; --mono:ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--serif);font-weight:400;color:var(--deep);margin:0;line-height:1.15}
+h2{font-size:clamp(1.6rem,3.2vw,2.2rem)}
+h3{font-size:1.2rem}
+p{margin:0}
+.wrap{max-width:1260px;margin:0 auto;padding:0 24px}
+section{padding:64px 0}
+.eyebrow{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--pri);margin-bottom:10px}
+.lead{color:var(--muted);max-width:800px;margin-top:12px}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line)}
+.sec-head{margin-bottom:28px}
+.alt{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.topbar{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+.logos{display:flex;align-items:center;gap:16px}
+.logos img{height:44px;width:auto;object-fit:contain}
+.logos img.cl{height:30px}
+.vdiv{width:1px;height:36px;background:var(--line)}
+.tagline{font-size:.8rem;color:var(--muted);letter-spacing:.04em}
+.tagline b{color:var(--pri);font-weight:700}
+.hero{background:radial-gradient(120% 140% at 88% 0%,#4A2470 0%,#2A1446 45%,#120821 100%);color:#fff;padding:76px 0 70px;position:relative;overflow:hidden}
+.hero canvas{position:absolute;right:0;top:0;width:58%;height:100%;pointer-events:none}
+.hero .eyebrow{color:#7CE3B8}
+.hero h1{color:#fff;font-size:clamp(2.3rem,5.4vw,3.8rem);max-width:720px;position:relative;z-index:1}
+.hero h1 em{font-style:normal;color:#7CE3B8}
+.hero .sub{font-size:clamp(1.05rem,2vw,1.2rem);color:rgba(255,255,255,.86);max-width:640px;margin-top:18px;position:relative;z-index:1}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px;position:relative;z-index:1}
+.pill{border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:6px 14px;font-size:.85rem;color:#fff;background:rgba(255,255,255,.06)}
+.pill span{color:#7CE3B8;font-weight:700;margin-right:6px}
+.kpis{margin-top:-30px;position:relative;z-index:2;padding:0}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi{padding:22px 20px;border-top:3px solid var(--acc)}
+.kpi .label{font-size:.82rem;color:var(--muted);font-weight:500}
+.kpi .val{font-family:var(--serif);font-size:clamp(1.9rem,4vw,2.6rem);color:var(--pri);line-height:1.1;margin-top:6px;white-space:nowrap}
+.kpi .val small{font-family:var(--sans);font-size:.9rem;color:var(--muted);margin-left:4px}
+.delta{display:inline-flex;align-items:center;gap:4px;font-size:.8rem;font-weight:700;margin-top:8px;padding:2px 8px;border-radius:999px;background:rgba(31,166,122,.1);color:var(--good)}
+.footnote{font-size:.78rem;color:var(--muted);margin-top:14px}
+.ch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.chc{padding:24px}
+.ico{width:44px;height:44px;border-radius:10px;background:var(--pri-15);display:grid;place-items:center;margin-bottom:16px}
+.ico svg{width:22px;height:22px;stroke:var(--pri);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.chc h3{margin-bottom:8px}
+.chc p{font-size:.92rem;color:#433A52}
+.tl{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.tl::before{content:"";position:absolute;left:10%;right:10%;top:27px;height:3px;background:linear-gradient(90deg,var(--pri),var(--acc));border-radius:2px;opacity:.55}
+.tl-step{position:relative;background:none;border:0;cursor:pointer;font:inherit;color:inherit;display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 4px 8px}
+.tl-dot{width:56px;height:56px;border-radius:50%;background:#fff;border:2px solid var(--line);display:grid;place-items:center;font-family:var(--serif);font-size:1.25rem;color:var(--pri);transition:all .25s;position:relative;z-index:1}
+.tl-name{font-weight:700;font-size:.95rem}
+.tl-dur{font-size:.75rem;color:var(--muted);margin-top:-8px}
+.tl-step:hover .tl-dot{border-color:var(--pri)}
+.tl-step[aria-expanded="true"] .tl-dot{background:var(--pri);border-color:var(--pri);color:#fff;box-shadow:0 0 0 6px var(--pri-15)}
+.tl-step:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:8px}
+.tl-panel{display:none;padding:24px 28px;margin-top:20px;border-left:4px solid var(--acc)}
+.tl-panel.open{display:block;animation:fadeUp .35s ease}
+.tl-panel h3{margin-bottom:6px}
+.tl-panel ul{margin:12px 0 0;padding-left:20px;color:#433A52}
+.tl-panel li{margin:6px 0}
+.tl-panel .deliv{margin-top:14px;font-size:.85rem;color:var(--muted)}
+.tl-panel .deliv b{color:var(--pri)}
+.tl-hint{text-align:center;color:var(--muted);font-size:.8rem;margin-top:6px}
+.seg{display:inline-flex;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:22px;padding:4px;gap:4px}
+.seg button{border:0;background:none;font:inherit;font-size:.82rem;font-weight:700;padding:6px 13px;border-radius:999px;cursor:pointer;color:var(--muted);transition:all .2s}
+.seg button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.seg button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.seg.sm button{font-size:.76rem;padding:5px 10px}
+.mod-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.mod-head h3{font-size:1.5rem}
+.mod-head p{font-size:.88rem;color:var(--muted);max-width:720px;margin-top:4px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--deep);color:#7CE3B8;font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:8px}
+.module{margin-bottom:54px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 12px;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer;color:var(--deep);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:border-color .15s,color .15s,background .15s}
+.btn:hover{border-color:var(--pri);color:var(--pri)}
+.btn.go{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.go:hover{background:#178A65;color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+
+
+.logos img.cl{height:30px}
+.hero{background:radial-gradient(120% 140% at 82% 0%,#15624F 0%,#0F2E2A 48%,#071613 100%)}
+.hero .eyebrow,.hero .pill span{color:#F4C766}
+.hero h1 em{color:#7CE3B8;font-style:italic}
+.badge{color:#F4C766}
+.kpi{border-top:3px solid var(--pri)}
+.chc p,.tl-panel ul,.tk p{color:#3B4E49}
+.tl::before{background:linear-gradient(90deg,var(--pri),var(--acc))}
+.module .btn.go,.btn.go{background:var(--deep);border-color:var(--deep);color:#fff}
+.module .btn.go:hover,.btn.go:hover{background:#0A201D;color:#fff}
+.btn.ai{background:linear-gradient(90deg,#0E9F6E,#3BA7D9);border-color:transparent;color:#fff}
+.btn.ai:hover{filter:brightness(1.07);color:#fff}
+.btn.sm{padding:6px 10px;font-size:.74rem}
+.chart svg{width:100%;height:auto;display:block}
+.axis text{font-family:var(--sans);font-size:11px;fill:var(--muted)}
+.axis line{stroke:var(--line)} .axis path{display:none}
+.grid line{stroke:var(--line);stroke-dasharray:2 3} .grid path{display:none}
+.ckey{display:flex;gap:12px;font-size:.74rem;color:var(--muted);margin-top:6px;flex-wrap:wrap}
+.ckey span{display:inline-flex;align-items:center;gap:6px}
+.ckey i{width:12px;height:12px;border-radius:3px;display:inline-block}
+h4.lbl{margin:0 0 8px;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.chipb{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;font:700 .74rem var(--sans);color:var(--deep);cursor:pointer;transition:all .2s}
+.chipb:hover{border-color:var(--pri)}
+.chipb.on{background:var(--deep);border-color:var(--deep);color:#fff}
+.ms{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.ms .k{font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.ms .v{font-family:var(--serif);font-size:1.25rem;color:var(--deep);line-height:1.15;font-variant-numeric:tabular-nums}
+.ms.a .v{color:var(--good)} .ms.b .v{color:var(--bad)} .ms.o .v{color:#B7791F}
+.mstat{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.rng{display:flex;flex-direction:column;gap:3px;min-width:0}
+.rng .t{display:flex;justify-content:space-between;font-size:.76rem;font-weight:700;color:var(--deep);gap:8px}
+.rng .t b{color:var(--pri);font-variant-numeric:tabular-nums;white-space:nowrap}
+.rng input{width:100%;accent-color:var(--pri)}
+.pill2{display:inline-flex;align-items:center;gap:6px;font:800 .66rem var(--sans);letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px}
+.pill2.off{background:#EEF2F1;color:#5A6D68}
+.pill2.on{background:#DDF5EA;color:#0B7A53}
+.pill2 i{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block}
+.pill2.on i{animation:blink 1.4s infinite}
+@keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
+/* studio */
+.studio{display:grid;grid-template-columns:270px minmax(0,1fr) 300px;gap:0;overflow:hidden}
+.studio>div{min-width:0}
+.col-l{padding:14px;border-right:1px solid var(--line);background:#F8FBFA;display:flex;flex-direction:column;gap:12px}
+.col-c{padding:14px;display:flex;flex-direction:column;gap:10px}
+.col-r{padding:14px;border-left:1px solid var(--line);background:#F8FBFA;display:flex;flex-direction:column;gap:10px}
+.jds{display:flex;flex-direction:column;gap:6px}
+.jd{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;cursor:pointer;text-align:left;font:inherit;color:inherit;transition:all .2s}
+.jd b{display:block;font-size:.8rem;color:var(--deep)}
+.jd span{font-size:.7rem;color:var(--muted)}
+.jd.on{border-color:var(--pri);box-shadow:0 0 0 3px rgba(14,159,110,.15)}
+.cands{display:flex;flex-direction:column;gap:6px}
+.cand{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:8px;align-items:center;border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 8px;cursor:pointer;text-align:left;font:inherit;color:inherit;transition:all .2s}
+.cand.on{border-color:var(--deep);box-shadow:0 0 0 3px rgba(15,46,42,.12)}
+.cand b{display:block;font-size:.78rem;color:var(--deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cand span{font-size:.66rem;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:800 .74rem var(--sans);color:#fff}
+.cand .av{display:grid;font-size:.74rem;color:#fff;white-space:normal}
+.cand .sc{display:block;font:400 1.15rem var(--serif);min-width:34px;text-align:right}
+.drop{border:2px dashed #B9CFC8;border-radius:12px;padding:14px 10px;text-align:center;font-size:.76rem;color:var(--muted);background:#fff;transition:all .2s;cursor:pointer}
+.drop.over{border-color:var(--pri);background:#EAF8F2;color:var(--deep)}
+.drop b{display:block;color:var(--deep);font-size:.8rem;margin-bottom:2px}
+.drop{display:block}
+.drop .dico{display:block;font-size:1.4rem;line-height:1.2}
+.prof{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.prof .av{width:46px;height:46px;font-size:.95rem}
+.prof h5{margin:0;font:400 1.35rem var(--serif);color:var(--deep)}
+.prof p{margin:0;font-size:.78rem;color:var(--muted)}
+.tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:.66rem;font-weight:800;border-radius:999px;padding:3px 8px}
+.tag.m{background:#DDF5EA;color:#0B7A53} .tag.g{background:#E2F1FA;color:#1D6E96} .tag.x{background:#FBE3E3;color:#A33434}
+.cv{border:1px solid var(--line);border-radius:10px;background:#fff;padding:12px 14px;font-size:.78rem;line-height:1.6;white-space:pre-wrap;max-height:330px;overflow:auto;color:#2C3D39}
+.cv mark{border-radius:3px;padding:0 2px}
+.cv mark.m{background:rgba(14,159,110,.2);color:#06573B}
+.cv mark.g{background:rgba(59,167,217,.2);color:#145878}
+.cv mark.n{background:rgba(244,183,64,.25);color:#7A5300}
+.legend{display:flex;gap:10px;font-size:.68rem;color:var(--muted);flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.gauge{display:grid;place-items:center;position:relative}
+.verdict{font-size:.78rem;color:#2C3D39;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.verdict b{color:var(--deep)}
+.crit{display:flex;flex-direction:column;gap:6px}
+.cr{display:grid;grid-template-columns:minmax(0,1fr) 38px;gap:4px 6px;font-size:.72rem;align-items:center}
+.cr .b{grid-column:1/3;height:7px;background:#E7EEEB;border-radius:4px;overflow:hidden}
+.cr .b i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#0E9F6E,#3BA7D9);transition:width .7s cubic-bezier(.2,.8,.2,1)}
+.cr b{text-align:right;color:var(--deep);font-variant-numeric:tabular-nums}
+.ai-box{border:1px solid #BFE3D3;background:linear-gradient(180deg,#F2FBF7,#fff);border-radius:10px;padding:10px 12px;font-size:.78rem;color:#2C3D39}
+.ai-box h6{margin:0 0 4px;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--pri)}
+/* board */
+.board{display:grid;grid-template-columns:260px minmax(0,1fr);gap:0;overflow:hidden}
+.board .w{padding:14px;border-right:1px solid var(--line);background:#F8FBFA;display:flex;flex-direction:column;gap:10px}
+.board .r{padding:14px;min-width:0}
+.mx{width:100%;border-collapse:separate;border-spacing:3px;font-size:.7rem}
+.mx th{font-weight:700;color:var(--muted);text-align:left;padding:2px 4px;white-space:nowrap}
+.mx th.c{text-align:center}
+.mx td{text-align:center;border-radius:5px;height:24px;font-weight:800}
+.mx td.f{background:#0E9F6E;color:#fff} .mx td.p{background:#BFE8D6;color:#0B7A53} .mx td.z{background:#F2F5F4;color:#B5C3BE}
+.mx tr.must th:first-child::before{content:"● ";color:#0E9F6E}
+.mx tr.good th:first-child::before{content:"○ ";color:#3BA7D9}
+/* kit */
+.kit{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:0;overflow:hidden}
+.kit>div{padding:14px;min-width:0}
+.kit>div+div{border-left:1px solid var(--line);background:#F8FBFA}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:10px;overflow-x:auto}
+.tabs button{border:0;background:none;padding:9px 10px 8px;font:700 .78rem var(--sans);color:var(--muted);border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--deep);border-bottom-color:var(--acc)}
+.qs{display:flex;flex-direction:column;gap:8px}
+.q{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;animation:fadeUp .35s ease both}
+.q .n{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--deep);color:#fff;font:800 .66rem var(--sans);margin-right:6px;vertical-align:1px}
+.q p{margin:0;font-size:.84rem;color:var(--deep);font-weight:600;display:inline}
+.q .why{display:block;font-size:.72rem;color:var(--muted);margin-top:6px}
+.q .ev{display:block;font-size:.72rem;color:#2C3D39;background:#F3F7F5;border-left:3px solid var(--pri);padding:4px 8px;margin-top:6px;border-radius:0 6px 6px 0}
+.q .fu{font-size:.72rem;color:#1D6E96;margin-top:4px;display:block}
+.flag{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:.78rem;animation:fadeUp .35s ease both}
+.flag .sv{font:800 .6rem var(--sans);letter-spacing:.08em;text-transform:uppercase;border-radius:999px;padding:3px 8px;height:fit-content}
+.sv.high{background:#FBE3E3;color:#A33434} .sv.med{background:#FFF1CC;color:#8A5A00} .sv.low{background:#E7EEEB;color:#4B5E59}
+.flag b{color:var(--deep);display:block}
+.flag span{color:var(--muted);font-size:.72rem}
+/* chat */
+.chat{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);overflow:hidden}
+.chat>div{min-width:0}
+.cw{display:flex;flex-direction:column;height:560px}
+.msgs{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:#F8FBFA}
+.bub{max-width:88%;padding:10px 13px;border-radius:14px;font-size:.84rem;line-height:1.55;animation:fadeUp .25s ease}
+.bub.u{align-self:flex-end;background:var(--deep);color:#fff;border-bottom-right-radius:4px}
+.bub.a{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}
+.bub.a .who{font-size:.62rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--pri);margin-bottom:4px}
+.bub ul{margin:4px 0;padding-left:18px}
+.bub.err{border-color:#F3B4B4;background:#FFF6F6}
+.dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--pri);margin-right:3px;animation:blink 1s infinite}
+.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+.sugg{display:flex;gap:6px;flex-wrap:wrap;padding:10px 10px 0;background:#fff;border-top:1px solid var(--line)}
+.sugg button{border:1px solid var(--line);background:#F3F7F5;border-radius:999px;padding:5px 10px;font:600 .72rem var(--sans);color:var(--deep);cursor:pointer}
+.sugg button:hover{border-color:var(--pri)}
+.ask{display:flex;gap:8px;padding:10px;background:#fff}
+.ask input{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:500 .86rem var(--sans)}
+.set{padding:14px;border-left:1px solid var(--line);background:#F8FBFA;display:flex;flex-direction:column;gap:10px}
+.set label.f{display:flex;flex-direction:column;gap:4px;font-size:.7rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.set input[type=password],.set input[type=text]{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:500 .82rem var(--mono);color:var(--deep);background:#fff;width:100%}
+.set .note{font-size:.72rem;color:var(--muted);line-height:1.45}
+.set .row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.ctx{font-size:.74rem;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px}
+.ctx b{color:var(--deep)}
+textarea.paste{width:100%;min-height:110px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:500 .76rem var(--mono);resize:vertical}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--deep);color:#fff;padding:10px 16px;border-radius:999px;font-size:.82rem;font-weight:700;opacity:0;transition:all .3s;z-index:80;pointer-events:none}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.cmp-head{display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+.cmp{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.cmp th,.cmp td{padding:16px 18px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);font-size:.92rem;overflow-wrap:anywhere}
+.cmp thead th{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);background:#F3F7F5}
+.cmp tbody tr:last-child td,.cmp tbody tr:last-child th{border-bottom:0}
+.cmp tbody th{font-weight:700;color:var(--pri)}
+.cmp col.c1{width:22%}
+.cmp td{transition:background .3s,opacity .3s,color .3s}
+.cmp.hl-before td.b{background:#FCEEF3;color:#7A1236}
+.cmp.hl-before td.a{opacity:.38}
+.cmp.hl-after td.a{background:#ECF8F3;color:#0E4F39;font-weight:500}
+.cmp.hl-after td.b{opacity:.38}
+.cmp.hl-after thead th.a{color:var(--acc)}
+.cmp.hl-before thead th.b{color:var(--bad)}
+.tchips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:.9rem;font-weight:500;display:inline-flex;align-items:center;gap:8px}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 3px var(--acc-15)}
+.chip em{font-style:normal;color:var(--muted);font-weight:400;font-size:.82rem}
+.tk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.tk{padding:26px}
+.tk .n{font-family:var(--serif);font-size:2.6rem;color:var(--acc);line-height:1}
+.tk h3{margin:12px 0 8px}
+.tk p{font-size:.92rem;color:#433A52}
+footer{background:var(--deep);color:rgba(255,255,255,.75);padding:48px 0 32px;margin-top:32px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px}
+.f-brand{display:flex;align-items:center;gap:16px}
+.f-brand img{height:44px;width:auto;border-radius:6px;background:#fff;padding:4px}
+.f-brand b{display:block;color:#fff;font-family:var(--serif);font-weight:400;font-size:1.15rem}
+.copy{width:100%;border-top:1px solid rgba(255,255,255,.12);padding-top:18px;font-size:.8rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+#tip{position:fixed;pointer-events:none;z-index:95;background:var(--deep);color:#fff;font-size:.8rem;line-height:1.45;padding:10px 12px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transition:opacity .15s;max-width:300px}
+#tip b{color:#7DE3BE;font-weight:700}
+#tip .t{font-weight:700;font-size:.85rem;margin-bottom:2px;color:#fff}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.cmp.hl-after td.a{background:#E4F6EE;color:#0F2E2A}
+.chip i{background:var(--acc);box-shadow:0 0 0 3px rgba(244,183,64,.22)}
+.tk .n{color:var(--pri)}
+#tip b{color:#F4C766}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.js .reveal{opacity:1;transform:none;transition:none}.q,.flag,.bub,.tl-panel.open{animation:none}.cr .b i{transition:none}.pill2.on i{animation:none}}
+@media (max-width:1180px){.studio{grid-template-columns:240px minmax(0,1fr)}.col-r{grid-column:1/-1;border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:980px){.kpi-grid,.ch-grid{grid-template-columns:repeat(2,1fr)}.dash{grid-template-columns:1fr}.tk-grid{grid-template-columns:1fr}.hero canvas{width:100%;opacity:.35}
+  .studio,.board,.kit,.chat{grid-template-columns:minmax(0,1fr)}.col-l,.board .w{border-right:0;border-bottom:1px solid var(--line)}.kit>div+div,.set{border-left:0;border-top:1px solid var(--line)}.col-r{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:640px){
+  .wrap{padding:0 16px} section{padding:48px 0} .hero{padding:52px 0 56px} .logos img{height:34px} .logos img.cl{height:22px} .vdiv{height:28px}
+  .kpi-grid{gap:10px} .kpi{padding:16px 14px} .ch-grid{grid-template-columns:1fr}
+  .tl::before{top:19px} .tl-dot{width:40px;height:40px;font-size:1rem} .tl-name{font-size:.75rem} .tl-dur{display:none} .tl-panel{padding:18px}
+  .sx{overflow-x:auto;-webkit-overflow-scrolling:touch} .sx svg{min-width:520px} .mxw{overflow-x:auto}
+  .cw{height:520px}
+  .cmp th,.cmp td{padding:12px 10px;font-size:.82rem} .cmp thead th{font-size:.68rem;letter-spacing:.08em} .chart-card{padding:14px}
+}
+@media print{
+  body{background:#fff;font-size:12px} .topbar{position:static}
+  .hero{background:#0F2E2A!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:36px 0} .hero canvas{display:none}
+  .card{box-shadow:none;break-inside:avoid} section{padding:28px 0} .js .reveal{opacity:1!important;transform:none!important}
+  .seg,.tl-hint,.btn,.rng input,.ask,.sugg,.set,.drop{display:none!important} .tl-panel{display:block!important;margin-top:10px} #tip{display:none}
+  footer{background:#fff;color:var(--text)} footer .f-brand b{color:var(--deep)} .kpis{margin-top:16px} .cv{max-height:none}
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="logos">
+      <img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting">
+    </div>
+    <div class="tagline">Customer Case Study · <b>HR · GenAI Talent Screening</b></div>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas id="heroCv" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="eyebrow">Power Transmission × Havish M Consulting</div>
+    <h1>Read every CV like your best recruiter, <em>in seconds</em></h1>
+    <p class="sub">The power transmission company hires engineers for complex transmission projects across India. HMC built a GenAI screening copilot that matches each CV to the job description, scores it on criteria the hiring manager controls, writes interview questions personal to that candidate, flags what needs checking, and answers questions about the CV in plain English.</p>
+    <div class="pills">
+      <span class="pill"><span>Client</span>Power Transmission</span>
+      <span class="pill"><span>Function</span>Human Resources · Talent Acquisition</span>
+      <span class="pill"><span>Theme</span>GenAI CV–JD Matching</span>
+    </div>
+  </div>
+</section>
+
+<section class="kpis">
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="card kpi reveal"><div class="label">Time to a scored shortlist</div><div class="val"><span class="count" data-to="2">0</span><small>days</small></div><div class="delta">▼ from about 6 working days</div></div>
+      <div class="card kpi reveal"><div class="label">Scoring criteria, weighted by the hiring manager</div><div class="val"><span class="count" data-to="7">0</span><small>criteria</small></div><div class="delta">transparent, explainable, adjustable</div></div>
+      <div class="card kpi reveal"><div class="label">Personalised questions per candidate</div><div class="val"><span class="count" data-to="12">0</span><small>questions</small></div><div class="delta">grounded in the candidate's own CV</div></div>
+      <div class="card kpi reveal"><div class="label">Recruiter time saved per requisition</div><div class="val"><span class="count" data-to="70">0</span><small>%</small></div><div class="delta">32 → 9 hours per requisition</div></div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="challenge">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Challenge</div>
+      <h2>Specialist roles, hundreds of CVs, little time</h2>
+      <p class="lead">Roles like EHV substation execution or transmission line construction need precise experience. Recruiters were reading every CV by hand, and hiring managers often met candidates without a clear view of fit, gaps or what to probe.</p>
+    </div>
+    <div class="ch-grid">
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg></div><h3>Volume of CVs</h3><p>Each requisition drew large applicant pools from portals, referrals and agencies, in mixed formats.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg></div><h3>Keyword screening misses</h3><p>Simple keyword filters passed buzzword-heavy CVs and missed strong candidates who described work differently.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></div><h3>Red flags found late</h3><p>Gaps, short tenures and unsupported claims surfaced in interviews, not before them.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg></div><h3>Generic interviews</h3><p>Panels used the same question list for everyone, so strong claims went untested.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="approach" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">HMC Approach</div>
+      <h2>Explainable scoring first, GenAI on top</h2>
+      <p class="lead">Rules the TA team can read and adjust, with GenAI for summaries, questions and conversation.</p>
+    </div>
+    <div class="tl reveal" aria-label="HMC approach steps">
+      <button class="tl-step" aria-expanded="true" aria-controls="tp0"><span class="tl-dot">1</span><span class="tl-name">Discover</span><span class="tl-dur">1 week</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp1"><span class="tl-dot">2</span><span class="tl-name">Design</span><span class="tl-dur">2 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp2"><span class="tl-dot">3</span><span class="tl-name">Build</span><span class="tl-dur">4 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp3"><span class="tl-dot">4</span><span class="tl-name">Adopt</span><span class="tl-dur">Pilot roles</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp4"><span class="tl-dot">5</span><span class="tl-name">Scale</span><span class="tl-dur">Ongoing</span></button>
+    </div>
+    <p class="tl-hint">Select a step to see what happened.</p>
+    <div class="card tl-panel open" id="tp0"><h3>Discover · How good recruiters read a CV</h3><p>Shadowed recruiters and hiring managers.</p><ul><li>Must-haves versus nice-to-haves for key roles.</li><li>The signals they trust: evidence, numbers, tenure.</li><li>The red flags they look for.</li></ul><p class="deliv"><b>Deliverable:</b> Screening rubric per role family.</p></div>
+    <div class="card tl-panel" id="tp1"><h3>Design · A transparent score</h3><p>Seven criteria, weighted by the hiring manager.</p><ul><li>Skills taxonomy for power, projects and HR roles.</li><li>Evidence-based matching: a skill counts fully only when shown in work history.</li><li>Fair-use rules: no scoring on age, gender, religion or photos.</li></ul><p class="deliv"><b>Deliverable:</b> Scoring model and guardrails.</p></div>
+    <div class="card tl-panel" id="tp2"><h3>Build · The copilot</h3><p>One screen for the recruiter.</p><ul><li>CV upload (PDF, Word, text) and JD library.</li><li>Score, evidence highlights, career timeline.</li><li>Personalised questions, red flags and a CV chatbot, with a large language model for live answers.</li></ul><p class="deliv"><b>Deliverable:</b> Working copilot.</p></div>
+    <div class="card tl-panel" id="tp3"><h3>Adopt · Pilot on live requisitions</h3><p>Human decision, machine preparation.</p><ul><li>Recruiters review every shortlist; nothing auto-rejects.</li><li>Panels receive the interview kit before the interview.</li><li>Feedback tunes the taxonomy and weights.</li></ul><p class="deliv"><b>Deliverable:</b> Pilot playbook.</p></div>
+    <div class="card tl-panel" id="tp4"><h3>Scale · More roles, more signals</h3><p>Extends role by role.</p><ul><li>New role families added as taxonomy, not code.</li><li>Interview feedback linked back to scores.</li><li>ATS integration on the roadmap.</li></ul><p class="deliv"><b>Deliverable:</b> Roll-out plan.</p></div>
+  </div>
+</section>
+
+<section id="solution">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Solution</div>
+      <h2>A working screening copilot, embedded below</h2>
+      <p class="lead">Try it with the five sample candidates, or upload your own CV (PDF, Word or text). It runs in your browser with a rule-based engine; add an OpenAI API key in module 04 for live GenAI summaries, questions and chat.</p>
+    </div>
+
+    <div class="module reveal" id="stModule">
+      <div class="mod-head"><div><div class="badge">01 · Screening studio</div><h3>Match a CV to the JD, with evidence</h3><p>Pick a role and a candidate, or drop in a CV. Matched skills light up in the CV, the score builds from seven criteria, and the career timeline shows tenures and gaps.</p></div>
+        <div style="display:flex;gap:8px;align-items:center"><span class="pill2 off" id="modePill"><i></i>Rule-based</span><button class="btn ai" id="aiAnalyse" type="button">✦ Analyse with AI</button></div></div>
+      <div class="card studio">
+        <div class="col-l">
+          <div><h4 class="lbl">Job description</h4><div class="jds" id="jds"></div><button class="chipb" id="jdCustomBtn" type="button" style="margin-top:6px">+ Paste your own JD</button><div id="jdCustom" style="display:none;margin-top:6px"><textarea class="paste" id="jdText" placeholder="Paste a job description. Lines with 'must', 'required' or 'mandatory' are treated as must-haves."></textarea><button class="btn sm go" id="jdUse" type="button" style="margin-top:6px">Use this JD</button></div></div>
+          <div><h4 class="lbl">Candidates</h4><div class="cands" id="cands"></div></div>
+          <div><label class="drop" id="drop" for="file"><span class="dico">⬆</span><b>Drop a CV here</b>PDF, DOCX or TXT · stays in your browser<input type="file" id="file" accept=".pdf,.docx,.txt" style="display:none"></label>
+            <button class="chipb" id="pasteBtn" type="button" style="margin-top:6px;width:100%">or paste CV text</button>
+            <div id="pasteBox" style="display:none;margin-top:6px"><textarea class="paste" id="cvPaste" placeholder="Paste CV text. First line is used as the name."></textarea><button class="btn sm go" id="cvUse" type="button" style="margin-top:6px">Add candidate</button></div>
+            <p id="upMsg" style="font-size:.72rem;color:var(--muted);margin:6px 0 0"></p></div>
+        </div>
+        <div class="col-c">
+          <div class="prof" id="prof"></div>
+          <div class="tags" id="skillTags"></div>
+          <div><h4 class="lbl">Career timeline</h4><div class="sx"><div class="chart" id="tline"></div></div></div>
+          <div><h4 class="lbl" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px"><span>CV with evidence highlighted</span><span class="legend"><span><i style="background:rgba(14,159,110,.3)"></i>must-have</span><span><i style="background:rgba(59,167,217,.3)"></i>good-to-have</span><span><i style="background:rgba(244,183,64,.4)"></i>numbers</span></span></h4><div class="cv" id="cvView"></div></div>
+        </div>
+        <div class="col-r">
+          <div><h4 class="lbl">Match score</h4><div class="gauge" id="gauge"></div></div>
+          <div><h4 class="lbl">Criteria</h4><div class="crit" id="crit"></div></div>
+          <div class="mstat" id="stK"></div>
+          <div class="verdict" id="verdict"></div>
+          <div class="ai-box" id="aiBox" style="display:none"></div>
+        </div>
+      </div>
+      <p class="footnote">Sample candidates and CVs are synthetic. Scoring ignores age, gender, religion and photographs by design.</p>
+    </div>
+
+    <div class="module reveal" id="bdModule">
+      <div class="mod-head"><div><div class="badge">02 · Shortlist board</div><h3>Set the weights, watch the ranking change</h3><p>The hiring manager decides what matters. Move a weight and every candidate is re-scored live; the coverage matrix shows exactly which must-haves each candidate evidences.</p></div>
+        <div class="seg sm" role="group" aria-label="Weight presets"><button type="button" data-pre="bal" aria-pressed="true">Balanced</button><button type="button" data-pre="skills" aria-pressed="false">Skills-first</button><button type="button" data-pre="exp" aria-pressed="false">Experience-first</button></div></div>
+      <div class="card board">
+        <div class="w" id="weights"></div>
+        <div class="r"><div class="chart" id="lead"></div><h4 class="lbl" style="margin-top:12px">Skill coverage · JD skills × candidates</h4><div class="mxw"><table class="mx" id="mx"></table></div><div class="ckey"><span><i style="background:#0E9F6E"></i>Evidenced in work history</span><span><i style="background:#BFE8D6"></i>Listed only</span><span><i style="background:#F2F5F4"></i>Not found</span></div></div>
+      </div>
+    </div>
+
+    <div class="module reveal" id="ktModule">
+      <div class="mod-head"><div><div class="badge">03 · Interview kit</div><h3>Questions written for this candidate, and what to check</h3><p>Questions quote the candidate's own CV and probe missing must-haves, gaps and short stints. Red flags come with severity and evidence. Copy or download the kit for the panel.</p></div>
+        <div style="display:flex;gap:8px"><button class="btn sm" id="kitCopy" type="button">⧉ Copy kit</button><button class="btn sm go" id="kitDl" type="button">⬇ Download</button></div></div>
+      <div class="card kit">
+        <div><div class="tabs" role="tablist" id="qTabs"></div><div class="qs" id="qs"></div></div>
+        <div><h4 class="lbl" style="display:flex;justify-content:space-between"><span>Red flags</span><span id="kitSrc" class="pill2 off" style="font-size:.58rem"><i></i>Rule-based</span></h4><div class="qs" id="flags"></div><h4 class="lbl" style="margin-top:12px">Strengths to confirm</h4><div class="qs" id="strengths"></div></div>
+      </div>
+    </div>
+
+    <div class="module reveal" id="chModule" style="margin-bottom:0">
+      <div class="mod-head"><div><div class="badge">04 · CV copilot</div><h3>Ask anything about the candidate</h3><p>Quick summaries, suggested questions and red flags on demand. Without a key it answers from the rule-based analysis; add your OpenAI API key for live, open-ended answers grounded in the CV and JD.</p></div></div>
+      <div class="card chat">
+        <div class="cw">
+          <div class="msgs" id="msgs"></div>
+          <div class="sugg" id="sugg"></div>
+          <form class="ask" id="askF"><input id="askI" type="text" placeholder="Ask about this candidate…" aria-label="Ask about this candidate" autocomplete="off"><button class="btn go" type="submit">Send</button></form>
+        </div>
+        <div class="set">
+          <div class="row" style="justify-content:space-between"><h4 class="lbl" style="margin:0">Live GenAI</h4><span class="pill2 off" id="keyPill"><i></i>Offline</span></div>
+          <label class="f">OpenAI API key<input type="password" id="apiKey" placeholder="sk-…" autocomplete="off" spellcheck="false"></label>
+          <label class="f">Model<input type="text" id="model" value="gpt-4o-mini" list="models" spellcheck="false"><datalist id="models"><option value="gpt-4o-mini"><option value="gpt-4.1-mini"><option value="gpt-4o"><option value="gpt-4.1"></datalist></label>
+          <label style="display:flex;gap:6px;align-items:center;font-size:.74rem;color:var(--deep)"><input type="checkbox" id="remember"> Remember key on this device</label>
+          <div class="row"><button class="btn sm go" id="keySave" type="button">Connect</button><button class="btn sm" id="keyClear" type="button">Disconnect</button></div>
+          <p class="note" id="keyMsg">Your key is sent only from this browser directly to OpenAI, and is kept in memory unless you tick "remember". CV text is sent to OpenAI only in live mode. Use a key with spending limits.</p>
+          <div class="ctx" id="ctx"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="impact" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Impact Dashboard</div>
+      <h2>Recruiters spend time on people, not paperwork</h2>
+      <p class="lead">Reading and matching shrank; interview preparation got sharper; hiring managers saw a scored shortlist the same week.</p>
+    </div>
+    <div class="dash">
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>Recruiter hours per requisition</h3><p class="sub">By activity, with cumulative share (Pareto)</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-pa="before" aria-pressed="false">Before</button><button type="button" data-pa="after" aria-pressed="true">After</button></div></div>
+        <div class="chart" id="pareto"></div>
+      </div>
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>Days to a shortlist</h3><p class="sub">Distribution across requisitions, by role family</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-bx="before" aria-pressed="false">Before</button><button type="button" data-bx="after" aria-pressed="true">After</button></div></div>
+        <div class="chart" id="box"></div>
+      </div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <div class="cmp-head reveal"><div><div class="eyebrow">Before vs After</div><h2>How CVs are screened now</h2></div>
+      <div class="seg" role="group" aria-label="Highlight column"><button type="button" data-hl="before" aria-pressed="false">Before</button><button type="button" data-hl="after" aria-pressed="true">After</button></div></div>
+    <div class="card reveal" style="overflow:hidden">
+      <table class="cmp hl-after" id="cmp"><colgroup><col class="c1"><col><col></colgroup>
+        <thead><tr><th scope="col">Dimension</th><th scope="col" class="b">Before</th><th scope="col" class="a">After</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Reading CVs</th><td class="b">Every CV read in full</td><td class="a">Summary and evidence in seconds</td></tr>
+          <tr><th scope="row">Matching</th><td class="b">Keyword search or gut feel</td><td class="a">Evidence-weighted score on seven criteria</td></tr>
+          <tr><th scope="row">Priorities</th><td class="b">Implicit, varies by recruiter</td><td class="a">Weights set by the hiring manager</td></tr>
+          <tr><th scope="row">Red flags</th><td class="b">Found in the interview</td><td class="a">Flagged before shortlisting, with evidence</td></tr>
+          <tr><th scope="row">Interview questions</th><td class="b">Same list for everyone</td><td class="a">Personalised to each CV</td></tr>
+          <tr><th scope="row">Decision</th><td class="b">Recruiter alone</td><td class="a">Recruiter decides, copilot prepares</td></tr>
+        </tbody></table>
+    </div>
+  </div>
+</section>
+
+<section id="tools" style="padding-top:16px">
+  <div class="wrap">
+    <div class="sec-head reveal" style="margin-bottom:20px"><div class="eyebrow">Tools &amp; Tech Used</div><h2>The screening stack</h2></div>
+    <div class="tchips reveal">
+      <span class="chip"><i></i>Skills taxonomy <em>power, projects and HR roles</em></span>
+      <span class="chip"><i></i>Rule-based scoring <em>seven explainable criteria</em></span>
+      <span class="chip"><i></i>Large language model <em>summaries, questions, chat</em></span>
+      <span class="chip"><i></i>PDF and Word parsing <em>in the browser</em></span>
+      <span class="chip"><i></i>Fair-use guardrails <em>no protected attributes</em></span>
+    </div>
+  </div>
+</section>
+
+<section id="takeaways">
+  <div class="wrap">
+    <div class="sec-head reveal"><div class="eyebrow">Key Takeaways</div><h2>What any TA team can borrow</h2></div>
+    <div class="tk-grid">
+      <div class="card tk reveal"><div class="n">01</div><h3>Evidence beats keywords</h3><p>Count a skill fully only when the CV shows it being used; lists alone earn partial credit.</p></div>
+      <div class="card tk reveal"><div class="n">02</div><h3>Let the hiring manager own the weights</h3><p>A transparent score with adjustable weights earns trust that a black box never will.</p></div>
+      <div class="card tk reveal"><div class="n">03</div><h3>Prepare the panel, don't replace it</h3><p>Personalised questions and red flags make interviews sharper; people still make the call.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="f-brand"><img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting"><div><b>Havish M Consulting</b></div></div>
+    <div class="copy"><span>© <span id="yr">2026</span> Havish M Consulting. All rights reserved.</span><span>Figures indicative; validated metrics available on request.</span></div>
+  </div>
+</footer>
+<div id="tip" role="tooltip"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DUR = reduce ? 0 : 650;
+const $ = id => document.getElementById(id);
+$('yr').textContent = new Date().getFullYear();
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hasD3 = typeof d3 !== 'undefined';
+const sleep = ms => new Promise(r => setTimeout(r, reduce ? 0 : ms));
+const sum = a => a.reduce((x, y) => x + y, 0);
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const tip = $('tip');
+function showTip(html, ev){ tip.innerHTML = html; tip.style.opacity = 1; const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = ev.clientX + pad, y = ev.clientY + pad; if (x + w > innerWidth - 8) x = ev.clientX - w - pad; if (y + h > innerHeight - 8) y = ev.clientY - h - pad;
+  tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; }
+function hideTip(){ tip.style.opacity = 0; }
+window.addEventListener('scroll', hideTip, {passive:true});
+function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => el.classList.remove('on'), 2200); }
+const onView = new Map();
+const io = ('IntersectionObserver' in window) ? new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; e.target.classList.add('in');
+  const fn = onView.get(e.target); if (fn){ fn(); onView.delete(e.target); } io.unobserve(e.target); }), {threshold:.1}) : null;
+function whenVisible(el, fn){ onView.set(el, fn); if (io) io.observe(el); else fn(); }
+document.querySelectorAll('.reveal').forEach(el => io ? io.observe(el) : el.classList.add('in'));
+function countUp(el){ const to = +el.dataset.to; if (reduce || !to){ el.textContent = to; return; }
+  const t0 = performance.now(); (function s(t){ const p = Math.min(1,(t-t0)/1400), e = 1 - Math.pow(1-p,3); el.textContent = Math.round(to*e); if (p < 1) requestAnimationFrame(s); })(t0); }
+document.querySelectorAll('.count').forEach(el => whenVisible(el.closest('.kpi'), () => countUp(el)));
+const tlSteps = document.querySelectorAll('.tl-step');
+tlSteps.forEach(btn => btn.addEventListener('click', () => { const open = btn.getAttribute('aria-expanded') === 'true';
+  tlSteps.forEach(b => { b.setAttribute('aria-expanded','false'); $(b.getAttribute('aria-controls')).classList.remove('open'); });
+  if (!open){ btn.setAttribute('aria-expanded','true'); $(btn.getAttribute('aria-controls')).classList.add('open'); } }));
+function segBind(attr, fn){ const bs = document.querySelectorAll(`[data-${attr}]`); bs.forEach(b => b.addEventListener('click', () => { bs.forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); fn(b.dataset[attr]); })); }
+const cmp = $('cmp');
+segBind('hl', v => { cmp.classList.toggle('hl-before', v === 'before'); cmp.classList.toggle('hl-after', v === 'after'); });
+function md(s){ const lines = esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').split(/\n/); let out = '', inL = false;
+  lines.forEach(l => { const m = l.match(/^\s*(?:[-*•]|\d+[.)])\s+(.*)/); if (m){ if (!inL){ out += '<ul>'; inL = true; } out += '<li>' + m[1] + '</li>'; } else { if (inL){ out += '</ul>'; inL = false; } if (l.trim()) out += '<p style="margin:0 0 6px">' + l + '</p>'; } });
+  if (inL) out += '</ul>'; return out; }
+
+/* HERO · CV tokens fly to JD slots; matched ones glow */
+(function hero(){
+  const cv = $('heroCv'), cx = cv.getContext('2d'); let W = 0, H = 0, run = false; const R = mulberry32(6);
+  const toks = ['EHV','GIS','P6','HSE','SCADA','Relays','PMP','T&C','Vendors','400 kV','ROW','Python'].map((t, i) => ({ t, i, m: i % 4 !== 3, d: R() * 2 }));
+  function size(){ const dpr = Math.min(2, devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; cx.setTransform(dpr,0,0,dpr,0,0); }
+  function sheet(x, y, w, h, title){ cx.fillStyle = 'rgba(255,255,255,.08)'; cx.strokeStyle = 'rgba(124,227,184,.35)'; cx.lineWidth = 1; cx.fillRect(x, y, w, h); cx.strokeRect(x, y, w, h); cx.fillStyle = 'rgba(244,199,102,.9)'; cx.font = '800 11px DM Sans, sans-serif'; cx.fillText(title, x + 10, y + 18); cx.fillStyle = 'rgba(255,255,255,.12)'; for (let k = 0; k < 9; k++) cx.fillRect(x + 10, y + 30 + k * 14, (k % 3 ? .8 : .5) * (w - 20), 4); }
+  function draw(time){ cx.clearRect(0, 0, W, H); const t = time / 1000, cyc = 7, ph = (t % cyc) / cyc;
+    const sw = Math.max(150, Math.min(210, W * .24)), gap = Math.min(110, W * .1), sx = Math.max(W * .3, W - 2 * sw - gap - 30), sy = H * .18, sh = 180, jx = sx + sw + gap, jy = sy;
+    sheet(sx, sy, sw, sh, 'CV'); sheet(jx, jy, sw, sh, 'JD');
+    let matched = 0;
+    toks.forEach((k, i) => { const p = Math.max(0, Math.min(1, (ph - .05 - i * .045) / .35)), e = p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+      const ax = sx + 14 + (i % 2) * (sw / 2 - 4), ay = sy + 34 + Math.floor(i / 2) * 22, bx = jx + 14 + (i % 2) * (sw / 2 - 4), by = jy + 34 + Math.floor(i / 2) * 22;
+      const x = ax + (bx - ax) * e, y = ay + (by - ay) * e - Math.sin(e * Math.PI) * 50;
+      const done = p >= 1; if (done && k.m) matched++;
+      cx.font = '700 10px DM Sans, sans-serif'; const tw = cx.measureText(k.t).width + 12;
+      cx.fillStyle = done ? (k.m ? 'rgba(14,159,110,.9)' : 'rgba(224,79,79,.75)') : 'rgba(255,255,255,.18)'; cx.beginPath(); cx.roundRect ? cx.roundRect(x, y - 11, tw, 16, 8) : cx.rect(x, y - 11, tw, 16); cx.fill();
+      cx.fillStyle = '#fff'; cx.fillText(k.t, x + 6, y + 1); });
+    const total = toks.filter(k => k.m).length, sc = Math.round(matched / total * 100 * .86), rx = sx + sw + gap / 2, ry = Math.min(H - 60, sy + sh + 80), rr = 40;
+    cx.lineWidth = 7; cx.strokeStyle = 'rgba(255,255,255,.12)'; cx.beginPath(); cx.arc(rx, ry, rr, 0, 7); cx.stroke();
+    cx.strokeStyle = '#7CE3B8'; cx.beginPath(); cx.arc(rx, ry, rr, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * sc / 100); cx.stroke();
+    cx.fillStyle = '#fff'; cx.font = '400 26px DM Serif Display, Georgia, serif'; cx.textAlign = 'center'; cx.fillText(sc, rx, ry + 9); cx.textAlign = 'left'; }
+  size(); draw(reduce ? 6000 : 0);
+  window.addEventListener('resize', () => { size(); draw(reduce ? 6000 : performance.now()); });
+  if (reduce) return;
+  function loop(t){ if (!run) return; draw(t); requestAnimationFrame(loop); }
+  if (io) new IntersectionObserver(es => { const on = es[0].isIntersecting; if (on && !run){ run = true; requestAnimationFrame(loop); } else if (!on) run = false; }).observe(cv);
+})();
+
+/* ======================================================================
+   TAXONOMY, JDS, SAMPLE CVS
+   ====================================================================== */
+const TAX = {
+  ehv:['EHV substations','\\b(ehv|extra high voltage|765\\s?kv|400\\s?kv|220\\s?kv|400/220\\s?kv|220/400\\s?kv)\\b'],
+  substation:['Substation execution','substation'],
+  gis:['GIS','\\bgis\\b|gas[- ]insulated'],
+  ais:['AIS','\\bais\\b|air[- ]insulated'],
+  tc:['Testing & commissioning','testing (?:and|&) commissioning|commissioning|energis(?:ed|ation)|pre-commissioning'],
+  primavera:['Primavera P6','primavera|\\bp6\\b'],
+  msp:['MS Project','ms project|microsoft project'],
+  contractor:['Contractor management','contractors?|subcontract|vendor management|erection gangs'],
+  hse:['HSE & safety','\\bhse\\b|\\behs\\b|safety|lost-time|permit-to-work|near-miss'],
+  scada:['SCADA','scada|\\bsas\\b'],
+  protection:['Protection relays','protection relay|relays?|protection'],
+  pmp:['PMP','\\bpmp\\b'],
+  cost:['Cost control','cost control|budget|wastage|boq'],
+  approvals:['CEA / CTU approvals','\\bcea\\b|\\bctu\\b|powergrid|grid approval|charging approval'],
+  tline:['Transmission lines','transmission line|line construction|\\bd/c line\\b|km of'],
+  tower:['Tower erection','tower erection|towers? erected|tower foundation'],
+  stringing:['Stringing','stringing'],
+  row:['ROW management','right[- ]of[- ]way|\\brow\\b'],
+  land:['Land compensation','land compensation|compensation'],
+  opgw:['OPGW','opgw'],
+  drone:['Drone / LiDAR survey','drone|lidar'],
+  powerbi:['Power BI','power ?bi'],
+  dax:['DAX','\\bdax\\b'],
+  sql:['SQL','\\bsql\\b'],
+  python:['Python','python'],
+  hrmetrics:['Attrition & workforce analytics','attrition|workforce planning|headcount|people analytics|hr analytics'],
+  stats:['Statistics / ML','statistic|regression|machine learning|precision|\\bml\\b'],
+  hris:['HRIS (SuccessFactors / Workday)','successfactors|workday|\\bhris\\b|sap hr'],
+  stake:['Stakeholder management','stakeholder|hrbps?|leaders'],
+  survey:['Survey analytics','survey']
+};
+const RX = {}; Object.entries(TAX).forEach(([k, v]) => RX[k] = new RegExp(v[1], 'gi'));
+const JDS = [
+  { id:'sub', n:'Deputy Manager – Substation Execution (EHV/GIS)', loc:'Gurugram · project sites', yrs:[6, 10], deg:'b\\.?\\s?tech|b\\.?e\\.?|electrical', must:['ehv','gis','tc','primavera','contractor','hse'], good:['scada','protection','pmp','cost','approvals','ais'], domain:['substation','kv','bay','energis','transformer','grid'],
+    text:'Deputy Manager – Substation Execution (EHV/GIS)\nLocation: Gurugram, with travel to project sites\n\nYou will lead execution of 220–765 kV substation projects from engineering interface to energisation.\n\nMust have:\n- 6–10 years in EHV substation execution (220/400/765 kV)\n- GIS bay erection and commissioning\n- Testing & commissioning coordination with OEMs\n- Project scheduling in Primavera P6\n- Contractor and workforce management\n- Strong HSE record\n\nGood to have:\n- SCADA / SAS and protection relay exposure\n- PMP certification\n- Cost control and BOQ reconciliation\n- CEA / CTU approvals for charging\n\nEducation: B.E./B.Tech Electrical' },
+  { id:'line', n:'Manager – Transmission Line Construction', loc:'Rajasthan / MP', yrs:[8, 14], deg:'b\\.?\\s?tech|b\\.?e\\.?|civil|electrical', must:['tline','tower','stringing','row','contractor','hse'], good:['land','opgw','drone','msp','primavera','cost'], domain:['line','tower','kv','route','foundation','km'],
+    text:'Manager – Transmission Line Construction\nLocation: Rajasthan / Madhya Pradesh\n\nLead construction of 400–765 kV transmission lines.\n\nMust have:\n- 8–14 years in EHV transmission line construction\n- Tower foundation, erection and stringing\n- Right-of-way (ROW) resolution with local administration\n- Management of erection and stringing contractors\n- Safety leadership at site\n\nGood to have:\n- Land compensation process\n- OPGW stringing\n- Drone / LiDAR route survey\n- MS Project or Primavera scheduling\n\nEducation: B.E./B.Tech Civil or Electrical' },
+  { id:'hra', n:'Lead – HR Analytics', loc:'Gurugram', yrs:[5, 9], deg:'mba|b\\.?sc|statistics|b\\.?tech|m\\.?sc', must:['powerbi','sql','python','hrmetrics','stake'], good:['dax','stats','hris','survey'], domain:['hr','attrition','hiring','workforce','people','engagement'],
+    text:'Lead – HR Analytics\nLocation: Gurugram\n\nBuild people analytics for a fast-growing infrastructure business.\n\nMust have:\n- 5–9 years in HR / people analytics\n- Power BI dashboards\n- SQL and Python\n- Attrition, hiring and workforce planning metrics\n- Stakeholder management with HR leaders\n\nGood to have:\n- DAX\n- Statistics or machine learning\n- SuccessFactors / Workday data\n- Engagement survey analytics\n\nEducation: MBA (HR) or degree in Statistics / Engineering' }
+];
+const CVS = [
+`Ananya Rao
+Deputy Manager – Substation Projects | Gurugram
+Summary: Electrical engineer with 10 years executing 220/400 kV EHV substation projects, including GIS and AIS bays, from engineering interface to energisation.
+
+Experience
+Deputy Manager – Substation Execution, Northgrid Infra Pvt Ltd | Jun 2021 – Present
+- Led execution of a 400/220 kV GIS substation (8 bays) worth ₹180 crore; energised 3 weeks ahead of schedule.
+- Managed 6 civil and electrical contractors and 220 workers; zero lost-time injuries across 1.1 million man-hours.
+- Built the Primavera P6 baseline and weekly look-ahead; recovered a 6-week slippage on cable trench works.
+- Coordinated testing and commissioning with OEM engineers: CT/PT, CRP, SAS and SCADA integration.
+Senior Engineer – Projects, Voltline Engineering Ltd | Jul 2017 – May 2021
+- Executed two 220 kV AIS substations; handled CEA inspections and CTU approvals for charging.
+- Reduced material wastage by 12% through bay-wise BOQ reconciliation and vendor management.
+Graduate Engineer Trainee, Sunmark Electricals | Jul 2016 – Jun 2017
+- Supported protection relay testing and pre-commissioning checks on 132 kV substations.
+
+Education: B.Tech, Electrical Engineering – NIT Kurukshetra (2016)
+Certifications: PMP (2022); Primavera P6 Professional
+Skills: EHV substations, GIS, AIS, Testing & commissioning, Primavera P6, Contractor management, HSE, SCADA, Protection relays, Cost control`,
+`Vikram Singh
+Manager – Transmission Line Projects | Jaipur
+Summary: 14 years in EHV transmission line construction (220–765 kV): survey, foundations, tower erection and stringing, with strong right-of-way (ROW) resolution.
+
+Experience
+Manager – Line Construction, Kestrel Transmission Ltd | Apr 2019 – Present
+- Delivered 312 km of 765 kV D/C line across 3 states; 1,040 towers erected and stringing completed in 22 months.
+- Resolved 140+ ROW cases with district administration; land compensation disbursed within 45 days on average.
+- Managed 9 erection gangs and 4 stringing contractors; introduced weekly safety audits that cut near-misses by 30%.
+- Used drone and LiDAR survey to optimise the route and save 7 km of line length.
+Deputy Manager – Projects, Apex Powerlinks | Jan 2014 – Mar 2019
+- Executed 400 kV lines; OPGW stringing and tower foundation quality checks; MS Project schedules.
+Engineer, Delta Structures | Jun 2012 – Dec 2013
+- Tower erection supervision for 220 kV lines.
+
+Education: B.E., Civil Engineering – MNIT Jaipur (2012)
+Skills: Transmission lines, Tower erection, Stringing, ROW management, Land compensation, Contractor management, Safety, OPGW, Drone survey, MS Project`,
+`Rohit Mehra
+Project Engineer (Electrical) | Noida
+Summary: Dynamic, result-oriented expert in substations, transmission, SCADA, GIS, project management, Primavera, safety and everything electrical. Rockstar team player and go-getter.
+
+Experience
+Project Engineer, BrightVolt Services | Aug 2025 – Present
+- Site coordination for 33 kV substation works.
+Site Engineer, Kirti Power Solutions | Jan 2024 – Jun 2024
+- Supervised cable laying and earthing.
+Junior Engineer, Matrix EPC | Mar 2022 – Oct 2022
+- Assisted in 132 kV substation erection activities.
+Trainee Engineer, Om Electricals | Jul 2021 – Jan 2022
+- Learnt testing of breakers.
+
+Education: Diploma, Electrical Engineering (2021); B.Tech Electrical (pursuing, distance mode)
+Skills: GIS, SCADA, Primavera, EHV, HSE, Contractor management, Testing & commissioning, Protection relays`,
+`Sara Thomas
+Lead – People Analytics | Bengaluru
+Summary: 9 years building HR analytics and workforce planning solutions for manufacturing and energy companies.
+
+Experience
+Lead – People Analytics, Meridian Energy Services | Feb 2022 – Present
+- Built Power BI attrition and hiring dashboards used by 40+ leaders; DAX measures for YTD and annualised attrition.
+- Developed a Python attrition-risk model (logistic regression) with 78% precision; cut regretted attrition by 9%.
+- Automated SQL pipelines from SuccessFactors; monthly MIS time fell from 5 days to 4 hours.
+Senior Analyst – HR Analytics, Clearpath Consulting | Jun 2019 – Jan 2022
+- Workforce planning and headcount models in Excel and SQL for 12 clients; engagement survey analytics.
+Analyst, Northwind BPO | Jul 2017 – May 2019
+- HR MIS and Excel reporting; stakeholder management with HRBPs.
+
+Education: MBA (HR), XLRI (2017); B.Sc Statistics (2015)
+Skills: Power BI, DAX, SQL, Python, Statistics, Attrition analytics, Workforce planning, SuccessFactors, Stakeholder management, Survey analytics`,
+`Imran Shaikh
+Senior Engineer – Substation O&M | Vadodara
+Summary: 10 years in operation and maintenance of 220/400 kV substations; protection, SCADA and condition monitoring.
+
+Experience
+Senior Engineer – O&M, Westline Grid Services | Mar 2020 – Present
+- Maintained four 400 kV AIS substations with 99.8% availability over three years.
+- Protection relay setting coordination and SCADA alarm rationalisation; reduced nuisance trips by 35%.
+- Supervised AMC contractors and safety permits (HSE, permit-to-work).
+Engineer – Testing, Gridtech Labs | Feb 2018 – Feb 2020
+- Testing and commissioning of CT, PT, breakers and relays for 220 kV bays.
+Engineer, Sigma Switchgear | Jul 2016 – Dec 2017
+- Factory testing of switchgear panels.
+
+Education: B.E., Electrical Engineering – Mumbai University (2016)
+Skills: EHV substations, Protection relays, SCADA, Testing & commissioning, HSE, Contractor management, AIS`
+];
+
+/* ======================================================================
+   PARSER & SCORING ENGINE
+   ====================================================================== */
+const NOW = { y: 2026, m: 9 };
+const MON = { jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, sept:8, oct:9, nov:10, dec:11 };
+const MLAB = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fmtYM = v => `${MLAB[v % 12]} ${Math.floor(v / 12)}`;
+function parseCV(text){
+  const lines = text.replace(/\r/g, '').split('\n').map(l => l.trim()).filter(Boolean);
+  const name = (lines[0] || 'Unnamed candidate').replace(/[|•].*$/, '').slice(0, 60);
+  const headline = (lines[1] || '').slice(0, 120);
+  const DR = /((?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+\d{4}|\d{1,2}\/\d{4}|\b\d{4})\s*(?:–|-|—|to)\s*(present|current|till date|now|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+\d{4}|\d{1,2}\/\d{4}|\d{4})/i;
+  const toYM = (s, end) => { s = s.toLowerCase().trim(); if (/present|current|till|now/.test(s)) return NOW.y * 12 + NOW.m; let m = s.match(/([a-z]+)\.?\s+(\d{4})/); if (m && MON[m[1].slice(0, 4)] != null) return +m[2] * 12 + MON[m[1].slice(0, 4)]; if (m && MON[m[1].slice(0, 3)] != null) return +m[2] * 12 + MON[m[1].slice(0, 3)];
+    m = s.match(/(\d{1,2})\/(\d{4})/); if (m) return +m[2] * 12 + (+m[1] - 1); m = s.match(/(\d{4})/); if (m) return +m[1] * 12 + (end ? 11 : 0); return null; };
+  const roles = [];
+  lines.forEach((l, i) => { const m = l.match(DR); if (!m || /education|b\.?tech|b\.?e\.|mba|diploma|certific/i.test(l.slice(0, 30))) return; const s = toYM(m[1], false), e = toYM(m[2], true); if (s == null || e == null || e < s) return;
+    let head = l.replace(m[0], '').replace(/[|·,–-]\s*$/, '').trim(); if (!head && i > 0) head = lines[i - 1]; const parts = head.split(/,| at | \| /).map(x => x.trim()).filter(Boolean);
+    roles.push({ title: (parts[0] || 'Role').slice(0, 70), org: (parts[1] || '').slice(0, 50), s, e, cur: /present|current|till|now/i.test(m[2]), line: i }); });
+  roles.sort((a, b) => a.s - b.s);
+  let months = 0, curE = -1, curS = -1; roles.forEach(r => { if (r.s > curE){ if (curE >= 0) months += curE - curS; curS = r.s; curE = r.e; } else curE = Math.max(curE, r.e); }); if (curE >= 0) months += curE - curS;
+  const gaps = []; for (let i = 1; i < roles.length; i++){ const prevEnd = Math.max(...roles.slice(0, i).map(r => r.e)), g = roles[i].s - prevEnd; if (g > 6) gaps.push({ from: prevEnd, to: roles[i].s, m: g }); }
+  const overlaps = []; for (let i = 1; i < roles.length; i++) if (roles[i].s < roles[i - 1].e - 2 && !roles[i - 1].cur) overlaps.push([roles[i - 1], roles[i]]);
+  let yrsStated = null; const ys = text.match(/(\d{1,2})\+?\s*years/i); if (ys) yrsStated = +ys[1];
+  const years = months ? months / 12 : (yrsStated || 0);
+  const sents = text.replace(/\r/g, '').split(/\n|(?<=[.;])\s+(?=[A-Z])/).map(s => s.replace(/^[-•*]\s*/, '').trim()).filter(s => s.length > 3);
+  const isList = s => /^(skills|key skills|core skills|technical skills|certifications?|summary)\s*:/i.test(s);
+  const nums = sents.filter(s => !isList(s) && /(\d+(\.\d+)?\s?(%|km|crore|cr\b|lakh|days|hours|months|weeks|towers|bays|workers|leaders|clients|cases|million))|₹\s?\d|\d{2,}[,\d]*\s?(towers|km)/i.test(s));
+  const buzz = (text.match(/\b(rockstar|ninja|guru|go-getter|result-oriented|dynamic|expert in|everything|synerg\w*|hard-?working|passionate)\b/gi) || []).length;
+  const edu = (text.match(/^(education|qualification)s?\s*:?.*$/im) || [''])[0];
+  return { name, headline, roles, years, yrsStated, gaps, overlaps, sents, isList, nums, buzz, edu, text, short: roles.filter(r => !r.cur && r.e - r.s < 12) };
+}
+function skillEvidence(P, k){ const re = RX[k]; let work = null, list = false; P.sents.forEach(s => { re.lastIndex = 0; if (re.test(s)){ if (P.isList(s)) list = true; else if (!work) work = s; } }); return work ? { lvl: 1, ev: work } : list ? { lvl: .5, ev: null } : { lvl: 0, ev: null }; }
+const CRIT = [['must','Must-have skills'],['good','Good-to-have skills'],['exp','Experience fit'],['domain','Domain relevance'],['edu','Education & certifications'],['stab','Career stability'],['impact','Quantified impact']];
+const PRESETS = { bal:{ must:30, good:12, exp:16, domain:12, edu:8, stab:10, impact:12 }, skills:{ must:42, good:18, exp:10, domain:10, edu:5, stab:6, impact:9 }, exp:{ must:22, good:8, exp:28, domain:16, edu:6, stab:12, impact:8 } };
+let W = { ...PRESETS.bal };
+function evaluate(P, J){
+  const must = J.must.map(k => ({ k, ...skillEvidence(P, k) })), good = J.good.map(k => ({ k, ...skillEvidence(P, k) }));
+  const sMust = sum(must.map(x => x.lvl)) / must.length, sGood = sum(good.map(x => x.lvl)) / good.length;
+  const y = P.years, [lo, hi] = J.yrs, sExp = y < lo ? Math.max(0, 1 - (lo - y) / lo * 1.3) : y > hi + 4 ? .82 : 1;
+  const low = P.text.toLowerCase(), dom = J.domain.filter(d => low.includes(d)).length / J.domain.length;
+  const degOk = new RegExp(J.deg, 'i').test(P.edu || P.text), pursuing = /pursuing|distance/i.test(P.edu), cert = /pmp|certif|professional/i.test(P.text);
+  const sEdu = Math.min(1, (degOk && !pursuing ? .75 : degOk ? .45 : .25) + (cert ? .25 : 0));
+  const recent = P.roles.filter(r => r.e >= (NOW.y - 5) * 12), shortRecent = recent.filter(r => !r.cur && r.e - r.s < 12).length;
+  const sStab = Math.max(0, 1 - .22 * Math.min(2, P.gaps.length) - .18 * Math.max(0, shortRecent - 0) - .1 * P.overlaps.length);
+  const sImp = Math.min(1, P.nums.length / 5) * (P.buzz > 2 ? .8 : 1);
+  const S = { must: sMust, good: sGood, exp: sExp, domain: Math.min(1, dom * 1.15), edu: sEdu, stab: sStab, impact: sImp };
+  const tw = sum(Object.values(W)) || 1, score = Math.round(sum(CRIT.map(([k]) => S[k] * W[k])) / tw * 100);
+  const missing = must.filter(x => x.lvl === 0), listedOnly = must.filter(x => x.lvl === .5);
+  /* red flags */
+  const F = [];
+  P.gaps.forEach(g => F.push({ sev: g.m > 12 ? 'high' : 'med', t: `Employment gap of ${g.m} months`, ev: `${fmtYM(g.from)} to ${fmtYM(g.to)}` }));
+  if (shortRecent >= 2) F.push({ sev:'high', t:`${shortRecent} short stints (under 12 months) in the last five years`, ev: recent.filter(r => !r.cur && r.e - r.s < 12).map(r => `${r.org || r.title}: ${r.e - r.s} months`).join('; ') });
+  else if (shortRecent === 1){ const r = recent.find(r => !r.cur && r.e - r.s < 12); F.push({ sev:'low', t:'One short stint', ev:`${r.org || r.title}: ${r.e - r.s} months` }); }
+  missing.forEach(x => F.push({ sev:'high', t:`Missing must-have: ${TAX[x.k][0]}`, ev:'Not found anywhere in the CV' }));
+  if (listedOnly.length) F.push({ sev:'med', t:`Claimed but not evidenced: ${listedOnly.map(x => TAX[x.k][0]).join(', ')}`, ev:'Appears in the skills list or summary only, not in any role' });
+  if (y < lo) F.push({ sev: y < lo * .7 ? 'high' : 'med', t:`Experience below range (${y.toFixed(1)} vs ${lo}–${hi} years)`, ev: P.roles.length ? `First role ${fmtYM(P.roles[0].s)}` : 'Dates not found' });
+  if (P.buzz >= 3) F.push({ sev:'med', t:'Buzzword-heavy self-description', ev:`${P.buzz} generic superlatives (e.g. "expert", "rockstar")` });
+  if (P.nums.length < 2) F.push({ sev:'low', t:'Few quantified achievements', ev:`${P.nums.length} bullet${P.nums.length === 1 ? '' : 's'} with numbers` });
+  if (pursuing) F.push({ sev:'med', t:'Degree still in progress', ev: P.edu.length > 140 ? P.edu.slice(0, 137) + '…' : P.edu });
+  if (P.overlaps.length) F.push({ sev:'low', t:'Overlapping roles', ev: P.overlaps.map(o => `${o[0].org} / ${o[1].org}`).join('; ') });
+  if (P.yrsStated && P.years && Math.abs(P.yrsStated - P.years) > 1.5) F.push({ sev:'low', t:`Stated ${P.yrsStated}+ years vs ${P.years.toFixed(1)} from dates`, ev:'Check the summary against the work history' });
+  if (!P.roles.length) F.push({ sev:'med', t:'No dated work history found', ev:'Ask for a CV with month–year dates' });
+  const strengths = [];
+  must.filter(x => x.lvl === 1).slice(0, 3).forEach(x => strengths.push({ t: TAX[x.k][0], ev: x.ev }));
+  P.nums.slice(0, 2).forEach(s => { if (!strengths.some(z => z.ev === s)) strengths.push({ t:'Quantified result', ev: s }); });
+  return { P, J, S, score, must, good, missing, listedOnly, flags: F.sort((a, b) => ['high','med','low'].indexOf(a.sev) - ['high','med','low'].indexOf(b.sev)), strengths };
+}
+const QBANK = {
+  ehv:'What changes in your approach between a 220 kV and a 400/765 kV substation, in clearances, sequencing and testing?', gis:'Talk me through the critical checks before energising a GIS bay. What would make you stop and not charge?',
+  tc:'Describe a commissioning test that failed. How did you find the root cause and who did you involve?', primavera:'How do you build and maintain a P6 baseline? Show me how you would recover a slipping critical path.',
+  contractor:'A key contractor is three weeks behind and blaming material delays. What do you do in the first 48 hours?', hse:'Describe the most serious safety near-miss on your site and what changed afterwards.',
+  scada:'What goes wrong most often in SAS/SCADA integration at handover, and how do you prevent it?', protection:'How do you verify protection settings before charging, and who signs them off?',
+  tline:'What determines tower spotting and line routing, and where have you changed a route mid-project?', tower:'How do you control foundation and erection quality across many gangs?',
+  stringing:'Walk me through a stringing plan across a highway or river crossing.', row:'Tell me about the hardest ROW case you resolved. What did you offer, and who did you escalate to?',
+  powerbi:'How would you design an attrition dashboard that a business head actually uses every month?', sql:'How would you build a monthly headcount and attrition table from raw joiner and leaver records?',
+  python:'Walk me through a model you deployed. How did you validate it and explain it to HR leaders?', hrmetrics:'How do you define annualised attrition, and how would you split regretted from non-regretted?', stake:'Describe a time an HR leader disagreed with your numbers. How did you resolve it?'
+};
+const BEHAV = { sub:['Tell me about a time you had to stop work on site for safety despite schedule pressure.','Describe how you handled a conflict between the OEM and the civil contractor.','What would your last project manager say is the one thing you should improve?'],
+  line:['Tell me about a time you had to manage local community resistance on a line route.','How do you keep 9+ gangs aligned on quality and safety across states?','Describe a decision you made with incomplete information that turned out wrong.'],
+  hra:['Tell me about an analysis that changed a leadership decision.','How do you handle sensitive employee data and access requests?','Describe a dashboard you retired. Why?'],
+  custom:['Tell me about your proudest achievement in your last role.','Describe a time you disagreed with your manager and how it ended.','What would you do in your first 90 days in this role?'] };
+function questions(E){
+  const Q = { tech: [], beh: [], probe: [] }, J = E.J, trim = s => s.length > 140 ? s.slice(0, 137) + '…' : s;
+  E.must.filter(x => x.lvl === 1).forEach(x => Q.tech.push({ q: QBANK[x.k] || `Walk me through your hands-on work in ${TAX[x.k][0]}: scope, your role and the result.`, why:`Tests depth behind a must-have: ${TAX[x.k][0]}.`, ev: trim(x.ev), fu:'Follow-up: what would you do differently next time?' }));
+  E.good.filter(x => x.lvl === 1).slice(0, 2).forEach(x => Q.tech.push({ q: QBANK[x.k] || `How have you used ${TAX[x.k][0]} on the job?`, why:`Good-to-have with evidence: ${TAX[x.k][0]}.`, ev: trim(x.ev) }));
+  E.P.nums.slice(0, 2).forEach(s => Q.tech.push({ q:`You wrote: "${trim(s)}". How was that measured, and what was your personal contribution versus the team's?`, why:'Verifies a quantified claim.', ev:null }));
+  E.missing.forEach(x => Q.probe.push({ q:`This role needs ${TAX[x.k][0]}. Where have you come closest to it, and how would you get up to speed in your first 90 days?`, why:'Must-have not found in the CV.', ev:null }));
+  if (E.listedOnly.length > 2) Q.probe.push({ q:`You list ${E.listedOnly.map(x => TAX[x.k][0]).join(', ')} as skills, but none of your roles describe using them. Pick the two you are strongest in and walk me through a specific project for each: your role, the scale and the result.`, why:`${E.listedOnly.length} must-haves claimed but not shown in work history.`, ev:null, fu:'Follow-up: who could we speak to who saw that work?' });
+  else E.listedOnly.forEach(x => Q.probe.push({ q:`You list ${TAX[x.k][0]} as a skill. Describe a specific project where you used it and what you delivered.`, why:'Claimed but not shown in work history.', ev:null }));
+  E.P.gaps.forEach(g => Q.probe.push({ q:`Your CV shows a gap from ${fmtYM(g.from)} to ${fmtYM(g.to)}. What were you doing during that time?`, why:`${g.m}-month gap.`, ev:null }));
+  E.P.short.filter(r => r.e >= (NOW.y - 5) * 12).slice(-2).forEach(r => Q.probe.push({ q:`You spent ${r.e - r.s} months at ${r.org || 'your role as ' + r.title}. What led to the move?`, why:'Short tenure.', ev:null }));
+  const [lo, hi] = J.yrs; if (E.P.years < lo) Q.probe.push({ q:`The role is pitched at ${lo}–${hi} years; you have about ${E.P.years.toFixed(1)}. Which responsibilities here would be new to you?`, why:'Experience below range.', ev:null });
+  if (E.P.years > hi + 3) Q.probe.push({ q:`With ${E.P.years.toFixed(0)} years of experience, what attracts you to a role pitched at ${lo}–${hi} years?`, why:'Experience above range: check motivation and expectations.', ev:null });
+  (BEHAV[J.id] || BEHAV.custom).forEach(q => Q.beh.push({ q, why:'Behavioural competency for this role.', ev:null }));
+  return Q;
+}
+function customJD(text){
+  const low = text.toLowerCase(), lines = text.split('\n'); const found = Object.keys(TAX).filter(k => { RX[k].lastIndex = 0; return RX[k].test(text); });
+  let mustSec = false; const must = new Set(), good = new Set();
+  lines.forEach(l => { const ll = l.toLowerCase(); if (/must|required|mandatory|essential|requirements/.test(ll)) mustSec = true; if (/good to have|nice to have|preferred|desirable|bonus/.test(ll)) mustSec = false;
+    Object.keys(TAX).forEach(k => { RX[k].lastIndex = 0; if (RX[k].test(l)) (mustSec ? must : good).add(k); }); });
+  let M = [...must], G = [...good].filter(k => !must.has(k)); if (!M.length){ M = found.slice(0, 5); G = found.slice(5, 10); } if (!G.length) G = found.filter(k => !M.includes(k)).slice(0, 4);
+  const yr = text.match(/(\d{1,2})\s*(?:–|-|to)\s*(\d{1,2})\s*years/i) || text.match(/(\d{1,2})\+?\s*years/i);
+  const yrs = yr ? [+yr[1], +(yr[2] || +yr[1] + 5)] : [3, 10];
+  const words = (low.match(/[a-z]{5,}/g) || []), freq = d3.rollups(words.filter(w => !/should|would|their|which|about|years|experience|including|strong|ability|other|these|those|good|must|have/.test(w)), v => v.length, w => w).sort((a, b) => b[1] - a[1]).slice(0, 6).map(d => d[0]);
+  return { id:'custom', n: (lines.find(l => l.trim()) || 'Custom role').slice(0, 60), loc:'Custom JD', yrs, deg:'b\\.?\\s?tech|b\\.?e\\.?|mba|degree|graduate|m\\.?sc|b\\.?sc', must: M.length ? M : ['stake'], good: G.length ? G : ['stake'], domain: freq.length ? freq : ['project'], text };
+}
+
+/* ======================================================================
+   STATE
+   ====================================================================== */
+const COLORS = ['#0E9F6E','#3BA7D9','#E07A1F','#8B5CF6','#D64545','#0F2E2A','#B7791F','#1D6E96'];
+let CANDS = CVS.map((t, i) => ({ id: 'c' + i, text: t, src: 'Sample', col: COLORS[i % COLORS.length] }));
+CANDS.forEach(c => c.P = parseCV(c.text));
+let JD = JDS[0], CID = 'c0', AI = {}, KEY = '', MODEL = 'gpt-4o-mini', KITVIEW = 'tech', KITSRC = 'rule';
+const cur = () => CANDS.find(c => c.id === CID);
+const initials = n => n.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+const scoreCol = s => s >= 75 ? '#0E9F6E' : s >= 55 ? '#B7791F' : '#D64545';
+const aiKey = () => CID + '|' + JD.id + '|' + (JD.id === 'custom' ? JD.text.length : '');
+
+/* ======================================================================
+   01 · STUDIO RENDER
+   ====================================================================== */
+function renderJDs(){ $('jds').innerHTML = [...JDS, ...(JD.id === 'custom' ? [JD] : [])].map(j => `<button type="button" class="jd${j.id === JD.id ? ' on' : ''}" data-jd="${j.id}"><b>${esc(j.n)}</b><span>${esc(j.loc)} · ${j.yrs[0]}–${j.yrs[1]} yrs · ${j.must.length} must-haves</span></button>`).join(''); }
+function renderCands(){ $('cands').innerHTML = CANDS.map(c => { const E = evaluate(c.P, JD); return `<button type="button" class="cand${c.id === CID ? ' on' : ''}" data-c="${c.id}"><span class="av" style="background:${c.col}">${esc(initials(c.P.name))}</span><span><b>${esc(c.P.name)}</b><span>${esc(c.src === 'Sample' ? (c.P.headline.split('|')[0] || '') : c.src)}</span></span><span class="sc" style="color:${scoreCol(E.score)}">${E.score}</span></button>`; }).join(''); }
+let gaugeSvg = null;
+function gauge(score){
+  const w = 220, h = 150, r = 84;
+  if (!gaugeSvg){ gaugeSvg = d3.select('#gauge').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('width', 220).attr('role','img').attr('aria-label','Match score gauge');
+    const g = gaugeSvg.append('g').attr('transform', `translate(${w / 2},${h - 26})`);
+    const arcBg = d3.arc().innerRadius(r - 16).outerRadius(r).startAngle(-Math.PI / 2).endAngle(Math.PI / 2).cornerRadius(8);
+    g.append('path').attr('d', arcBg()).attr('fill','#E7EEEB');
+    const grad = gaugeSvg.append('defs').append('linearGradient').attr('id','gg'); [['0','#D64545'],['.5','#F4B740'],['1','#0E9F6E']].forEach(([o, c]) => grad.append('stop').attr('offset', o).attr('stop-color', c));
+    g.append('path').attr('class','val').attr('fill','url(#gg)');
+    g.append('line').attr('class','nd').attr('stroke','#0F2E2A').attr('stroke-width', 3).attr('stroke-linecap','round');
+    g.append('circle').attr('r', 6).attr('fill','#0F2E2A');
+    gaugeSvg.append('text').attr('class','num').attr('x', w / 2).attr('y', h - 46).attr('text-anchor','middle').attr('font-family','DM Serif Display, Georgia, serif').attr('font-size', 38).attr('fill','#0F2E2A');
+    gaugeSvg.append('text').attr('class','lab').attr('x', w / 2).attr('y', h - 6).attr('text-anchor','middle').attr('font-size', 11).attr('font-weight', 800).attr('letter-spacing','.1em'); }
+  const g = gaugeSvg.select('g'), arc = d3.arc().innerRadius(r - 16).outerRadius(r).startAngle(-Math.PI / 2).cornerRadius(8), from = gaugeSvg.node().__v || 0; gaugeSvg.node().__v = score;
+  const ang = v => -Math.PI / 2 + Math.PI * v / 100;
+  g.select('path.val').transition().duration(DUR + 300).attrTween('d', () => { const i = d3.interpolate(from, score); return t => arc({ endAngle: ang(i(t)) }); });
+  g.select('line.nd').transition().duration(DUR + 300).attrTween('x2', () => { const i = d3.interpolate(from, score); return t => Math.cos(ang(i(t)) - Math.PI / 2) * (r - 26); }).attrTween('y2', () => { const i = d3.interpolate(from, score); return t => Math.sin(ang(i(t)) - Math.PI / 2) * (r - 26); });
+  gaugeSvg.select('text.num').transition().duration(DUR + 300).tween('text', function(){ const i = d3.interpolateRound(from, score); return t => this.textContent = i(t); });
+  gaugeSvg.select('text.lab').attr('fill', scoreCol(score)).text(score >= 75 ? 'STRONG MATCH' : score >= 55 ? 'PARTIAL MATCH' : 'WEAK MATCH');
+}
+function highlight(text, J){
+  const R = []; const add = (re, cls) => { re.lastIndex = 0; let m; while ((m = re.exec(text))){ if (!m[0]) { re.lastIndex++; continue; } R.push([m.index, m.index + m[0].length, cls]); } };
+  J.must.forEach(k => add(new RegExp(TAX[k][1], 'gi'), 'm')); J.good.forEach(k => add(new RegExp(TAX[k][1], 'gi'), 'g'));
+  add(/(₹\s?\d[\d,.]*\s?(crore|cr|lakh)?|\b\d[\d,.]*\s?(%|kv|km|mw|months|days|hours|weeks|towers|bays|workers|leaders|clients|cases|million)\b)/gi, 'n');
+  R.sort((a, b) => a[0] - b[0] || b[1] - a[1]); let out = '', p = 0; R.forEach(([s, e, c]) => { if (s < p) return; out += esc(text.slice(p, s)) + `<mark class="${c}">${esc(text.slice(s, e))}</mark>`; p = e; }); return out + esc(text.slice(p));
+}
+let tlSvg = null;
+function timeline(P){
+  const w = 640, rows = Math.max(1, P.roles.length), rh = 22, h = rows * rh + 34, m = { l: 8, r: 8 };
+  const el = d3.select('#tline'); el.selectAll('*').remove(); if (!P.roles.length){ el.append('p').style('font-size','.76rem').style('color','#5A6D68').text('No dated roles found in this CV.'); return; }
+  const s = el.append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Career timeline with gaps');
+  const x0 = Math.min(...P.roles.map(r => r.s)) - 3, x1 = NOW.y * 12 + NOW.m + 2, x = d3.scaleLinear().domain([x0, x1]).range([m.l, w - m.r]);
+  const yrs = d3.range(Math.ceil(x0 / 12), Math.floor(x1 / 12) + 1);
+  s.append('g').selectAll('line').data(yrs).join('line').attr('x1', y => x(y * 12)).attr('x2', y => x(y * 12)).attr('y1', 0).attr('y2', h - 18).attr('stroke','#E7EEEB');
+  s.append('g').selectAll('text').data(yrs.filter((y, i) => yrs.length < 14 || i % 2 === 0)).join('text').attr('x', y => x(y * 12) + 2).attr('y', h - 5).attr('font-size', 10).attr('fill','#5A6D68').text(y => y);
+  s.append('g').selectAll('rect').data(P.gaps).join('rect').attr('x', g => x(g.from)).attr('width', g => x(g.to) - x(g.from)).attr('y', 0).attr('height', h - 18).attr('fill','rgba(224,79,79,.12)').attr('stroke','#E04F4F').attr('stroke-dasharray','3 3')
+    .on('mousemove', (ev, g) => showTip(`<div class="t">Gap · ${g.m} months</div>${fmtYM(g.from)} – ${fmtYM(g.to)}`, ev)).on('mouseleave', hideTip);
+  const bars = s.append('g').selectAll('g').data(P.roles).join('g').attr('transform', (r, i) => `translate(0,${4 + i * rh})`);
+  bars.append('rect').attr('x', r => x(r.s)).attr('height', rh - 7).attr('rx', 5).attr('fill', r => r.e - r.s < 12 && !r.cur ? '#F4B740' : r.cur ? '#0E9F6E' : '#3BA7D9').attr('width', 0)
+    .on('mousemove', (ev, r) => showTip(`<div class="t">${esc(r.title)}</div>${esc(r.org)}<br>${fmtYM(r.s)} – ${r.cur ? 'Present' : fmtYM(r.e)} · <b>${r.e - r.s} months</b>`, ev)).on('mouseleave', hideTip)
+    .transition().duration(DUR).delay((r, i) => reduce ? 0 : i * 90).attr('width', r => Math.max(3, x(r.e) - x(r.s)));
+  bars.append('text').attr('y', rh / 2 + 1).attr('font-size', 10).attr('font-weight', 700).attr('fill','#132622').text(r => `${r.org || r.title} · ${Math.round((r.e - r.s) / 12 * 10) / 10}y`).attr('x', r => x(r.e) + 5 > w - 160 ? x(r.s) - 5 : x(r.e) + 5).attr('text-anchor', r => x(r.e) + 5 > w - 160 ? 'end' : 'start');
+}
+function renderStudio(){
+  const C = cur(); if (!C) return; const E = evaluate(C.P, JD), P = C.P;
+  $('prof').innerHTML = `<span class="av" style="background:${C.col}">${esc(initials(P.name))}</span><div><h5>${esc(P.name)}</h5><p>${esc(P.headline || C.src)}</p></div>`;
+  $('skillTags').innerHTML = E.must.map(x => `<span class="tag ${x.lvl === 1 ? 'm' : x.lvl ? 'g' : 'x'}" title="${x.lvl === 1 ? 'Evidenced in work history' : x.lvl ? 'Listed only' : 'Not found'}">${x.lvl === 1 ? '✓' : x.lvl ? '~' : '✗'} ${esc(TAX[x.k][0])}</span>`).join('') + E.good.map(x => x.lvl ? `<span class="tag g">+ ${esc(TAX[x.k][0])}</span>` : '').join('');
+  $('cvView').innerHTML = highlight(C.text, JD);
+  timeline(P); gauge(E.score);
+  $('crit').innerHTML = CRIT.map(([k, n]) => `<div class="cr"><span>${n} <span style="color:var(--muted)">· w${W[k]}</span></span><b>${Math.round(E.S[k] * 100)}</b><div class="b"><i style="width:0"></i></div></div>`).join('');
+  requestAnimationFrame(() => $('crit').querySelectorAll('.b i').forEach((el, i) => el.style.width = Math.round(E.S[CRIT[i][0]] * 100) + '%'));
+  const mh = E.must.filter(x => x.lvl === 1).length;
+  $('stK').innerHTML = `<div class="ms ${mh === E.must.length ? 'a' : mh < E.must.length / 2 ? 'b' : 'o'}"><div class="k">Must-haves evidenced</div><div class="v">${mh}/${E.must.length}</div></div><div class="ms"><div class="k">Experience</div><div class="v">${P.years.toFixed(1)} yrs</div></div><div class="ms ${P.gaps.length ? 'b' : 'a'}"><div class="k">Gaps &gt; 6 months</div><div class="v">${P.gaps.length}</div></div><div class="ms ${E.flags.filter(f => f.sev === 'high').length ? 'b' : 'a'}"><div class="k">High red flags</div><div class="v">${E.flags.filter(f => f.sev === 'high').length}</div></div>`;
+  const top = E.must.filter(x => x.lvl === 1).slice(0, 3).map(x => TAX[x.k][0]);
+  $('verdict').innerHTML = `<b>${E.score >= 75 ? 'Shortlist' : E.score >= 55 ? 'Consider' : 'Hold'}.</b> ${esc(P.name.split(' ')[0])} has ${P.years.toFixed(1)} years${top.length ? ' with evidence in ' + esc(top.join(', ')) : ''}. ${E.missing.length ? 'Missing ' + esc(E.missing.map(x => TAX[x.k][0]).join(', ')) + '. ' : ''}${E.flags.filter(f => f.sev === 'high').length ? 'Check the high red flags before shortlisting.' : 'No high red flags.'}`;
+  const ai = AI[aiKey()]; $('aiBox').style.display = ai ? '' : 'none';
+  if (ai) $('aiBox').innerHTML = `<h6>✦ AI view · ${esc(MODEL)}</h6><p style="margin:0 0 6px"><b>Fit ${ai.fit_score != null ? ai.fit_score + '/100' : ''}.</b> ${esc(ai.summary || '')}</p>${(ai.strengths || []).length ? '<b>Strengths</b><ul style="margin:2px 0 6px;padding-left:18px">' + ai.strengths.slice(0, 4).map(s => `<li>${esc(s)}</li>`).join('') + '</ul>' : ''}${(ai.concerns || []).length ? '<b>Concerns</b><ul style="margin:2px 0 0;padding-left:18px">' + ai.concerns.slice(0, 4).map(s => `<li>${esc(s)}</li>`).join('') + '</ul>' : ''}`;
+  renderKit(); renderCtx();
+}
+function renderAllStudio(){ renderJDs(); renderCands(); renderStudio(); renderBoard(); }
+$('jds').addEventListener('click', e => { const b = e.target.closest('[data-jd]'); if (!b) return; if (b.dataset.jd !== 'custom') JD = JDS.find(j => j.id === b.dataset.jd); renderAllStudio(); toast('Re-scored all candidates for ' + JD.n.split('–')[0].trim()); });
+$('cands').addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (!b) return; CID = b.dataset.c; renderCands(); renderStudio(); highlightLead(); });
+$('jdCustomBtn').addEventListener('click', () => { const d = $('jdCustom'); d.style.display = d.style.display === 'none' ? '' : 'none'; if (!$('jdText').value) $('jdText').value = ''; });
+$('jdUse').addEventListener('click', () => { const t = $('jdText').value.trim(); if (t.length < 40){ toast('Paste a longer job description'); return; } JD = customJD(t); renderAllStudio(); toast(`Custom JD: ${JD.must.length} must-haves, ${JD.good.length} good-to-haves detected`); });
+
+/* upload */
+function loadScript(src){ return new Promise((res, rej) => { if (document.querySelector(`script[src="${src}"]`)) return res(); const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('Could not load ' + src)); document.head.appendChild(s); }); }
+const PDFJS = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js', PDFW = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js', MAMMOTH = 'https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js';
+async function readFile(f){
+  const ext = (f.name.split('.').pop() || '').toLowerCase();
+  if (f.size > 5 * 1024 * 1024) throw new Error('File is larger than 5 MB.');
+  if (ext === 'txt') return await f.text();
+  if (ext === 'pdf'){ await loadScript(PDFJS); const lib = window.pdfjsLib; lib.GlobalWorkerOptions.workerSrc = PDFW; const doc = await lib.getDocument({ data: await f.arrayBuffer() }).promise; let out = [];
+    for (let p = 1; p <= Math.min(doc.numPages, 8); p++){ const pg = await doc.getPage(p), tc = await pg.getTextContent(); const L = new Map(); tc.items.forEach(it => { const y = Math.round(it.transform[5]); const k = [...L.keys()].find(z => Math.abs(z - y) <= 2); const key = k != null ? k : y; if (!L.has(key)) L.set(key, []); L.get(key).push(it); });
+      [...L.entries()].sort((a, b) => b[0] - a[0]).forEach(([, its]) => out.push(its.sort((a, b) => a.transform[4] - b.transform[4]).map(i => i.str).join(' ').replace(/\s+/g, ' ').trim())); }
+    return out.filter(Boolean).join('\n'); }
+  if (ext === 'docx'){ await loadScript(MAMMOTH); const r = await window.mammoth.extractRawText({ arrayBuffer: await f.arrayBuffer() }); return r.value; }
+  throw new Error('Please upload a PDF, DOCX or TXT file.');
+}
+function addCandidate(text, src){ text = text.replace(/ /g, ' ').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim(); if (text.length < 80) throw new Error('Could not read enough text from this file. If it is a scanned PDF, paste the text instead.');
+  const id = 'u' + Date.now(), c = { id, text, src, col: COLORS[CANDS.length % COLORS.length] }; c.P = parseCV(text); CANDS.push(c); CID = id; renderAllStudio(); highlightLead();
+  const E = evaluate(c.P, JD); $('upMsg').innerHTML = `<b style="color:var(--pri)">✓ ${esc(c.P.name)}</b> added · ${c.P.roles.length} roles · score ${E.score}`; toast(`${c.P.name} scored ${E.score} for this role`); greet(); }
+async function handleFile(f){ $('upMsg').textContent = `Reading ${f.name}…`; try { const t = await readFile(f); addCandidate(t, f.name); } catch (err){ $('upMsg').innerHTML = `<span style="color:var(--bad)">${esc(err.message)}</span>`; } }
+const drop = $('drop');
+['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => { const f = e.dataTransfer.files && e.dataTransfer.files[0]; if (f) handleFile(f); });
+$('file').addEventListener('change', e => { const f = e.target.files[0]; if (f) handleFile(f); e.target.value = ''; });
+$('pasteBtn').addEventListener('click', () => { const d = $('pasteBox'); d.style.display = d.style.display === 'none' ? '' : 'none'; });
+$('cvUse').addEventListener('click', () => { try { addCandidate($('cvPaste').value, 'Pasted CV'); $('cvPaste').value = ''; $('pasteBox').style.display = 'none'; } catch (err){ $('upMsg').innerHTML = `<span style="color:var(--bad)">${esc(err.message)}</span>`; } });
+
+/* ======================================================================
+   02 · BOARD
+   ====================================================================== */
+$('weights').innerHTML = '<h4 class="lbl">Weights</h4>' + CRIT.map(([k, n]) => `<div class="rng"><div class="t"><span>${n}</span><b id="wv-${k}"></b></div><input type="range" min="0" max="50" value="${W[k]}" data-w="${k}" aria-label="${n} weight"></div>`).join('') + '<p style="font-size:.72rem;color:var(--muted);margin:0">Weights are normalised to 100%. The score is a guide: recruiters still review every candidate.</p>';
+function syncW(){ const tw = sum(Object.values(W)) || 1; CRIT.forEach(([k]) => { $('wv-' + k).textContent = Math.round(W[k] / tw * 100) + '%'; document.querySelector(`[data-w="${k}"]`).value = W[k]; }); }
+let leadSvg = null;
+function renderBoard(){
+  syncW(); if (!hasD3) return;
+  const D = CANDS.map(c => ({ c, E: evaluate(c.P, JD) })).sort((a, b) => b.E.score - a.E.score);
+  const w = 700, rh = 42, h = D.length * rh + 10, lw = 280;
+  if (!leadSvg){ leadSvg = d3.select('#lead').append('svg').attr('role','img').attr('aria-label','Candidate leaderboard'); }
+  leadSvg.attr('viewBox', `0 0 ${w} ${h}`);
+  const x = d3.scaleLinear().domain([0, 100]).range([0, w - lw - 60]);
+  const g = leadSvg.selectAll('g.row').data(D, d => d.c.id).join(en => { const gg = en.append('g').attr('class','row').style('cursor','pointer').attr('transform', `translate(0,${h})`).attr('opacity', 0);
+      gg.append('circle').attr('cx', 18).attr('cy', rh / 2).attr('r', 15); gg.append('text').attr('class','i').attr('x', 18).attr('y', rh / 2 + 4).attr('text-anchor','middle').attr('font-size', 11).attr('font-weight', 800).attr('fill','#fff');
+      gg.append('text').attr('class','n').attr('x', 42).attr('y', rh / 2 - 2).attr('font-size', 12).attr('font-weight', 800).attr('fill','#0F2E2A'); gg.append('text').attr('class','s').attr('x', 42).attr('y', rh / 2 + 12).attr('font-size', 10).attr('fill','#5A6D68');
+      gg.append('rect').attr('class','bg').attr('x', lw).attr('y', rh / 2 - 8).attr('height', 16).attr('rx', 8).attr('fill','#EEF3F1').attr('width', x(100));
+      const seg = gg.append('g').attr('class','segs'); gg.append('text').attr('class','v').attr('y', rh / 2 + 5).attr('font-family','DM Serif Display, Georgia, serif').attr('font-size', 18); return gg; });
+  g.on('click', (ev, d) => { CID = d.c.id; renderCands(); renderStudio(); highlightLead(); }).on('mousemove', (ev, d) => showTip(`<div class="t">${esc(d.c.P.name)} · ${d.E.score}</div>` + CRIT.map(([k, n]) => `${n}: <b>${Math.round(d.E.S[k] * 100)}</b>`).join('<br>'), ev)).on('mouseleave', hideTip);
+  g.transition().duration(DUR + 200).attr('transform', (d, i) => `translate(0,${5 + i * rh})`).attr('opacity', 1);
+  g.select('circle').attr('fill', d => d.c.col); g.select('text.i').text(d => initials(d.c.P.name)); g.select('text.n').text((d, i) => `${i + 1}. ${d.c.P.name}`); g.select('text.s').text(d => `${d.c.P.years.toFixed(1)} yrs · ${d.E.must.filter(x => x.lvl === 1).length}/${d.E.must.length} must-haves · ${d.E.flags.filter(f => f.sev === 'high').length} high flag${d.E.flags.filter(f => f.sev === 'high').length === 1 ? '' : 's'}`);
+  const tw = sum(Object.values(W)) || 1, SC = ['#0E9F6E','#3BA7D9','#0F2E2A','#7CC8A8','#B9D7E8','#F4B740','#E07A1F'];
+  g.select('g.segs').each(function(d){ let acc = 0; const parts = CRIT.map(([k, n], j) => { const v = d.E.S[k] * W[k] / tw * 100, s = { k, n, j, x0: acc, v }; acc += v; return s; });
+    d3.select(this).selectAll('rect').data(parts, p => p.k).join(en => en.append('rect').attr('y', rh / 2 - 8).attr('height', 16).attr('x', lw).attr('width', 0)).attr('fill', p => SC[p.j])
+      .transition().duration(DUR + 200).attr('x', p => lw + x(p.x0)).attr('width', p => Math.max(0, x(p.v) - (p.v > .6 ? 1 : 0))); });
+  g.select('text.v').attr('fill', d => scoreCol(d.E.score)).text(d => d.E.score).transition().duration(DUR + 200).attr('x', d => lw + x(d.E.score) + 8);
+  highlightLead();
+  const skills = [...JD.must.map(k => ['must', k]), ...JD.good.map(k => ['good', k])];
+  $('mx').innerHTML = `<tr><th></th>${D.map(d => `<th class="c" title="${esc(d.c.P.name)}"><span class="av" style="background:${d.c.col};width:24px;height:24px;font-size:.6rem;margin:0 auto">${esc(initials(d.c.P.name))}</span></th>`).join('')}</tr>` +
+    skills.map(([t, k]) => `<tr class="${t}"><th>${esc(TAX[k][0])}</th>${D.map(d => { const ev = skillEvidence(d.c.P, k); return `<td class="${ev.lvl === 1 ? 'f' : ev.lvl ? 'p' : 'z'}" title="${esc(d.c.P.name)}: ${ev.lvl === 1 ? 'evidenced' : ev.lvl ? 'listed only' : 'not found'}">${ev.lvl === 1 ? '✓' : ev.lvl ? '~' : '·'}</td>`; }).join('')}</tr>`).join('');
+  CRIT_LEGEND();
+}
+function CRIT_LEGEND(){ if ($('lead').querySelector('.ckey')) return; const SC = ['#0E9F6E','#3BA7D9','#0F2E2A','#7CC8A8','#B9D7E8','#F4B740','#E07A1F']; $('lead').insertAdjacentHTML('beforeend', '<div class="ckey">' + CRIT.map(([k, n], j) => `<span><i style="background:${SC[j]}"></i>${n}</span>`).join('') + '</div>'); }
+function highlightLead(){ if (leadSvg) leadSvg.selectAll('g.row rect.bg').attr('stroke', d => d.c.id === CID ? '#0F2E2A' : 'none').attr('stroke-width', 2); }
+$('weights').addEventListener('input', e => { const k = e.target.dataset.w; if (!k) return; W[k] = +e.target.value; document.querySelectorAll('[data-pre]').forEach(b => b.setAttribute('aria-pressed','false')); renderBoard(); renderCands(); renderStudio(); });
+segBind('pre', v => { W = { ...PRESETS[v] }; renderBoard(); renderCands(); renderStudio(); });
+
+/* ======================================================================
+   03 · INTERVIEW KIT
+   ====================================================================== */
+const QT = [['tech','Technical'],['beh','Behavioural'],['probe','Probes & gaps']];
+function kitData(){ const C = cur(), E = evaluate(C.P, JD), ai = AI[aiKey()];
+  if (KITSRC === 'ai' && ai){ const Q = { tech: [], beh: [], probe: [] }; (ai.questions || []).forEach(q => { const t = /behav/i.test(q.type) ? 'beh' : /probe|gap|risk|red/i.test(q.type) ? 'probe' : 'tech'; Q[t].push({ q: q.question, why: q.why || '', ev: null }); });
+    return { Q, flags: (ai.red_flags || []).map(f => ({ sev: /high/i.test(f.severity) ? 'high' : /low/i.test(f.severity) ? 'low' : 'med', t: f.flag, ev: f.evidence || '' })), strengths: (ai.strengths || []).map(s => ({ t: s, ev: null })), E }; }
+  return { Q: questions(E), flags: E.flags, strengths: E.strengths, E }; }
+function renderKit(){
+  const K = kitData(); $('kitSrc').className = 'pill2 ' + (KITSRC === 'ai' && AI[aiKey()] ? 'on' : 'off'); $('kitSrc').innerHTML = `<i></i>${KITSRC === 'ai' && AI[aiKey()] ? 'AI · ' + esc(MODEL) : 'Rule-based'}`;
+  $('qTabs').innerHTML = QT.map(([k, n]) => `<button role="tab" type="button" aria-selected="${k === KITVIEW}" data-qt="${k}">${n} (${K.Q[k].length})</button>`).join('') + (AI[aiKey()] ? `<button type="button" data-src="${KITSRC === 'ai' ? 'rule' : 'ai'}" style="margin-left:auto;color:var(--pri)">${KITSRC === 'ai' ? 'Show rule-based' : 'Show AI version'}</button>` : '');
+  const L = K.Q[KITVIEW]; let n = 0;
+  $('qs').innerHTML = L.length ? L.map(q => `<div class="q" style="animation-delay:${reduce ? 0 : (n++) * 60}ms"><span class="n">${n}</span><p>${esc(q.q)}</p><span class="why">Why: ${esc(q.why)}</span>${q.ev ? `<span class="ev">“${esc(q.ev)}”</span>` : ''}${q.fu ? `<span class="fu">${esc(q.fu)}</span>` : ''}</div>`).join('') : '<p style="font-size:.8rem;color:var(--muted)">No questions in this category.</p>';
+  $('flags').innerHTML = K.flags.length ? K.flags.map((f, i) => `<div class="flag" style="animation-delay:${reduce ? 0 : i * 70}ms"><span class="sv ${f.sev}">${f.sev === 'med' ? 'medium' : f.sev}</span><div><b>${esc(f.t)}</b><span>${esc(f.ev)}</span></div></div>`).join('') : '<div class="flag"><span class="sv low">none</span><div><b>No red flags found</b><span>Still verify references and certificates.</span></div></div>';
+  $('strengths').innerHTML = K.strengths.length ? K.strengths.slice(0, 5).map(s => `<div class="flag"><span class="sv" style="background:#DDF5EA;color:#0B7A53">✓</span><div><b>${esc(s.t)}</b>${s.ev ? `<span>“${esc(s.ev.length > 120 ? s.ev.slice(0, 117) + '…' : s.ev)}”</span>` : ''}</div></div>`).join('') : '<p style="font-size:.78rem;color:var(--muted);margin:0">No evidenced strengths for this role.</p>';
+}
+$('qTabs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.qt) KITVIEW = b.dataset.qt; if (b.dataset.src) KITSRC = b.dataset.src; renderKit(); });
+function kitText(){ const C = cur(), K = kitData(); let t = `INTERVIEW KIT · ${C.P.name}\nRole: ${JD.n}\nMatch score: ${K.E.score}/100\n\n`;
+  QT.forEach(([k, n]) => { t += `${n.toUpperCase()}\n`; K.Q[k].forEach((q, i) => { t += `${i + 1}. ${q.q}\n   Why: ${q.why}\n`; if (q.ev) t += `   CV: "${q.ev}"\n`; }); t += '\n'; });
+  t += 'RED FLAGS\n' + (K.flags.length ? K.flags.map(f => `- [${f.sev.toUpperCase()}] ${f.t} — ${f.ev}`).join('\n') : '- None') + '\n\nPrepared with the HMC screening copilot. Decisions rest with the interview panel.\n'; return t; }
+$('kitCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText(kitText()); toast('Interview kit copied'); } catch (e){ toast('Copy not allowed here; use Download'); } });
+$('kitDl').addEventListener('click', () => { const b = new Blob([kitText()], { type:'text/plain' }), a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `Interview kit - ${cur().P.name}.txt`; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); toast('Interview kit downloaded'); });
+
+/* ======================================================================
+   04 · COPILOT CHAT + OPENAI
+   ====================================================================== */
+const HIST = {};
+try { const k = localStorage.getItem('hmc_cv_key'), m = localStorage.getItem('hmc_cv_model'); if (k){ KEY = k; $('apiKey').value = k; $('remember').checked = true; } if (m){ MODEL = m; $('model').value = m; } } catch (e){}
+function setMode(){ const on = !!KEY; $('keyPill').className = 'pill2 ' + (on ? 'on' : 'off'); $('keyPill').innerHTML = `<i></i>${on ? 'Live · ' + esc(MODEL) : 'Offline'}`; $('modePill').className = 'pill2 ' + (on ? 'on' : 'off'); $('modePill').innerHTML = `<i></i>${on ? 'Live GenAI' : 'Rule-based'}`; }
+setMode();
+$('keySave').addEventListener('click', async () => { const k = $('apiKey').value.trim(), m = $('model').value.trim() || 'gpt-4o-mini'; if (!/^sk-/.test(k)){ $('keyMsg').innerHTML = '<span style="color:var(--bad)">That does not look like an OpenAI key (it should start with "sk-").</span>'; return; }
+  $('keyMsg').textContent = 'Checking the key…';
+  try { const r = await fetch('https://api.openai.com/v1/models', { headers: { Authorization: 'Bearer ' + k } }); if (r.status === 401) throw new Error('OpenAI rejected this key (401).'); if (!r.ok) throw new Error('OpenAI returned ' + r.status + '.');
+    KEY = k; MODEL = m; try { if ($('remember').checked){ localStorage.setItem('hmc_cv_key', k); localStorage.setItem('hmc_cv_model', m); } else { localStorage.removeItem('hmc_cv_key'); localStorage.removeItem('hmc_cv_model'); } } catch (e){}
+    setMode(); $('keyMsg').innerHTML = `<b style="color:var(--pri)">Connected.</b> Live answers use ${esc(m)}. CV text is sent to OpenAI only when you ask.`; toast('Live GenAI connected'); }
+  catch (err){ $('keyMsg').innerHTML = `<span style="color:var(--bad)">${esc(err.message || 'Could not reach OpenAI from this browser.')}</span>`; } });
+$('keyClear').addEventListener('click', () => { KEY = ''; $('apiKey').value = ''; try { localStorage.removeItem('hmc_cv_key'); } catch (e){} setMode(); $('keyMsg').textContent = 'Disconnected. The copilot is back in rule-based mode.'; });
+$('model').addEventListener('change', () => { MODEL = $('model').value.trim() || 'gpt-4o-mini'; setMode(); });
+function context(){ const C = cur(), E = evaluate(C.P, JD);
+  return `JOB DESCRIPTION:\n${JD.text.slice(0, 4000)}\n\nCANDIDATE CV (${C.P.name}):\n${C.text.slice(0, 12000)}\n\nRULE-BASED FACTS:\n- Match score ${E.score}/100\n- Experience from dates: ${C.P.years.toFixed(1)} years\n- Must-haves evidenced: ${E.must.filter(x => x.lvl === 1).map(x => TAX[x.k][0]).join(', ') || 'none'}\n- Must-haves listed only: ${E.listedOnly.map(x => TAX[x.k][0]).join(', ') || 'none'}\n- Must-haves missing: ${E.missing.map(x => TAX[x.k][0]).join(', ') || 'none'}\n- Gaps: ${C.P.gaps.map(g => `${fmtYM(g.from)}–${fmtYM(g.to)} (${g.m}m)`).join('; ') || 'none'}`; }
+const SYS = 'You are a talent-acquisition copilot for a power transmission company. Answer only from the CV and job description provided. Be concise and specific, quote the CV where useful, and never infer or comment on age, gender, religion, caste, marital status, nationality or other protected attributes. If something is not in the CV, say so. You support the recruiter; you do not make hiring decisions.';
+async function openai(messages, { json = false, onDelta } = {}){
+  const body = { model: MODEL, messages, temperature: .3 }; if (json) body.response_format = { type:'json_object' }; if (onDelta) body.stream = true;
+  const r = await fetch('https://api.openai.com/v1/chat/completions', { method:'POST', headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + KEY }, body: JSON.stringify(body) });
+  if (!r.ok){ let msg = 'OpenAI error ' + r.status; try { const j = await r.json(); if (j.error && j.error.message) msg += ': ' + j.error.message; } catch (e){} throw new Error(msg); }
+  if (!onDelta){ const j = await r.json(); return j.choices[0].message.content; }
+  const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '', full = '';
+  for (;;){ const { value, done } = await rd.read(); if (done) break; buf += dec.decode(value, { stream: true }); const parts = buf.split('\n'); buf = parts.pop();
+    for (const ln of parts){ const s = ln.trim(); if (!s.startsWith('data:')) continue; const d = s.slice(5).trim(); if (d === '[DONE]') continue; try { const j = JSON.parse(d), t = j.choices && j.choices[0].delta && j.choices[0].delta.content; if (t){ full += t; onDelta(full); } } catch (e){} } }
+  return full; }
+$('aiAnalyse').addEventListener('click', async () => {
+  if (!KEY){ toast('Add your OpenAI key in module 04 for live analysis'); $('chModule').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); setTimeout(() => $('apiKey').focus(), 500); return; }
+  const btn = $('aiAnalyse'), k = aiKey(); btn.disabled = true; btn.textContent = '✦ Analysing…';
+  try { const out = await openai([{ role:'system', content: SYS }, { role:'user', content: context() + '\n\nReturn JSON with keys: summary (2-3 sentences), fit_score (0-100 integer), strengths (array of short strings), concerns (array of short strings), red_flags (array of {flag, severity: high|medium|low, evidence}), questions (array of 10 {question, type: technical|behavioural|probe, why}). Questions must be specific to this candidate and quote the CV where possible.' }], { json: true });
+    AI[k] = JSON.parse(out); KITSRC = 'ai'; renderStudio(); toast('AI analysis ready: summary, red flags and questions updated'); }
+  catch (err){ toast('AI analysis failed'); $('aiBox').style.display = ''; $('aiBox').innerHTML = `<h6 style="color:var(--bad)">AI analysis failed</h6>${esc(err.message)}`; }
+  finally { btn.disabled = false; btn.textContent = '✦ Analyse with AI'; } });
+const SUG = ['Quick summary','Top red flags','Suggested interview questions','How well does this CV match the JD?','What is missing for this role?','Draft a shortlist note for the hiring manager'];
+$('sugg').innerHTML = SUG.map((s, i) => `<button type="button" data-s="${i}">${s}</button>`).join('');
+function addMsg(cls, html){ const d = document.createElement('div'); d.className = 'bub ' + cls; d.innerHTML = html; $('msgs').appendChild(d); $('msgs').scrollTop = $('msgs').scrollHeight; return d; }
+function greet(){ const C = cur(); $('msgs').innerHTML = ''; (HIST[C.id + JD.id] || []).forEach(m => addMsg(m.role === 'user' ? 'u' : 'a', m.role === 'user' ? esc(m.content) : '<div class="who">✦ Copilot</div>' + md(m.content)));
+  if (!(HIST[C.id + JD.id] || []).length) addMsg('a', `<div class="who">✦ Copilot</div>I've read <b>${esc(C.P.name)}</b>'s CV against <b>${esc(JD.n)}</b>. Ask for a quick summary, red flags or interview questions, or anything else about the candidate.`); }
+function offlineAnswer(q){ const C = cur(), E = evaluate(C.P, JD), P = C.P, ql = q.toLowerCase(), Qs = questions(E);
+  if (/summar|overview|tell me about|who is/.test(ql)) return `**${P.name}** · ${P.headline}\n- ${P.years.toFixed(1)} years of dated experience across ${P.roles.length} roles${P.roles.length ? `, currently ${P.roles[P.roles.length - 1].title} at ${P.roles[P.roles.length - 1].org}` : ''}.\n- Evidenced must-haves: ${E.must.filter(x => x.lvl === 1).map(x => TAX[x.k][0]).join(', ') || 'none'}.\n- Best result: ${P.nums[0] || 'no quantified results found'}.\n- Match score **${E.score}/100** for ${JD.n}.`;
+  if (/red flag|risk|concern|worr/.test(ql)) return E.flags.length ? 'Red flags to check:\n' + E.flags.slice(0, 6).map(f => `- **${f.sev.toUpperCase()}** · ${f.t} (${f.ev})`).join('\n') : 'No red flags found by the rules. Still verify references and certificates.';
+  if (/question|interview|ask (him|her|them)/.test(ql)) return 'Suggested questions:\n' + [...Qs.tech.slice(0, 3), ...Qs.probe.slice(0, 2), ...Qs.beh.slice(0, 1)].map(x => `- ${x.q}`).join('\n');
+  if (/missing|gap|lack|weak/.test(ql)) return (E.missing.length ? `Missing must-haves: **${E.missing.map(x => TAX[x.k][0]).join(', ')}**.\n` : 'All must-haves are at least mentioned.\n') + (E.listedOnly.length ? `Listed but not evidenced: ${E.listedOnly.map(x => TAX[x.k][0]).join(', ')}.\n` : '') + (P.gaps.length ? `Employment gaps: ${P.gaps.map(g => `${fmtYM(g.from)}–${fmtYM(g.to)}`).join('; ')}.` : 'No employment gaps over 6 months.');
+  if (/match|fit|suitab|score|compare/.test(ql)) return `Match score **${E.score}/100** (${E.score >= 75 ? 'strong' : E.score >= 55 ? 'partial' : 'weak'}).\n` + CRIT.map(([k, n]) => `- ${n}: ${Math.round(E.S[k] * 100)}`).join('\n');
+  if (/shortlist note|note|email|message|draft/.test(ql)) return `**Shortlist note · ${P.name}**\nRecommend: ${E.score >= 75 ? 'shortlist' : E.score >= 55 ? 'consider for a screening call' : 'hold'} (score ${E.score}/100).\nWhy: ${E.strengths.slice(0, 2).map(s => s.t).join('; ') || 'limited evidence for must-haves'}.\nCheck: ${E.flags.slice(0, 2).map(f => f.t).join('; ') || 'references'}.`;
+  const sk = Object.keys(TAX).find(k => ql.includes(TAX[k][0].toLowerCase().split(' ')[0].toLowerCase()) || (RX[k].lastIndex = 0, RX[k].test(q)));
+  if (sk){ const ev = skillEvidence(P, sk); return ev.lvl === 1 ? `Yes. Evidence for **${TAX[sk][0]}**: "${ev.ev}"` : ev.lvl ? `${TAX[sk][0]} is listed in the CV but not shown in any role.` : `I can't find ${TAX[sk][0]} in this CV.`; }
+  return `In offline mode I can answer about the summary, red flags, interview questions, fit, missing skills or a specific skill. Add an OpenAI key (right) for open-ended questions.`; }
+async function ask(q){ if (!q.trim()) return; const C = cur(), hk = C.id + JD.id; HIST[hk] = HIST[hk] || []; addMsg('u', esc(q)); HIST[hk].push({ role:'user', content: q });
+  const b = addMsg('a', '<div class="who">✦ Copilot</div><span class="dots"><span></span><span></span><span></span></span>');
+  if (!KEY){ await sleep(450); const a = offlineAnswer(q); let shown = ''; const words = a.split(/(\s+)/); for (let i = 0; i < words.length; i++){ shown += words[i]; if (!reduce && i % 3 === 0){ b.innerHTML = '<div class="who">✦ Copilot · offline</div>' + md(shown); $('msgs').scrollTop = $('msgs').scrollHeight; await new Promise(r => setTimeout(r, 12)); } } b.innerHTML = '<div class="who">✦ Copilot · offline</div>' + md(a); HIST[hk].push({ role:'assistant', content: a }); return; }
+  try { const msgs = [{ role:'system', content: SYS + '\n\n' + context() }, ...HIST[hk].slice(-10)];
+    const full = await openai(msgs, { onDelta: t => { b.innerHTML = `<div class="who">✦ Copilot · ${esc(MODEL)}</div>` + md(t); $('msgs').scrollTop = $('msgs').scrollHeight; } });
+    HIST[hk].push({ role:'assistant', content: full }); }
+  catch (err){ b.classList.add('err'); b.innerHTML = `<div class="who" style="color:var(--bad)">Live request failed</div>${esc(err.message)}<br><span style="color:var(--muted)">Offline answer:</span>` + md(offlineAnswer(q)); } }
+$('sugg').addEventListener('click', e => { const b = e.target.closest('[data-s]'); if (b) ask(SUG[+b.dataset.s]); });
+$('askF').addEventListener('submit', e => { e.preventDefault(); const v = $('askI').value; $('askI').value = ''; ask(v); });
+function renderCtx(){ const C = cur(), E = evaluate(C.P, JD); $('ctx').innerHTML = `<b>Context</b><br>Candidate: ${esc(C.P.name)}<br>Role: ${esc(JD.n)}<br>Score: <b style="color:${scoreCol(E.score)}">${E.score}</b> · ${C.text.length.toLocaleString()} characters of CV text`; if (renderCtx.last !== C.id + JD.id){ renderCtx.last = C.id + JD.id; greet(); } }
+
+/* ======================================================================
+   IMPACT
+   ====================================================================== */
+function drawPareto(){
+  const A = [['Screening CVs', 14, 3],['JD matching', 6, 1],['Interview prep', 4, 1],['Chasing details', 3, 1.5],['Write-ups', 3, .5],['Scheduling', 2, 2]];
+  const w = 560, h = 300, m = { t: 30, r: 44, b: 36, l: 40 }, s = d3.select('#pareto').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Pareto chart of recruiter hours by activity');
+  const x = d3.scaleBand().range([m.l, w - m.r]).padding(.26), y = d3.scaleLinear().domain([0, 15]).range([h - m.b, m.t]), y2 = d3.scaleLinear().domain([0, 1]).range([h - m.b, m.t]);
+  s.append('g').attr('class','grid').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickSize(-(w - m.l - m.r)).tickFormat(''));
+  s.append('g').attr('class','axis').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickFormat(v => v + 'h').tickSize(0).tickPadding(6));
+  s.append('g').attr('class','axis').attr('transform', `translate(${w - m.r},0)`).call(d3.axisRight(y2).ticks(4).tickFormat(d3.format('.0%')).tickSize(0).tickPadding(4));
+  const xa = s.append('g').attr('class','axis').attr('transform', `translate(0,${h - m.b})`);
+  const bars = s.append('g').selectAll('rect').data(A, a => a[0]).join('rect').attr('rx', 4).attr('y', y(0)).attr('height', 0);
+  const lab = s.append('g').selectAll('text').data(A, a => a[0]).join('text').attr('text-anchor','middle').attr('font-size', 11).attr('font-weight', 800).attr('fill','#0F2E2A').attr('y', y(0));
+  const ln = s.append('path').attr('fill','none').attr('stroke','#F4B740').attr('stroke-width', 2.5), dots = s.append('g'), tot = s.append('text').attr('x', m.l).attr('y', 14).attr('font-size', 12).attr('font-weight', 800);
+  const e80 = s.append('line').attr('x1', m.l).attr('x2', w - m.r).attr('y1', y2(.8)).attr('y2', y2(.8)).attr('stroke','#F4B740').attr('stroke-dasharray','4 4').attr('opacity', .6);
+  s.append('text').attr('x', w - m.r - 4).attr('y', y2(.8) - 5).attr('text-anchor','end').attr('font-size', 10).attr('fill','#B7791F').text('80% line');
+  function upd(k){ const j = k === 'after' ? 2 : 1, S = A.slice().sort((a, b) => b[j] - a[j]), T = sum(S.map(a => a[j])); let c = 0; const cum = S.map(a => (c += a[j]) / T);
+    x.domain(S.map(a => a[0])); xa.transition().duration(DUR).call(d3.axisBottom(x).tickSize(0).tickPadding(8));
+    const cx = a => x(a[0]) + x.bandwidth() / 2;
+    bars.on('mousemove', (ev, a) => showTip(`<div class="t">${esc(a[0])}</div>Before <b>${a[1]}h</b> · after <b>${a[2]}h</b>`, ev)).on('mouseleave', hideTip).attr('fill', k === 'after' ? '#0E9F6E' : '#9AABA6').transition().duration(DUR).attr('x', a => x(a[0])).attr('width', x.bandwidth()).attr('y', a => y(a[j])).attr('height', a => y(0) - y(a[j]));
+    lab.text(a => a[j] + 'h').transition().duration(DUR).attr('x', cx).attr('y', a => y(a[j]) - 5);
+    ln.datum(cum).transition().duration(DUR).attr('d', d3.line().x((v, i) => cx(S[i])).y(v => y2(v)));
+    dots.selectAll('circle').data(cum).join('circle').attr('r', 4).attr('fill','#F4B740').transition().duration(DUR).attr('cx', (v, i) => cx(S[i])).attr('cy', v => y2(v));
+    tot.attr('fill', k === 'after' ? '#0E9F6E' : '#5A6D68').text(`${T} hours per requisition`); }
+  upd('after'); segBind('pa', upd);
+}
+function drawBox(){
+  const F = ['Substation & projects','Transmission lines','Engineering & design','Corporate & HR'], R = mulberry32(19), g = () => { let u = 0; while (!u) u = R(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * R()); };
+  const DATA = { before: F.map((f, i) => ({ f, v: d3.range(24).map(() => Math.max(1.5, 5.2 + i * .4 + 1.5 * g())) })), after: F.map((f, i) => ({ f, v: d3.range(24).map(() => Math.max(.4, 1.1 + i * .15 + .45 * g())) })) };
+  const w = 560, h = 300, m = { t: 16, r: 16, b: 30, l: 150 }, s = d3.select('#box').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Box plots of days to shortlist by role family');
+  const x = d3.scaleLinear().domain([0, 10]).range([m.l, w - m.r]), y = d3.scaleBand().domain(F).range([m.t, h - m.b]).padding(.4);
+  s.append('g').attr('class','grid').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(5).tickSize(-(h - m.b - m.t)).tickFormat(''));
+  s.append('g').attr('class','axis').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(5).tickFormat(v => v + ' d').tickSize(0).tickPadding(6));
+  s.append('g').selectAll('text').data(F).join('text').attr('x', m.l - 10).attr('y', f => y(f) + y.bandwidth() / 2 + 4).attr('text-anchor','end').attr('font-size', 11.5).attr('fill','#132622').text(f => f);
+  const G = s.append('g').selectAll('g').data(F).join('g').attr('transform', f => `translate(0,${y(f)})`);
+  G.append('line').attr('class','wh').attr('y1', y.bandwidth() / 2).attr('y2', y.bandwidth() / 2).attr('stroke','#5A6D68');
+  G.append('rect').attr('class','bx').attr('height', y.bandwidth()).attr('rx', 6);
+  G.append('line').attr('class','md').attr('y1', 0).attr('y2', y.bandwidth()).attr('stroke','#fff').attr('stroke-width', 3);
+  G.append('g').attr('class','pts');
+  function upd(k){ const D = DATA[k];
+    G.each(function(f){ const v = D.find(d => d.f === f).v.slice().sort(d3.ascending), q1 = d3.quantile(v, .25), q2 = d3.quantile(v, .5), q3 = d3.quantile(v, .75), lo = Math.max(v[0], q1 - 1.5 * (q3 - q1)), hi = Math.min(v[v.length - 1], q3 + 1.5 * (q3 - q1)), g2 = d3.select(this);
+      g2.on('mousemove', ev => showTip(`<div class="t">${esc(f)}</div>Median <b>${q2.toFixed(1)} days</b><br>Middle half ${q1.toFixed(1)}–${q3.toFixed(1)} days`, ev)).on('mouseleave', hideTip);
+      g2.select('line.wh').transition().duration(DUR).attr('x1', x(lo)).attr('x2', x(hi));
+      g2.select('rect.bx').attr('fill', k === 'after' ? '#0E9F6E' : '#9AABA6').transition().duration(DUR).attr('x', x(q1)).attr('width', Math.max(2, x(q3) - x(q1)));
+      g2.select('line.md').transition().duration(DUR).attr('x1', x(q2)).attr('x2', x(q2));
+      const J = mulberry32(3); g2.select('g.pts').selectAll('circle').data(v).join('circle').attr('r', 2.2).attr('fill', k === 'after' ? '#0B7A53' : '#5A6D68').attr('opacity', .45).transition().duration(DUR).attr('cx', d => x(d)).attr('cy', () => y.bandwidth() / 2 + (J() - .5) * y.bandwidth() * .9); }); }
+  upd('after'); segBind('bx', upd);
+}
+
+/* boot */
+renderJDs(); renderCands();
+if (hasD3){ renderStudio(); renderBoard(); whenVisible($('pareto'), drawPareto); whenVisible($('box'), drawBox); }
+else { ['gauge','tline','lead','pareto','box'].forEach(id => $(id).innerHTML = '<p style="padding:20px;color:var(--muted)">Charts need an internet connection to load their library.</p>'); renderKit(); renderCtx(); $('cvView').innerHTML = highlight(cur().text, JD); }
+window.__cv = { CANDS, evaluate, parseCV, questions, customJD, get JD(){ return JD; }, addCandidate, offlineAnswer };
+})();
+</script>
+</body>
+</html>

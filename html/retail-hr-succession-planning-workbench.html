@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Retail · Succession Planning Workbench | HMC Case Study</title>
+<meta name="description" content="How Havish M Consulting helped the retailer's HR team run succession planning across concepts with an interactive talent workbench and GenAI summaries.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+:root{
+  --pri:#0E4C61; --deep:#082F3D; --acc:#E0A526; --bg:#F3F7F8; --text:#10252D;
+  --muted:#58707A; --green:#15803D; --red:#C2410C; --card:#FFFFFF; --line:#DCE6EA;
+  --pri-10:rgba(14,76,97,.08); --acc-15:rgba(224,165,38,.16);
+  --radius:12px; --shadow:0 1px 2px rgba(8,47,61,.06),0 8px 24px rgba(8,47,61,.08);
+  --serif:"DM Serif Display",Georgia,serif; --sans:"DM Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--serif);font-weight:400;color:var(--deep);margin:0;line-height:1.15}
+h2{font-size:clamp(1.6rem,3.2vw,2.2rem)}
+h3{font-size:1.2rem}
+p{margin:0}
+.wrap{max-width:1280px;margin:0 auto;padding:0 24px}
+section{padding:64px 0}
+.eyebrow{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--pri);margin-bottom:10px}
+.lead{color:var(--muted);max-width:760px;margin-top:12px}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line)}
+.sec-head{margin-bottom:32px}
+
+.topbar{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+.logos{display:flex;align-items:center;gap:16px}
+.logos img{height:44px;width:auto;object-fit:contain}
+.vdiv{width:1px;height:36px;background:var(--line)}
+.tagline{font-size:.8rem;color:var(--muted);letter-spacing:.04em}
+.tagline b{color:var(--pri);font-weight:700}
+
+.hero{background:linear-gradient(125deg,var(--deep) 0%,#0B3E50 45%,var(--pri) 100%);color:#fff;padding:80px 0 72px;position:relative;overflow:hidden}
+.hero .ninebox{position:absolute;right:48px;top:46px;display:grid;grid-template-columns:repeat(3,64px);gap:8px;opacity:.55;transform:rotate(-8deg)}
+.hero .ninebox i{display:block;width:64px;height:64px;border-radius:12px;border:1.5px solid rgba(255,255,255,.4);background:rgba(255,255,255,.04)}
+.hero .ninebox i.g1{background:rgba(224,165,38,.55)} .hero .ninebox i.g2{background:rgba(224,165,38,.3)}
+.hero .eyebrow{color:var(--acc)}
+.hero h1{color:#fff;font-size:clamp(2.3rem,5.6vw,3.8rem);max-width:820px;position:relative;z-index:1}
+.hero .sub{font-size:clamp(1.05rem,2vw,1.25rem);color:rgba(255,255,255,.86);max-width:720px;margin-top:18px;position:relative;z-index:1}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px;position:relative;z-index:1}
+.pill{border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:6px 14px;font-size:.85rem;color:#fff;background:rgba(255,255,255,.06)}
+.pill span{color:var(--acc);font-weight:700;margin-right:6px}
+
+.kpis{margin-top:-40px;position:relative;z-index:2;padding:0}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi{padding:22px 20px;border-top:3px solid var(--acc)}
+.kpi .label{font-size:.82rem;color:var(--muted);font-weight:500}
+.kpi .val{font-family:var(--serif);font-size:clamp(1.9rem,4vw,2.6rem);color:var(--pri);line-height:1.1;margin-top:6px;white-space:nowrap}
+.kpi .val small{font-family:var(--sans);font-size:.9rem;color:var(--muted);margin-left:4px}
+.delta{display:inline-flex;align-items:center;gap:4px;font-size:.8rem;font-weight:700;margin-top:8px;padding:2px 8px;border-radius:999px;background:rgba(21,128,61,.1);color:var(--green)}
+.footnote{font-size:.78rem;color:var(--muted);margin-top:14px}
+
+.ch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.ch{padding:24px}
+.ico{width:44px;height:44px;border-radius:10px;background:var(--acc-15);display:grid;place-items:center;margin-bottom:16px}
+.ico svg{width:22px;height:22px;stroke:#9A6B07;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ch h3{margin-bottom:8px}
+.ch p{font-size:.92rem;color:#3A5059}
+
+.tl{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.tl::before{content:"";position:absolute;left:10%;right:10%;top:27px;height:2px;background:var(--line)}
+.tl-step{position:relative;background:none;border:0;cursor:pointer;font:inherit;color:inherit;display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 4px 8px}
+.tl-dot{width:56px;height:56px;border-radius:50%;background:#fff;border:2px solid var(--line);display:grid;place-items:center;font-family:var(--serif);font-size:1.25rem;color:var(--pri);transition:all .25s;position:relative;z-index:1}
+.tl-name{font-weight:700;font-size:.95rem}
+.tl-dur{font-size:.75rem;color:var(--muted);margin-top:-8px}
+.tl-step:hover .tl-dot{border-color:var(--acc)}
+.tl-step[aria-expanded="true"] .tl-dot{background:var(--pri);border-color:var(--pri);color:#fff;box-shadow:0 0 0 6px var(--acc-15)}
+.tl-step:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:8px}
+.tl-panel{display:none;padding:24px 28px;margin-top:20px;border-left:4px solid var(--acc)}
+.tl-panel.open{display:block;animation:fadeUp .35s ease}
+.tl-panel h3{margin-bottom:6px}
+.tl-panel ul{margin:12px 0 0;padding-left:20px;color:#3A5059}
+.tl-panel li{margin:6px 0}
+.tl-panel .deliv{margin-top:14px;font-size:.85rem;color:var(--muted)}
+.tl-panel .deliv b{color:var(--pri)}
+.tl-hint{text-align:center;color:var(--muted);font-size:.8rem;margin-top:6px}
+
+.seg{display:inline-flex;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:22px;padding:4px;gap:4px}
+.seg button{border:0;background:none;font:inherit;font-size:.84rem;font-weight:700;padding:7px 14px;border-radius:999px;cursor:pointer;color:var(--muted);transition:all .2s}
+.seg button[aria-pressed="true"]{background:var(--pri);color:#fff}
+.seg button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+
+/* ================= WORKBENCH APP ================= */
+.app{padding:0;overflow:hidden}
+.app-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--deep);color:#fff;padding:10px 14px}
+.app-top .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:.95rem}
+.app-top .brand small{display:block;font-weight:500;font-size:.72rem;color:rgba(255,255,255,.65)}
+.app-top .brand i{width:30px;height:30px;border-radius:8px;background:var(--acc);display:grid;place-items:center;color:var(--deep);font-style:normal;font-weight:900}
+.app-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.gbtn{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;border-radius:999px;padding:6px 12px;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer}
+.gbtn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+.gbtn.on{background:var(--acc);border-color:var(--acc);color:var(--deep)}
+.aistat{font-size:.74rem;color:rgba(255,255,255,.75)}
+.aistat b{color:#7EE2A8}
+.atabs{display:flex;gap:2px;border-bottom:2px solid var(--acc);padding:10px 14px 0;background:#fff;overflow-x:auto}
+.atab{border:1px solid var(--line);border-bottom:0;background:#F5F8F9;color:#2B4650;font:inherit;font-size:.86rem;font-weight:600;padding:8px 14px;border-radius:8px 8px 0 0;cursor:pointer;white-space:nowrap}
+.atab[aria-selected="true"]{background:var(--deep);color:#fff;border-color:var(--deep)}
+.atab:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.apane{padding:18px;min-height:560px}
+.apane h4{font-family:var(--serif);font-weight:400;font-size:1.6rem;color:var(--deep);margin:0 0 12px;padding-bottom:8px;border-bottom:2px solid var(--acc)}
+.filters{display:flex;flex-wrap:wrap;gap:14px 20px;align-items:flex-end;background:#F1F5F7;border-radius:10px;padding:12px 14px;margin-bottom:16px}
+.f label{display:block;font-size:.76rem;font-weight:800;color:var(--deep);margin-bottom:4px}
+.f select,.f input[type=search]{font:inherit;font-size:.86rem;padding:7px 10px;border:1px solid #CBD8DD;border-radius:8px;background:#fff;color:var(--text);min-width:180px}
+.rl{display:flex;flex-wrap:wrap;gap:6px}
+.rl button{border:1px solid #CBD8DD;background:#fff;border-radius:999px;padding:5px 11px;font:inherit;font-size:.78rem;font-weight:600;color:var(--text);cursor:pointer}
+.rl button[aria-pressed="true"]{background:var(--pri);border-color:var(--pri);color:#fff}
+.grp{font-family:var(--serif);font-size:1.25rem;color:var(--deep);margin:18px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--acc)}
+.kc{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kcard{border:1px solid #D4DFE3;border-radius:10px;padding:12px 14px;background:#fff;cursor:pointer;transition:box-shadow .2s,transform .2s;text-align:left;font:inherit;color:inherit}
+.kcard:hover{box-shadow:0 6px 16px rgba(8,47,61,.12);transform:translateY(-1px)}
+.kcard .t{display:flex;justify-content:space-between;gap:8px;font-size:.84rem;color:#3A5059;font-weight:600;line-height:1.3}
+.kcard .v{font-size:1.75rem;font-weight:800;color:var(--deep);margin-top:6px;line-height:1.1}
+.kcard .v small{font-size:.74rem;font-weight:500;color:var(--muted);margin-left:6px}
+.pct{font-size:.7rem;font-weight:800;border-radius:6px;padding:1px 7px;height:fit-content;white-space:nowrap}
+.pct.r{background:#FDE2E2;color:#9F1239} .pct.a{background:#FCE7B2;color:#7A4E00} .pct.g{background:#D7F0E1;color:#14532D}
+.heat{width:100%;border-collapse:collapse;font-size:.8rem;margin-top:6px}
+.heat th{background:#F1F5F7;color:var(--deep);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;padding:8px;text-align:center}
+.heat th:first-child,.heat td:first-child{text-align:left}
+.heat td{padding:7px 8px;border-bottom:1px solid #EEF3F5;text-align:center;font-variant-numeric:tabular-nums;font-weight:700}
+.heat tr:hover td{outline:1px solid rgba(14,76,97,.15)}
+.kpi2{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:18px;align-items:start}
+.ktab{width:100%;border-collapse:collapse;border:2px solid var(--deep);font-size:.88rem}
+.ktab th{background:#fff;font-size:.78rem;padding:8px;color:var(--deep)}
+.ktab td{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.18)}
+.ktab td.lbl{background:var(--deep);color:#fff;font-weight:700}
+.ktab td.n{text-align:center;font-variant-numeric:tabular-nums;border-left:1px solid #fff}
+.ktab td.n button{border:0;background:none;font:inherit;font-weight:800;color:var(--deep);text-decoration:underline;cursor:pointer;font-size:.95rem}
+.ktab td.n small{color:#3A5059;margin-left:3px}
+.ktab td.R{background:#F8D9DC} .ktab td.A{background:#F1C54B} .ktab td.G{background:#CFEBDD} .ktab td.N{background:#EEF2F4}
+.actions{border:2px solid var(--acc);border-radius:10px;padding:14px 18px}
+.actions h5{margin:0 0 6px;color:#B91C1C;font-size:1.1rem}
+.actions ul{margin:0;padding-left:18px;font-size:.86rem}
+.actions li{margin:6px 0}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.74rem;color:var(--muted);margin-top:10px}
+.legend i{display:inline-block;width:14px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.elist{width:100%;border-collapse:collapse;font-size:.85rem}
+.elist th{background:#F1F5F7;text-align:left;padding:8px 10px;font-size:.78rem;color:var(--deep);position:sticky;top:0;z-index:1}
+.elist td{padding:10px;border-bottom:1px solid #E6EDF0;vertical-align:top}
+.who{display:flex;gap:10px;align-items:flex-start}
+.who img{width:40px;height:40px;border-radius:50%;flex:0 0 40px;background:#eee}
+.who b{display:block;color:var(--deep);cursor:pointer}
+.who span{font-size:.74rem;color:var(--muted)}
+.sum{margin-top:6px;font-size:.78rem;line-height:1.45;max-width:520px}
+.sum .k{color:#1D4ED8;font-weight:800}
+.sum .hint{color:#B7791F}
+.sum .ai{background:#F4F8FF;border-left:3px solid #6366F1;padding:6px 8px;border-radius:4px;margin-top:4px;color:#24324A}
+.sum .ai.loc{border-left-color:var(--acc);background:#FFFBEF}
+.lnk{border:0;background:none;color:#4F46E5;font:inherit;font-size:.76rem;font-weight:800;cursor:pointer;padding:0 4px;text-decoration:underline}
+.sel{font:inherit;font-size:.8rem;border:1px solid #D7B44A;background:#F4C34A;border-radius:6px;padding:5px 6px;font-weight:700;color:#3A2A00}
+.sel.p-High{background:#F8B4B4;border-color:#E07A7A}.sel.p-Medium{background:#F4C34A}.sel.p-Low{background:#BFE3CC;border-color:#7CC197}
+.sel.s-Retain{background:#BFE3CC;border-color:#7CC197}.sel.s-Develop{background:#C7DDF7;border-color:#7FA9DB}.sel.s-Promote{background:#D9C9F5;border-color:#A48BDD}.sel.s-Watch{background:#F8B4B4;border-color:#E07A7A}
+.rem textarea{width:100%;min-width:180px;font:inherit;font-size:.8rem;border:1px solid #CBD8DD;border-radius:6px;padding:6px;resize:vertical;min-height:38px}
+.rem .row{display:flex;justify-content:space-between;align-items:center;margin-top:4px;gap:6px}
+.rem small{font-size:.7rem;color:var(--green)}
+.sbtn{border:1px solid #4F7FD8;color:#2A5BB8;background:#fff;border-radius:6px;padding:3px 10px;font:inherit;font-size:.76rem;cursor:pointer}
+.rdy{font-size:.76rem;font-weight:700;border-radius:999px;padding:2px 9px;white-space:nowrap;display:inline-block}
+.rdy.now{background:#D7F0E1;color:#14532D}.rdy.soon{background:#FCE7B2;color:#7A4E00}.rdy.later{background:#FFE4CC;color:#9A3412}.rdy.no{background:#EEF2F4;color:#58707A}
+.toolbar{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px;font-size:.82rem;color:var(--muted)}
+.pbtn{border:0;background:var(--pri);color:#fff;border-radius:999px;padding:7px 14px;font:inherit;font-size:.8rem;font-weight:800;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.pbtn.alt{background:#fff;color:var(--pri);border:1px solid var(--pri)}
+.pbtn:disabled{opacity:.5;cursor:not-allowed}
+.scroll{max-height:620px;overflow:auto;border:1px solid #E1E9EC;border-radius:10px}
+/* 9-box */
+.nine{display:grid;grid-template-columns:28px repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,250px) 26px;gap:8px}
+.ylab{grid-row:1/4;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;font-weight:800;color:var(--deep);font-size:.95rem;display:flex;align-items:center;justify-content:space-between}
+.ylab span{font-size:.7rem;color:var(--muted);font-weight:700}
+.xlab{grid-column:2/5;display:flex;justify-content:space-between;font-weight:800;color:var(--deep);font-size:.85rem}
+.xlab span{font-size:.7rem;color:var(--muted);font-weight:700}
+.box{border:2px solid #1B2A30;border-radius:6px;display:flex;flex-direction:column;min-height:0;position:relative}
+.box .bh{display:flex;justify-content:space-between;gap:6px;padding:6px 8px;font-size:.74rem;font-weight:700;line-height:1.25}
+.box .bh b{background:rgba(255,255,255,.75);color:#1B2A30;border-radius:999px;padding:0 8px;font-size:.72rem;height:fit-content}
+.box .people{overflow:auto;padding:2px 8px 8px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:4px;align-content:start}
+.pp{display:flex;gap:7px;align-items:center;border:0;background:rgba(255,255,255,.55);border-radius:999px;padding:3px 8px 3px 3px;font:inherit;text-align:left;cursor:pointer;min-width:0;color:#1B2A30}
+.pp:hover{background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.pp img{width:30px;height:30px;border-radius:50%;flex:0 0 30px;border:2px solid #fff;background:#ddd}
+.pp span{min-width:0;font-size:.76rem;line-height:1.15;overflow:hidden}
+.pp span b{display:block;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pp span i{font-style:normal;font-size:.66rem;opacity:.75}
+.pp.moved img{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc)}
+.b9{background:#0B7A3B;color:#fff} .b8,.b7{background:#22B05A;color:#fff} .b9 .pp,.b8 .pp,.b7 .pp{background:rgba(255,255,255,.88)}
+.b4,.b5,.b6{background:#EEF1F2} .b2,.b3{background:#FBE9D9} .b1{background:#F9D5D5}
+.nine-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:.8rem;color:var(--muted);margin-bottom:8px}
+.nine-meta b{color:var(--deep)}
+/* pipeline */
+.pipe{width:100%;border-collapse:collapse;font-size:.84rem}
+.pipe th{background:var(--deep);color:#fff;text-align:left;padding:10px;font-size:.8rem;position:sticky;top:0;z-index:1}
+.pipe td{padding:9px 10px;border-bottom:1px solid #E6EDF0;vertical-align:top}
+.pipe td.c-empty{background:#F8D9DC}
+.pipe td.c-now{background:#D7F0E1}.pipe td.c-soon{background:#FCF1C7}.pipe td.c-later{background:#FFE4CC}
+.pipe .crit{display:inline-block;font-size:.66rem;font-weight:800;color:#9F1239;background:#FDE2E2;border-radius:4px;padding:0 5px;margin-left:4px}
+.bench{display:flex;gap:2px;margin-top:4px}
+.bench i{width:14px;height:6px;border-radius:2px;background:#DCE6EA}
+.bench i.on{background:var(--pri)}
+.sname{display:inline-flex;align-items:center;gap:5px;margin:1px 4px 1px 0}
+.sname img{width:20px;height:20px;border-radius:50%}
+/* data view */
+.dtab{border-collapse:separate;border-spacing:0;font-size:.76rem;min-width:100%}
+.dtab th{background:#DCEBF3;color:var(--deep);text-align:left;padding:6px 8px;vertical-align:top;position:sticky;top:0;z-index:2;border-bottom:1px solid #BCD3DF;min-width:96px}
+.dtab th select{display:block;margin-top:4px;width:100%;font:inherit;font-size:.7rem;padding:2px;border:1px solid #BCD3DF;border-radius:4px;background:#fff}
+.dtab td{padding:6px 8px;border-bottom:1px solid #E6EDF0;vertical-align:top;background:#fff;max-width:260px}
+.dtab tr:nth-child(even) td{background:#F7FAFB}
+.dtab td.long{min-width:220px}
+.dtab td.long div{max-height:3.6em;overflow:hidden;cursor:pointer}
+.dtab td.long div.open{max-height:none}
+.dtab th:nth-child(2),.dtab td:nth-child(2){position:sticky;left:0;z-index:1;box-shadow:2px 0 0 #E1E9EC}
+.dtab th:nth-child(2){z-index:3}
+.yes{color:var(--green);font-weight:800}.no{color:#9F1239;font-weight:700}
+/* drawer + modal */
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(460px,100%);background:#fff;box-shadow:-10px 0 30px rgba(0,0,0,.2);z-index:80;transform:translateX(105%);transition:transform .3s ease;display:flex;flex-direction:column}
+.drawer.open{transform:none}
+.dr-h{display:flex;gap:12px;align-items:center;padding:16px;background:var(--deep);color:#fff}
+.dr-h img{width:64px;height:64px;border-radius:50%;border:3px solid var(--acc);background:#fff}
+.dr-h b{font-size:1.05rem;display:block}
+.dr-h span{font-size:.78rem;opacity:.8}
+.dr-h button{margin-left:auto;align-self:flex-start;border:0;background:rgba(255,255,255,.15);color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem}
+.dr-b{padding:14px 16px;overflow:auto;font-size:.84rem}
+.dr-b dl{display:grid;grid-template-columns:150px 1fr;gap:6px 10px;margin:0}
+.dr-b dt{color:var(--muted);font-size:.76rem}
+.dr-b dd{margin:0;font-weight:600}
+.dr-b h6{margin:14px 0 4px;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--pri)}
+.dr-b p{font-size:.82rem;color:#2F444C}
+.traj{display:flex;gap:6px;align-items:center;margin-top:4px}
+.traj span{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:6px;font-weight:800;font-size:.8rem}
+.scrim{position:fixed;inset:0;background:rgba(8,47,61,.45);z-index:75;opacity:0;pointer-events:none;transition:opacity .25s}
+.scrim.open{opacity:1;pointer-events:auto}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-48%);width:min(640px,94vw);max-height:88vh;overflow:auto;background:#fff;border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.35);z-index:90;opacity:0;pointer-events:none;transition:all .25s}
+.modal.open{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.mh{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line)}
+.mh b{font-family:var(--serif);font-weight:400;font-size:1.3rem;color:var(--deep)}
+.mh button{border:0;background:#EEF3F5;width:32px;height:32px;border-radius:50%;cursor:pointer}
+.mb{padding:16px 18px;font-size:.86rem}
+.mb .fl{margin-bottom:12px}
+.mb label.t{display:block;font-weight:800;font-size:.8rem;color:var(--deep);margin-bottom:4px}
+.mb input[type=password],.mb input[type=text],.mb textarea{width:100%;font:inherit;font-size:.84rem;padding:8px 10px;border:1px solid #CBD8DD;border-radius:8px}
+.mb textarea{min-height:130px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.76rem;line-height:1.5}
+.mb .cols{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px}
+.mb .cols label{display:flex;gap:6px;align-items:center;font-size:.8rem}
+.mb .warn{background:#FFF8E6;border:1px solid #F1D48A;border-radius:8px;padding:8px 10px;font-size:.76rem;color:#6B4E00}
+.mb .row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px}
+.mb .st{font-size:.78rem;margin-top:6px}
+.dlist{display:grid;gap:6px;margin-top:8px}
+.dlist div{display:flex;gap:8px;align-items:center;border:1px solid #E6EDF0;border-radius:8px;padding:6px 8px;cursor:pointer}
+.dlist img{width:28px;height:28px;border-radius:50%}
+.dlist small{color:var(--muted);margin-left:auto;font-size:.72rem;text-align:right}
+
+/* charts */
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.chart svg{width:100%;height:auto;display:block}
+.axis text{font-family:var(--sans);font-size:11.5px;fill:var(--muted)}
+.axis line{stroke:var(--line)}
+.axis path{display:none}
+.grid line{stroke:var(--line);stroke-dasharray:2 3}
+.grid path{display:none}
+.ckey{display:flex;gap:16px;font-size:.78rem;color:var(--muted);margin-top:8px;flex-wrap:wrap}
+.ckey span{display:inline-flex;align-items:center;gap:6px}
+.ckey i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.cmp-head{display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+.cmp{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.cmp th,.cmp td{padding:16px 18px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);font-size:.92rem;overflow-wrap:anywhere}
+.cmp thead th{font-family:var(--sans);font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);background:#F7FAFB}
+.cmp tbody tr:last-child td,.cmp tbody tr:last-child th{border-bottom:0}
+.cmp tbody th{font-weight:700;color:var(--pri)}
+.cmp col.c1{width:24%}
+.cmp td{transition:background .3s,opacity .3s,color .3s}
+.cmp.hl-before td.b{background:#FEF5F5;color:#7F1D1D}
+.cmp.hl-before td.a{opacity:.38}
+.cmp.hl-after td.a{background:#EEF6F8;color:#0A3A4A;font-weight:500}
+.cmp.hl-after td.b{opacity:.38}
+.cmp.hl-after thead th.a{color:var(--pri)}
+.cmp.hl-before thead th.b{color:var(--red)}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:.9rem;font-weight:500;display:inline-flex;align-items:center;gap:8px;box-shadow:0 1px 2px rgba(8,47,61,.04)}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--acc)}
+.chip em{font-style:normal;color:var(--muted);font-weight:400;font-size:.82rem}
+.tk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.tk{padding:26px}
+.tk .n{font-family:var(--serif);font-size:2.6rem;color:var(--acc);line-height:1}
+.tk h3{margin:12px 0 8px}
+.tk p{font-size:.92rem;color:#3A5059}
+footer{background:var(--deep);color:rgba(255,255,255,.75);padding:48px 0 32px;margin-top:32px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px}
+.f-brand{display:flex;align-items:center;gap:16px}
+.f-brand img{height:44px;width:auto;border-radius:6px;background:#fff;padding:4px}
+.f-brand b{display:block;color:#fff;font-family:var(--serif);font-weight:400;font-size:1.15rem}
+.copy{width:100%;border-top:1px solid rgba(255,255,255,.12);padding-top:18px;font-size:.8rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+#tip{position:fixed;pointer-events:none;z-index:95;background:var(--deep);color:#fff;font-size:.8rem;line-height:1.45;padding:10px 12px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transition:opacity .15s;max-width:270px}
+#tip b{color:var(--acc);font-weight:700}
+#tip .t{font-weight:700;font-size:.85rem;margin-bottom:2px;color:#fff}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.js .reveal{opacity:1;transform:none;transition:none}.tl-panel.open{animation:none}.drawer,.modal,.scrim{transition:none}}
+@media (max-width:1060px){.kc{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi2{grid-template-columns:1fr}.nine{grid-template-rows:repeat(3,230px) 26px}}
+@media (max-width:980px){.kpi-grid,.ch-grid{grid-template-columns:repeat(2,1fr)}.dash{grid-template-columns:1fr}.tk-grid{grid-template-columns:1fr}.hero .ninebox{opacity:.2}}
+@media (max-width:640px){
+  .wrap{padding:0 16px} section{padding:48px 0} .hero{padding:56px 0 64px} .logos img{height:34px} .vdiv{height:28px}
+  .kpi-grid{gap:10px} .kpi{padding:16px 14px} .ch-grid{grid-template-columns:1fr}
+  .tl::before{top:19px} .tl-dot{width:40px;height:40px;font-size:1rem} .tl-name{font-size:.75rem} .tl-dur{display:none} .tl-panel{padding:18px}
+  .apane{padding:12px} .kc{grid-template-columns:1fr 1fr;gap:8px} .kcard .v{font-size:1.4rem}
+  .nine{grid-template-columns:20px repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,210px) 22px;gap:4px}
+  .box .people{grid-template-columns:1fr;padding:2px 4px 4px} .pp span i{display:none} .box .bh{font-size:.62rem;padding:4px} .pp img{width:24px;height:24px;flex-basis:24px} .pp span{font-size:.66rem}
+  .ninewrap{overflow-x:auto} .nine{min-width:520px}
+  .elist .hide-s{display:none}
+  .cmp th,.cmp td{padding:12px 10px;font-size:.82rem} .cmp thead th{font-size:.68rem;letter-spacing:.08em} .chart-card{padding:14px}
+  .f select,.f input[type=search]{min-width:140px}
+}
+@media print{
+  body{background:#fff;font-size:12px} .topbar{position:static}
+  .hero{background:var(--pri)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:36px 0} .hero .ninebox{display:none}
+  .card{box-shadow:none;break-inside:avoid} section{padding:28px 0} .js .reveal{opacity:1!important;transform:none!important}
+  .seg,.tl-hint,.app-actions,.drawer,.modal,.scrim{display:none!important} .tl-panel{display:block!important;margin-top:10px} #tip{display:none}
+  footer{background:#fff;color:var(--text)} footer .f-brand b{color:var(--deep)} .kpis{margin-top:16px}
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="logos">
+      <img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting">
+    </div>
+    <div class="tagline">Customer Case Study · <b>HR · Succession Planning</b></div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="ninebox" aria-hidden="true"><i></i><i class="g2"></i><i class="g1"></i><i></i><i></i><i class="g2"></i><i></i><i></i><i></i></div>
+  <div class="wrap">
+    <div class="eyebrow">Retail × Havish M Consulting</div>
+    <h1>Succession Planning Workbench</h1>
+    <p class="sub">One live workbench for every concept: talent KPIs, a 9-box that moves year on year, a succession pipeline for every critical role, and GenAI summaries of the talent notes, in a single HTML file.</p>
+    <div class="pills">
+      <span class="pill"><span>Client</span>Retail</span>
+      <span class="pill"><span>Function</span>HR</span>
+      <span class="pill"><span>Theme</span>Succession Planning</span>
+    </div>
+  </div>
+</section>
+
+<section class="kpis">
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="card kpi reveal"><div class="label">Talent review cycle</div><div class="val"><span class="count" data-to="3" data-dec="0">0</span><small>weeks</small></div><div class="delta">▼ from about 9 weeks</div></div>
+      <div class="card kpi reveal"><div class="label">Critical roles with a ready successor</div><div class="val"><span class="count" data-to="71" data-dec="0">0</span><small>%</small></div><div class="delta">▲ from 42% the year before</div></div>
+      <div class="card kpi reveal"><div class="label">Concepts on one view</div><div class="val"><span class="count" data-to="8" data-dec="0">0</span></div><div class="delta">▲ instead of eight spreadsheets</div></div>
+      <div class="card kpi reveal"><div class="label">Calibration prep time</div><div class="val">−<span class="count" data-to="70" data-dec="0">0</span><small>%</small></div><div class="delta">▼ AI summaries of talent notes</div></div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="challenge">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Challenge</div>
+      <h2>Succession lived in eight spreadsheets and a lot of free text</h2>
+      <p class="lead">Each concept kept its own talent file, with 35 columns from performance history to CEO comments. Pulling it together for the annual talent review took weeks, and the most useful information was in long notes nobody had time to read.</p>
+    </div>
+    <div class="ch-grid">
+      <div class="card ch reveal"><div class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg></div><h3>Fragmented data</h3><p>Every concept had its own version of the template, with different spellings, bands and rating scales.</p></div>
+      <div class="card ch reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h10M4 18h7"/></svg></div><h3>Notes nobody read</h3><p>Strengths, development areas and successor notes ran to paragraphs. Calibration meetings ran out of time before they reached them.</p></div>
+      <div class="card ch reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg></div><h3>Hidden risk</h3><p>Critical roles without a successor, held by someone at high flight risk, were not visible until someone resigned.</p></div>
+      <div class="card ch reveal"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div><h3>Slow review cycle</h3><p>Consolidating, cleaning and building slides for the CEO review took about nine weeks every year.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="approach" style="background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">HMC Approach</div>
+      <h2>Clean once, view many ways, summarise with AI</h2>
+      <p class="lead">We kept HR's template and rating scales, cleaned the data once, and built the views the CEO, concept heads and HR business partners actually ask for.</p>
+    </div>
+    <div class="tl reveal" aria-label="HMC approach steps">
+      <button class="tl-step" aria-expanded="true" aria-controls="tp0"><span class="tl-dot">1</span><span class="tl-name">Discover</span><span class="tl-dur">2 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp1"><span class="tl-dot">2</span><span class="tl-name">Design</span><span class="tl-dur">2 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp2"><span class="tl-dot">3</span><span class="tl-name">Build</span><span class="tl-dur">3 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp3"><span class="tl-dot">4</span><span class="tl-name">Adopt</span><span class="tl-dur">1 review cycle</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp4"><span class="tl-dot">5</span><span class="tl-name">Scale</span><span class="tl-dur">Ongoing</span></button>
+    </div>
+    <p class="tl-hint">Select a step to see what happened.</p>
+    <div class="card tl-panel open" id="tp0"><h3>Discover · Read every column</h3><p>We mapped the 35-column template with group HR and concept HR heads.</p><ul><li>Agreed definitions: critical role, HIPO, consistent performer, weak link.</li><li>Listed the questions the CEO asks in a talent review, and which columns answer them.</li><li>Found the cleaning rules: band, function and concept names.</li></ul><p class="deliv"><b>Deliverable:</b> KPI dictionary and data-cleaning rules.</p></div>
+    <div class="card tl-panel" id="tp1"><h3>Design · Six views, one dataset</h3><p>Each view answers one kind of question.</p><ul><li>Concept view and KPI dashboard for "where is our risk?".</li><li>Employee list and 9-box for "who are our people?".</li><li>Succession pipeline and full data view for "who is next?" and "show me the detail".</li></ul><p class="deliv"><b>Deliverable:</b> Wireframes signed off by Group HR.</p></div>
+    <div class="card tl-panel" id="tp2"><h3>Build · A single offline file</h3><p>Built with Claude as one HTML file: no server, no install.</p><ul><li>Filters by concept, role level and year, carried across views.</li><li>Click any KPI to see the people behind the number.</li><li>Optional GenAI summaries using HR's own API key and prompt.</li></ul><p class="deliv"><b>Deliverable:</b> Succession workbench and refresh guide.</p></div>
+    <div class="card tl-panel" id="tp3"><h3>Adopt · Run the talent review from it</h3><p>Calibration and the CEO review ran live from the workbench.</p><ul><li>HRBPs set status, priority and remarks during calibration.</li><li>AI summaries replaced reading paragraphs aloud.</li><li>Actions agreed in the room, exported straight after.</li></ul><p class="deliv"><b>Deliverable:</b> Calibrated talent decisions for all concepts.</p></div>
+    <div class="card tl-panel" id="tp4"><h3>Scale · From annual to always-on</h3><p>The same file is refreshed each quarter.</p><ul><li>Quarterly refresh of ratings, attrition risk and readiness.</li><li>Year-on-year 9-box movement tracked automatically.</li><li>Next: link development plans and retention actions to outcomes.</li></ul><p class="deliv"><b>Deliverable:</b> Quarterly talent pulse.</p></div>
+  </div>
+</section>
+
+<section id="solution">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Solution</div>
+      <h2>The workbench. Click around.</h2>
+      <p class="lead">Six tabs on one dataset of 35 columns. Filter by concept, click any KPI to see the people behind it, switch the 9-box year to watch people move, open anyone's profile, and use <b>⚙ AI settings</b> to add your own OpenAI key and prompt for summaries.</p>
+    </div>
+    <div class="card app reveal" id="app">
+      <div class="app-top">
+        <div class="brand"><i>LG</i><div>Talent &amp; Succession Workbench<small>Illustrative data · <span id="hcount"></span></small></div></div>
+        <div class="app-actions"><span class="aistat" id="aiStat"></span><button class="gbtn" id="openAI" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>AI settings</button><button class="gbtn" id="exportCsv" type="button"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>Export CSV</button></div>
+      </div>
+      <div class="atabs" role="tablist" id="atabs"></div>
+      <div class="apane" id="pane"></div>
+    </div>
+    <p class="footnote">All employees, ratings and notes are fictional and generated for this case study. Faces are generated illustrations. Concept names are used for context only.</p>
+  </div>
+</section>
+
+<section id="impact" style="background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Impact Dashboard</div>
+      <h2>Deeper benches, faster reviews</h2>
+      <p class="lead">With risk visible by concept and notes summarised in seconds, the review spent its time on decisions, and more critical roles ended the year with a ready successor.</p>
+    </div>
+    <div class="dash">
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>Critical roles with a ready successor</h3><p class="sub">% of critical roles with a Ready Now or Ready Soon successor, by concept</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-sl="before" aria-pressed="false">FY23-24</button><button type="button" data-sl="after" aria-pressed="true">FY24-25</button></div></div>
+        <div class="chart" id="slope"></div>
+      </div>
+      <div class="card chart-card reveal">
+        <h3>Where the review time went</h3><p class="sub">Talent review cycle by stage, weeks</p>
+        <div class="chart" id="cycle"></div>
+        <div class="ckey"><span><i style="background:#0E4C61"></i>Data collection &amp; cleaning</span><span><i style="background:#3C8DA6"></i>Calibration</span><span><i style="background:#E0A526"></i>Succession mapping</span><span><i style="background:#9DB9C3"></i>CEO review pack</span></div>
+      </div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <div class="cmp-head reveal"><div><div class="eyebrow">Before vs After</div><h2>How a talent review runs</h2></div>
+      <div class="seg" role="group" aria-label="Highlight column"><button type="button" data-hl="before" aria-pressed="false">Before</button><button type="button" data-hl="after" aria-pressed="true">After</button></div></div>
+    <div class="card reveal" style="overflow:hidden">
+      <table class="cmp hl-after" id="cmp"><colgroup><col class="c1"><col><col></colgroup>
+        <thead><tr><th scope="col">Dimension</th><th scope="col" class="b">Before</th><th scope="col" class="a">After</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Data</th><td class="b">Eight concept spreadsheets, different formats</td><td class="a">One cleaned dataset, 35 columns, every concept</td></tr>
+          <tr><th scope="row">Risk view</th><td class="b">Built by hand for the CEO deck</td><td class="a">Live KPIs; click any number to see the people</td></tr>
+          <tr><th scope="row">9-box</th><td class="b">Static slide, one year</td><td class="a">Interactive grid with year-on-year movement</td></tr>
+          <tr><th scope="row">Talent notes</th><td class="b">Paragraphs read aloud in calibration</td><td class="a">AI summaries with HR's own prompt</td></tr>
+          <tr><th scope="row">Succession</th><td class="b">Names in a notes column</td><td class="a">Pipeline by readiness, gaps highlighted</td></tr>
+          <tr><th scope="row">Cycle time</th><td class="b">About 9 weeks</td><td class="a">About 3 weeks</td></tr>
+        </tbody></table>
+    </div>
+  </div>
+</section>
+
+<section id="tools" style="padding-top:16px">
+  <div class="wrap">
+    <div class="sec-head reveal" style="margin-bottom:20px"><div class="eyebrow">Tools &amp; Tech Used</div><h2>Light, private, offline-first</h2></div>
+    <div class="chips reveal">
+      <span class="chip"><i></i>Claude <em>data cleaning &amp; workbench build</em></span>
+      <span class="chip"><i></i>OpenAI API <em>optional summaries with HR's own key</em></span>
+      <span class="chip"><i></i>Excel / HRMS extract <em>source data</em></span>
+      <span class="chip"><i></i>D3.js <em>9-box, charts &amp; drill-downs</em></span>
+      <span class="chip"><i></i>Single HTML file <em>no server, no install</em></span>
+    </div>
+  </div>
+</section>
+
+<section id="takeaways">
+  <div class="wrap">
+    <div class="sec-head reveal"><div class="eyebrow">Key Takeaways</div><h2>What transfers to any HR team</h2></div>
+    <div class="tk-grid">
+      <div class="card tk reveal"><div class="n">01</div><h3>Define the KPIs before the dashboard</h3><p>Agreeing what "critical", "HIPO" and "weak link" mean did more for the review than any chart.</p></div>
+      <div class="card tk reveal"><div class="n">02</div><h3>Every number should open to names</h3><p>Leaders trust a KPI when one click shows the people behind it.</p></div>
+      <div class="card tk reveal"><div class="n">03</div><h3>Let AI read the notes</h3><p>The richest talent data is free text. Summaries in HR's own words put it back into the conversation.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="f-brand"><img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting"><div><b>Havish M Consulting</b></div></div>
+    <div class="copy"><span>© <span id="yr">2026</span> Havish M Consulting. All rights reserved.</span><span>Figures indicative; validated metrics available on request.</span></div>
+  </div>
+</footer>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Employee profile" aria-hidden="true"></aside>
+<div class="modal" id="aiModal" role="dialog" aria-modal="true" aria-labelledby="aiTitle">
+  <div class="mh"><b id="aiTitle">AI summary settings</b><button type="button" data-close aria-label="Close">✕</button></div>
+  <div class="mb">
+    <div class="fl"><label class="t" for="aiKey">OpenAI API key</label><input type="password" id="aiKey" placeholder="sk-..." autocomplete="off" spellcheck="false">
+      <label style="display:flex;gap:6px;align-items:center;font-size:.78rem;margin-top:6px"><input type="checkbox" id="aiRemember"> Remember the key on this device (stored in this browser only)</label></div>
+    <div class="fl"><label class="t" for="aiModel">Model</label><input type="text" id="aiModel" value="gpt-4o-mini" spellcheck="false"></div>
+    <div class="fl"><label class="t">Columns to summarise</label><div class="cols" id="aiCols"></div></div>
+    <div class="fl"><label class="t" for="aiPrompt">Prompt <span style="font-weight:500;color:var(--muted)">· placeholders: {{name}} {{designation}} {{concept}} {{role_level}} {{band}} {{fields}}</span></label><textarea id="aiPrompt" spellcheck="false"></textarea>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px" id="presets"></div></div>
+    <div class="warn">The key is used only from this page, straight to OpenAI. It is not saved unless you tick "Remember". The selected columns for each employee you summarise are sent to OpenAI under your account. Without a key, "Quick summary" works offline using simple rules.</div>
+    <div class="row"><span class="st" id="aiTestSt"></span><button class="pbtn alt" type="button" id="aiClear">Forget key</button><button class="pbtn alt" type="button" id="aiTest">Test key</button><button class="pbtn" type="button" id="aiSave">Save settings</button></div>
+  </div>
+</div>
+<div class="modal" id="drill" role="dialog" aria-modal="true" aria-labelledby="drillTitle"><div class="mh"><b id="drillTitle"></b><button type="button" data-close aria-label="Close">✕</button></div><div class="mb" id="drillBody"></div></div>
+<div id="tip" role="tooltip"></div>
+
+<script>
+(function(){
+"use strict";
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DUR = reduce ? 0 : 800;
+const $ = id => document.getElementById(id);
+$('yr').textContent = new Date().getFullYear();
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store = { get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }, set(k, v){ try { localStorage.setItem(k, v); } catch(e){} }, del(k){ try { localStorage.removeItem(k); } catch(e){} } };
+
+/* ---------- page scaffolding ---------- */
+const tip = $('tip');
+function showTip(html, ev){ tip.innerHTML = html; tip.style.opacity = 1; const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = ev.clientX + pad, y = ev.clientY + pad; if (x + w > innerWidth - 8) x = ev.clientX - w - pad; if (y + h > innerHeight - 8) y = ev.clientY - h - pad;
+  tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; }
+function hideTip(){ tip.style.opacity = 0; }
+window.addEventListener('scroll', hideTip, {passive:true});
+const onView = new Map();
+const io = ('IntersectionObserver' in window) ? new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; e.target.classList.add('in');
+  const fn = onView.get(e.target); if (fn){ fn(); onView.delete(e.target); } io.unobserve(e.target); }), {threshold:.12}) : null;
+function whenVisible(el, fn){ onView.set(el, fn); if (io) io.observe(el); else fn(); }
+document.querySelectorAll('.reveal').forEach(el => io ? io.observe(el) : el.classList.add('in'));
+function countUp(el){ const to = +el.dataset.to, dec = +el.dataset.dec || 0; if (reduce){ el.textContent = to.toFixed(dec); return; }
+  const t0 = performance.now(); (function s(t){ const p = Math.min(1,(t-t0)/1400), e = 1 - Math.pow(1-p,3); el.textContent = (to*e).toFixed(dec); if (p < 1) requestAnimationFrame(s); })(t0); }
+document.querySelectorAll('.count').forEach(el => whenVisible(el.closest('.kpi'), () => countUp(el)));
+const steps = document.querySelectorAll('.tl-step');
+steps.forEach(btn => btn.addEventListener('click', () => { const open = btn.getAttribute('aria-expanded') === 'true';
+  steps.forEach(b => { b.setAttribute('aria-expanded','false'); $(b.getAttribute('aria-controls')).classList.remove('open'); });
+  if (!open){ btn.setAttribute('aria-expanded','true'); $(btn.getAttribute('aria-controls')).classList.add('open'); } }));
+const cmp = $('cmp');
+document.querySelectorAll('[data-hl]').forEach(b => b.addEventListener('click', () => { document.querySelectorAll('[data-hl]').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+  cmp.classList.toggle('hl-before', b.dataset.hl === 'before'); cmp.classList.toggle('hl-after', b.dataset.hl === 'after'); }));
+
+/* ======================================================================
+   SYNTHETIC DATA (fictional people)
+   ====================================================================== */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const R = mulberry32(20261012), rnd = (a,b) => a + R()*(b-a), pick = a => a[Math.floor(R()*a.length)], chance = p => R() < p;
+const pickW = (items, w) => { const s = w.reduce((a,b) => a+b, 0); let x = R()*s; for (let i = 0; i < items.length; i++){ x -= w[i]; if (x <= 0) return items[i]; } return items[items.length-1]; };
+const FN = {f:['Aditi','Ananya','Kavya','Meera','Priya','Sneha','Ishita','Reema','Sanya','Fatima','Layla','Noor','Mariam','Sara','Hiba','Divya','Neha','Pooja','Tara','Rashmi','Anjali','Aisha','Nadia','Rhea','Zoya','Simran','Lina','Dana'],
+            m:['Aarav','Rohan','Kabir','Nikhil','Sameer','Karan','Vivek','Rishi','Yash','Omar','Khalid','Faisal','Rahul','Arjun','Varun','Ahmed','Yusuf','Tariq','Chetan','Gaurav','Manish','Parth','Imran','Hassan','Kunal','Mayank','Siddharth','Adil','Rami','Joel']};
+const SN = ['Kapoor','Iyer','Sharma','Patel','Chopra','Nair','Menon','Reddy','Khanna','Bhatia','Sethi','Kulkarni','Saxena','Pillai','Desai','Joshi','Malhotra','Mishra','Yadav','Gupta','Verma','Banerjee','Tiwari','Al Mansoori','Haddad','Khan','Siddiqui','D\'Souza','Fernandes','Rao','Qureshi','Hamdan','Mathew','Shetty','Bose','Mehta','Saleh','George'];
+const used = new Set();
+function person(){ for (let i = 0; i < 200; i++){ const g = chance(.42) ? 'f' : 'm', n = pick(FN[g]) + ' ' + pick(SN); if (!used.has(n)){ used.add(n); return {name:n, g}; } } return {name:'Alex ' + used.size, g:'m'}; }
+const CONC = [
+  {n:'Kidswear', terr:['UNITED ARAB EMIRATES','SAUDI ARABIA','KUWAIT']}, {n:'Multi-brand Fashion', terr:['UNITED ARAB EMIRATES','SAUDI ARABIA','QATAR']},
+  {n:'Home Furnishings', terr:['UNITED ARAB EMIRATES','SAUDI ARABIA','INDIA']}, {n:'Value Fashion', terr:['UNITED ARAB EMIRATES','SAUDI ARABIA','INDIA']},
+  {n:'Youth Fashion', terr:['UNITED ARAB EMIRATES','SAUDI ARABIA','BAHRAIN']}, {n:'Department Store', terr:['UNITED ARAB EMIRATES','INDIA','OMAN']},
+  {n:'Footwear', terr:['UNITED ARAB EMIRATES','SAUDI ARABIA','KUWAIT']}, {n:'Electronics', terr:['UNITED ARAB EMIRATES','SAUDI ARABIA','QATAR']}];
+const REGION = {'UNITED ARAB EMIRATES':['Dubai','Abu Dhabi'], 'SAUDI ARABIA':['Riyadh','Jeddah'], 'KUWAIT':['Kuwait City'], 'QATAR':['Doha'], 'BAHRAIN':['Manama'], 'OMAN':['Muscat'], 'INDIA':['Bengaluru']};
+const N1 = [['Chief Commercial Officer','Buying'],['General Manager - Finance','Finance'],['Head - Buying Clothing','Buying'],['Head - Retail','Retail Ops'],['Head - E-Commerce','E-Commerce'],['Head HR','HR'],['Head - Marketing','Marketing'],['Head - Supply Chain','Supply Chain'],['Head - Merchandise Planning','Merchandising'],['Head - Visual Merchandising','Visual Merchandising']];
+const N2 = [['National Concept Business Head','Retail Ops'],['Buying Manager - Footwear','Buying'],['Buying Manager - Accessories','Buying'],['Finance Manager','Finance'],['Area Manager','Retail Ops'],['Planning Manager','Merchandising'],['E-Commerce Manager','E-Commerce'],['HR Business Partner','HR'],['Category Manager','Buying'],['Marketing Manager','Marketing'],['Supply Chain Manager','Supply Chain'],['Store Operations Manager','Retail Ops'],['CRM Manager','Marketing']];
+const PERF = ['Below Target','Partially Meets','Meets Target','Exceeds Target','Exceptional'];
+const STR = ['Strong commercial acumen; consistently beats sales and margin plans','Builds high-performing teams and develops talent well','Deep category knowledge and strong supplier relationships','Data-driven decision maker; uses analytics to drive range choices','Excellent stakeholder management across regions','Drives customer experience and store standards','Hands-on operator with strong execution discipline','Strategic thinker who can simplify complex problems','Digital mindset; scaled online and omnichannel sales','Strong financial control and cost discipline','Resilient under pressure; steady through peak trading','Collaborative leader trusted by peers and the CEO'];
+const DEV = ['Needs broader exposure beyond home market','Should delegate more and build second-line leaders','Strategic communication with senior stakeholders','Commercial understanding of P&L beyond own function','Digital and data capability','Pace of decision making in ambiguous situations','Coaching style; tends to direct rather than develop','People management at larger scale','Cross-functional influence without authority','Change leadership for large transformations'];
+const CRIT = ['Revenue impact above 20% of concept','Scarce skill, long time to hire','Key customer-facing leadership','Statutory or regulatory sign-off','Single point of failure in the region'];
+const ACT = ['Assign a stretch project on regional expansion','Enrol in the Group leadership programme','Six-month rotation into a sister concept','Mentoring by the concept CEO','Executive coaching on strategic influence','Move to a larger market within 12 months','Shadow the role holder for two quarters','Build a successor from the N-2 team','Retention discussion and long-term incentive review','Cross-functional assignment in e-commerce'];
+const CEO = ['Strong leader, ready for a bigger canvas next year.','Key to the turnaround plan; must retain.','Performance solid, needs to grow the bench below.','Watch closely; engagement has dipped.','Potential concept CEO in 2–3 years.','Consider role split as the business grows.','Good operator; development needed on strategy.'];
+const pad6 = n => String(n).padStart(6, '0');
+const fmtD = d => d3 ? d3.timeFormat('%d-%b-%y')(d) : d.toDateString();
+const E = []; let hid = 100200;
+const lvl = v => v <= 1.4 ? 0 : v <= 2.6 ? 1 : 2;
+const BOX = [[1,2,4],[3,5,7],[6,8,9]];
+CONC.forEach((c, ci) => {
+  const mk = (role, desig, fn, band, mgr) => {
+    const p = person(), terr = role === 'N Role' ? c.terr[0] : pickW(c.terr, [6, 3, 1.5]), reg = pick(REGION[terr]);
+    const perf = rnd(.9, 3.9), pot = rnd(.3, 2.95), doj = new Date(1999 + Math.floor(R()*24), Math.floor(R()*12), 1 + Math.floor(R()*27));
+    const yrsGroup = (new Date(2025, 5, 30) - doj) / 3.156e10, tir = +Math.min(yrsGroup, rnd(.6, 9)).toFixed(1);
+    const pr = [0,1,2].map(i => (i === 0 && yrsGroup < 3.5) ? '' : PERF[Math.max(0, Math.min(4, Math.round(perf + rnd(-.8, .8) - (2 - i)*.1)))]);
+    const tal = [0,1,2].map(i => { if (i === 0 && yrsGroup < 2.5) return ''; const pp = perf + rnd(-.7, .7) + (i - 2)*.15, qq = pot + rnd(-.5, .5) + (i - 2)*.12; return BOX[Math.max(0, Math.min(2, lvl(pp)))][Math.max(0, Math.min(2, Math.round((qq - .4) / 1.1)))]; });
+    if (!tal[2]) tal[2] = BOX[lvl(perf)][Math.max(0, Math.min(2, Math.round((pot - .4) / 1.1)))];
+    const hipo = [7,8,9].includes(tal[2]);
+    return {id:pad6(hid++), name:p.name, g:p.g, role, doj, tir, band, desig, fn, bu:c.n + (terr === 'SAUDI ARABIA' ? ' KSA' : terr === 'INDIA' ? ' India' : ' Concept'), concept:c.n, terr:role.includes('IND') ? 'INDIA' : terr, region:role.includes('IND') ? 'Bengaluru' : reg,
+      mgrId:mgr ? mgr.id : '100001', mgrName:mgr ? mgr.name : 'Group CEO Office', pr, tal, hipo:hipo ? 'Yes' : 'No', perfL:perf, potL:pot,
+      risk:pickW(['High','Medium','Low'], hipo ? [2, 4, 5] : [1, 3, 6]), crit:role === 'N Role' ? 'Yes' : role === 'N-1 Role' ? (chance(.62) ? 'Yes' : 'No') : (chance(.28) ? 'Yes' : 'No')};
+  };
+  const ceo = mk('N Role', 'Chief Executive Officer - ' + c.n, 'Leadership', 'B17', null); E.push(ceo);
+  const n1 = []; const roles1 = N1.slice().sort(() => R() - .5).slice(0, 4 + Math.floor(R()*3));
+  roles1.forEach(([d, f]) => { const e = mk('N-1 Role', d, f, pickW(['B14','B15','B16'], [3, 4, 1.5]), ceo); n1.push(e); E.push(e); });
+  const roles2 = N2.slice().sort(() => R() - .5).slice(0, 5 + Math.floor(R()*4));
+  roles2.forEach(([d, f]) => { const boss = n1.find(x => x.fn === f) || pick(n1); const r = chance(.06) ? 'N-2 Role/Moved to IND' : 'N-2 Role'; E.push(mk(r, d, f, pickW(['B11','B12','B13'], [3, 4, 3]), boss)); });
+});
+/* text fields + successors */
+const byConcept = d3.group(E, e => e.concept);
+const READY = ['Ready Now (0-12 months)','Ready Soon (12-24 months)','Ready Later (24+ months)'];
+E.forEach(e => {
+  e.criteria = e.crit === 'Yes' ? pick(CRIT) : '-';
+  const boss = E.find(x => x.id === e.mgrId);
+  e.next = e.role === 'N Role' ? pick(['Regional CEO','Group Director - Retail','Remain in role; expand scope']) : e.role === 'N-1 Role' ? pick(['CEO - ' + e.concept, 'Regional Head - ' + e.fn, 'Larger concept, same function']) : (boss ? boss.desig : 'Head - ' + e.fn);
+  e.ready = e.role === 'N Role' ? 'N/A' : pickW([...READY, 'No Readiness'], e.potL > 2.4 ? [4, 4, 2, .5] : e.potL > 1.4 ? [1, 3, 4, 2] : [.3, 1, 3, 4]);
+});
+E.forEach(e => {
+  const s1 = pick(STR); let s2 = pick(STR); if (s2 === s1) s2 = STR[(STR.indexOf(s1) + 3) % STR.length];
+  e.strengths = `${s1}. ${s2}.`; e.devAreas = pick(DEV) + (chance(.5) ? '; ' + pick(DEV).toLowerCase() : '') + '.';
+  e.succ = [];
+  if (e.role !== 'N-2 Role' && e.role !== 'N-2 Role/Moved to IND'){
+    const pool = byConcept.get(e.concept).filter(x => x !== e && x.role.startsWith(e.role === 'N Role' ? 'N-1' : 'N-2') && (e.role === 'N Role' || x.fn === e.fn || chance(.25)));
+    const k = e.crit === 'Yes' ? pickW([0,1,2,3], [2.5, 4, 3, 1]) : pickW([0,1,2], [4, 4, 1.5]);
+    pool.sort(() => R() - .5).slice(0, k).forEach(x => e.succ.push({id:x.id, name:x.name, r:x.ready.startsWith('Ready') ? x.ready : pick(READY)}));
+    if (!e.succ.length && chance(.35)) e.succ.push({id:null, name:'External hire', r:pick(READY.slice(1))});
+  }
+  const now = e.succ.some(s => s.r.startsWith('Ready Now')), any = e.succ.length;
+  e.succAvail = e.role.startsWith('N-2') ? 'Not assessed' : !any ? 'No Successor' : now ? 'Yes - Ready Now' : e.succ.every(s => s.id === null) ? 'External Hire Planned' : 'Yes - Pipeline';
+  e.succNotes = !any ? (e.role.startsWith('N-2') ? '-' : pick(['No internal successor identified yet.', 'Bench thin; consider external search.', 'Successor gap flagged in last review.'])) :
+    e.succ.map(s => `${s.name} (${s.r.split(' (')[0]})`).join('; ') + '. ' + pick(['Needs exposure to regional P&L.', 'Development plan agreed.', 'Strong candidate; accelerate readiness.', 'Second option to be developed.', '']);
+  e.n1 = e.role === 'N-1 Role' ? pickW(['Validated by CEO','Pending CEO validation','Role under review'], [6, 3, 1]) : 'NA';
+  e.action = pick(ACT) + (chance(.4) ? '; ' + pick(ACT).toLowerCase() : '') + '.';
+  e.ceo = e.role === 'N-1 Role' ? (chance(.75) ? pick(CEO) : '') : '';
+  e.retain = (e.hipo === 'Yes' || e.crit === 'Yes') ? pickW(['Yes','In Progress','No'], [5, 3, 2]) : 'Not required';
+  e.status = pickW(['Active','Resigned','Transferred'], [94, 4, 2]);
+  e.consistent = e.pr.filter(Boolean).length >= 2 && e.pr.filter(Boolean).every(v => PERF.indexOf(v) >= 3);
+  const pv = e.pr.filter(Boolean).map(v => PERF.indexOf(v)); e.inconsistent = pv.length >= 2 && (Math.max(...pv) - Math.min(...pv)) >= 2;
+  e.weak = e.crit === 'Yes' && [1,2,3].includes(e.tal[2]);
+});
+/* user edits (status/priority/remarks) persisted per browser */
+let EDITS = {}; try { EDITS = JSON.parse(store.get('lg_sp_edits') || '{}') || {}; } catch(e){ EDITS = {}; }
+const saveEdits = () => store.set('lg_sp_edits', JSON.stringify(EDITS));
+const ed = id => EDITS[id] || (EDITS[id] = {status:'TBD', priority:'', remarks:''});
+
+/* ======================================================================
+   SVG AVATARS (generated, no real people)
+   ====================================================================== */
+const AV = new Map();
+function avatar(e){
+  if (AV.has(e.id)) return AV.get(e.id);
+  const r = mulberry32(parseInt(e.id, 10) * 7 + 13), P = a => a[Math.floor(r()*a.length)];
+  const bg = P(['#DCEBF3','#F6E7C8','#E4E1F5','#DFF1E6','#F8DEDB','#E2ECF5','#F3E3F0']);
+  const skin = P(['#F1C9A5','#E0AC82','#C98E6A','#B47A55','#9A6142','#7A4B30']);
+  const hair = P(['#1B1210','#2B1D16','#3A2A20','#4A3426','#5C4033','#2A2A2A','#6E6E6E']);
+  const shirt = P(['#0E4C61','#3B4BA8','#B45309','#15803D','#7C3AED','#BE185D','#334155','#0E7490','#9A3412']);
+  const f = e.g === 'f', glasses = r() < .22, beard = !f && r() < .35, style = Math.floor(r()*3);
+  let back = '', front = '', extra = '';
+  if (f){
+    if (style === 0) back = `<path d="M15 31 C14 15 23 9 32 9 C42 9 50 15 49 31 L50 50 C45 48 44 43 44 37 L20 37 C20 43 19 48 14 50 Z" fill="${hair}"/>`;
+    else if (style === 1) back = `<circle cx="32" cy="10" r="6" fill="${hair}"/><path d="M19 30 C18 16 25 11 32 11 C40 11 46 16 45 30 Z" fill="${hair}"/>`;
+    else back = `<path d="M17 32 C16 16 24 10 32 10 C41 10 48 16 47 32 L47 40 C44 39 43 36 43 33 L21 33 C21 36 20 39 17 40 Z" fill="${hair}"/>`;
+    front = `<path d="M20.5 26 C21 15 29 12.5 32 16.5 C35 12.5 43 15 43.5 26 C41 19 36 17.5 32 19 C28 17.5 23 19 20.5 26 Z" fill="${hair}"/>`;
+    extra = r() < .5 ? `<circle cx="20.8" cy="32.6" r="1.2" fill="#E9B949"/><circle cx="43.2" cy="32.6" r="1.2" fill="#E9B949"/>` : '';
+  } else {
+    if (style === 0) front = `<path d="M20.6 25 C20 12.5 44 12.5 43.4 25 C41 18.5 23 18.5 20.6 25 Z" fill="${hair}"/>`;
+    else if (style === 1) front = `<path d="M20.4 26 C19 13 30 10 36 12.5 C42 14 44.5 19 43.5 26 C41 21 37 18 30 19.5 C25 20.5 22 22 20.4 26 Z" fill="${hair}"/>`;
+    else front = `<path d="M21 22 C22 16 27 14 32 14 C37 14 42 16 43 22 C40 20 24 20 21 22 Z" fill="${hair}" opacity=".85"/>`;
+    if (beard) extra = `<path d="M21 30 C22 41 28 43.5 32 43.5 C36 43.5 42 41 43 30 C41 36.5 37 38 32 38 C27 38 23 36.5 21 30 Z" fill="${hair}"/>`;
+  }
+  const face = `<ellipse cx="32" cy="28" rx="11" ry="13" fill="${skin}"/><ellipse cx="20.6" cy="29" rx="1.8" ry="2.6" fill="${skin}"/><ellipse cx="43.4" cy="29" rx="1.8" ry="2.6" fill="${skin}"/><circle cx="27.8" cy="27.5" r="1.3" fill="#24160F"/><circle cx="36.2" cy="27.5" r="1.3" fill="#24160F"/><path d="M29 33.6 Q32 36 35 33.6" stroke="#6B3A24" stroke-width="1.3" fill="none" stroke-linecap="round"/>`;
+  const gl = glasses ? `<g fill="none" stroke="#23303A" stroke-width="1.1"><circle cx="27.8" cy="27.5" r="3.2"/><circle cx="36.2" cy="27.5" r="3.2"/><path d="M31 27.5 H33"/></g>` : '';
+  const body = `<path d="M8 66 C10 50 21 45 32 45 C43 45 54 50 56 66 Z" fill="${shirt}"/><path d="M27 45 L32 52 L37 45" fill="#fff" opacity=".9"/><rect x="28" y="37" width="8" height="9" rx="3" fill="${skin}"/>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="${bg}"/>${back}${body}${face}${extra}${front}${gl}</svg>`;
+  const uri = 'data:image/svg+xml,' + encodeURIComponent(svg); AV.set(e.id, uri); return uri;
+}
+
+/* ======================================================================
+   APP SHELL
+   ====================================================================== */
+const COLS = [
+  ['id','HRMS ID'],['name','Employee Name'],['role','Role Level'],['doj','Group Date of Join', e => fmtD(e.doj)],['tir','Tenure in Role'],['band','Band (Cleaned)'],['desig','DESIGNATION'],['fn','Function (Cleaned)'],
+  ['bu','Business Unit'],['concept','Concept (Cleaned)'],['terr','Territory'],['region','REGION'],['mgrId','Line Manager HRMS'],['mgrName','Line Manager Name'],
+  ['pr0','Performance Rating FY21-22', e => e.pr[0]],['pr1','Performance Rating FY22-23', e => e.pr[1]],['pr2','Performance Rating FY23-24', e => e.pr[2]],
+  ['t0','Talent Rating FY22-23', e => e.tal[0]],['t1','Talent Rating FY23-24', e => e.tal[1]],['t2','Talent Rating FY24-25', e => e.tal[2]],
+  ['hipo','HIPO Check'],['risk','Attrition Risk'],['crit','Critical Role'],['criteria','Criteria'],['next','Potential Next Role'],['ready','Readiness'],
+  ['strengths','Strengths',null,1],['devAreas','Development Areas',null,1],['succAvail','Successor Availability'],['succNotes','Successor Identified / Notes',null,1],['n1','N-1 Check'],
+  ['action','Key Talent Movement / Development Action Required',null,1],['ceo','Additional Comments from CEO (N-1 Roles)',null,1],['retain','Retention Plan Coverage'],['status','Emp Status on 30Jun25']];
+const val = (e, c) => c[2] ? c[2](e) : e[c[0]];
+const TEXTCOLS = [['strengths','Strengths'],['devAreas','Development Areas'],['succAvail','Successor Availability'],['succNotes','Successor Identified / Notes'],['n1','N-1 Check'],['action','Key Talent Movement / Development Action Required']];
+const S = {tab:'concept', concept:'All', roles:new Set(), q:'', year:2, dv:{}, dq:''};
+const active = () => E.filter(e => e.status === 'Active');
+const inC = e => S.concept === 'All' || e.concept === S.concept;
+$('hcount').textContent = `${E.length} leaders · ${CONC.length} concepts`;
+const TABS = [['concept','Concept-Level View'],['kpi','KPI Dashboard'],['emp','Employee List'],['nine','9-Box Grid'],['pipe','Succession Pipeline'],['data','Data View']];
+const atabs = $('atabs'), pane = $('pane');
+TABS.forEach(([k, n]) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'atab'; b.setAttribute('role','tab'); b.dataset.k = k; b.textContent = n; b.setAttribute('aria-selected', k === S.tab); b.addEventListener('click', () => setTab(k)); atabs.appendChild(b); });
+function setTab(k){ S.tab = k; atabs.querySelectorAll('.atab').forEach(b => b.setAttribute('aria-selected', b.dataset.k === k)); render(); }
+function conceptSel(){ return `<div class="f"><label for="fConcept">Filter by Concept</label><select id="fConcept"><option value="All">All Concepts</option>${CONC.map(c => `<option ${S.concept === c.n ? 'selected' : ''}>${c.n}</option>`).join('')}</select></div>`; }
+function bindConcept(){ const s = $('fConcept'); if (s) s.addEventListener('change', () => { S.concept = s.value; render(); }); }
+function render(){ ({concept:renderConcept, kpi:renderKpi, emp:renderEmp, nine:renderNine, pipe:renderPipe, data:renderData})[S.tab](); }
+const pctC = (v, good) => { const cls = good == null ? 'a' : (good ? (v >= .6 ? 'g' : v >= .4 ? 'a' : 'r') : (v <= .1 ? 'g' : v <= .3 ? 'a' : 'r')); return `<span class="pct ${cls}">${Math.round(v*100)}%</span>`; };
+
+/* ---------- Concept-level view ---------- */
+function stats(list){
+  const crit = list.filter(e => e.crit === 'Yes'), hasS = e => e.succAvail.startsWith('Yes');
+  return {n:list.length, crit, critN:crit.length, succ:list.filter(hasS), succCrit:crit.filter(hasS), hipo:list.filter(e => e.hipo === 'Yes'), cons:list.filter(e => e.consistent), incons:list.filter(e => e.inconsistent),
+    risk:list.filter(e => e.risk !== 'Low'), critHigh:crit.filter(e => e.risk === 'High'), critNoHigh:crit.filter(e => !hasS(e) && e.risk === 'High')};
+}
+const DRILL = {};
+function kcard(key, title, list, sub, ratio, good){ DRILL[key] = {title, list}; return `<button type="button" class="kcard" data-drill="${key}"><div class="t"><span>${title}</span>${ratio != null ? pctC(ratio, good) : ''}</div><div class="v">${list.length}${sub ? `<small>${sub}</small>` : ''}</div></button>`; }
+function renderConcept(){
+  const list = active().filter(inC), s = stats(list);
+  let h = `<h4>Concept-Level KPIs</h4><div class="filters">${conceptSel()}</div>`;
+  h += `<div class="grp">Talent &amp; Succession</div><div class="kc">${kcard('all','Total employees', list)}${kcard('crit','% in critical roles', s.crit, `of ${s.n} employees`, s.critN / s.n, null)}${kcard('succ','% successor identified', s.succ, `of ${s.n - list.filter(e => e.role.startsWith('N-2')).length} assessed`, s.succ.length / Math.max(1, s.n - list.filter(e => e.role.startsWith('N-2')).length), true)}${kcard('succCrit','% successor for critical roles', s.succCrit, `of ${s.critN} critical roles`, s.succCrit.length / Math.max(1, s.critN), true)}</div>`;
+  h += `<div class="grp">Performance &amp; Potential</div><div class="kc">${kcard('hipo','# of HIPOs', s.hipo, `${Math.round(s.hipo.length / s.n * 100)}% of leaders`)}${kcard('cons','# of consistent performers', s.cons, 'Exceeds or better every year')}${kcard('incons','# of inconsistent performers', s.incons, 'rating swing of 2+ levels')}${kcard('weak','Weak links in critical roles', list.filter(e => e.weak), 'talent box 1–3')}</div>`;
+  h += `<div class="grp">Risk &amp; Retention</div><div class="kc">${kcard('risk','% at attrition risk (High/Med)', s.risk, `of ${s.n} employees`, s.risk.length / s.n, false)}${kcard('critHigh','% in critical roles at high risk', s.critHigh, `of ${s.critN} critical`, s.critHigh.length / Math.max(1, s.critN), false)}${kcard('critNoHigh','Critical, no successor & high risk', s.critNoHigh, 'act now', s.critNoHigh.length / Math.max(1, s.critN), false)}${kcard('noRet','HIPOs without retention plan', s.hipo.filter(e => e.retain === 'No'), `of ${s.hipo.length} HIPOs`, s.hipo.filter(e => e.retain === 'No').length / Math.max(1, s.hipo.length), false)}</div>`;
+  /* concept heat table */
+  const rows = CONC.map(c => { const l = active().filter(e => e.concept === c.n), st = stats(l); return {c:c.n, n:l.length, crit:st.critN / l.length, sc:st.succCrit.length / Math.max(1, st.critN), hipo:st.hipo.length / l.length, risk:st.risk.length / l.length, ch:st.critNoHigh.length}; });
+  const col = (v, good) => { const t = good ? v : 1 - v; return d3.interpolateRgb('#F8D9DC', '#CFEBDD')(Math.max(0, Math.min(1, (t - .2) / .6))); };
+  h += `<div class="grp">Concept comparison <span style="font-family:var(--sans);font-size:.78rem;color:var(--muted)">· click a concept to filter</span></div><div style="overflow-x:auto"><table class="heat"><thead><tr><th>Concept</th><th>Leaders</th><th>% critical</th><th>Successor for critical</th><th>% HIPO</th><th>Attrition risk H/M</th><th>Critical, no successor, high risk</th></tr></thead><tbody>${rows.map(r => `<tr data-c="${esc(r.c)}" style="cursor:pointer"><td>${esc(r.c)}</td><td>${r.n}</td><td>${Math.round(r.crit*100)}%</td><td style="background:${col(r.sc, true)}">${Math.round(r.sc*100)}%</td><td style="background:${col(r.hipo*1.6, true)}">${Math.round(r.hipo*100)}%</td><td style="background:${col(r.risk, false)}">${Math.round(r.risk*100)}%</td><td style="background:${r.ch ? '#F8D9DC' : '#CFEBDD'}">${r.ch}</td></tr>`).join('')}</tbody></table></div>`;
+  pane.innerHTML = h; bindConcept(); bindDrill();
+  pane.querySelectorAll('tr[data-c]').forEach(tr => tr.addEventListener('click', () => { S.concept = tr.dataset.c; render(); }));
+}
+function bindDrill(){ pane.querySelectorAll('[data-drill]').forEach(b => b.addEventListener('click', () => openDrill(DRILL[b.dataset.drill].title, DRILL[b.dataset.drill].list))); }
+function openDrill(title, list){
+  $('drillTitle').textContent = `${title} · ${list.length}`;
+  $('drillBody').innerHTML = list.length ? `<div class="dlist">${list.map(e => `<div data-id="${e.id}" role="button" tabindex="0"><img src="${avatar(e)}" alt=""><span><b>${esc(e.name)}</b><br><span style="font-size:.74rem;color:var(--muted)">${esc(e.desig)} · ${esc(e.concept)}</span></span><small>${esc(e.role)} · ${esc(e.band)}<br>Risk ${esc(e.risk)} · Box ${e.tal[2]}</small></div>`).join('')}</div>` : '<p>No one in this group.</p>';
+  $('drillBody').querySelectorAll('[data-id]').forEach(d => { const go = () => { closeModal($('drill')); openProfile(d.dataset.id); }; d.addEventListener('click', go); d.addEventListener('keydown', ev => { if (ev.key === 'Enter') go(); }); });
+  openModal($('drill'));
+}
+
+/* ---------- KPI dashboard ---------- */
+function renderKpi(){
+  const base = active().filter(inC);
+  const A = base.filter(e => e.role !== 'N Role'), B = base.filter(e => e.role === 'N-1 Role');
+  const rowsDef = [
+    ['Total count of employees', l => l, l => null],
+    ['Total HIPOs', l => l.filter(e => e.hipo === 'Yes'), (x, l) => x / l.length],
+    ['Total no. of critical roles', l => l.filter(e => e.crit === 'Yes'), (x, l) => x / l.length],
+    ['HIPOs in critical roles', l => l.filter(e => e.crit === 'Yes' && e.hipo === 'Yes'), (x, l) => x / Math.max(1, l.filter(e => e.crit === 'Yes').length)],
+    ['Non-HIPOs in critical roles', l => l.filter(e => e.crit === 'Yes' && e.hipo === 'No'), (x, l) => x / Math.max(1, l.filter(e => e.crit === 'Yes').length)],
+    ['HIPOs in critical roles with medium/high attrition risk', l => l.filter(e => e.crit === 'Yes' && e.hipo === 'Yes' && e.risk !== 'Low'), (x, l) => x / Math.max(1, l.filter(e => e.crit === 'Yes' && e.hipo === 'Yes').length)],
+    ['Succession depth for critical roles', l => l.filter(e => e.crit === 'Yes' && e.succAvail.startsWith('Yes')), (x, l) => x / Math.max(1, l.filter(e => e.crit === 'Yes').length)],
+    ['Critical roles with no successor', l => l.filter(e => e.crit === 'Yes' && !e.succAvail.startsWith('Yes')), (x, l) => x / Math.max(1, l.filter(e => e.crit === 'Yes').length)],
+    ['Consistent HIPOs with 3+ years in role', l => l.filter(e => e.hipo === 'Yes' && e.consistent && e.tir >= 3), (x, l) => x / Math.max(1, l.filter(e => e.hipo === 'Yes').length)],
+    ['Retention plan coverage for HIPOs', l => l.filter(e => e.hipo === 'Yes' && e.retain === 'Yes'), (x, l) => x / Math.max(1, l.filter(e => e.hipo === 'Yes').length)],
+    ['Weak links in critical roles', l => l.filter(e => e.weak), (x, l) => x / Math.max(1, l.filter(e => e.crit === 'Yes').length)]];
+  const rag = (i, r) => { if (r == null) return 'A'; const goodHigh = [1,3,6,8,9].includes(i), badHigh = [5,7,10].includes(i); if (goodHigh) return r >= .6 ? 'G' : r >= .35 ? 'A' : 'R'; if (badHigh) return r <= .15 ? 'G' : r <= .4 ? 'A' : 'R'; return r >= .5 ? 'G' : 'A'; };
+  let k = 0; const cell = (i, list, fn) => { const l = rowsDef[i][1](list), r = rowsDef[i][2](l.length, list), key = 'k' + (k++); DRILL[key] = {title:rowsDef[i][0] + ' · ' + (list === A ? 'B11+ view' : 'N-1 roles'), list:l}; return `<td class="n ${rag(i, r)}"><button type="button" data-drill="${key}">${l.length}</button>${r != null ? `<small>(${Math.round(r*100)}%)</small>` : ''}</td>`; };
+  const tbl = `<table class="ktab"><thead><tr><th></th><th>B11+ View<br><small style="font-weight:500">excluding N roles</small></th><th>N-1 Roles View</th></tr></thead><tbody>${rowsDef.map((r, i) => `<tr><td class="lbl">${r[0]}</td>${cell(i, A)}${cell(i, B)}</tr>`).join('')}</tbody></table>`;
+  const crit = A.filter(e => e.crit === 'Yes'), noS = crit.filter(e => !e.succAvail.startsWith('Yes')), flight = A.filter(e => e.crit === 'Yes' && e.hipo === 'Yes' && e.risk !== 'Low'), hipoCrit = crit.filter(e => e.hipo === 'Yes'), hipos = A.filter(e => e.hipo === 'Yes'), nonHipoCrit = crit.filter(e => e.hipo === 'No'), noRet = hipos.filter(e => e.retain === 'No');
+  const lvlTxt = noS.length / Math.max(1, crit.length) > .4 ? 'High' : noS.length / Math.max(1, crit.length) > .2 ? 'Moderate' : 'Low';
+  const acts = [
+    `<b>${lvlTxt} succession risk:</b> address the <b>${noS.length} critical roles without successors</b>. Accelerate development of potential candidates and confirm succession timelines.`,
+    `<b>Flight risk:</b> <b>${flight.length} HIPO(s) in critical roles</b> are at medium or high attrition risk. Hold stay interviews and agree targeted retention actions.`,
+    `<b>Talent placement:</b> ${Math.round(hipoCrit.length / Math.max(1, hipos.length) * 100)}% of HIPOs sit in critical roles. Review whether top talent is positioned for maximum impact.`,
+    `<b>Capability:</b> review the <b>${nonHipoCrit.length} non-HIPOs in critical roles</b>; create development plans or consider better-suited roles.`,
+    noRet.length ? `<b>Retention plans:</b> ${noRet.length} HIPO(s) have no retention plan yet.` : ''].filter(Boolean);
+  pane.innerHTML = `<h4>Talent Overview | ${S.concept === 'All' ? 'All Concepts' : esc(S.concept)}</h4><div class="filters">${conceptSel()}</div>
+    <div class="kpi2"><div style="overflow-x:auto">${tbl}<div class="legend"><span><i style="background:#CFEBDD"></i>Healthy</span><span><i style="background:#F1C54B"></i>Watch</span><span><i style="background:#F8D9DC"></i>Act</span><span>Click any number to see the people.</span></div></div>
+    <div class="actions"><h5>Actions recommended</h5><ul>${acts.map(a => `<li>${a}</li>`).join('')}</ul><p style="font-size:.72rem;color:var(--muted);margin-top:10px">Generated from the numbers on the left; updates with the concept filter.</p></div></div>`;
+  bindConcept(); bindDrill();
+}
+
+/* ---------- Employee list ---------- */
+const ROLES = ['N Role','N-1 Role','N-2 Role','N-2 Role/Moved to IND'];
+const SUMS = new Map();
+function rdyCls(r){ return r.startsWith('Ready Now') ? 'now' : r.startsWith('Ready Soon') ? 'soon' : r.startsWith('Ready Later') ? 'later' : 'no'; }
+function empFiltered(){ const q = S.q.trim().toLowerCase(); return active().filter(inC).filter(e => !S.roles.size || S.roles.has(e.role)).filter(e => !q || (e.name + ' ' + e.desig + ' ' + e.concept + ' ' + e.id).toLowerCase().includes(q)).sort((a,b) => a.name.localeCompare(b.name)); }
+function sumHTML(e){
+  const s = SUMS.get(e.id);
+  if (s && s.loading) return `<span class="k">Summary:</span> <span style="color:var(--muted)">thinking…</span>`;
+  if (s && s.err) return `<span class="k">Summary:</span> <span style="color:#B91C1C">${esc(s.err)}</span> <button type="button" class="lnk" data-sum="${e.id}">Retry</button>`;
+  if (s && s.text) return `<div class="ai ${s.local ? 'loc' : ''}">${esc(s.text).replace(/\n/g, '<br>')}</div><div><button type="button" class="lnk" data-sum="${e.id}">${s.local ? 'Summarise with AI' : 'Regenerate'}</button>${s.local ? '' : `<span style="font-size:.68rem;color:var(--muted)"> · ${esc(AI.model)}</span>`}</div>`;
+  return AI.key ? `<span class="k">Summary:</span> <button type="button" class="lnk" data-sum="${e.id}">✨ Summarise with AI</button> <button type="button" class="lnk" data-qs="${e.id}">Quick summary</button>`
+    : `<span class="k">Summary:</span> <span class="hint">Add an API key in ⚙ AI settings to summarise</span> <button type="button" class="lnk" data-qs="${e.id}">or quick summary</button>`;
+}
+function renderEmp(){
+  const list = empFiltered();
+  pane.innerHTML = `<h4>Find Employees</h4><div class="filters">${conceptSel()}<div class="f"><label>Filter by Role Level</label><div class="rl" id="rl">${ROLES.map(r => `<button type="button" data-r="${esc(r)}" aria-pressed="${S.roles.has(r)}">${esc(r)}</button>`).join('')}</div></div><div class="f"><label for="fq">Search</label><input type="search" id="fq" value="${esc(S.q)}" placeholder="Name, role or ID"></div></div>
+  <div class="toolbar"><span><b style="color:var(--deep)">${list.length}</b> employees · summaries use the columns chosen in ⚙ AI settings</span><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="pbtn alt" type="button" id="qsAll">Quick summary for all</button><button class="pbtn" type="button" id="aiAll" ${AI.key ? '' : 'disabled title="Add an API key in AI settings"'}>✨ Summarise all ${list.length} with AI</button></span></div>
+  <div class="scroll"><table class="elist"><thead><tr><th>Employee</th><th>Status</th><th class="hide-s">Readiness</th><th>Priority</th><th class="hide-s">Remarks</th></tr></thead><tbody>${list.map(e => { const d = ed(e.id); return `<tr data-row="${e.id}">
+    <td><div class="who"><img src="${avatar(e)}" alt=""><div><b data-prof="${e.id}" tabindex="0" role="button">${esc(e.name)}</b><span>${esc(e.desig)} · ${esc(e.concept)} · ${esc(e.role)} · ${esc(e.band)}</span><div class="sum" id="sum-${e.id}">${sumHTML(e)}</div></div></div></td>
+    <td><select class="sel s-${d.status}" data-st="${e.id}" aria-label="Status for ${esc(e.name)}">${['TBD','Retain','Develop','Promote','Watch'].map(o => `<option ${d.status === o ? 'selected' : ''}>${o}</option>`).join('')}</select></td>
+    <td class="hide-s"><span class="rdy ${rdyCls(e.ready)}">${esc(e.ready)}</span></td>
+    <td><select class="sel p-${d.priority || 'none'}" data-pr="${e.id}" aria-label="Priority for ${esc(e.name)}"><option value="">—</option>${['High','Medium','Low'].map(o => `<option ${d.priority === o ? 'selected' : ''}>${o}</option>`).join('')}</select></td>
+    <td class="rem hide-s"><textarea data-rm="${e.id}" placeholder="Enter remarks…" aria-label="Remarks for ${esc(e.name)}">${esc(d.remarks)}</textarea><div class="row"><small id="sv-${e.id}"></small><button class="sbtn" type="button" data-save="${e.id}">Save</button></div></td></tr>`; }).join('')}</tbody></table></div>`;
+  bindConcept();
+  $('rl').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { const r = b.dataset.r; S.roles.has(r) ? S.roles.delete(r) : S.roles.add(r); render(); }));
+  let qt; $('fq').addEventListener('input', ev => { clearTimeout(qt); qt = setTimeout(() => { S.q = ev.target.value; render(); const f = $('fq'); f.focus(); f.setSelectionRange(f.value.length, f.value.length); }, 250); });
+  pane.querySelectorAll('[data-st]').forEach(s => s.addEventListener('change', () => { ed(s.dataset.st).status = s.value; s.className = 'sel s-' + s.value; saveEdits(); }));
+  pane.querySelectorAll('[data-pr]').forEach(s => s.addEventListener('change', () => { ed(s.dataset.pr).priority = s.value; s.className = 'sel p-' + (s.value || 'none'); saveEdits(); }));
+  pane.querySelectorAll('[data-save]').forEach(b => b.addEventListener('click', () => { const id = b.dataset.save; ed(id).remarks = pane.querySelector(`[data-rm="${id}"]`).value; saveEdits(); const s = $('sv-' + id); s.textContent = 'Saved ✓'; setTimeout(() => s.textContent = '', 1500); }));
+  pane.querySelectorAll('[data-prof]').forEach(b => { b.addEventListener('click', () => openProfile(b.dataset.prof)); b.addEventListener('keydown', ev => { if (ev.key === 'Enter') openProfile(b.dataset.prof); }); });
+  $('qsAll').addEventListener('click', () => { empFiltered().forEach(e => { SUMS.set(e.id, {text:quickSummary(e), local:true}); refreshSum(e.id); }); });
+  $('aiAll').addEventListener('click', () => summariseMany(empFiltered()));
+}
+function sumClicks(ev){ const a = ev.target.closest('[data-sum]'), q = ev.target.closest('[data-qs]');
+  if (a){ if (!AI.key){ openAISettings(); return; } summarise(E.find(e => e.id === a.dataset.sum)); }
+  if (q){ const e = E.find(x => x.id === q.dataset.qs); SUMS.set(e.id, {text:quickSummary(e), local:true}); refreshSum(e.id); } }
+function refreshSum(id){ const el = document.getElementById('sum-' + id); if (el) el.innerHTML = sumHTML(E.find(e => e.id === id)); const d = document.getElementById('dsum-' + id); if (d) d.innerHTML = sumHTML(E.find(e => e.id === id)); }
+
+/* ---------- 9-box ---------- */
+const BOXES = {9:'High Performance, High Potential', 8:'High Performance, Some Potential', 7:'Meets Performance, High Potential', 6:'High Performance, Low Potential', 5:'Meets Performance, Some Potential', 4:'Low Performance, High Potential (incl. new in role)', 3:'Meets Performance, Low Potential', 2:'Low Performance, Some Potential', 1:'Low Performance, Low Potential'};
+const LAYOUT = [4,7,9,2,5,8,1,3,6];
+const YEARS = ['Talent Rating FY22-23','Talent Rating FY23-24','Talent Rating FY24-25'];
+function renderNine(animateFrom){
+  const list = active().filter(inC).filter(e => e.tal[S.year]);
+  const prev = S.year > 0 ? S.year - 1 : null;
+  const moved = list.filter(e => prev != null && e.tal[prev] && e.tal[prev] !== e.tal[S.year]);
+  const up = moved.filter(e => e.tal[S.year] > e.tal[prev]).length;
+  pane.innerHTML = `<div class="filters"><div class="f"><label for="fConcept">Concept</label><select id="fConcept"><option value="All">All Concepts</option>${CONC.map(c => `<option ${S.concept === c.n ? 'selected' : ''}>${c.n}</option>`).join('')}</select></div>
+    <div class="f"><label>Year</label><div class="seg" role="group" aria-label="Talent rating year">${YEARS.map((y, i) => `<button type="button" data-y="${i}" aria-pressed="${S.year === i}">${y.replace('Talent Rating ', '')}</button>`).join('')}</div></div>
+    <div class="f"><label>&nbsp;</label><button class="pbtn alt" type="button" id="playYears">▶ Play FY22 → FY25</button></div></div>
+    <div class="nine-meta"><span><b>${list.length}</b> leaders rated in ${YEARS[S.year].replace('Talent Rating ', '')}${prev != null ? ` · <b>${moved.length}</b> moved box since last year (${up} up, ${moved.length - up} down); moved faces have a gold ring` : ''}</span><span>Click a face for the full profile</span></div>
+    <div class="ninewrap"><div class="nine" id="nine"><div class="ylab"><span>LOW</span>Potential<span>HIGH</span></div>${LAYOUT.map(b => { const ppl = list.filter(e => e.tal[S.year] === b).sort((a,c) => a.name.localeCompare(c.name)); return `<div class="box b${b}"><div class="bh"><span>${b} · ${BOXES[b]}</span><b>${ppl.length}</b></div><div class="people">${ppl.map(e => `<button type="button" class="pp ${moved.includes(e) ? 'moved' : ''}" data-id="${e.id}" data-prof="${e.id}"><img src="${avatar(e)}" alt=""><span><b>${esc(e.name)}</b><i>${esc(e.band)} · ${esc(e.concept)}</i></span></button>`).join('')}</div></div>`; }).join('')}<div></div><div class="xlab"><span>LOW</span>Performance<span>HIGH (exceeds target)</span></div></div></div>`;
+  bindConcept();
+  pane.querySelectorAll('[data-y]').forEach(b => b.addEventListener('click', () => setYear(+b.dataset.y)));
+  pane.querySelectorAll('.pp').forEach(b => { b.addEventListener('click', () => openProfile(b.dataset.prof));
+    b.addEventListener('mousemove', ev => { const e = E.find(x => x.id === b.dataset.id); showTip(`<div class="t">${esc(e.name)}</div>${esc(e.desig)}<br>${e.tal.map((t, i) => t ? YEARS[i].replace('Talent Rating ','') + ': <b>box ' + t + '</b>' : '').filter(Boolean).join('<br>')}`, ev); }); b.addEventListener('mouseleave', hideTip); });
+  $('playYears').addEventListener('click', () => { setYear(0); [1, 2].forEach((y, i) => setTimeout(() => setYear(y), (i + 1) * (reduce ? 300 : 1700))); });
+  if (animateFrom && !reduce){
+    pane.querySelectorAll('.pp').forEach(b => { const old = animateFrom.get(b.dataset.id); const nw = b.getBoundingClientRect();
+      if (old){ const dx = old.left - nw.left, dy = old.top - nw.top; if (Math.abs(dx) + Math.abs(dy) > 2) b.animate([{transform:`translate(${dx}px,${dy}px)`, zIndex:5}, {transform:'none', zIndex:5}], {duration:900, easing:'cubic-bezier(.2,.8,.2,1)'}); }
+      else b.animate([{opacity:0, transform:'scale(.6)'}, {opacity:1, transform:'none'}], {duration:500}); });
+  }
+}
+function setYear(y){ if (S.tab !== 'nine') return; const pos = new Map(); pane.querySelectorAll('.pp').forEach(b => pos.set(b.dataset.id, b.getBoundingClientRect())); S.year = y; renderNine(pos); }
+
+/* ---------- Succession pipeline ---------- */
+function renderPipe(){
+  const list = active().filter(inC).filter(e => !e.role.startsWith('N-2')).sort((a,b) => (a.role === 'N Role' ? -1 : 0) - (b.role === 'N Role' ? -1 : 0) || (b.crit === 'Yes') - (a.crit === 'Yes') || b.band.localeCompare(a.band));
+  const cellFor = (e, prefix, cls) => { const s = e.succ.filter(x => x.r.startsWith(prefix)); if (!s.length) return `<td class="${e.crit === 'Yes' ? 'c-empty' : ''}"></td>`;
+    return `<td class="c-${cls}">${s.map(x => { const p = x.id ? E.find(z => z.id === x.id) : null; return `<span class="sname">${p ? `<img src="${avatar(p)}" alt="">` : '🔎'}${p ? `<a href="#" data-prof="${p.id}">${esc(x.name)}</a>` : esc(x.name)}</span>`; }).join('<br>')}</td>`; };
+  const bench = e => { const sc = e.succ.reduce((a, s) => a + (s.r.startsWith('Ready Now') ? 3 : s.r.startsWith('Ready Soon') ? 2 : 1), 0); return `<div class="bench" title="Bench strength ${sc}/9">${[...Array(9)].map((_, i) => `<i class="${i < sc ? 'on' : ''}"></i>`).join('')}</div>`; };
+  const gaps = list.filter(e => e.crit === 'Yes' && !e.succ.some(s => s.r.startsWith('Ready Now') || s.r.startsWith('Ready Soon')));
+  pane.innerHTML = `<h4>Succession Pipeline View</h4><div class="filters">${conceptSel()}</div>
+  <div class="toolbar"><span><b style="color:var(--deep)">${list.length}</b> N and N-1 roles · <b style="color:#9F1239">${gaps.length}</b> critical roles with no Ready Now/Soon successor (red cells)</span><span class="legend" style="margin:0"><span><i style="background:#D7F0E1"></i>Ready now</span><span><i style="background:#FCF1C7"></i>Ready soon</span><span><i style="background:#FFE4CC"></i>Ready later</span><span><i style="background:#F8D9DC"></i>Gap in a critical role</span></span></div>
+  <div class="scroll"><table class="pipe"><thead><tr><th>Designation</th><th>Role level</th><th>Band</th><th>Incumbent</th><th>Ready Now (0-12 months)</th><th>Ready Soon (12-24 months)</th><th>Ready Later (24+ months)</th></tr></thead><tbody>${list.map(e => `<tr><td><b>${esc(e.desig)}</b>${e.crit === 'Yes' ? '<span class="crit">CRITICAL</span>' : ''}<div style="font-size:.72rem;color:var(--muted)">${esc(e.concept)}</div>${bench(e)}</td><td>${esc(e.role)}</td><td>${esc(e.band)}</td><td><span class="sname"><img src="${avatar(e)}" alt=""><a href="#" data-prof="${e.id}">${esc(e.name)}</a></span><div style="font-size:.7rem;color:${e.risk === 'High' ? '#B91C1C' : 'var(--muted)'}">Attrition risk: ${esc(e.risk)}</div></td>${cellFor(e, 'Ready Now', 'now')}${cellFor(e, 'Ready Soon', 'soon')}${cellFor(e, 'Ready Later', 'later')}</tr>`).join('')}</tbody></table></div>`;
+  bindConcept();
+  pane.querySelectorAll('[data-prof]').forEach(a => a.addEventListener('click', ev => { ev.preventDefault(); openProfile(a.dataset.prof); }));
+}
+
+/* ---------- Data view ---------- */
+function renderData(){
+  const base = E.filter(inC), q = S.dq.trim().toLowerCase();
+  const list = base.filter(e => COLS.every(c => !S.dv[c[0]] || String(val(e, c)) === S.dv[c[0]])).filter(e => !q || COLS.some(c => String(val(e, c)).toLowerCase().includes(q)));
+  const uniq = c => [...new Set(base.map(e => String(val(e, c))))].sort();
+  pane.innerHTML = `<h4>Full Data View</h4><div class="filters">${conceptSel()}<div class="f"><label for="dq">Search all columns</label><input type="search" id="dq" value="${esc(S.dq)}" placeholder="Any text"></div><div class="f"><label>&nbsp;</label><button class="pbtn alt" type="button" id="clrF">Clear column filters</button></div></div>
+  <div class="toolbar"><span><b style="color:var(--deep)">${list.length}</b> of ${base.length} rows · ${COLS.length} columns · scroll sideways; click long text to expand</span></div>
+  <div class="scroll" style="max-height:640px"><table class="dtab"><thead><tr>${COLS.map(c => { const u = c[3] ? null : uniq(c); return `<th>${esc(c[1])}${u && u.length <= 40 ? `<select data-col="${c[0]}" aria-label="Filter ${esc(c[1])}"><option value="">(All)</option>${u.map(v => `<option ${S.dv[c[0]] === v ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select>` : ''}</th>`; }).join('')}</tr></thead>
+  <tbody>${list.map(e => `<tr>${COLS.map(c => { const v = val(e, c); const cls = v === 'Yes' ? 'yes' : (v === 'No' || v === 'No Successor' || v === 'High') ? 'no' : ''; return c[3] ? `<td class="long"><div>${esc(v)}</div></td>` : `<td class="${cls}">${esc(v)}</td>`; }).join('')}</tr>`).join('')}</tbody></table></div>`;
+  bindConcept();
+  pane.querySelectorAll('[data-col]').forEach(s => s.addEventListener('change', () => { S.dv[s.dataset.col] = s.value; render(); }));
+  let t; $('dq').addEventListener('input', ev => { clearTimeout(t); t = setTimeout(() => { S.dq = ev.target.value; render(); const f = $('dq'); f.focus(); f.setSelectionRange(f.value.length, f.value.length); }, 300); });
+  $('clrF').addEventListener('click', () => { S.dv = {}; S.dq = ''; render(); });
+  pane.querySelectorAll('td.long div').forEach(d => d.addEventListener('click', () => d.classList.toggle('open')));
+}
+$('exportCsv').addEventListener('click', () => {
+  const rows = [COLS.map(c => c[1]).concat(['Workbench Status','Workbench Priority','Workbench Remarks','AI Summary'])];
+  E.filter(inC).forEach(e => { const d = EDITS[e.id] || {}; const s = SUMS.get(e.id); rows.push(COLS.map(c => val(e, c)).concat([d.status || 'TBD', d.priority || '', d.remarks || '', s && s.text ? s.text : ''])); });
+  const csv = rows.map(r => r.map(v => { const s = String(v == null ? '' : v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }).join(',')).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + csv], {type:'text/csv'})); a.download = 'succession-workbench.csv'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 400);
+});
+
+/* ---------- Profile drawer ---------- */
+const drawer = $('drawer'), scrim = $('scrim');
+const BOXCOL = {9:'#0B7A3B',8:'#22B05A',7:'#22B05A',6:'#CFD8DC',5:'#CFD8DC',4:'#CFD8DC',3:'#F4C9A5',2:'#F4C9A5',1:'#F2B8B8'};
+function openProfile(id){
+  const e = E.find(x => x.id === id); if (!e) return; const d = ed(e.id);
+  drawer.innerHTML = `<div class="dr-h"><img src="${avatar(e)}" alt=""><div><b>${esc(e.name)}</b><span>${esc(e.desig)}<br>${esc(e.concept)} · ${esc(e.role)} · ${esc(e.band)} · HRMS ${e.id}</span></div><button type="button" id="drClose" aria-label="Close profile">✕</button></div>
+  <div class="dr-b"><h6>Talent trajectory</h6><div class="traj">${e.tal.map((t, i) => t ? `<span style="background:${BOXCOL[t]};color:${t >= 7 ? '#fff' : '#1B2A30'}" title="${YEARS[i]}">${t}</span>${i < 2 ? '→' : ''}` : '').join('')}<small style="color:var(--muted);margin-left:6px">FY22-23 → FY24-25</small></div>
+  <h6>AI summary</h6><div class="sum" id="dsum-${e.id}">${sumHTML(e)}</div>
+  <h6>Profile</h6><dl><dt>HIPO</dt><dd class="${e.hipo === 'Yes' ? 'yes' : ''}">${e.hipo}</dd><dt>Critical role</dt><dd>${e.crit}${e.crit === 'Yes' ? ' · ' + esc(e.criteria) : ''}</dd><dt>Attrition risk</dt><dd class="${e.risk === 'High' ? 'no' : ''}">${e.risk}</dd><dt>Readiness</dt><dd><span class="rdy ${rdyCls(e.ready)}">${esc(e.ready)}</span></dd><dt>Potential next role</dt><dd>${esc(e.next)}</dd><dt>Performance</dt><dd>${e.pr.map(p => esc(p || '—')).join(' → ')}</dd><dt>Tenure in role</dt><dd>${e.tir} yrs · joined ${fmtD(e.doj)}</dd><dt>Line manager</dt><dd>${esc(e.mgrName)}</dd><dt>Location</dt><dd>${esc(e.region)}, ${esc(e.terr)}</dd><dt>Retention plan</dt><dd>${esc(e.retain)}</dd><dt>Workbench status</dt><dd>${esc(d.status)}${d.priority ? ' · ' + esc(d.priority) + ' priority' : ''}</dd></dl>
+  ${TEXTCOLS.map(([k, n]) => `<h6>${n}</h6><p>${esc(e[k])}</p>`).join('')}${e.ceo ? `<h6>CEO comments</h6><p>${esc(e.ceo)}</p>` : ''}</div>`;
+  drawer.classList.add('open'); drawer.setAttribute('aria-hidden','false'); scrim.classList.add('open'); $('drClose').focus();
+  $('drClose').addEventListener('click', closeProfile); drawer.querySelector('.dr-b').addEventListener('click', sumClicks);
+}
+function closeProfile(){ drawer.classList.remove('open'); drawer.setAttribute('aria-hidden','true'); scrim.classList.remove('open'); }
+scrim.addEventListener('click', () => { closeProfile(); document.querySelectorAll('.modal.open').forEach(closeModal); });
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape'){ closeProfile(); document.querySelectorAll('.modal.open').forEach(closeModal); } });
+function openModal(m){ m.classList.add('open'); scrim.classList.add('open'); const f = m.querySelector('input,button,textarea'); if (f) f.focus(); }
+function closeModal(m){ m.classList.remove('open'); if (!drawer.classList.contains('open')) scrim.classList.remove('open'); }
+document.querySelectorAll('.modal [data-close]').forEach(b => b.addEventListener('click', () => closeModal(b.closest('.modal'))));
+
+/* ======================================================================
+   AI SUMMARIES (OpenAI, user's own key)
+   ====================================================================== */
+const DEFAULT_PROMPT = `You are a talent analyst preparing a succession review at a large retail group.
+Summarise this leader in 3 short bullet points (max 60 words in total):
+• what they are strong at
+• what they need to develop
+• successor position and the next action.
+Use only the information given. Do not invent facts.
+
+Employee: {{name}}, {{designation}}, {{concept}} ({{role_level}}, {{band}})
+{{fields}}`;
+const PRESETS = [['3 bullets (default)', DEFAULT_PROMPT],
+  ['One-line headline', 'Write one sentence (max 25 words) a CEO can read in a talent review for {{name}}, {{designation}} at {{concept}}. Use only these notes:\n{{fields}}'],
+  ['Risks only', 'From the notes below, list only the risks for {{name}} ({{designation}}, {{concept}}): succession gaps, development gaps and flight risk. Max 3 bullets. Do not invent facts.\n{{fields}}'],
+  ['Action plan', 'Write a 90-day development and retention action plan for {{name}}, {{designation}} at {{concept}}, as 3 numbered actions with an owner each. Base it only on:\n{{fields}}']];
+const AI = {key:'', model:'gpt-4o-mini', prompt:DEFAULT_PROMPT, cols:new Set(TEXTCOLS.map(c => c[0]))};
+try { const k = store.get('lg_sp_key'); if (k) AI.key = k; const cfg = JSON.parse(store.get('lg_sp_ai') || 'null'); if (cfg){ AI.model = cfg.model || AI.model; AI.prompt = cfg.prompt || AI.prompt; if (cfg.cols) AI.cols = new Set(cfg.cols); } } catch(e){}
+function aiStatus(){ $('aiStat').innerHTML = AI.key ? `AI: <b>on</b> · ${esc(AI.model)}` : 'AI: off'; $('openAI').classList.toggle('on', !!AI.key); }
+aiStatus();
+$('aiCols').innerHTML = TEXTCOLS.map(([k, n]) => `<label><input type="checkbox" value="${k}"> ${n}</label>`).join('');
+$('presets').innerHTML = PRESETS.map((p, i) => `<button type="button" class="sbtn" data-ps="${i}">${p[0]}</button>`).join('');
+$('presets').querySelectorAll('[data-ps]').forEach(b => b.addEventListener('click', () => { $('aiPrompt').value = PRESETS[+b.dataset.ps][1]; }));
+function openAISettings(){ $('aiKey').value = AI.key; $('aiModel').value = AI.model; $('aiPrompt').value = AI.prompt; $('aiRemember').checked = !!store.get('lg_sp_key');
+  $('aiCols').querySelectorAll('input').forEach(c => c.checked = AI.cols.has(c.value)); $('aiTestSt').textContent = ''; openModal($('aiModal')); }
+$('openAI').addEventListener('click', openAISettings);
+function readForm(){ AI.key = $('aiKey').value.trim(); AI.model = $('aiModel').value.trim() || 'gpt-4o-mini'; AI.prompt = $('aiPrompt').value || DEFAULT_PROMPT; AI.cols = new Set([...$('aiCols').querySelectorAll('input:checked')].map(c => c.value)); }
+$('aiSave').addEventListener('click', () => { readForm(); if ($('aiRemember').checked && AI.key) store.set('lg_sp_key', AI.key); else store.del('lg_sp_key');
+  store.set('lg_sp_ai', JSON.stringify({model:AI.model, prompt:AI.prompt, cols:[...AI.cols]})); aiStatus(); closeModal($('aiModal')); if (S.tab === 'emp') render(); });
+$('aiClear').addEventListener('click', () => { AI.key = ''; $('aiKey').value = ''; store.del('lg_sp_key'); aiStatus(); $('aiTestSt').textContent = 'Key removed from this browser.'; if (S.tab === 'emp') render(); });
+$('aiTest').addEventListener('click', async () => { readForm(); const st = $('aiTestSt'); if (!AI.key){ st.textContent = 'Enter a key first.'; return; } st.style.color = 'var(--muted)'; st.textContent = 'Testing…';
+  try { await callOpenAI('Reply with the single word OK.', 5); st.style.color = 'var(--green)'; st.textContent = 'Key works ✓'; aiStatus(); } catch(err){ st.style.color = '#B91C1C'; st.textContent = err.message; } });
+function buildPrompt(e){
+  const fields = TEXTCOLS.filter(([k]) => AI.cols.has(k)).map(([k, n]) => `${n}: ${e[k] || '-'}`).join('\n');
+  const map = {name:e.name, designation:e.desig, concept:e.concept, role_level:e.role, band:e.band, fields};
+  return AI.prompt.replace(/\{\{\s*(\w+)\s*\}\}/g, (m, k) => map[k] != null ? map[k] : m) + (AI.prompt.includes('{{fields}}') ? '' : '\n\n' + fields);
+}
+async function callOpenAI(prompt, maxTokens){
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer ' + AI.key},
+    body:JSON.stringify({model:AI.model, temperature:0.3, max_tokens:maxTokens || 220, messages:[{role:'system', content:'You write concise, factual HR talent summaries. Never invent information.'}, {role:'user', content:prompt}]})});
+  let data = null; try { data = await res.json(); } catch(e){}
+  if (!res.ok) throw new Error((data && data.error && data.error.message) ? data.error.message.slice(0, 160) : 'Request failed (' + res.status + ')');
+  const txt = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content; if (!txt) throw new Error('Empty response from the model');
+  return txt.trim();
+}
+async function summarise(e){
+  SUMS.set(e.id, {loading:true}); refreshSum(e.id);
+  try { const t = await callOpenAI(buildPrompt(e)); SUMS.set(e.id, {text:t}); } catch(err){ SUMS.set(e.id, {err:err.message}); }
+  refreshSum(e.id);
+}
+async function summariseMany(list){
+  if (!AI.key){ openAISettings(); return; }
+  const btn = $('aiAll'); let done = 0; const q = list.slice(); btn.disabled = true;
+  const worker = async () => { while (q.length){ const e = q.shift(); await summarise(e); done++; if (btn) btn.textContent = `Summarising… ${done}/${list.length}`; } };
+  await Promise.all([worker(), worker(), worker()]);
+  if (btn){ btn.disabled = false; btn.textContent = `✨ Summarise all ${list.length} with AI`; }
+}
+function quickSummary(e){
+  const first = s => String(s || '').split(/[.;]/)[0].trim(); const lines = [];
+  if (AI.cols.has('strengths')) lines.push('• Strength: ' + first(e.strengths).toLowerCase().replace(/^./, c => c.toUpperCase()));
+  if (AI.cols.has('devAreas')) lines.push('• Develop: ' + first(e.devAreas));
+  if (AI.cols.has('succAvail') || AI.cols.has('succNotes')) lines.push('• Successors: ' + e.succAvail + (e.succ.length ? ' (' + e.succ.map(s => s.name.split(' ')[0]).join(', ') + ')' : ''));
+  if (AI.cols.has('action')) lines.push('• Next: ' + first(e.action));
+  if (AI.cols.has('n1') && e.n1 !== 'NA') lines.push('• N-1: ' + e.n1);
+  return lines.join('\n') || 'Choose columns in AI settings.';
+}
+
+pane.addEventListener('click', ev => { if (S.tab === 'emp') sumClicks(ev); });
+render();
+
+/* ======================================================================
+   IMPACT CHARTS
+   ====================================================================== */
+const SL = CONC.map((c, i) => ({c:c.n, b:[38, 46, 31, 52, 40, 48, 35, 44][i], a:[68, 74, 61, 80, 66, 77, 63, 72][i]}));
+let slMode = 'after', slUpd = null;
+function drawSlope(){
+  const w = 560, h = 360, m = {t:30, r:120, b:24, l:120}, s = d3.select('#slope').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Critical roles with a ready successor by concept, slope chart');
+  const x0 = m.l, x1 = w - m.r, y = d3.scaleLinear().domain([25, 85]).range([h - m.b, m.t]);
+  [30, 50, 70].forEach(v => { s.append('line').attr('x1', x0).attr('x2', x1).attr('y1', y(v)).attr('y2', y(v)).attr('stroke', '#E6EDF0').attr('stroke-dasharray', '2 3'); s.append('text').attr('x', (x0 + x1)/2).attr('y', y(v) - 3).attr('text-anchor','middle').attr('font-size', 10).attr('fill','#9AB0B8').text(v + '%'); });
+  s.append('text').attr('x', x0).attr('y', 14).attr('text-anchor','middle').attr('font-size', 12).attr('font-weight', 800).attr('fill','#58707A').text('FY23-24');
+  const t1 = s.append('text').attr('x', x1).attr('y', 14).attr('text-anchor','middle').attr('font-size', 12).attr('font-weight', 800).attr('fill','#0E4C61').text('FY24-25');
+  const g = s.selectAll('g.sl').data(SL).join('g').attr('class','sl');
+  const ln = g.append('line').attr('x1', x0).attr('x2', x0).attr('y1', d => y(d.b)).attr('y2', d => y(d.b)).attr('stroke', (d,i) => d3.interpolateRgb('#3C8DA6', '#0E4C61')(i/7)).attr('stroke-width', 2.5).attr('opacity', .85);
+  g.append('circle').attr('cx', x0).attr('cy', d => y(d.b)).attr('r', 5).attr('fill','#9DB9C3');
+  const ad = g.append('circle').attr('cx', x0).attr('cy', d => y(d.b)).attr('r', 6).attr('fill', '#0E4C61').attr('stroke','#fff').attr('stroke-width', 1.5);
+  const lb0 = g.append('text').attr('x', x0 - 10).attr('y', d => y(d.b)).attr('dy','.35em').attr('text-anchor','end').attr('font-size', 11).attr('fill','#3A5059').text(d => `${d.c} ${d.b}%`);
+  const lb1 = g.append('text').attr('x', x1 + 10).attr('y', d => y(d.a)).attr('dy','.35em').attr('font-size', 11).attr('font-weight', 700).attr('fill','#0E4C61').attr('opacity', 0).text(d => `${d.a}% ${d.c}`);
+  const spread = sel => { const ys = []; sel.each(function(d){ ys.push({n:this, y:+this.getAttribute('y')}); }); ys.sort((a,b) => a.y - b.y); for (let i = 1; i < ys.length; i++) if (ys[i].y - ys[i-1].y < 13) ys[i].y = ys[i-1].y + 13; ys.forEach(o => o.n.setAttribute('y', o.y)); };
+  spread(lb0); spread(lb1);
+  g.on('mousemove', (ev, d) => showTip(`<div class="t">${d.c}</div>FY23-24: <b>${d.b}%</b><br>FY24-25: <b>${d.a}%</b><br>Change: <b>+${d.a - d.b} pts</b>`, ev)).on('mouseleave', hideTip);
+  slUpd = () => { const t = d3.transition().duration(DUR);
+    if (slMode === 'after'){ ln.transition(t).attr('x2', x1).attr('y2', d => y(d.a)); ad.transition(t).attr('cx', x1).attr('cy', d => y(d.a)); lb1.transition(t).delay(reduce ? 0 : 400).attr('opacity', 1); t1.attr('opacity', 1); }
+    else { ln.transition(t).attr('x2', x0).attr('y2', d => y(d.b)); ad.transition(t).attr('cx', x0).attr('cy', d => y(d.b)); lb1.transition(t).attr('opacity', 0); t1.attr('opacity', .35); } };
+  slUpd();
+}
+document.querySelectorAll('[data-sl]').forEach(b => b.addEventListener('click', () => { slMode = b.dataset.sl; document.querySelectorAll('[data-sl]').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); if (slUpd) slUpd(); }));
+function drawCycle(){
+  const w = 560, h = 260, m = {t:20, r:50, b:34, l:110}, s = d3.select('#cycle').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Talent review cycle time by stage');
+  const D = [{k:'Before', v:[4, 2, 1.5, 1.5]}, {k:'With workbench', v:[0.8, 1, 0.6, 0.6]}], cols = ['#0E4C61','#3C8DA6','#E0A526','#9DB9C3'], names = ['Data collection & cleaning','Calibration','Succession mapping','CEO review pack'];
+  const x = d3.scaleLinear().domain([0, 9.5]).range([m.l, w - m.r]), y = d3.scaleBand().domain(D.map(d => d.k)).range([m.t, h - m.b]).padding(.35);
+  s.append('g').attr('class','grid').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(9).tickSize(-(h - m.t - m.b)).tickFormat(''));
+  s.append('g').attr('class','axis').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(9).tickFormat(d => d + 'w').tickSize(0).tickPadding(8));
+  s.append('g').attr('class','axis').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).tickSize(0).tickPadding(10)).selectAll('text').attr('font-weight', 700).attr('font-size', 12.5);
+  D.forEach((d, di) => { let acc = 0; d.v.forEach((v, i) => { const x0 = acc; acc += v;
+    s.append('rect').attr('x', x(0)).attr('y', y(d.k)).attr('height', y.bandwidth()).attr('width', 0).attr('fill', cols[i]).attr('rx', 3)
+      .on('mousemove', ev => showTip(`<div class="t">${d.k}</div>${names[i]}: <b>${v} weeks</b>`, ev)).on('mouseleave', hideTip)
+      .transition().duration(DUR).delay(reduce ? 0 : di*500 + i*180).attr('x', x(x0)).attr('width', x(x0 + v) - x(x0) - 1.5); });
+    s.append('text').attr('x', x(acc) + 8).attr('y', y(d.k) + y.bandwidth()/2).attr('dy','.35em').attr('font-size', 14).attr('font-weight', 800).attr('fill', di ? '#0E4C61' : '#58707A').attr('opacity', 0).text(acc + ' wks').transition().delay(reduce ? 0 : di*500 + 900).attr('opacity', 1); });
+}
+whenVisible($('slope'), drawSlope);
+whenVisible($('cycle'), drawCycle);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Housing Finance · AI Voice Exit Interviews | HMC Case Study</title>
+<meta name="description" content="How Havish M Consulting built an AI voice exit interviewer for a housing finance company: five dynamic questions spoken with ElevenLabs, answers transcribed and coded by GenAI into a structured exit record and an attrition insights dashboard.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+:root{
+  --pri:#E8634A; --deep:#1B2A41; --acc:#5CC8D7; --vio:#7B6CF6; --bad:#D9434C; --good:#2E9E6B; --amb:#F0A23B;
+  --bg:#F6F5F3; --text:#1A2232; --muted:#5E6676; --card:#FFFFFF; --line:#E3E1DC;
+  --radius:12px; --shadow:0 1px 2px rgba(27,42,65,.06),0 8px 24px rgba(27,42,65,.08);
+  --serif:"DM Serif Display",Georgia,serif; --sans:"DM Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif; --mono:ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--serif);font-weight:400;color:var(--deep);margin:0;line-height:1.15}
+h2{font-size:clamp(1.6rem,3.2vw,2.2rem)}
+h3{font-size:1.2rem}
+p{margin:0}
+.wrap{max-width:1260px;margin:0 auto;padding:0 24px}
+section{padding:64px 0}
+.eyebrow{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--pri);margin-bottom:10px}
+.lead{color:var(--muted);max-width:800px;margin-top:12px}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line)}
+.sec-head{margin-bottom:28px}
+.alt{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.topbar{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+.logos{display:flex;align-items:center;gap:16px}
+.logos img{height:44px;width:auto;object-fit:contain}
+.logos img.cl{height:30px}
+.vdiv{width:1px;height:36px;background:var(--line)}
+.tagline{font-size:.8rem;color:var(--muted);letter-spacing:.04em}
+.tagline b{color:var(--pri);font-weight:700}
+.hero{background:radial-gradient(120% 140% at 88% 0%,#4A2470 0%,#2A1446 45%,#120821 100%);color:#fff;padding:76px 0 70px;position:relative;overflow:hidden}
+.hero canvas{position:absolute;right:0;top:0;width:58%;height:100%;pointer-events:none}
+.hero .eyebrow{color:#FFB09F}
+.hero h1{color:#fff;font-size:clamp(2.3rem,5.4vw,3.8rem);max-width:720px;position:relative;z-index:1}
+.hero h1 em{font-style:normal;color:#FFB09F}
+.hero .sub{font-size:clamp(1.05rem,2vw,1.2rem);color:rgba(255,255,255,.86);max-width:640px;margin-top:18px;position:relative;z-index:1}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px;position:relative;z-index:1}
+.pill{border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:6px 14px;font-size:.85rem;color:#fff;background:rgba(255,255,255,.06)}
+.pill span{color:#FFB09F;font-weight:700;margin-right:6px}
+.kpis{margin-top:-30px;position:relative;z-index:2;padding:0}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi{padding:22px 20px;border-top:3px solid var(--acc)}
+.kpi .label{font-size:.82rem;color:var(--muted);font-weight:500}
+.kpi .val{font-family:var(--serif);font-size:clamp(1.9rem,4vw,2.6rem);color:var(--pri);line-height:1.1;margin-top:6px;white-space:nowrap}
+.kpi .val small{font-family:var(--sans);font-size:.9rem;color:var(--muted);margin-left:4px}
+.delta{display:inline-flex;align-items:center;gap:4px;font-size:.8rem;font-weight:700;margin-top:8px;padding:2px 8px;border-radius:999px;background:rgba(31,166,122,.1);color:var(--good)}
+.footnote{font-size:.78rem;color:var(--muted);margin-top:14px}
+.ch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.chc{padding:24px}
+.ico{width:44px;height:44px;border-radius:10px;background:var(--pri-15);display:grid;place-items:center;margin-bottom:16px}
+.ico svg{width:22px;height:22px;stroke:var(--pri);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.chc h3{margin-bottom:8px}
+.chc p{font-size:.92rem;color:#433A52}
+.tl{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.tl::before{content:"";position:absolute;left:10%;right:10%;top:27px;height:3px;background:linear-gradient(90deg,var(--pri),var(--acc));border-radius:2px;opacity:.55}
+.tl-step{position:relative;background:none;border:0;cursor:pointer;font:inherit;color:inherit;display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 4px 8px}
+.tl-dot{width:56px;height:56px;border-radius:50%;background:#fff;border:2px solid var(--line);display:grid;place-items:center;font-family:var(--serif);font-size:1.25rem;color:var(--pri);transition:all .25s;position:relative;z-index:1}
+.tl-name{font-weight:700;font-size:.95rem}
+.tl-dur{font-size:.75rem;color:var(--muted);margin-top:-8px}
+.tl-step:hover .tl-dot{border-color:var(--pri)}
+.tl-step[aria-expanded="true"] .tl-dot{background:var(--pri);border-color:var(--pri);color:#fff;box-shadow:0 0 0 6px var(--pri-15)}
+.tl-step:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:8px}
+.tl-panel{display:none;padding:24px 28px;margin-top:20px;border-left:4px solid var(--acc)}
+.tl-panel.open{display:block;animation:fadeUp .35s ease}
+.tl-panel h3{margin-bottom:6px}
+.tl-panel ul{margin:12px 0 0;padding-left:20px;color:#433A52}
+.tl-panel li{margin:6px 0}
+.tl-panel .deliv{margin-top:14px;font-size:.85rem;color:var(--muted)}
+.tl-panel .deliv b{color:var(--pri)}
+.tl-hint{text-align:center;color:var(--muted);font-size:.8rem;margin-top:6px}
+.seg{display:inline-flex;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:22px;padding:4px;gap:4px}
+.seg button{border:0;background:none;font:inherit;font-size:.82rem;font-weight:700;padding:6px 13px;border-radius:999px;cursor:pointer;color:var(--muted);transition:all .2s}
+.seg button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.seg button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.seg.sm button{font-size:.76rem;padding:5px 10px}
+.mod-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.mod-head h3{font-size:1.5rem}
+.mod-head p{font-size:.88rem;color:var(--muted);max-width:720px;margin-top:4px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--deep);color:#FFB09F;font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:8px}
+.module{margin-bottom:54px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 12px;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer;color:var(--deep);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:border-color .15s,color .15s,background .15s}
+.btn:hover{border-color:var(--pri);color:var(--pri)}
+.btn.go{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.go:hover{background:#178A65;color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+
+
+.logos img.cl{height:34px}
+.hero{background:radial-gradient(110% 140% at 82% 10%,#3A2F55 0%,#1B2A41 50%,#0E1522 100%)}
+.hero .eyebrow,.hero .pill span{color:#FFB09F}
+.hero h1 em{color:#8FE3EE;font-style:italic}
+.badge{color:#FFB09F}
+.kpi{border-top:3px solid var(--pri)}
+.chc p,.tl-panel ul,.tk p{color:#414A5A}
+.tl::before{background:linear-gradient(90deg,var(--pri),var(--acc))}
+.module .btn.go,.btn.go{background:var(--deep);border-color:var(--deep);color:#fff}
+.module .btn.go:hover,.btn.go:hover{background:#000;color:#fff}
+.btn.sm{padding:6px 10px;font-size:.74rem}
+.btn.ai{background:linear-gradient(110deg,#1B2A41 0%,#7A3B44 38%,#E8634A 50%,#7A3B44 62%,#1B2A41 100%);background-size:260% 100%;color:#fff;border-color:transparent;animation:shim 3.2s linear infinite}
+.btn.ai:hover{color:#fff;filter:brightness(1.1)} .btn.ai[disabled]{opacity:.7;cursor:progress}
+.btn.big{padding:12px 20px;font-size:.92rem}
+@keyframes shim{from{background-position:130% 0}to{background-position:-130% 0}}
+.chart svg{width:100%;height:auto;display:block}
+.axis text{font-family:var(--sans);font-size:11px;fill:var(--muted)}
+.axis line{stroke:var(--line)} .axis path{display:none}
+.grid line{stroke:var(--line);stroke-dasharray:2 3} .grid path{display:none}
+.ckey{display:flex;gap:12px;font-size:.74rem;color:var(--muted);margin-top:6px;flex-wrap:wrap}
+.ckey span{display:inline-flex;align-items:center;gap:6px}
+.ckey i{width:12px;height:12px;border-radius:3px;display:inline-block}
+h4.lbl{margin:0 0 8px;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.chipb{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;font:700 .74rem var(--sans);color:var(--deep);cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.chipb:hover{border-color:var(--pri)} .chipb.on{background:var(--deep);border-color:var(--deep);color:#fff}
+.chipb.pre{font-weight:600;background:#FDF2EF;border-color:#F6D5CC} .chipb.pre.on{background:var(--deep);border-color:var(--deep);color:#fff}
+.sigs{display:flex;gap:5px;flex-wrap:wrap}
+.ms{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.ms .k{font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.ms .v{font-family:var(--serif);font-size:1.3rem;color:var(--deep);line-height:1.15;font-variant-numeric:tabular-nums}
+.ms .s{font-size:.68rem;color:var(--muted)}
+select.sel,input.inp{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:600 .78rem var(--sans);background:#fff;color:var(--deep);width:100%;min-width:0}
+.note{font-size:.72rem;color:var(--muted);line-height:1.45;margin:0}
+.pill2{display:inline-flex;align-items:center;gap:6px;font:800 .62rem var(--sans);letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.pill2.off{background:#ECEAE6;color:#5E6676} .pill2.on{background:#FDE7E1;color:#B23F27}
+.pill2 i{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block}
+.pill2.on i{animation:blink 1.4s infinite}
+@keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
+.tag{font:800 .6rem var(--sans);letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 8px;white-space:nowrap;display:inline-block}
+.tag.r{background:#FBE1E2;color:#9E2A31} .tag.a{background:#FFF0D6;color:#8A5A00} .tag.g{background:#DDF1E7;color:#1D6B47} .tag.b{background:#E1F4F7;color:#1F6B77} .tag.v{background:#ECE9FE;color:#4A3BB8}
+.spark{color:var(--pri);display:inline-block;animation:tw 2.4s ease-in-out infinite}
+@keyframes tw{50%{opacity:.4;transform:scale(.8) rotate(20deg)}}
+/* keys */
+.aikey{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.7fr);gap:18px;padding:16px 18px;margin:0 0 32px;align-items:center;border:2px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(120deg,#E8634A,#5CC8D7,#7B6CF6,#E8634A,#5CC8D7) border-box;background-size:100% 100%,300% 100%;animation:bord 9s linear infinite}
+@keyframes bord{to{background-position:0 0,300% 0}}
+.aikey h3{margin:0;font:400 1.35rem var(--serif);color:var(--deep)}
+.aikey .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
+.krow{display:grid;grid-template-columns:110px minmax(0,1fr) 150px auto auto;gap:8px;align-items:center;margin-bottom:8px}
+.krow b{font-size:.76rem;color:var(--deep)}
+.krow input{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:500 .78rem var(--mono);color:var(--deep);background:#fff;min-width:0;width:100%}
+.krow .pill2{justify-self:start}
+.kfoot{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.74rem}
+/* interview */
+.iv{display:grid;grid-template-columns:270px minmax(0,1fr) minmax(0,1fr);overflow:hidden}
+.iv>div{min-width:0;padding:14px}
+.iv>div:first-child{border-right:1px solid var(--line);background:#FAF9F7;display:flex;flex-direction:column;gap:10px}
+.iv>div:last-child{border-left:1px solid var(--line);background:#FAF9F7;display:flex;flex-direction:column;gap:8px}
+.prof{display:flex;flex-direction:column;gap:6px}
+.pc{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;cursor:pointer;text-align:left;font:inherit;color:inherit;transition:all .2s}
+.pc b{display:block;font-size:.8rem;color:var(--deep)} .pc span{display:block;font-size:.68rem;color:var(--muted)}
+.pc.on{border-color:var(--pri);box-shadow:0 0 0 3px rgba(232,99,74,.15)}
+.cust{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.stagev{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;background:radial-gradient(120% 100% at 50% 0%,#24375A 0%,#1B2A41 55%,#121C2C 100%);border-radius:14px;padding:16px 14px 14px;min-height:500px;color:#fff}
+.orbw{position:relative;width:100%;max-width:320px;aspect-ratio:1/1}
+.orbw canvas{width:100%;height:100%;display:block}
+.state{font:800 .66rem var(--sans);letter-spacing:.14em;text-transform:uppercase;color:#8FE3EE}
+.qtext{font:400 1.25rem/1.35 var(--serif);text-align:center;min-height:3.4em;max-width:520px;color:#fff}
+.why{font-size:.7rem;color:#C9D3E6;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:4px 10px;text-align:center;max-width:100%}
+.dotsq{display:flex;gap:8px}
+.dotsq i{width:28px;height:6px;border-radius:3px;background:rgba(255,255,255,.18);transition:background .3s}
+.dotsq i.done{background:var(--pri)} .dotsq i.cur{background:#8FE3EE}
+.ctrl{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.ctrl .btn{border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff}
+.ctrl .btn:hover{background:rgba(255,255,255,.16);color:#fff}
+.ctrl .btn.go{background:#fff;color:var(--deep);border-color:#fff}
+.typebox{display:none;width:100%;gap:8px}
+.typebox.on{display:flex}
+.typebox textarea{flex:1;min-width:0;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;padding:9px 11px;font:500 .84rem var(--sans);min-height:54px;resize:vertical}
+.typebox textarea::placeholder{color:#AFBBD0}
+.interim{font-size:.8rem;color:#C9D3E6;font-style:italic;text-align:center;min-height:1.2em;max-width:520px}
+.tr{display:flex;flex-direction:column;gap:8px;max-height:520px;overflow:auto;padding-right:4px}
+.bub{max-width:92%;padding:9px 12px;border-radius:14px;font-size:.82rem;line-height:1.5;animation:fadeUp .25s ease}
+.bub.q{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}
+.bub.a{align-self:flex-end;background:var(--deep);color:#fff;border-bottom-right-radius:4px}
+.bub .who{font-size:.6rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--pri);margin-bottom:3px;display:flex;gap:6px;align-items:center}
+.bub.a .who{color:#8FE3EE}
+.bub .play{border:0;background:rgba(255,255,255,.15);color:#fff;border-radius:999px;font:700 .62rem var(--sans);padding:2px 8px;cursor:pointer}
+.bub.sys{align-self:center;background:none;color:var(--muted);font-size:.72rem;text-align:center}
+/* record */
+.rec{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);overflow:hidden}
+.rec>div{min-width:0;padding:16px}
+.rec>div+div{border-left:1px solid var(--line);background:#FAF9F7;display:flex;flex-direction:column;gap:10px}
+.rec h5{margin:0;font:400 1.5rem var(--serif);color:var(--deep);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.reason{font:400 1.15rem/1.35 var(--serif);color:var(--deep);background:#FDF2EF;border-left:4px solid var(--pri);border-radius:8px;padding:10px 12px;margin:10px 0}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;font-size:.78rem;margin:8px 0}
+.kv span{color:var(--muted)} .kv b{color:var(--deep);font-weight:700}
+.quote{font:italic 400 .86rem/1.5 var(--serif);color:#2D3648;border-left:3px solid var(--acc);padding:4px 10px;margin:0 0 8px}
+.alist{margin:0;padding-left:18px;font-size:.8rem;color:#2D3648}
+.alist li{margin-bottom:4px}
+.cbar{display:grid;grid-template-columns:110px minmax(0,1fr) 36px;gap:6px;align-items:center;font-size:.74rem;margin-bottom:4px}
+.cbar .b{height:9px;background:#ECEAE6;border-radius:5px;overflow:hidden}
+.cbar .b i{display:block;height:100%;border-radius:5px;transition:width .7s cubic-bezier(.2,.8,.2,1)}
+/* dashboard */
+.db{padding:14px}
+.dbk{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.dbg{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.dbg>div{min-width:0}
+.ilist{display:flex;flex-direction:column;gap:5px;max-height:300px;overflow:auto;margin-top:6px}
+.il{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;font-size:.74rem;background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 9px}
+.il b{color:var(--deep)} .il span{color:var(--muted)} .il .tag{align-self:start;justify-self:end}
+.il.live{border-color:var(--pri);box-shadow:0 0 0 2px rgba(232,99,74,.15);animation:fadeUp .4s ease}
+/* copilot */
+.cpg{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);overflow:hidden}
+.cpg>div{min-width:0;padding:14px}
+.cpg>div+div{border-left:1px solid var(--line);background:#FAF9F7}
+.askrow{display:flex;gap:6px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:4px 4px 4px 10px}
+.askrow:focus-within{box-shadow:0 0 0 3px rgba(232,99,74,.16);border-color:var(--pri)}
+.askrow input{flex:1;min-width:0;border:0;outline:0;font:500 .84rem var(--sans);padding:7px 0;background:transparent;color:var(--text)}
+.out{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:.82rem;line-height:1.55;min-height:220px;color:#232B3B}
+.out ul{margin:4px 0 8px;padding-left:18px} .out p{margin:0 0 6px}
+.dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--pri);margin-right:3px;animation:blink 1s infinite}
+.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--deep);color:#fff;padding:10px 16px;border-radius:999px;font-size:.82rem;font-weight:700;opacity:0;transition:all .3s;z-index:80;pointer-events:none;max-width:calc(100vw - 32px);text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.cmp-head{display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+.cmp{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.cmp th,.cmp td{padding:16px 18px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);font-size:.92rem;overflow-wrap:anywhere}
+.cmp thead th{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);background:#F6F5F3}
+.cmp tbody tr:last-child td,.cmp tbody tr:last-child th{border-bottom:0}
+.cmp tbody th{font-weight:700;color:var(--pri)}
+.cmp col.c1{width:22%}
+.cmp td{transition:background .3s,opacity .3s,color .3s}
+.cmp.hl-before td.b{background:#FCEEF3;color:#7A1236}
+.cmp.hl-before td.a{opacity:.38}
+.cmp.hl-after td.a{background:#ECF8F3;color:#0E4F39;font-weight:500}
+.cmp.hl-after td.b{opacity:.38}
+.cmp.hl-after thead th.a{color:var(--acc)}
+.cmp.hl-before thead th.b{color:var(--bad)}
+.tchips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:.9rem;font-weight:500;display:inline-flex;align-items:center;gap:8px}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 3px var(--acc-15)}
+.chip em{font-style:normal;color:var(--muted);font-weight:400;font-size:.82rem}
+.tk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.tk{padding:26px}
+.tk .n{font-family:var(--serif);font-size:2.6rem;color:var(--acc);line-height:1}
+.tk h3{margin:12px 0 8px}
+.tk p{font-size:.92rem;color:#433A52}
+footer{background:var(--deep);color:rgba(255,255,255,.75);padding:48px 0 32px;margin-top:32px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px}
+.f-brand{display:flex;align-items:center;gap:16px}
+.f-brand img{height:44px;width:auto;border-radius:6px;background:#fff;padding:4px}
+.f-brand b{display:block;color:#fff;font-family:var(--serif);font-weight:400;font-size:1.15rem}
+.copy{width:100%;border-top:1px solid rgba(255,255,255,.12);padding-top:18px;font-size:.8rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+#tip{position:fixed;pointer-events:none;z-index:95;background:var(--deep);color:#fff;font-size:.8rem;line-height:1.45;padding:10px 12px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transition:opacity .15s;max-width:300px}
+#tip b{color:#7DE3BE;font-weight:700}
+#tip .t{font-weight:700;font-size:.85rem;margin-bottom:2px;color:#fff}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.cmp.hl-after td.a{background:#FDF0EC;color:#1B2A41}
+.chip i{background:var(--acc);box-shadow:0 0 0 3px rgba(92,200,215,.25)}
+.tk .n{color:var(--pri)}
+#tip b{color:#FFB09F}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.js .reveal{opacity:1;transform:none;transition:none}.aikey,.btn.ai,.spark,.pill2.on i{animation:none!important}.bub,.il.live{animation:none}.cbar .b i{transition:none}}
+@media (max-width:1180px){.iv{grid-template-columns:240px minmax(0,1fr)}.iv>div:last-child{grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}}
+@media (max-width:980px){.kpi-grid,.ch-grid{grid-template-columns:repeat(2,1fr)}.dash{grid-template-columns:1fr}.tk-grid{grid-template-columns:1fr}.hero canvas{width:100%;opacity:.35}
+  .iv,.rec,.cpg,.aikey,.dbg{grid-template-columns:minmax(0,1fr)}.iv>div:first-child{border-right:0;border-bottom:1px solid var(--line)}.rec>div+div,.cpg>div+div{border-left:0;border-top:1px solid var(--line)}.dbk{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .krow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.krow b{grid-column:1/-1}.krow input[type=password]{grid-column:1/-1}}
+@media (max-width:640px){
+  .wrap{padding:0 16px} section{padding:48px 0} .hero{padding:52px 0 56px} .logos img{height:34px} .logos img.cl{height:24px} .vdiv{height:28px}
+  .kpi-grid{gap:10px} .kpi{padding:16px 14px} .ch-grid{grid-template-columns:1fr}
+  .tl::before{top:19px} .tl-dot{width:40px;height:40px;font-size:1rem} .tl-name{font-size:.75rem} .tl-dur{display:none} .tl-panel{padding:18px}
+  .sx{overflow-x:auto;-webkit-overflow-scrolling:touch} .sx svg{min-width:560px} .sx.n svg{min-width:440px} .stagev{min-height:440px} .qtext{font-size:1.08rem}
+  .cmp th,.cmp td{padding:12px 10px;font-size:.82rem} .cmp thead th{font-size:.68rem;letter-spacing:.08em} .chart-card{padding:14px}
+}
+@media print{
+  body{background:#fff;font-size:12px} .topbar{position:static}
+  .hero{background:#1B2A41!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:36px 0} .hero canvas{display:none}
+  .card{box-shadow:none;break-inside:avoid} section{padding:28px 0} .js .reveal{opacity:1!important;transform:none!important}
+  .seg,.tl-hint,.btn,#tip,.toast,.aikey,.askrow,.ctrl,.typebox{display:none!important} .tl-panel{display:block!important;margin-top:10px}
+  footer{background:#fff;color:var(--text)} footer .f-brand b{color:var(--deep)} .kpis{margin-top:16px} .tr{max-height:none}
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="logos">
+      <img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting">
+    </div>
+    <div class="tagline">Customer Case Study · <b>AI Voice Exit Interviews</b></div>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas id="heroCv" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="eyebrow">Housing Finance × Havish M Consulting</div>
+    <h1>Every leaver heard, <em>in their own words</em></h1>
+    <p class="sub">Exit interviews were skipped, rushed or ended with "personal reasons". HMC built an AI voice interviewer for the housing finance company's HR team: it talks to the leaver, asks five questions that adapt to each answer, and turns the conversation into a coded exit record and an attrition insights dashboard.</p>
+    <div class="pills">
+      <span class="pill"><span>Client</span>Housing Finance</span>
+      <span class="pill"><span>Function</span>Human Resources · Retention</span>
+      <span class="pill"><span>Theme</span>AI Voice Exit Interviews</span>
+    </div>
+  </div>
+</section>
+
+<section class="kpis">
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="card kpi reveal"><div class="label">Leavers completing an exit interview</div><div class="val"><span class="count" data-to="92">0</span><small>%</small></div><div class="delta">▲ from about 35%</div></div>
+      <div class="card kpi reveal"><div class="label">Exits with a specific, actionable reason</div><div class="val"><span class="count" data-to="85">0</span><small>%</small></div><div class="delta">▲ from about 20%</div></div>
+      <div class="card kpi reveal"><div class="label">From last day to insight with the HRBP</div><div class="val"><span class="count" data-to="1">0</span><small>day</small></div><div class="delta">▼ from about 30 days</div></div>
+      <div class="card kpi reveal"><div class="label">Regrettable attrition in pilot zones</div><div class="val"><span class="count" data-to="18">0</span><small>% lower</small></div><div class="delta">▼ actions on what leavers said</div></div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="challenge">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Challenge</div>
+      <h2>Exit interviews that told HR nothing</h2>
+      <p class="lead">With a large, spread-out workforce of relationship managers, credit and collections staff, HR could not interview every leaver well, and the ones they did rarely got past the polite answer.</p>
+    </div>
+    <div class="ch-grid">
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg></div><h3>Too few interviews</h3><p>HRBPs covered many branches; most leavers left without a conversation.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></svg></div><h3>Same script for everyone</h3><p>Fixed forms got fixed answers: "better opportunity", "personal reasons".</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/></svg></div><h3>Not comfortable with the manager</h3><p>Leavers held back when the person asking was close to the reason they were leaving.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 15l3-3 2 2 3-4"/></svg></div><h3>Insight arrived late</h3><p>Notes sat in files for weeks; patterns by branch or manager were never seen.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="approach" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">HMC Approach</div>
+      <h2>A good interviewer, available to every leaver</h2>
+      <p class="lead">Conversation design first, then voice, then coding the answers into something HR can act on.</p>
+    </div>
+    <div class="tl reveal" aria-label="HMC approach steps">
+      <button class="tl-step" aria-expanded="true" aria-controls="tp0"><span class="tl-dot">1</span><span class="tl-name">Discover</span><span class="tl-dur">2 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp1"><span class="tl-dot">2</span><span class="tl-name">Design</span><span class="tl-dur">2 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp2"><span class="tl-dot">3</span><span class="tl-name">Build</span><span class="tl-dur">4 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp3"><span class="tl-dot">4</span><span class="tl-name">Adopt</span><span class="tl-dur">Pilot zones</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp4"><span class="tl-dot">5</span><span class="tl-name">Scale</span><span class="tl-dur">All zones</span></button>
+    </div>
+    <p class="tl-hint">Select a step to see what happened.</p>
+    <div class="card tl-panel open" id="tp0"><h3>Discover · What good exit conversations sound like</h3><p>Listened to HRBPs' best interviews.</p><ul><li>Reasons taxonomy from two years of exit data.</li><li>Follow-up questions that unlock the real reason.</li><li>Sensitive topics and when to hand over to a person.</li></ul><p class="deliv"><b>Deliverable:</b> Conversation playbook and reason codes.</p></div>
+    <div class="card tl-panel" id="tp1"><h3>Design · Five questions, all dynamic</h3><p>Short, warm and specific.</p><ul><li>One open question, then four that follow the leaver's answers.</li><li>Coverage rules: reason, manager, growth, workload, what would have kept them.</li><li>Guardrails: no pressure to stay, confidential route for misconduct.</li></ul><p class="deliv"><b>Deliverable:</b> Interviewer prompt and guardrails.</p></div>
+    <div class="card tl-panel" id="tp2"><h3>Build · Voice, transcript, record</h3><p>Natural voice and accurate coding.</p><ul><li>ElevenLabs voice for questions, speech-to-text for answers.</li><li>GenAI chooses each next question and codes the record.</li><li>Dashboard by zone, role, tenure and manager.</li></ul><p class="deliv"><b>Deliverable:</b> Working interviewer and dashboard.</p></div>
+    <div class="card tl-panel" id="tp3"><h3>Adopt · Pilot with consent</h3><p>Optional, private and short.</p><ul><li>Leavers invited on their last week; under 10 minutes.</li><li>HRBPs review every record and flag.</li><li>Monthly attrition review uses the dashboard.</li></ul><p class="deliv"><b>Deliverable:</b> Pilot results and HR process.</p></div>
+    <div class="card tl-panel" id="tp4"><h3>Scale · From exits to stay interviews</h3><p>Hear people before they resign.</p><ul><li>All zones and roles.</li><li>Manager-level patterns shared with leaders.</li><li>Same engine for stay interviews with high performers.</li></ul><p class="deliv"><b>Deliverable:</b> Roll-out plan.</p></div>
+  </div>
+</section>
+
+<section id="solution">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Solution</div>
+      <h2>Talk to the exit interviewer</h2>
+      <p class="lead">Pick a leaver profile and start. The interviewer speaks, listens, and chooses each next question from what you just said. Five questions, then a coded exit record. Everything runs in your browser.</p>
+    </div>
+
+    <div class="card aikey reveal" id="aiKey">
+      <div><div class="row"><h3><span class="spark">✦</span> Live voice &amp; GenAI</h3></div>
+        <p class="note">Optional. Without keys the demo uses your browser's voice, browser speech recognition (Chrome) or typing, and rule-based follow-up questions. Add keys for an ElevenLabs voice, accurate transcription and GenAI questions and records.</p></div>
+      <div>
+        <div class="krow"><b>ElevenLabs</b><input type="password" id="kEl" placeholder="ElevenLabs API key" autocomplete="off" spellcheck="false" aria-label="ElevenLabs API key"><select class="sel" id="elModel" aria-label="ElevenLabs voice model"><option value="eleven_flash_v2_5">Flash v2.5 · fast</option><option value="eleven_turbo_v2_5">Turbo v2.5</option><option value="eleven_multilingual_v2">Multilingual v2 · rich</option></select><button class="btn sm go" id="kElGo" type="button">Connect</button><span class="pill2 off" id="pEl"><i></i>Browser voice</span></div>
+        <div class="krow"><b>OpenAI</b><input type="password" id="kOa" placeholder="OpenAI API key (sk-…)" autocomplete="off" spellcheck="false" aria-label="OpenAI API key"><input type="text" class="inp" id="oaModel" value="gpt-4o-mini" list="models" spellcheck="false" aria-label="OpenAI model" style="font-family:var(--mono)"><datalist id="models"><option value="gpt-4o-mini"><option value="gpt-4.1-mini"><option value="gpt-4o"><option value="gpt-4.1"></datalist><button class="btn sm go" id="kOaGo" type="button">Connect</button><span class="pill2 off" id="pOa"><i></i>Rule-based</span></div>
+        <div class="kfoot"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="remember"> Remember keys on this device</label><button class="btn sm" id="kClr" type="button">Disconnect both</button><span class="note" id="keyMsg">Keys go only from this browser to ElevenLabs and OpenAI. Audio and transcripts stay in this page.</span></div>
+      </div>
+    </div>
+
+    <div class="module reveal" id="m1">
+      <div class="mod-head"><div><div class="badge">01 · Voice exit interview</div><h3>Five questions, each one shaped by the last answer</h3><p>Choose who is leaving, then press Start and answer out loud. The interviewer waits for you to finish (or tap "Done"), then decides what to ask next. Prefer not to speak? Switch to typing.</p></div>
+        <div class="seg sm" role="group" aria-label="Answer mode"><button type="button" data-md="voice" aria-pressed="true">🎙 Voice</button><button type="button" data-md="type" aria-pressed="false">⌨ Type</button></div></div>
+      <div class="card iv">
+        <div>
+          <div><h4 class="lbl">Who is leaving</h4><div class="prof" id="prof"></div></div>
+          <div id="custBox" hidden><div class="cust"><input class="inp" id="cName" placeholder="Name" value="You"><input class="inp" id="cRole" placeholder="Role" value="Area Sales Manager"><input class="inp" id="cLoc" placeholder="Branch / zone" value="Mumbai · West"><input class="inp" id="cTen" placeholder="Tenure" value="4 years"></div></div>
+          <div><h4 class="lbl">Interviewer voice</h4><select class="sel" id="voice" aria-label="Interviewer voice"></select></div>
+          <p class="note">Your answers are recorded only in this browser. Nothing is stored on a server by this page.</p>
+        </div>
+        <div>
+          <div class="stagev">
+            <div class="state" id="state">Ready</div>
+            <div class="orbw"><canvas id="orb" aria-hidden="true"></canvas></div>
+            <div class="dotsq" id="dq"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="qtext" id="qtext" aria-live="polite">Press Start to begin the exit interview.</div>
+            <div class="why" id="why" style="display:none"></div>
+            <div class="interim" id="interim"></div>
+            <div class="typebox" id="typebox"><textarea id="tA" placeholder="Type your answer…" aria-label="Your answer"></textarea><button class="btn go" id="tSend" type="button">Send</button></div>
+            <div class="ctrl"><button class="btn big go" id="bStart" type="button">▶ Start interview</button><button class="btn" id="bDemo" type="button">Watch a demo</button><button class="btn" id="bDone" type="button" hidden>✓ Done speaking</button><button class="btn" id="bRep" type="button" hidden>↻ Repeat</button><button class="btn" id="bEnd" type="button" hidden>■ End</button></div>
+          </div>
+        </div>
+        <div><div style="display:flex;justify-content:space-between;align-items:center"><h4 class="lbl" style="margin:0">Live transcript</h4><span class="pill2 off" id="engine"><i></i>Rule-based</span></div><div class="tr" id="tr"><p class="note">The conversation will appear here.</p></div></div>
+      </div>
+      <p class="footnote">Synthetic leaver profiles. Microphone access is requested only when you start in voice mode; if it is blocked, typing takes over.</p>
+    </div>
+
+    <div class="module reveal" id="m2">
+      <div class="mod-head"><div><div class="badge">02 · Exit interview record</div><h3>The conversation, coded for HR</h3><p>After the fifth answer the interview is summarised into a record: primary reason, categories, whether the exit is regrettable, what would have kept the person, sentiment through the conversation, key quotes and actions. A sample is shown until you finish your own.</p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" id="rJson" type="button">⬇ JSON</button><button class="btn sm go" id="rPrint" type="button">⎙ Print / PDF</button></div></div>
+      <div class="card rec" id="rec"></div>
+    </div>
+
+    <div class="module reveal" id="m3">
+      <div class="mod-head"><div><div class="badge">03 · Attrition insights</div><h3>What leavers are telling the company</h3><p>Sixty synthetic interviews from the pilot, plus every interview you complete above. Filter by zone and role; your interview appears in the charts as soon as it is coded.</p></div></div>
+      <div class="card db">
+        <div class="sigs" id="fz" style="margin-bottom:6px"></div><div class="sigs" id="fr" style="margin-bottom:12px"></div>
+        <div class="dbk" id="dbk"></div>
+        <div class="dbg"><div><h4 class="lbl">Primary reasons · regrettable vs not</h4><div class="sx n"><div class="chart" id="reasons"></div></div></div><div><h4 class="lbl">Reason by tenure</h4><div class="sx n"><div class="chart" id="heat"></div></div><h4 class="lbl" style="margin-top:12px">Latest interviews</h4><div class="ilist" id="ilist"></div></div></div>
+      </div>
+    </div>
+
+    <div class="module reveal" id="m4" style="margin-bottom:0">
+      <div class="mod-head"><div><div class="badge">04 · HR copilot</div><h3>Ask across every exit interview</h3><p>Ask a question in plain English. Template answers come from the coded records; with an OpenAI key the AI reads the records and answers anything.</p></div><span class="pill2 off aipill"><i></i>Templates</span></div>
+      <div class="card cpg">
+        <div><div class="askrow"><span class="spark">✦</span><input id="aI" type="text" placeholder="e.g. why are relationship managers in West leaving?" aria-label="Ask about exit interviews"><button class="btn ai sm" id="aGo" type="button">Ask</button></div><div class="sigs" id="aChips" style="margin-top:8px"></div></div>
+        <div><div class="out" id="aOut"><p class="note">Pick a suggested question or type your own.</p></div></div>
+      </div>
+      <p class="footnote">Synthetic interview records. HR reviews every record; the tool does not make retention or rehire decisions.</p>
+    </div>
+  </div>
+</section>
+
+<section id="impact" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Impact Dashboard</div>
+      <h2>More leavers heard, and heard sooner</h2>
+      <p class="lead">Almost every leaver now gives a usable reason, and HRBPs see it the next day instead of a month later.</p>
+    </div>
+    <div class="dash">
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>What we learn from 100 leavers</h3><p class="sub">Pictogram: one figure per leaver</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-ic="before" aria-pressed="false">Before</button><button type="button" data-ic="after" aria-pressed="true">After</button></div></div>
+        <div class="chart" id="iso"></div>
+        <div class="ckey"><span><i style="background:#D3D0CA"></i>No interview</span><span><i style="background:#F0A23B"></i>Vague reason</span><span><i style="background:#E8634A"></i>Specific, actionable reason</span></div>
+      </div>
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>Days from last day to insight</h3><p class="sub">Strip plot: one dot per exit, by role</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-st="before" aria-pressed="false">Before</button><button type="button" data-st="after" aria-pressed="true">After</button></div></div>
+        <div class="chart" id="strip"></div>
+      </div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <div class="cmp-head reveal"><div><div class="eyebrow">Before vs After</div><h2>How exit interviews work now</h2></div>
+      <div class="seg" role="group" aria-label="Highlight column"><button type="button" data-hl="before" aria-pressed="false">Before</button><button type="button" data-hl="after" aria-pressed="true">After</button></div></div>
+    <div class="card reveal" style="overflow:hidden">
+      <table class="cmp hl-after" id="cmp"><colgroup><col class="c1"><col><col></colgroup>
+        <thead><tr><th scope="col">Dimension</th><th scope="col" class="b">Before</th><th scope="col" class="a">After</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Coverage</th><td class="b">About a third of leavers</td><td class="a">Almost every leaver, any time</td></tr>
+          <tr><th scope="row">Questions</th><td class="b">Same form for everyone</td><td class="a">Five, each shaped by the last answer</td></tr>
+          <tr><th scope="row">Who asks</th><td class="b">Often the manager</td><td class="a">A neutral AI voice, reviewed by HR</td></tr>
+          <tr><th scope="row">Output</th><td class="b">Free-text notes</td><td class="a">Coded reasons, regrettable flag, quotes, actions</td></tr>
+          <tr><th scope="row">Sensitive issues</th><td class="b">Rarely raised</td><td class="a">Flagged with a confidential route</td></tr>
+          <tr><th scope="row">Insight</th><td class="b">Weeks later, if at all</td><td class="a">Next day, by zone, role and tenure</td></tr>
+        </tbody></table>
+    </div>
+  </div>
+</section>
+
+<section id="tools" style="padding-top:16px">
+  <div class="wrap">
+    <div class="sec-head reveal" style="margin-bottom:20px"><div class="eyebrow">Tools &amp; Tech Used</div><h2>The voice interview stack</h2></div>
+    <div class="tchips reveal">
+      <span class="chip"><i></i>ElevenLabs <em>natural interviewer voice</em></span>
+      <span class="chip"><i></i>ElevenLabs Scribe <em>speech-to-text</em></span>
+      <span class="chip"><i></i>OpenAI GPT <em>dynamic questions and coding</em></span>
+      <span class="chip"><i></i>Web Audio <em>turn-taking and voice activity</em></span>
+      <span class="chip"><i></i>D3 <em>attrition insights</em></span>
+      <span class="chip"><i></i>Power BI <em>monthly HR review</em></span>
+    </div>
+  </div>
+</section>
+
+<section id="takeaways">
+  <div class="wrap">
+    <div class="sec-head reveal"><div class="eyebrow">Key Takeaways</div><h2>What any HR team can borrow</h2></div>
+    <div class="tk-grid">
+      <div class="card tk reveal"><div class="n">01</div><h3>Follow the answer, not the form</h3><p>The second question matters most. Asking about what the person just said is what gets past "personal reasons".</p></div>
+      <div class="card tk reveal"><div class="n">02</div><h3>Neutral, short and optional</h3><p>Five questions in under ten minutes, without the manager in the room, gets honest answers.</p></div>
+      <div class="card tk reveal"><div class="n">03</div><h3>Code it, then act on it</h3><p>A reason only helps when it is counted by branch, role and manager, and someone owns the action.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="f-brand"><img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting"><div><b>Havish M Consulting</b></div></div>
+    <div class="copy"><span>© <span id="yr">2026</span> Havish M Consulting. All rights reserved.</span><span>Figures indicative; validated metrics available on request.</span></div>
+  </div>
+</footer>
+<div id="tip" role="tooltip"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(function(){
+"use strict";
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DUR = reduce ? 0 : 650;
+const $ = id => document.getElementById(id);
+$('yr').textContent = new Date().getFullYear();
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hasD3 = typeof d3 !== 'undefined';
+const sleep = ms => new Promise(r => setTimeout(r, reduce ? Math.min(ms, 50) : ms));
+const sum = a => a.reduce((x, y) => x + y, 0);
+const range = n => Array.from({ length: n }, (_, i) => i);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const tip = $('tip');
+function showTip(html, ev){ tip.innerHTML = html; tip.style.opacity = 1; const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = ev.clientX + pad, y = ev.clientY + pad; if (x + w > innerWidth - 8) x = ev.clientX - w - pad; if (y + h > innerHeight - 8) y = ev.clientY - h - pad;
+  tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; }
+function hideTip(){ tip.style.opacity = 0; }
+window.addEventListener('scroll', hideTip, {passive:true});
+function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => el.classList.remove('on'), 2800); }
+const onView = new Map();
+const io = ('IntersectionObserver' in window) ? new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; e.target.classList.add('in');
+  const fn = onView.get(e.target); if (fn){ fn(); onView.delete(e.target); } io.unobserve(e.target); }), {threshold:.12}) : null;
+function whenVisible(el, fn){ onView.set(el, fn); if (io) io.observe(el); else fn(); }
+document.querySelectorAll('.reveal').forEach(el => io ? io.observe(el) : el.classList.add('in'));
+function countUp(el){ const to = +el.dataset.to; if (reduce || !to){ el.textContent = to; return; }
+  const t0 = performance.now(); (function s(t){ const p = Math.min(1,(t-t0)/1400), e = 1 - Math.pow(1-p,3); el.textContent = Math.round(to*e); if (p < 1) requestAnimationFrame(s); })(t0); }
+document.querySelectorAll('.count').forEach(el => whenVisible(el.closest('.kpi'), () => countUp(el)));
+const tlSteps = document.querySelectorAll('.tl-step');
+tlSteps.forEach(btn => btn.addEventListener('click', () => { const open = btn.getAttribute('aria-expanded') === 'true';
+  tlSteps.forEach(b => { b.setAttribute('aria-expanded','false'); $(b.getAttribute('aria-controls')).classList.remove('open'); });
+  if (!open){ btn.setAttribute('aria-expanded','true'); $(btn.getAttribute('aria-controls')).classList.add('open'); } }));
+function segBind(attr, fn){ const bs = document.querySelectorAll(`[data-${attr}]`); bs.forEach(b => b.addEventListener('click', () => { bs.forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); fn(b.dataset[attr]); })); }
+function segSet(attr, v){ document.querySelectorAll(`[data-${attr}]`).forEach(x => x.setAttribute('aria-pressed', x.dataset[attr] === v ? 'true' : 'false')); }
+const cmpT = $('cmp');
+segBind('hl', v => { cmpT.classList.toggle('hl-before', v === 'before'); cmpT.classList.toggle('hl-after', v === 'after'); });
+function md(s){ const lines = esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').split(/\n/); let out = '', inL = false;
+  lines.forEach(l => { const m = l.match(/^\s*(?:[-*•]|\d+[.)])\s+(.*)/); if (m){ if (!inL){ out += '<ul>'; inL = true; } out += '<li>' + m[1] + '</li>'; } else { if (inL){ out += '</ul>'; inL = false; } if (l.trim()) out += '<p>' + l.replace(/^#+\s*/, '') + '</p>'; } });
+  if (inL) out += '</ul>'; return out; }
+
+/* ======================================================================
+   DATA · profiles, themes, scripts
+   ====================================================================== */
+const PROFILES = [
+  { id:'priya', name:'Priya Nair', first:'Priya', role:'Relationship Manager, Home Loans', loc:'Pune · West', ten:'3 years 2 months', extra:'Rated "exceeds" two years running · last increment 6%', zone:'West', rk:'RM', tenM:38, perf:'high',
+    demo:["Honestly, it's the targets. Every month the disbursement target goes up, and the incentive scheme changed last year, so I'm working weekends and earning less.",
+      "When I joined, my target was around four crore a month. Now it's close to seven, with the same leads coming from the DSAs. Under the new slab I only earn incentive above 110 percent.",
+      "My manager is supportive, but he gets the same pressure from the zone. Nobody asked us before the scheme was changed.",
+      "I got an offer from a private bank with about 22 percent more fixed pay and Sundays off. If the incentive slab had been fair and I had a path to team lead, I would have stayed.",
+      "Yes, I would consider coming back in a couple of years if the incentive scheme is fixed. I'd still recommend the company for the learning."] },
+  { id:'arjun', name:'Arjun Mehta', first:'Arjun', role:'Credit Manager', loc:'Gurugram · North', ten:'5 years 9 months', extra:'Promotion to Senior Credit Manager pending for a year', zone:'North', rk:'Credit', tenM:69, perf:'high',
+    demo:["I have been waiting for my promotion for more than a year. I was told it would happen in the last cycle, and then the role was filled from outside.",
+      "Nobody really explained it. My manager said the grade freeze came from head office. I found out from a colleague that the new person had joined.",
+      "The work itself is fine. I like credit. But approvals have become slow because of the new policy checks, and I spend more time on documentation than on judgement.",
+      "A clear date for the promotion would have changed it. Even an honest conversation about where I stand would have helped. The other company offered me the senior role.",
+      "Maybe. If there is a proper career path for credit people, I would think about it. I would recommend the company, but not the credit career path right now."] },
+  { id:'kavya', name:'Kavya Reddy', first:'Kavya', role:'Collections Officer', loc:'Hyderabad · South', ten:'1 year 1 month', extra:'Joined from campus · field role with two-wheeler travel', zone:'South', rk:'Collections', tenM:13, perf:'mid',
+    demo:["The field work is too much. I am travelling sixty to seventy kilometres a day on my two-wheeler, and the travel allowance does not cover the petrol.",
+      "I start around eight and finish after eight at night most days. In the monsoon it was very hard. Weekends also we have to visit customers.",
+      "My team leader is okay, but there is a lot of pressure on numbers in the morning calls. Sometimes we are scolded in front of everyone.",
+      "If I had been given a desk-based role or a smaller area, I would have stayed. My parents also want me closer to home in Vijayawada.",
+      "Maybe in a desk role, not in field collections. I learned a lot, but I would not recommend this job to my juniors without changes to travel allowance."] },
+  { id:'cust', custom:true }];
+const THEMES = {
+  inc:  { n:'Incentives & targets', re:/target|incentive|slab|disburs|quota|achievement|numbers/i },
+  pay:  { n:'Compensation', re:/salary|pay\b|hike|increment|ctc|money|compensation|fixed|allowance|petrol/i },
+  grow: { n:'Career growth', re:/promot|growth|career|team lead|grade|senior role|path/i },
+  mgr:  { n:'Manager', re:/manager|boss|supervisor|reporting|team leader|scold/i },
+  load: { n:'Workload & hours', re:/weekend|hours|sunday|late|workload|stress|pressure|travel|kilomet|monsoon|too much/i },
+  cult: { n:'Culture & team', re:/culture|politic|respect|colleague|recogni|appreciat|in front of everyone/i },
+  reloc:{ n:'Relocation & family', re:/family|relocat|home ?town|closer to home|parents|marri|commute|transfer/i },
+  proc: { n:'Process & systems', re:/process|system|approval|policy check|documentation|tat\b|turnaround/i },
+  offer:{ n:'Better offer', re:/offer|private bank|other company|competitor|joining/i },
+  sens: { n:'Sensitive concern', re:/harass|discriminat|abuse|unsafe|posh|bully|threaten/i } };
+const CATS = ['Incentives & targets','Compensation','Career growth','Manager','Workload & hours','Culture & team','Relocation & family','Process & systems'];
+const CATC = { 'Incentives & targets':'#E8634A', 'Compensation':'#F0A23B', 'Career growth':'#7B6CF6', 'Manager':'#D9434C', 'Workload & hours':'#5CC8D7', 'Culture & team':'#2E9E6B', 'Relocation & family':'#9AA3B5', 'Process & systems':'#1B2A41' };
+const TPL = {
+  inc:["You said \"{s}\". How have your targets changed since you joined, and was the change explained to you?", "What would a fair target and incentive scheme look like for your role?"],
+  pay:["You mentioned \"{s}\". How far apart are your pay here and what you are moving to?", "If we had matched the pay, would you still have left? What else mattered?"],
+  grow:["You mentioned \"{s}\". Did anyone talk to you about a path to the next role here?", "What growth were you hoping for that you could not see at the company?"],
+  mgr:["You brought up your manager. What could your manager have done differently in the last six months?", "How comfortable did you feel raising concerns with your manager?"],
+  load:["You said \"{s}\". What does a typical week look like for you right now?", "When did the workload start to feel unsustainable?"],
+  cult:["You mentioned \"{s}\". Can you share a moment that made you feel that way?", "What would you change about how the team works together?"],
+  reloc:["You mentioned \"{s}\". If a role closer to home had been possible, would that have changed your decision?"],
+  proc:["You said \"{s}\". Which part of the process slowed you down the most, and what would fix it?"],
+  offer:["What does the new role give you that you were not getting here?"],
+  sens:["Thank you for telling me that. You do not need to share details here. Would you like the ethics and POSH committee to contact you confidentially?"] };
+const WHY = { inc:'Following up on targets and incentives you raised', pay:'Probing the pay gap you mentioned', grow:'Exploring the career path you mentioned', mgr:'Understanding the manager relationship', load:'Getting specifics on workload', cult:'Asking for an example behind the culture point', reloc:'Testing whether location was the deciding factor', proc:'Pinpointing the process problem', offer:'Separating the pull of the offer from the push', sens:'Offering a confidential route; not probing further', lever:'Finding the retention lever', close:'Closing: would they return or recommend' };
+const POS = /supportive|good|learn|grateful|recommend|enjoy|great|thank|like|fine|helped/gi, NEG = /pressure|unfair|stress|nobody|never|frustrat|tired|worse|less|hard|scold|too much|slow|not cover|waiting|no one/gi;
+const sentOf = a => { const p = (a.match(POS) || []).length, n = (a.match(NEG) || []).length; return clamp((p - n) / Math.max(2, p + n), -1, 1); };
+const themesIn = a => Object.keys(THEMES).filter(k => THEMES[k].re.test(a));
+function snip(a, k){ const cl = a.split(/[,.;:!?]+\s*|\s+(?:but|and|so)\s+/i).map(x => x.trim()).filter(Boolean), c = cl.find(x => THEMES[k].re.test(x)); if (!c) return '';
+  let w = c.replace(/^(honestly|well|so|also|because)\s+/i, '').split(/\s+/); if (w.length > 12){ const i = w.findIndex(x => THEMES[k].re.test(x)); w = w.slice(Math.max(0, Math.min(i - 4, w.length - 12)), Math.max(0, Math.min(i - 4, w.length - 12)) + 12); }
+  const t = w.join(' '); return t.charAt(0).toLowerCase() === 'i' && /^i\b/i.test(t) ? t.replace(/^i\b/, 'I') : t.charAt(0).toLowerCase() + t.slice(1); }
+const firstQ = p => `Hi ${p.first}, thank you for taking a few minutes. This conversation is confidential and helps us improve. To start, what made you decide to leave the company?`;
+function ruleQ(n, qa, p){ const asked = new Set(qa.map(x => x.theme)), last = qa[qa.length - 1].a, allA = qa.map(x => x.a).join(' ');
+  if (THEMES.sens.re.test(allA) && !asked.has('sens')) return { q: TPL.sens[0], theme:'sens', why: WHY.sens };
+  if (n === 5) return { q: `Last question, ${p.first}. Would you consider coming back to the company someday, and would you recommend it to a friend? Why?`, theme:'close', why: WHY.close };
+  const order = ['inc','grow','pay','load','mgr','proc','reloc','cult'], lastT = themesIn(last).filter(t => order.includes(t) && !asked.has(t)), allT = order.filter(t => THEMES[t].re.test(allA) && !asked.has(t));
+  if (n === 4){ const prim = qa.map(x => x.theme).find(t => order.includes(t)); if (THEMES.offer.re.test(allA) && !asked.has('offer') && !asked.has('lever')) return { q: TPL.offer[0], theme:'offer', why: WHY.offer };
+    return { q: `If you could change one thing about ${prim ? THEMES[prim].n.toLowerCase() : 'your role'}, what would have made you stay?`, theme:'lever', why: WHY.lever }; }
+  const t = lastT[0] || allT[0]; if (t){ const tp = TPL[t][asked.has(t) ? 1 : 0] || TPL[t][0]; return { q: tp.replace('{s}', snip(last, t) || snip(allA, t)), theme: t, why: WHY[t] }; }
+  if (!asked.has('mgr')) return { q: TPL.mgr[1], theme:'mgr', why: WHY.mgr };
+  return { q: 'Was there a particular moment when you decided to start looking?', theme:'moment', why:'Finding the trigger moment' }; }
+const LEVER = { 'Incentives & targets':'Review target-setting and incentive slabs with field input', 'Compensation':'Market-benchmark pay for the role and fix allowance gaps', 'Career growth':'Publish promotion criteria and timelines; internal first', 'Manager':'Manager coaching and skip-level check-ins', 'Workload & hours':'Cap field travel, protect weekly offs', 'Culture & team':'Recognition and respectful review routines', 'Relocation & family':'Internal transfer window before resignation', 'Process & systems':'Simplify approvals and documentation' };
+function codeOffline(p, qa, meta){ const score = {}; qa.forEach((x, i) => themesIn(x.a).forEach(t => { if (t === 'sens' || t === 'offer') return; const c = THEMES[t].n; score[c] = (score[c] || 0) + (i === 0 ? 2.2 : 1) + (x.theme === t ? .5 : 0); }));
+  const ranked = Object.entries(score).sort((a, b) => b[1] - a[1]), tot = sum(ranked.map(r => r[1])) || 1, prim = ranked[0] ? ranked[0][0] : 'Career growth';
+  const sents = qa.map(x => Math.round(sentOf(x.a) * 100) / 100), all = qa.map(x => x.a).join(' '), lastA = qa.length ? qa[qa.length - 1].a : '';
+  const lever = (qa.map(x => x.a).join(' ').match(/[^.]*\b(would have stayed|would have changed|would have helped|if (?:the|my|i|a)[^.]*)[^.]*\./i) || [])[0];
+  const ret = /\byes\b|would consider|would think/i.test(lastA) ? 'Yes' : /maybe|might|perhaps|in a desk role/i.test(lastA) ? 'Maybe' : /\bno\b|never|would not come/i.test(lastA) ? 'No' : 'Maybe';
+  const rec = /would not recommend|not recommend/i.test(lastA) ? 4 : /recommend/i.test(lastA) ? 8 : 6;
+  const quotes = qa.map(x => x.a.split(/(?<=[.!?])\s+/)).flat().filter(s => s.length > 30 && (NEG.test(s) || /would have|if /i.test(s))).sort((a, b) => a.length - b.length).slice(0, 3); NEG.lastIndex = 0;
+  const firstS = (qa[0] ? qa[0].a.split(/(?<=[.!?])\s+/)[0] : '').replace(/^(honestly|well|so)[, ]+/i, '');
+  const regr = p.perf === 'high' || p.tenM >= 24 || /exceed|promotion pending/i.test(p.extra || '');
+  return Object.assign({ src:'tpl', name: p.name, role: p.role, loc: p.loc, ten: p.ten, zone: p.zone, rk: p.rk, tenM: p.tenM, primary_category: prim, primary_reason: firstS.charAt(0).toUpperCase() + firstS.slice(1),
+    secondary: ranked.slice(1, 3).map(r => r[0]), categories: Object.fromEntries(ranked.map(r => [r[0], Math.round(r[1] / tot * 100) / 100])), regrettable: regr,
+    regrettable_why: regr ? (p.perf === 'high' ? 'Strong performance ratings and experienced in role' : 'Experienced; costly to replace') : 'Early tenure; replaceable within a hiring cycle',
+    retention_lever: lever ? lever.trim() : LEVER[prim], would_return: ret, recommend: rec, sentiment: sents, quotes: quotes.length ? quotes : qa.slice(0, 2).map(x => x.a.slice(0, 120)),
+    hr_actions: [LEVER[prim], ranked[1] ? LEVER[ranked[1][0]] : 'Share findings at the monthly attrition review', regr ? 'Flag as regrettable; check for similar risk in the same team' : 'Track at monthly review'],
+    manager_actions: [prim === 'Manager' ? 'Skip-level conversation with the team within two weeks' : 'Discuss the findings with the team in the next review', 'Stay conversations with high performers in the team'],
+    sensitive: qa.some(x => THEMES.sens.re.test(x.a)), summary: `${p.first} is leaving mainly because of ${prim.toLowerCase()}${ranked[1] ? ', with ' + ranked[1][0].toLowerCase() + ' also a factor' : ''}. ${ret === 'Yes' ? 'Open to returning.' : ret === 'Maybe' ? 'Might return if things change.' : 'Unlikely to return.'}`, qa }, meta || {}); }
+
+/* ======================================================================
+   KEYS + API helpers
+   ====================================================================== */
+let KEL = '', KOA = '', OAM = 'gpt-4o-mini', ELM = 'eleven_flash_v2_5', VOICES = [];
+try { const a = localStorage.getItem('hmc_px_el'), b = localStorage.getItem('hmc_px_oa'); if (a){ $('kEl').value = a; $('remember').checked = true; } if (b){ $('kOa').value = b; $('remember').checked = true; } } catch (e){}
+function setPills(){ $('pEl').className = 'pill2 ' + (KEL ? 'on' : 'off'); $('pEl').innerHTML = `<i></i>${KEL ? 'ElevenLabs voice' : 'Browser voice'}`; $('pOa').className = 'pill2 ' + (KOA ? 'on' : 'off'); $('pOa').innerHTML = `<i></i>${KOA ? 'Live · ' + esc(OAM) : 'Rule-based'}`;
+  $('engine').className = 'pill2 ' + (KOA || KEL ? 'on' : 'off'); $('engine').innerHTML = `<i></i>${KOA ? 'GenAI questions' : 'Rule-based questions'}${KEL ? ' · ElevenLabs' : ''}`;
+  document.querySelectorAll('.aipill').forEach(el => { el.className = 'pill2 aipill ' + (KOA ? 'on' : 'off'); el.innerHTML = `<i></i>${KOA ? 'Live · ' + esc(OAM) : 'Templates'}`; }); }
+function remember(){ try { if ($('remember').checked){ if (KEL) localStorage.setItem('hmc_px_el', KEL); if (KOA) localStorage.setItem('hmc_px_oa', KOA); } else { localStorage.removeItem('hmc_px_el'); localStorage.removeItem('hmc_px_oa'); } } catch (e){} }
+async function connectEl(silent){ const k = $('kEl').value.trim(); if (!k){ if (!silent) $('keyMsg').innerHTML = '<span style="color:var(--bad)">Enter your ElevenLabs key.</span>'; return; }
+  $('keyMsg').textContent = 'Checking the ElevenLabs key and loading voices…';
+  try { const r = await fetch('https://api.elevenlabs.io/v1/voices', { headers: { 'xi-api-key': k } }); if (r.status === 401) throw new Error('ElevenLabs rejected this key (401).'); if (!r.ok) throw new Error('ElevenLabs returned ' + r.status + '.');
+    const j = await r.json(); VOICES = (j.voices || []).map(v => ({ id: v.voice_id, name: v.name, accent: (v.labels && (v.labels.accent || v.labels.description)) || '', gender: (v.labels && v.labels.gender) || '' }));
+    KEL = k; ELM = $('elModel').value; remember(); fillVoices(); setPills(); keyStatus(); if (!silent) toast('ElevenLabs voice connected'); }
+  catch (err){ $('keyMsg').innerHTML = `<span style="color:var(--bad)">${esc(err.message || 'Could not reach ElevenLabs from this browser.')}</span>`; } }
+async function connectOa(silent){ const k = $('kOa').value.trim(), m = $('oaModel').value.trim() || 'gpt-4o-mini'; if (!/^sk-/.test(k)){ if (!silent) $('keyMsg').innerHTML = '<span style="color:var(--bad)">That does not look like an OpenAI key.</span>'; return; }
+  $('keyMsg').textContent = 'Checking the OpenAI key…';
+  try { const r = await fetch('https://api.openai.com/v1/models', { headers: { Authorization: 'Bearer ' + k } }); if (r.status === 401) throw new Error('OpenAI rejected this key (401).'); if (!r.ok) throw new Error('OpenAI returned ' + r.status + '.');
+    KOA = k; OAM = m; remember(); setPills(); keyStatus(); if (!silent) toast('OpenAI connected'); }
+  catch (err){ $('keyMsg').innerHTML = `<span style="color:var(--bad)">${esc(err.message || 'Could not reach OpenAI from this browser.')}</span>`; } }
+function keyStatus(){ $('keyMsg').innerHTML = [KEL ? `<b style="color:var(--good)">ElevenLabs ✓</b> ${VOICES.length} voices` : 'ElevenLabs off: browser voice', KOA ? `<b style="color:var(--good)">OpenAI ✓</b> questions and records by ${esc(OAM)}` : 'OpenAI off: rule-based questions'].join(' · '); }
+$('kElGo').addEventListener('click', () => connectEl(false)); $('kOaGo').addEventListener('click', () => connectOa(false));
+$('elModel').addEventListener('change', () => { ELM = $('elModel').value; }); $('oaModel').addEventListener('change', () => { OAM = $('oaModel').value.trim() || 'gpt-4o-mini'; setPills(); });
+$('kClr').addEventListener('click', () => { KEL = ''; KOA = ''; $('kEl').value = ''; $('kOa').value = ''; try { localStorage.removeItem('hmc_px_el'); localStorage.removeItem('hmc_px_oa'); } catch (e){} VOICES = []; fillVoices(); setPills(); $('keyMsg').textContent = 'Disconnected. The demo is back on the browser voice and rule-based questions.'; });
+async function openai(messages, { json = false, onDelta } = {}){
+  const body = { model: OAM, messages, temperature: .5 }; if (json) body.response_format = { type:'json_object' }; if (onDelta) body.stream = true;
+  const r = await fetch('https://api.openai.com/v1/chat/completions', { method:'POST', headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + KOA }, body: JSON.stringify(body) });
+  if (!r.ok){ let msg = 'OpenAI error ' + r.status; try { const j = await r.json(); if (j.error && j.error.message) msg += ': ' + j.error.message; } catch (e){} throw new Error(msg); }
+  if (!onDelta){ const j = await r.json(); return j.choices[0].message.content; }
+  const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '', full = '';
+  for (;;){ const { value, done } = await rd.read(); if (done) break; buf += dec.decode(value, { stream: true }); const parts = buf.split('\n'); buf = parts.pop();
+    for (const ln of parts){ const s2 = ln.trim(); if (!s2.startsWith('data:')) continue; const dd = s2.slice(5).trim(); if (dd === '[DONE]') continue; try { const j = JSON.parse(dd), t = j.choices && j.choices[0].delta && j.choices[0].delta.content; if (t){ full += t; onDelta(full); } } catch (e){} } }
+  return full; }
+function fail(what, err){ toast(what + ' unavailable (' + String(err && err.message || err).slice(0, 60) + '). Falling back.'); }
+
+/* ======================================================================
+   VOICE · TTS, mic, VAD, STT
+   ====================================================================== */
+let AC = null, OUTAN = null, MICAN = null, MIC = null, LEVEL = 0, SYNTH = 0;
+function ensureAC(){ try { if (!AC){ AC = new (window.AudioContext || window.webkitAudioContext)(); OUTAN = AC.createAnalyser(); OUTAN.fftSize = 1024; OUTAN.connect(AC.destination); } if (AC.state === 'suspended') AC.resume(); } catch (e){ AC = null; } }
+function fillVoices(){ const sel = $('voice');
+  if (VOICES.length){ sel.innerHTML = VOICES.map(v => `<option value="el:${v.id}">${esc(v.name)}${v.accent ? ' · ' + esc(v.accent) : ''}${v.gender ? ' · ' + esc(v.gender) : ''}</option>`).join(''); const pref = VOICES.find(v => /indian/i.test(v.accent)) || VOICES.find(v => /female/i.test(v.gender)) || VOICES[0]; sel.value = 'el:' + pref.id; return; }
+  const bv = (window.speechSynthesis ? speechSynthesis.getVoices() : []).filter(v => /^en/i.test(v.lang));
+  sel.innerHTML = bv.length ? bv.map((v, i) => `<option value="bv:${i}">${esc(v.name)} · ${esc(v.lang)}</option>`).join('') : '<option value="bv:-1">Browser default voice</option>';
+  const ii = bv.findIndex(v => /en-IN/i.test(v.lang)); if (ii >= 0) sel.value = 'bv:' + ii; }
+if (window.speechSynthesis) speechSynthesis.onvoiceschanged = () => { if (!VOICES.length) fillVoices(); };
+let stopSpeak = null;
+async function speak(text, tok){ setState('speaking'); const sv = $('voice').value;
+  if (KEL && sv.startsWith('el:')){ try { const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${sv.slice(3)}?output_format=mp3_44100_128`, { method:'POST', headers:{ 'xi-api-key': KEL, 'Content-Type':'application/json', Accept:'audio/mpeg' }, body: JSON.stringify({ text, model_id: ELM, voice_settings:{ stability:.45, similarity_boost:.8, style:.15, use_speaker_boost:true } }) });
+      if (!r.ok) throw new Error('ElevenLabs ' + r.status); const blob = await r.blob(); if (tok !== IV.tok) return; await playBlob(blob, tok); return; } catch (err){ fail('ElevenLabs voice', err); } }
+  await browserSpeak(text, tok); }
+function playBlob(blob, tok){ return new Promise(res => { const url = URL.createObjectURL(blob), au = new Audio(url); let done = false; const fin = () => { if (done) return; done = true; SYNTH = 0; res(); };
+  ensureAC(); try { if (AC){ const src = AC.createMediaElementSource(au); src.connect(OUTAN); } } catch (e){}
+  au.onended = fin; au.onerror = fin; stopSpeak = () => { try { au.pause(); } catch (e){} fin(); }; au.play().catch(() => { fin(); }); setTimeout(fin, 60000); }); }
+function browserSpeak(text, tok){ return new Promise(res => { let done = false; const fin = () => { if (done) return; done = true; SYNTH = 0; clearInterval(h); res(); }, h = setInterval(() => { SYNTH = .35 + Math.random() * .55; }, 90);
+  const est = 1500 + text.split(/\s+/).length * 380; setTimeout(fin, est + 2500); stopSpeak = () => { try { speechSynthesis.cancel(); } catch (e){} fin(); };
+  if (!window.speechSynthesis || reduce && false){ setTimeout(fin, Math.min(est, 4000)); return; }
+  try { const u = new SpeechSynthesisUtterance(text), bv = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang)), sv = $('voice').value; if (sv.startsWith('bv:') && bv[+sv.slice(3)]) u.voice = bv[+sv.slice(3)]; u.rate = 1; u.pitch = 1; u.onend = fin; u.onerror = fin; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e){ setTimeout(fin, est); } }); }
+async function getMic(){ if (MIC && MIC.active) return MIC; if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('Microphone not available in this browser');
+  MIC = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }); ensureAC(); if (AC){ const s = AC.createMediaStreamSource(MIC); MICAN = AC.createAnalyser(); MICAN.fftSize = 2048; s.connect(MICAN); } return MIC; }
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+/* One speech-recognition session per interview (no keys). Restarting it every turn makes Chrome re-ask for the mic on file:// pages. */
+const SRS = { r: null, want: false, blocked: false, base: 0, len: 0, carry: '', listening: false, onText: null, onBlock: null };
+function srText(results){ let fin = '', int = ''; for (let i = SRS.base; i < results.length; i++){ results[i].isFinal ? (fin += results[i][0].transcript + ' ') : (int += results[i][0].transcript); } return (SRS.carry + ' ' + fin + int).trim(); }
+function srStart(){ if (!SR || SRS.r || SRS.blocked) return; let r; try { r = new SR(); } catch (e){ return; } r.lang = 'en-IN'; r.interimResults = true; r.continuous = true;
+  r.onresult = e => { SRS.len = e.results.length; SRS.results = e.results; if (SRS.listening && SRS.onText) SRS.onText(srText(e.results)); };
+  r.onerror = e => { if (e.error === 'not-allowed' || e.error === 'service-not-allowed'){ SRS.blocked = true; SRS.want = false; if (SRS.onBlock) SRS.onBlock(); } };
+  r.onend = () => { if (SRS.listening && SRS.results) SRS.carry = srText(SRS.results); SRS.r = null; SRS.base = 0; SRS.len = 0; SRS.results = null; if (SRS.want && !SRS.blocked) setTimeout(srStart, 200); };
+  SRS.r = r; SRS.base = 0; SRS.len = 0; try { r.start(); } catch (e){ SRS.r = null; } }
+function srStop(){ SRS.want = false; SRS.listening = false; try { if (SRS.r) SRS.r.stop(); } catch (e){} }
+let finishListen = null;
+function listenVoice(tok){ return new Promise(async (res) => { let ended = false, heard = '', rec = null, chunks = []; const t0 = performance.now(); const useServer = !!(KEL || KOA);
+  const finish = async (why) => { if (ended) return; ended = true; finishListen = null; $('bDone').hidden = true; SRS.listening = false; SRS.onText = null; SRS.onBlock = null; clearInterval(clk);
+    if (rec && rec.state !== 'inactive'){ await new Promise(r => { rec.onstop = r; rec.stop(); }); }
+    LEVEL = 0; $('interim').textContent = ''; if (tok !== IV.tok) return res(null); const blob = chunks.length ? new Blob(chunks, { type: rec.mimeType || 'audio/webm' }) : null;
+    if (blob && blob.size > 2000 && useServer){ setState('thinking', 'Transcribing…'); const t = await transcribe(blob); if (t) return res({ text: t, audio: blob }); }
+    res({ text: heard.trim(), audio: blob }); };
+  const toType = async (msg) => { toast(msg); setMode('type'); ended = true; finishListen = null; SRS.listening = false; clearInterval(clk); $('bDone').hidden = true; res(await listenType(tok)); };
+  let clk = 0; finishListen = finish; $('bDone').hidden = false; setState('listening');
+  if (useServer){
+    /* Keys present: record from the one mic stream opened at the start of the interview; no browser recognition, so no extra prompts. */
+    try { await getMic(); const mt = ['audio/webm;codecs=opus','audio/webm','audio/mp4'].find(t => window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)); rec = new MediaRecorder(MIC, mt ? { mimeType: mt } : undefined); rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); }; rec.start(250); }
+    catch (err){ return toType('Microphone blocked or unavailable. Switching to typing.'); }
+    clk = setInterval(() => { const s2 = Math.round((performance.now() - t0) / 1000); $('interim').textContent = `● Recording ${Math.floor(s2 / 60)}:${String(s2 % 60).padStart(2, '0')} · tap Done when finished`; }, 500); }
+  else if (SR && !SRS.blocked){
+    SRS.want = true; SRS.carry = ''; SRS.base = SRS.len; SRS.listening = true;
+    SRS.onText = t => { heard = t; lastHeard = performance.now(); $('interim').textContent = t ? '“' + t + '”' : ''; };
+    SRS.onBlock = () => { if (!ended) toType('Speech recognition blocked. Switching to typing.'); };
+    srStart(); }
+  else return toType(SRS.blocked ? 'Speech recognition blocked. Type your answer.' : 'This browser has no speech recognition. Type your answer, or add an ElevenLabs or OpenAI key.');
+  let lastHeard = performance.now(), started = false, speechMs = 0, floor = .008, prev = performance.now(); const buf = MICAN ? new Float32Array(MICAN.fftSize) : null;
+  const tick = () => { if (ended) return; const now = performance.now(), dt = now - prev; prev = now;
+    if (useServer && MICAN){ MICAN.getFloatTimeDomainData(buf); let s = 0; for (let i = 0; i < buf.length; i++) s += buf[i] * buf[i]; const rms = Math.sqrt(s / buf.length); if (now - t0 < 450) floor = Math.max(.004, floor * .85 + rms * .15); const thr = Math.max(.018, floor * 3);
+      LEVEL = clamp(rms * 9, 0, 1); if (rms > thr){ speechMs += dt; lastHeard = now; if (speechMs > 260) started = true; } if (started && now - lastHeard > 1600) return finish('silence'); }
+    else { LEVEL = heard ? .25 + Math.random() * .4 : .08; if (heard) started = true; if (started && now - lastHeard > 2200) return finish('silence'); }
+    if (now - t0 > 120000) return finish('max'); requestAnimationFrame(tick); };
+  requestAnimationFrame(tick); }); }
+async function transcribe(blob){ const ext = /mp4/.test(blob.type) ? 'm4a' : 'webm';
+  if (KEL){ try { const fd = new FormData(); fd.append('model_id', 'scribe_v1'); fd.append('file', blob, 'answer.' + ext); fd.append('language_code', 'en'); const r = await fetch('https://api.elevenlabs.io/v1/speech-to-text', { method:'POST', headers:{ 'xi-api-key': KEL }, body: fd }); if (!r.ok) throw new Error('Scribe ' + r.status); const j = await r.json(); if (j.text) return j.text.trim(); } catch (err){ fail('ElevenLabs transcription', err); } }
+  if (KOA){ try { const fd = new FormData(); fd.append('model', 'gpt-4o-mini-transcribe'); fd.append('file', blob, 'answer.' + ext); fd.append('language', 'en'); const r = await fetch('https://api.openai.com/v1/audio/transcriptions', { method:'POST', headers:{ Authorization:'Bearer ' + KOA }, body: fd }); if (!r.ok) throw new Error('OpenAI ' + r.status); const j = await r.json(); if (j.text) return j.text.trim(); } catch (err){ fail('OpenAI transcription', err); } }
+  return ''; }
+let typeRes = null;
+function listenType(tok){ return new Promise(res => { setState('listening', 'Your turn · type your answer'); $('typebox').classList.add('on'); $('tA').value = ''; setTimeout(() => { try { $('tA').focus({ preventScroll: true }); } catch (e){} }, 50); typeRes = t => { typeRes = null; $('typebox').classList.remove('on'); res(tok === IV.tok ? { text: t, audio: null } : null); }; }); }
+$('tSend').addEventListener('click', () => { const v = $('tA').value.trim(); if (!v){ toast('Type an answer first'); return; } if (typeRes) typeRes(v); });
+$('tA').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); $('tSend').click(); } });
+$('bDone').addEventListener('click', () => { if (finishListen) finishListen('manual'); });
+
+/* ======================================================================
+   01 · INTERVIEW ENGINE
+   ====================================================================== */
+const IV = { tok: 0, on: false, mode: 'voice', prof: PROFILES[0], qa: [], t0: 0, demo: false };
+let STATE = 'idle';
+function setState(s, label){ STATE = s; $('state').textContent = label || { idle:'Ready', speaking:'Interviewer speaking', listening:'Listening · take your time', thinking:'Thinking of the next question', done:'Interview complete' }[s] || s; if (s !== 'listening') $('interim').textContent = ''; }
+function setMode(m){ IV.mode = m; segSet('md', m); }
+segBind('md', v => { IV.mode = v; });
+function renderProf(){ $('prof').innerHTML = PROFILES.map(p => p.custom ? `<button type="button" class="pc${IV.prof.custom ? ' on' : ''}" data-p="cust"><b>✎ Play yourself</b><span>Enter your own role and tenure</span></button>` : `<button type="button" class="pc${IV.prof.id === p.id ? ' on' : ''}" data-p="${p.id}"><b>${esc(p.name)}</b><span>${esc(p.role)} · ${esc(p.loc)} · ${esc(p.ten)}</span><span>${esc(p.extra)}</span></button>`).join(''); $('custBox').hidden = !IV.prof.custom; }
+$('prof').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if (!b || IV.on) return; const p = PROFILES.find(x => (x.id || 'cust') === b.dataset.p); IV.prof = p; renderProf(); });
+function curProfile(){ if (!IV.prof.custom) return IV.prof; const nm = $('cName').value.trim() || 'You', loc = $('cLoc').value.trim() || 'Head office'; const z = (loc.match(/North|South|East|West/i) || ['West'])[0];
+  return { id:'cust', name: nm, first: nm.split(' ')[0], role: $('cRole').value.trim() || 'Employee', loc, ten: $('cTen').value.trim() || '2 years', extra: 'Self-described', zone: z.charAt(0).toUpperCase() + z.slice(1).toLowerCase(), rk: /relationship|rm\b/i.test($('cRole').value) ? 'RM' : /credit/i.test($('cRole').value) ? 'Credit' : /collect/i.test($('cRole').value) ? 'Collections' : /oper/i.test($('cRole').value) ? 'Operations' : 'Sales', tenM: (+(($('cTen').value.match(/[\d.]+/) || [24])[0])) * (/month/i.test($('cTen').value) ? 1 : 12), perf: 'mid' }; }
+function dq(n, done){ $('dq').querySelectorAll('i').forEach((el, i) => { el.className = i < done ? 'done' : i === n - 1 ? 'cur' : ''; }); }
+function bubble(cls, who, html){ const tr = $('tr'); if (tr.querySelector('.note')) tr.innerHTML = ''; const d = document.createElement('div'); d.className = 'bub ' + cls; d.innerHTML = (who ? `<div class="who">${who}</div>` : '') + html; tr.appendChild(d); tr.scrollTop = tr.scrollHeight; return d; }
+const QSYS = 'You are a warm, neutral exit interviewer for an Indian home-loan company. You interview an employee who is leaving. Ask ONE question at a time. Across five questions, uncover the real primary reason for leaving, the trigger, the role of the manager and team, pay, growth or workload as relevant, and what would have kept them. Question 5 must close the interview: ask whether they would return or recommend the company, or what one change would have kept them, whichever is not yet covered. Rules: build directly on the last answer and refer to a specific detail they gave; never repeat a question or re-explore a theme already covered; no leading questions; never persuade them to stay; under 30 words; plain spoken English; no lists or labels. If they mention harassment, discrimination, safety or misconduct, acknowledge it, do not probe for details, and ask whether they would like the ethics and POSH committee to contact them confidentially. Return only JSON: {"question": string, "theme": one of ["Incentives & targets","Compensation","Career growth","Manager","Workload & hours","Culture & team","Relocation & family","Process & systems","Better offer","Sensitive concern","Retention lever","Return & recommend"], "why": "under 12 words: why this question", "last_answer_sentiment": number from -1 to 1}';
+async function nextQ(n, p){ if (KOA){ try { const out = await openai([{ role:'system', content: QSYS }, { role:'user', content: `Leaver: ${p.name}, ${p.role}, ${p.loc}, tenure ${p.ten}. Notes: ${p.extra}.\nTranscript so far:\n${IV.qa.map((x, i) => `Q${i + 1}: ${x.q}\nA${i + 1}: ${x.a}`).join('\n')}\nNow write question ${n} of 5.` }], { json: true });
+      const j = JSON.parse(out); if (j.question) return { q: String(j.question).trim(), theme: j.theme || 'ai', why: j.why || '', s: typeof j.last_answer_sentiment === 'number' ? j.last_answer_sentiment : null, src:'live' }; } catch (err){ fail('GenAI question', err); } }
+  await sleep(500); const r = ruleQ(n, IV.qa, p); return Object.assign(r, { src:'tpl' }); }
+async function runInterview(demo){
+  if (IV.on) return; const tok = ++IV.tok, p = curProfile(); IV.on = true; IV.demo = demo; IV.qa = []; IV.t0 = performance.now(); ensureAC();
+  if (!demo && IV.mode === 'voice' && (KEL || KOA)){ try { await getMic(); } catch (err){ toast('Microphone blocked or unavailable. Switching to typing.'); setMode('type'); } }
+  if (!demo && IV.mode === 'voice' && !(KEL || KOA) && SR){ SRS.want = true; SRS.listening = false; srStart(); }
+  $('bStart').hidden = true; $('bDemo').hidden = true; $('bEnd').hidden = false; $('bRep').hidden = false; $('why').style.display = 'none';
+  $('tr').innerHTML = ''; bubble('sys', '', `${demo ? 'Demo · ' : ''}Exit interview with ${esc(p.name)} · ${esc(p.role)} · ${esc(p.loc)}`);
+  for (let n = 1; n <= 5; n++){ if (tok !== IV.tok) return;
+    dq(n, n - 1); let Q;
+    if (n === 1) Q = { q: firstQ(p), theme: 'open', why: 'Open question, no assumptions', src: KOA ? 'live' : 'tpl' };
+    else { setState('thinking'); $('qtext').textContent = '…'; $('why').style.display = 'none'; Q = await nextQ(n, p); if (tok !== IV.tok) return; if (Q.s != null && IV.qa.length) IV.qa[IV.qa.length - 1].s = Q.s; }
+    $('qtext').textContent = Q.q; $('why').style.display = ''; $('why').innerHTML = `✦ ${esc(Q.why || 'Next question')}${Q.src === 'live' ? ' · GenAI' : ' · rule-based'}`;
+    bubble('q', `Q${n} · interviewer <span class="tag ${Q.src === 'live' ? 'v' : 'b'}" style="font-size:.5rem">${Q.src === 'live' ? 'GenAI' : 'rule'}</span>`, esc(Q.q)); IV.lastQ = Q.q;
+    await speak(Q.q, tok); if (tok !== IV.tok) return;
+    let A;
+    if (demo){ setState('listening', 'Demo · leaver answering'); const t = p.demo ? p.demo[n - 1] : 'I would rather not say.'; const b = bubble('a', `${esc(p.first)}`, ''); let s = ''; const words = t.split(/(\s+)/);
+      for (let i = 0; i < words.length; i++){ if (tok !== IV.tok) return; s += words[i]; if (i % 2 === 0){ b.innerHTML = `<div class="who">${esc(p.first)}</div>${esc(s)}`; LEVEL = .2 + Math.random() * .5; $('tr').scrollTop = $('tr').scrollHeight; await sleep(38); } }
+      b.innerHTML = `<div class="who">${esc(p.first)}</div>${esc(t)}`; LEVEL = 0; A = { text: t, audio: null }; await sleep(500); }
+    else { A = IV.mode === 'type' ? await listenType(tok) : await listenVoice(tok); if (tok !== IV.tok || !A) return;
+      if (!A.text){ toast('I did not catch that. Please type your answer.'); A = await listenType(tok); if (tok !== IV.tok || !A) return; }
+      const b = bubble('a', `${esc(p.first)}${A.audio ? ' <button class="play" type="button">▶ play</button>' : ''}`, esc(A.text)); if (A.audio){ const url = URL.createObjectURL(A.audio); b.querySelector('.play').addEventListener('click', () => new Audio(url).play()); A.url = url; } }
+    IV.qa.push({ q: Q.q, a: A.text, theme: Q.theme, why: Q.why, src: Q.src, url: A.url || null }); dq(n + 1, n); }
+  if (tok !== IV.tok) return;
+  const close = `Thank you, ${p.first}. That is really helpful, and it will be shared with HR in confidence. All the best for what comes next.`;
+  $('qtext').textContent = close; $('why').style.display = 'none'; bubble('q', 'Interviewer', esc(close)); dq(6, 5); await speak(close, tok); if (tok !== IV.tok) return;
+  srStop(); setState('thinking', 'Coding the exit record…'); const rec = await makeRecord(p); if (tok !== IV.tok) return;
+  setState('done'); IV.on = false; resetCtl(); REC = rec; renderRecord(rec, false); addLive(rec); toast('Exit record ready'); setTimeout(() => $('m2').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }), reduce ? 0 : 700); }
+function resetCtl(){ $('bStart').hidden = false; $('bDemo').hidden = false; $('bEnd').hidden = true; $('bRep').hidden = true; $('bDone').hidden = true; $('typebox').classList.remove('on'); $('bStart').textContent = '▶ Start again'; }
+$('bStart').addEventListener('click', () => runInterview(false)); $('bDemo').addEventListener('click', () => runInterview(true));
+$('bEnd').addEventListener('click', () => { IV.tok++; IV.on = false; srStop(); if (stopSpeak) stopSpeak(); if (finishListen) finishListen('end'); if (typeRes) typeRes(''); setState('idle', 'Interview ended'); resetCtl(); $('qtext').textContent = 'Interview ended. Press Start to begin again.'; $('why').style.display = 'none'; dq(0, 0); });
+$('bRep').addEventListener('click', () => { if (IV.lastQ && STATE === 'listening'){ const tok = IV.tok; speak(IV.lastQ, tok).then(() => { if (tok === IV.tok) setState('listening'); }); } });
+const RSYS = 'You code exit interviews for the HR team of the housing finance company. Use only what the leaver said. Return only JSON: {"primary_category": one of ["Incentives & targets","Compensation","Career growth","Manager","Workload & hours","Culture & team","Relocation & family","Process & systems"], "primary_reason": one sentence in plain English, "secondary": array of up to 2 categories from the same list, "categories": object of category to weight 0-1 summing to 1, "regrettable": boolean (true if a strong or experienced performer the company would want to keep), "regrettable_why": short phrase, "retention_lever": one sentence: what would most likely have kept them, "would_return": "Yes"|"Maybe"|"No", "recommend": integer 0-10 (how likely to recommend the company as an employer, inferred), "sentiment": array of one number per answer from -1 to 1, "quotes": array of up to 3 short verbatim quotes, "hr_actions": array of 3 short actions for HR, "manager_actions": array of 2 short actions for the manager, "sensitive": boolean, "summary": two sentences}';
+async function makeRecord(p){ const dur = Math.round((performance.now() - IV.t0) / 1000), meta = { date: new Date().toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }), duration_s: dur, demo: IV.demo, live: true };
+  if (KOA){ try { const out = await openai([{ role:'system', content: RSYS }, { role:'user', content: `Leaver: ${p.name}, ${p.role}, ${p.loc}, tenure ${p.ten}. Notes: ${p.extra}.\n` + IV.qa.map((x, i) => `Q${i + 1}: ${x.q}\nA${i + 1}: ${x.a}`).join('\n') }], { json: true });
+      const j = JSON.parse(out); if (!CATS.includes(j.primary_category)) throw new Error('bad category');
+      return Object.assign(codeOffline(p, IV.qa, meta), j, { src:'live', qa: IV.qa, name: p.name, role: p.role, loc: p.loc, ten: p.ten, zone: p.zone, rk: p.rk, tenM: p.tenM }); } catch (err){ fail('GenAI coding', err); } }
+  await sleep(600); return codeOffline(p, IV.qa, meta); }
+
+/* orb + hero canvases */
+function orbLoop(){ const cv = $('orb'), cx = cv.getContext('2d'); let W = 0, H = 0, vis = true, ph = 0, lv = 0; const fb = new Uint8Array(512);
+  function size(){ const dpr = Math.min(2, devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; cx.setTransform(dpr,0,0,dpr,0,0); }
+  size(); window.addEventListener('resize', size); if (io) new IntersectionObserver(es => { vis = es[0].isIntersecting; }).observe(cv);
+  const COL = { idle:['#5CC8D7','#7B6CF6'], speaking:['#E8634A','#FFB09F'], listening:['#5CC8D7','#8FE3EE'], thinking:['#7B6CF6','#B9B0FF'], done:['#2E9E6B','#8FE3EE'] };
+  function frame(t){ requestAnimationFrame(frame); if (!vis || !W) return; ph += .016;
+    let target = STATE === 'listening' ? LEVEL : STATE === 'speaking' ? SYNTH : STATE === 'thinking' ? .25 : .08;
+    if (STATE === 'speaking' && OUTAN && !SYNTH){ OUTAN.getByteFrequencyData(fb); target = clamp(sum(Array.from(fb.slice(2, 120))) / 118 / 140, 0, 1); }
+    lv += (target - lv) * .25; const c = COL[STATE] || COL.idle, r0 = Math.min(W, H) * .24, x0 = W / 2, y0 = H / 2; cx.clearRect(0, 0, W, H);
+    const g = cx.createRadialGradient(x0, y0, r0 * .2, x0, y0, r0 * 1.9); g.addColorStop(0, c[0] + '55'); g.addColorStop(1, c[0] + '00'); cx.fillStyle = g; cx.beginPath(); cx.arc(x0, y0, r0 * 1.9, 0, 7); cx.fill();
+    const N = 72; for (let i = 0; i < N; i++){ const a = i / N * Math.PI * 2, wob = Math.sin(a * 3 + ph * 3) * .5 + Math.sin(a * 5 - ph * 2) * .5, len = r0 * (.12 + lv * .55 * (.6 + .4 * wob)) + (reduce ? 0 : 2 * Math.sin(ph * 2 + i));
+      cx.strokeStyle = i % 2 ? c[0] : c[1]; cx.globalAlpha = .85; cx.lineWidth = 3; cx.lineCap = 'round'; cx.beginPath(); cx.moveTo(x0 + Math.cos(a) * (r0 + 6), y0 + Math.sin(a) * (r0 + 6)); cx.lineTo(x0 + Math.cos(a) * (r0 + 6 + len), y0 + Math.sin(a) * (r0 + 6 + len)); cx.stroke(); }
+    cx.globalAlpha = 1; const gg = cx.createRadialGradient(x0 - r0 * .3, y0 - r0 * .3, r0 * .1, x0, y0, r0 * (1 + lv * .08)); gg.addColorStop(0, c[1]); gg.addColorStop(1, c[0]); cx.fillStyle = gg; cx.beginPath(); cx.arc(x0, y0, r0 * (1 + lv * .08), 0, 7); cx.fill();
+    if (STATE === 'thinking'){ cx.fillStyle = '#fff'; for (let k = 0; k < 3; k++){ const a = ph * 3.2 + k * 2.094; cx.globalAlpha = .55 + .45 * Math.sin(ph * 6 + k); cx.beginPath(); cx.arc(x0 + Math.cos(a) * r0 * .42, y0 + Math.sin(a) * r0 * .42, r0 * .09, 0, 7); cx.fill(); } cx.globalAlpha = 1; }
+    cx.fillStyle = 'rgba(255,255,255,.92)'; cx.font = `700 ${Math.round(r0 * .34)}px DM Sans, sans-serif`; cx.textAlign = 'center'; cx.fillText(STATE === 'listening' ? '🎙' : STATE === 'speaking' ? '♪' : STATE === 'done' ? '✓' : '', x0, y0 + r0 * .08); }
+  requestAnimationFrame(frame); }
+(function hero(){ const cv = $('heroCv'), cx = cv.getContext('2d'); let W = 0, H = 0, run = false; const Q = ['What made you decide to leave?','You mentioned targets. How have they changed?','What could your manager have done differently?','What would have made you stay?','Would you come back someday?'];
+  function size(){ const dpr = Math.min(2, devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; cx.setTransform(dpr,0,0,dpr,0,0); }
+  function draw(t){ cx.clearRect(0, 0, W, H); const nar = W < 700, x0 = nar ? W * .8 : W * .72, y0 = nar ? H * .14 : H * .46, r0 = nar ? Math.min(W * .1, 44) : Math.min(H * .16, 90), k = Math.floor(t / 3.2) % Q.length, p = (t % 3.2) / 3.2, speaking = p < .55;
+    for (let i = 0; i < 64; i++){ const a = i / 64 * Math.PI * 2, lv = speaking ? .35 + .5 * Math.abs(Math.sin(t * 9 + i * .7)) * Math.abs(Math.sin(t * 3 + i)) : .12 + .08 * Math.sin(t * 2 + i), len = r0 * lv;
+      cx.strokeStyle = speaking ? (i % 2 ? '#E8634A' : '#FFB09F') : (i % 2 ? '#5CC8D7' : '#8FE3EE'); cx.globalAlpha = .8; cx.lineWidth = 3; cx.lineCap = 'round'; cx.beginPath(); cx.moveTo(x0 + Math.cos(a) * (r0 + 8), y0 + Math.sin(a) * (r0 + 8)); cx.lineTo(x0 + Math.cos(a) * (r0 + 8 + len), y0 + Math.sin(a) * (r0 + 8 + len)); cx.stroke(); }
+    cx.globalAlpha = 1; const g = cx.createRadialGradient(x0 - r0 * .3, y0 - r0 * .3, 4, x0, y0, r0); g.addColorStop(0, speaking ? '#FFB09F' : '#8FE3EE'); g.addColorStop(1, speaking ? '#E8634A' : '#2A8EA0'); cx.fillStyle = g; cx.beginPath(); cx.arc(x0, y0, r0, 0, 7); cx.fill();
+    if (nar) return; const s = Q[k], n = Math.floor(s.length * Math.min(1, p / .45)); cx.font = '400 17px DM Serif Display, Georgia, serif'; cx.textAlign = 'center'; cx.fillStyle = 'rgba(255,255,255,.92)'; cx.fillText(s.slice(0, n), x0, y0 + r0 * 2.2);
+    cx.font = '800 10px DM Sans, sans-serif'; cx.fillStyle = speaking ? '#FFB09F' : '#8FE3EE'; cx.fillText(speaking ? 'INTERVIEWER · Q' + (k + 1) + ' OF 5' : 'LISTENING', x0, y0 - r0 * 1.75); cx.textAlign = 'left'; }
+  size(); draw(1); window.addEventListener('resize', () => { size(); draw(1); }); if (reduce) return; const t0 = performance.now(); function loop(now){ if (!run) return; draw((now - t0) / 1000); requestAnimationFrame(loop); }
+  if (io) new IntersectionObserver(es => { const on = es[0].isIntersecting; if (on && !run){ run = true; requestAnimationFrame(loop); } else if (!on) run = false; }).observe(cv); })();
+
+/* ======================================================================
+   02 · RECORD
+   ====================================================================== */
+let REC = null;
+function sampleRecord(){ const p = PROFILES[0], qa = []; for (let n = 1; n <= 5; n++){ const Q = n === 1 ? { q: firstQ(p), theme:'open', why:'Open question, no assumptions' } : ruleQ(n, qa, p); qa.push({ q: Q.q, a: p.demo[n - 1], theme: Q.theme, why: Q.why, src:'tpl' }); }
+  return codeOffline(p, qa, { date: '14 Oct 2026', duration_s: 412, sample: true }); }
+function renderRecord(r, sample){
+  const cats = Object.entries(r.categories || {}).sort((a, b) => b[1] - a[1]).slice(0, 5), sent = r.sentiment || [], mm = s => `${Math.floor(s / 60)}m ${s % 60}s`;
+  const sp = (() => { const w = 260, h = 70, x = i => 14 + i * (w - 28) / Math.max(1, sent.length - 1), y = v => h / 2 - v * (h / 2 - 8); return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;max-width:300px;height:auto"><line x1="0" x2="${w}" y1="${h / 2}" y2="${h / 2}" stroke="#E3E1DC" stroke-dasharray="3 3"/><path d="M${sent.map((v, i) => [x(i), y(v)]).join('L')}" fill="none" stroke="#E8634A" stroke-width="2.4"/>${sent.map((v, i) => `<circle cx="${x(i)}" cy="${y(v)}" r="4.5" fill="${v > .15 ? '#2E9E6B' : v < -.15 ? '#D9434C' : '#F0A23B'}" stroke="#fff" stroke-width="1.5"/><text x="${x(i)}" y="${h - 2}" font-size="9" text-anchor="middle" fill="#5E6676">A${i + 1}</text>`).join('')}</svg>`; })();
+  $('rec').innerHTML = `<div>
+    <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center"><h4 class="lbl" style="margin:0">Exit interview record</h4><span class="pill2 ${sample ? 'off' : 'on'}"><i></i>${sample ? 'Sample record' : r.src === 'live' ? 'Coded by ' + esc(OAM) : 'Coded by rules'}${r.demo ? ' · demo' : ''}</span></div>
+    <h5 style="margin-top:6px">${esc(r.name)} ${r.regrettable ? '<span class="tag r">Regrettable</span>' : '<span class="tag g">Non-regrettable</span>'} ${r.sensitive ? '<span class="tag v">Sensitive · HR follow-up</span>' : ''}</h5>
+    <p class="note">${esc(r.role)} · ${esc(r.loc)} · ${esc(r.ten)} · ${esc(r.date || '')} · ${r.duration_s ? mm(r.duration_s) : ''}</p>
+    <div class="reason">${esc(r.primary_reason || '')}</div>
+    <div class="kv"><span>Primary category</span><b style="color:${CATC[r.primary_category] || 'inherit'}">${esc(r.primary_category)}</b><span>Also</span><b>${esc((r.secondary || []).join(', ') || '–')}</b><span>Why regrettable?</span><b>${esc(r.regrettable_why || '')}</b><span>Would have stayed if</span><b>${esc(r.retention_lever || '')}</b><span>Would return</span><b>${esc(r.would_return || '')}</b><span>Would recommend</span><b>${r.recommend != null ? r.recommend + ' / 10' : '–'}</b></div>
+    <h4 class="lbl" style="margin-top:12px">Summary</h4><p style="margin:0;font-size:.84rem;color:#2D3648">${esc(r.summary || '')}</p>
+    <h4 class="lbl" style="margin-top:12px">Conversation</h4><details><summary style="cursor:pointer;font-size:.8rem;font-weight:700;color:var(--deep)">Show all five questions and answers</summary><div style="margin-top:8px">${(r.qa || []).map((x, i) => `<p style="margin:0 0 4px;font-size:.78rem"><b>Q${i + 1}.</b> ${esc(x.q)}</p><p style="margin:0 0 10px;font-size:.78rem;color:#2D3648;padding-left:12px;border-left:2px solid var(--acc)">${esc(x.a)}${x.url ? ` <button class="btn sm" type="button" data-au="${esc(x.url)}">▶</button>` : ''}</p>`).join('')}</div></details>
+  </div>
+  <div>
+    <div><h4 class="lbl">Reason mix</h4>${cats.map(c => `<div class="cbar"><span>${esc(c[0])}</span><div class="b"><i style="width:0;background:${CATC[c[0]] || '#999'}" data-w="${Math.round(c[1] * 100)}"></i></div><b>${Math.round(c[1] * 100)}%</b></div>`).join('')}</div>
+    <div><h4 class="lbl">Sentiment through the interview</h4>${sp}</div>
+    <div><h4 class="lbl">In their words</h4>${(r.quotes || []).map(q => `<p class="quote">“${esc(q)}”</p>`).join('')}</div>
+    <div><h4 class="lbl">Actions · HR</h4><ul class="alist">${(r.hr_actions || []).map(a => `<li>${esc(a)}</li>`).join('')}</ul></div>
+    <div><h4 class="lbl">Actions · manager</h4><ul class="alist">${(r.manager_actions || []).map(a => `<li>${esc(a)}</li>`).join('')}</ul></div>
+  </div>`;
+  requestAnimationFrame(() => $('rec').querySelectorAll('.cbar i').forEach(el => el.style.width = el.dataset.w + '%'));
+  $('rec').querySelectorAll('[data-au]').forEach(b => b.addEventListener('click', () => new Audio(b.dataset.au).play())); }
+$('rJson').addEventListener('click', () => { const r = Object.assign({}, REC, { qa: (REC.qa || []).map(x => ({ question: x.q, answer: x.a, theme: x.theme })) }); const b = new Blob([JSON.stringify(r, null, 2)], { type:'application/json' }), a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `Exit interview - ${REC.name}.json`; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); toast('Record downloaded'); });
+$('rPrint').addEventListener('click', () => { const w = window.open('', '_blank'); if (!w){ toast('Allow pop-ups to print the record'); return; } w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Exit interview - ${esc(REC.name)}</title><style>body{font-family:DM Sans,Arial,sans-serif;color:#1A2232;padding:28px;max-width:760px;margin:auto}h1{font-family:Georgia,serif;font-weight:400}.k{color:#5E6676}td{padding:4px 10px 4px 0;vertical-align:top;font-size:13px}blockquote{border-left:3px solid #5CC8D7;margin:6px 0;padding:2px 10px;font-style:italic}</style></head><body><h1>Exit interview · ${esc(REC.name)}</h1><p class="k">${esc(REC.role)} · ${esc(REC.loc)} · ${esc(REC.ten)} · ${esc(REC.date || '')}</p><h3>${esc(REC.primary_reason || '')}</h3><table>${[['Primary category', REC.primary_category], ['Also', (REC.secondary || []).join(', ')], ['Regrettable', (REC.regrettable ? 'Yes' : 'No') + ' · ' + (REC.regrettable_why || '')], ['Would have stayed if', REC.retention_lever], ['Would return', REC.would_return], ['Would recommend', REC.recommend + ' / 10']].map(r => `<tr><td class="k">${r[0]}</td><td><b>${esc(r[1])}</b></td></tr>`).join('')}</table><h3>Summary</h3><p>${esc(REC.summary || '')}</p><h3>In their words</h3>${(REC.quotes || []).map(q => `<blockquote>${esc(q)}</blockquote>`).join('')}<h3>Actions</h3><ul>${[...(REC.hr_actions || []), ...(REC.manager_actions || [])].map(a => `<li>${esc(a)}</li>`).join('')}</ul><h3>Conversation</h3>${(REC.qa || []).map((x, i) => `<p><b>Q${i + 1}. ${esc(x.q)}</b><br>${esc(x.a)}</p>`).join('')}<p class="k" style="margin-top:24px">Prepared with the HMC exit interview assistant. Synthetic demo data.</p></body></html>`); w.document.close(); setTimeout(() => w.print(), 400); });
+
+/* ======================================================================
+   03 · DASHBOARD
+   ====================================================================== */
+const ZONES = ['North','West','South','East'], ROLES = ['RM','Credit','Collections','Operations','Sales'], RN = { RM:'Relationship Manager', Credit:'Credit Manager', Collections:'Collections Officer', Operations:'Operations Executive', Sales:'Sales Officer' };
+const MIX = { RM:[35,18,14,14,14,4,3,3], Credit:[2,18,34,12,6,6,4,20], Collections:[6,22,6,20,32,6,6,2], Operations:[2,16,26,12,10,8,6,22], Sales:[30,24,12,14,12,4,4,2] };
+const QB = { 'Incentives & targets':['The target went up again but the leads did not.','I only earn incentive above 110 percent now.'], 'Compensation':['The other offer is 25 percent more fixed.','The travel allowance does not cover my petrol.'], 'Career growth':['I was told the promotion would come last cycle.','There is no clear path to the next grade.'], 'Manager':['I could not raise anything with my manager.','We are scolded in the morning call in front of everyone.'], 'Workload & hours':['I have not had a full weekend off in months.','Seventy kilometres a day on a two-wheeler is too much.'], 'Culture & team':['Nobody says thank you when we hit the number.','Decisions come from the zone without asking us.'], 'Relocation & family':['My parents want me closer to home.','I asked for a transfer but there was no opening.'], 'Process & systems':['Approvals take too long with the new checks.','I spend more time on documents than on credit judgement.'] };
+const RD = mulberry32(88), pick = w => { const t = sum(w); let u = RD() * t; for (let i = 0; i < w.length; i++){ u -= w[i]; if (u <= 0) return i; } return w.length - 1; };
+const DB = range(60).map(i => { const rk = ROLES[pick([34, 16, 22, 12, 16])], zone = ZONES[pick([24, 30, 26, 20])], cat = CATS[pick(MIX[rk])], tenM = Math.round(4 + Math.pow(RD(), 1.4) * 84), regr = RD() < (tenM > 24 ? .44 : .18) + (cat === 'Career growth' || cat === 'Manager' ? .1 : 0);
+  return { id: 1000 + i * 7, rk, zone, primary_category: cat, tenM, regrettable: regr, recommend: clamp(Math.round(4 + RD() * 6 - (cat === 'Manager' ? 2 : 0)), 0, 10), quote: QB[cat][Math.floor(RD() * 2)], lever: LEVER[cat], month: ['Jun','Jul','Aug','Sep','Oct'][Math.floor(RD() * 5)] }; });
+DB.filter(r => r.rk === 'RM').slice(0, 5).forEach(r => { r.zone = 'West'; });
+DB.filter(r => r.zone === 'East' && r.rk !== 'Credit').slice(0, 6).forEach((r, i) => { if (i % 3 === 2) return; r.primary_category = 'Manager'; r.quote = QB.Manager[i % 2]; r.lever = LEVER.Manager; r.recommend = Math.max(1, r.recommend - 2); });
+const LIVE = [];
+let FZ = 'All', FR = 'All';
+function addLive(r){ LIVE.unshift({ id: 'live', rk: r.rk || 'RM', zone: r.zone || 'West', primary_category: r.primary_category, tenM: r.tenM || 24, regrettable: !!r.regrettable, recommend: r.recommend != null ? r.recommend : 6, quote: (r.quotes || [])[0] || '', lever: r.retention_lever, month: 'Oct', live: true, name: r.name }); renderDB(true); }
+const allRows = () => [...LIVE, ...DB], rowsF = () => allRows().filter(r => (FZ === 'All' || r.zone === FZ) && (FR === 'All' || r.rk === FR));
+$('fz').innerHTML = ['All', ...ZONES].map(z => `<button type="button" class="chipb${z === 'All' ? ' on' : ''}" data-fz="${z}">${z === 'All' ? 'All zones' : z}</button>`).join('');
+$('fr').innerHTML = ['All', ...ROLES].map(z => `<button type="button" class="chipb${z === 'All' ? ' on' : ''}" data-fr="${z}">${z === 'All' ? 'All roles' : RN[z]}</button>`).join('');
+$('fz').addEventListener('click', e => { const b = e.target.closest('[data-fz]'); if (!b) return; FZ = b.dataset.fz; document.querySelectorAll('[data-fz]').forEach(x => x.classList.toggle('on', x === b)); renderDB(true); });
+$('fr').addEventListener('click', e => { const b = e.target.closest('[data-fr]'); if (!b) return; FR = b.dataset.fr; document.querySelectorAll('[data-fr]').forEach(x => x.classList.toggle('on', x === b)); renderDB(true); });
+let rsSvg = null, htSvg = null;
+function renderDB(anim){ const R = rowsF(), n = R.length || 1, reg = R.filter(r => r.regrettable).length, prom = R.filter(r => r.recommend >= 9).length, det = R.filter(r => r.recommend <= 6).length, cnt = c => R.filter(r => r.primary_category === c).length, top = CATS.slice().sort((a, b) => cnt(b) - cnt(a))[0];
+  $('dbk').innerHTML = `<div class="ms"><div class="k">Interviews</div><div class="v">${R.length}</div><div class="s">${LIVE.length ? LIVE.length + ' recorded live today' : 'pilot sample'}</div></div><div class="ms"><div class="k">Regrettable exits</div><div class="v" style="color:var(--bad)">${Math.round(reg / n * 100)}%</div></div><div class="ms"><div class="k">Top reason</div><div class="v" style="font-size:1rem;color:${CATC[top]}">${esc(top)}</div><div class="s">${cnt(top)} of ${R.length}</div></div><div class="ms"><div class="k">Leaver eNPS</div><div class="v">${Math.round((prom - det) / n * 100)}</div><div class="s">would recommend as employer</div></div>`;
+  $('ilist').innerHTML = R.slice(0, 10).map(r => `<div class="il${r.live ? ' live' : ''}"><b>${r.live ? '● ' + esc(r.name) + ' · live' : 'Leaver #' + r.id} · ${RN[r.rk] || esc(r.rk)} · ${esc(r.zone)}</b><span class="tag ${r.regrettable ? 'r' : 'g'}">${r.regrettable ? 'Regrettable' : 'Non-regrettable'}</span><span style="color:${CATC[r.primary_category]};font-weight:700">${esc(r.primary_category)}</span><span>${Math.floor(r.tenM / 12)}y ${r.tenM % 12}m</span><span style="grid-column:1/-1;font-style:italic">“${esc(r.quote)}”</span></div>`).join('') || '<p class="note">No interviews for this filter.</p>';
+  if (!hasD3) return;
+  const w = 520, rh = 30, m = { l: 150, r: 40, t: 6 }, h = m.t + CATS.length * rh + 24, D = CATS.map(c => ({ c, r: R.filter(x => x.primary_category === c && x.regrettable).length, nr: R.filter(x => x.primary_category === c && !x.regrettable).length, live: R.some(x => x.live && x.primary_category === c) })).sort((a, b) => (b.r + b.nr) - (a.r + a.nr)), mx = Math.max(4, ...D.map(d => d.r + d.nr));
+  if (!rsSvg) rsSvg = d3.select('#reasons').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Primary exit reasons split by regrettable and non-regrettable');
+  const x = d3.scaleLinear().domain([0, mx]).range([0, w - m.l - m.r]);
+  const g = rsSvg.selectAll('g.r').data(D, d => d.c).join(en => { const gg = en.append('g').attr('class','r').attr('transform', (d, i) => `translate(0,${m.t + i * rh})`); gg.append('text').attr('class','l').attr('x', m.l - 8).attr('y', rh / 2 + 4).attr('text-anchor','end').attr('font-size', 11.5).attr('font-weight', 700).attr('fill','#1B2A41'); gg.append('rect').attr('class','a').attr('x', m.l).attr('y', 5).attr('height', rh - 10).attr('rx', 4).attr('fill','#E8634A'); gg.append('rect').attr('class','b').attr('y', 5).attr('height', rh - 10).attr('rx', 4).attr('fill','#D3D0CA'); gg.append('text').attr('class','v').attr('y', rh / 2 + 4).attr('font-size', 11).attr('font-weight', 800).attr('fill','#1B2A41'); gg.append('circle').attr('class','lv').attr('r', 5).attr('cy', rh / 2).attr('fill','#5CC8D7').attr('stroke','#fff').attr('stroke-width', 2); return gg; });
+  g.on('mousemove', (ev, d) => showTip(`<div class="t">${esc(d.c)}</div>Regrettable <b>${d.r}</b> · other <b>${d.nr}</b><br>“${esc(QB[d.c][0])}”`, ev)).on('mouseleave', hideTip);
+  g.transition().duration(anim ? DUR : 0).attr('transform', (d, i) => `translate(0,${m.t + i * rh})`);
+  g.select('text.l').text(d => d.c); g.select('rect.a').transition().duration(anim ? DUR : 0).attr('width', d => x(d.r)); g.select('rect.b').transition().duration(anim ? DUR : 0).attr('x', d => m.l + x(d.r) + (d.r ? 2 : 0)).attr('width', d => x(d.nr));
+  g.select('text.v').transition().duration(anim ? DUR : 0).attr('x', d => m.l + x(d.r + d.nr) + 8).text(d => d.r + d.nr); g.select('circle.lv').attr('cx', m.l - 140).attr('opacity', d => d.live ? 1 : 0);
+  if (!rsSvg.select('text.k').node()){ const k = rsSvg.append('text').attr('class','k').attr('x', m.l).attr('y', h - 4).attr('font-size', 10.5).attr('fill','#5E6676'); [['■ ','#E8634A'],['regrettable    ',null],['■ ','#D3D0CA'],['non-regrettable    ',null],['● ','#5CC8D7'],['your live interview',null]].forEach(t => { const ts = k.append('tspan').text(t[0]); if (t[1]) ts.attr('fill', t[1]).attr('font-size', 13); }); }
+  const B = [['< 1 yr', 0, 12], ['1–2 yrs', 12, 24], ['2–4 yrs', 24, 48], ['4+ yrs', 48, 999]], hw = 560, cw = (hw - 150) / 4, hh = 22 + CATS.length * 26;
+  if (!htSvg){ htSvg = d3.select('#heat').append('svg').attr('viewBox', `0 0 ${hw} ${hh}`).attr('role','img').attr('aria-label','Heatmap of exit reasons by tenure band'); B.forEach((b, j) => htSvg.append('text').attr('x', 150 + j * cw + cw / 2).attr('y', 14).attr('text-anchor','middle').attr('font-size', 11).attr('font-weight', 800).attr('fill','#1B2A41').text(b[0])); CATS.forEach((c, i) => htSvg.append('text').attr('x', 142).attr('y', 22 + i * 26 + 17).attr('text-anchor','end').attr('font-size', 11).attr('fill','#1B2A41').text(c)); }
+  const cells = CATS.flatMap((c, i) => B.map((b, j) => ({ k: c + j, i, j, n: R.filter(r => r.primary_category === c && r.tenM >= b[1] && r.tenM < b[2]).length, live: R.some(r => r.live && r.primary_category === c && r.tenM >= b[1] && r.tenM < b[2]) }))), hm = Math.max(1, ...cells.map(c => c.n)), col = d3.interpolateRgb('#FBEFEB', '#C2412A');
+  const cg = htSvg.selectAll('g.c').data(cells, d => d.k).join(en => { const gg = en.append('g').attr('class','c'); gg.append('rect').attr('x', d => 150 + d.j * cw + 2).attr('y', d => 22 + d.i * 26 + 2).attr('width', cw - 4).attr('height', 22).attr('rx', 4); gg.append('text').attr('x', d => 150 + d.j * cw + cw / 2).attr('y', d => 22 + d.i * 26 + 17).attr('text-anchor','middle').attr('font-size', 11).attr('font-weight', 800); return gg; });
+  cg.select('rect').transition().duration(anim ? DUR : 0).attr('fill', d => d.n ? col(d.n / hm) : '#F4F2EF').attr('stroke', d => d.live ? '#5CC8D7' : 'none').attr('stroke-width', 3);
+  cg.select('text').attr('fill', d => d.n / hm > .5 ? '#fff' : '#1B2A41').text(d => d.n || ''); }
+
+/* ======================================================================
+   04 · HR COPILOT
+   ====================================================================== */
+const ASKP = ['Why are relationship managers in West leaving?','Which regrettable exits had under 2 years of tenure?','What would have kept credit managers?','Is the manager a recurring reason in any zone?'];
+function askOffline(q){ const t = q.toLowerCase(), z = ZONES.find(x => t.includes(x.toLowerCase())), r = /relationship|\brm/.test(t) ? 'RM' : /credit/.test(t) ? 'Credit' : /collection/.test(t) ? 'Collections' : /operation|ops/.test(t) ? 'Operations' : /sales/.test(t) ? 'Sales' : null;
+  let R = allRows().filter(x => (!z || x.zone === z) && (!r || x.rk === r)); const regOnly = /regrettable/.test(t); if (regOnly) R = R.filter(x => x.regrettable); const tm = t.match(/under (\d+) years?/); if (tm) R = R.filter(x => x.tenM < +tm[1] * 12);
+  const scope = `${r ? RN[r] + 's' : 'leavers'}${z ? ' in ' + z : ''}${regOnly ? ' (regrettable only)' : ''}${tm ? ' under ' + tm[1] + ' years' : ''}`; if (!R.length) return `No interviews match ${scope}.`;
+  const cnt = CATS.map(c => [c, R.filter(x => x.primary_category === c).length]).filter(c => c[1]).sort((a, b) => b[1] - a[1]);
+  if (/manager/.test(t) && /zone|recurring|any/.test(t)){ const zz = ZONES.map(zn => [zn, allRows().filter(x => x.zone === zn && x.primary_category === 'Manager').length, allRows().filter(x => x.zone === zn).length]).sort((a, b) => b[1] / b[2] - a[1] / a[2]);
+    return `**Manager as the primary reason, by zone**\n${zz.map(x => `- ${x[0]}: ${x[1]} of ${x[2]} exits (${Math.round(x[1] / x[2] * 100)}%)`).join('\n')}\n**Read-out:** ${zz[0][0]} stands out. Run skip-level conversations in the teams behind these exits and check whether the same managers repeat.`; }
+  if (/kept|keep|stay|retain|would have/.test(t)){ return `**What would have kept ${scope}** (${R.length} interviews)\n${cnt.slice(0, 3).map(c => `- ${c[0]} (${c[1]}): ${LEVER[c[0]]}`).join('\n')}\n**In their words:** “${R.find(x => x.primary_category === cnt[0][0]).quote}”`; }
+  return `**${scope.charAt(0).toUpperCase() + scope.slice(1)}: ${R.length} interviews**\n${cnt.slice(0, 4).map(c => `- ${c[0]}: ${c[1]} (${Math.round(c[1] / R.length * 100)}%)`).join('\n')}\n- Regrettable: ${R.filter(x => x.regrettable).length} of ${R.length}\n**In their words:** “${R.find(x => x.primary_category === cnt[0][0]).quote}”\n**Suggested action:** ${LEVER[cnt[0][0]]}.`; }
+async function ask(q){ q = (q || '').trim(); if (!q) return; const out = $('aOut'), btn = $('aGo'); btn.disabled = true; out.innerHTML = '<div class="dots"><span></span><span></span><span></span></div>'; let done = false;
+  if (KOA){ try { const rows = allRows().map(r => ({ id: r.live ? 'live:' + r.name : r.id, role: RN[r.rk] || r.rk, zone: r.zone, tenure_months: r.tenM, primary_reason: r.primary_category, regrettable: r.regrettable, recommend: r.recommend, quote: r.quote, retention_lever: r.lever }));
+      await openai([{ role:'system', content:'You are an HR analytics assistant for the housing finance company. Answer the question using only the exit interview records provided (JSON). Count carefully, cite numbers, include one short verbatim quote, and end with one practical action. Use bold headings and bullets; under 170 words.' }, { role:'user', content: `Question: ${q}\nRecords: ${JSON.stringify(rows)}` }], { onDelta: t => { out.innerHTML = md(t) + `<p class="note" style="margin-top:8px">✦ Answered by ${esc(OAM)} from ${rows.length} records</p>`; } }); done = true; } catch (err){ fail('GenAI answer', err); } }
+  if (!done){ await sleep(400); out.innerHTML = md(askOffline(q)) + '<p class="note" style="margin-top:8px">Template answer from the coded records · add an OpenAI key to ask anything</p>'; }
+  btn.disabled = false; }
+$('aChips').innerHTML = ASKP.map((q, i) => `<button type="button" class="chipb pre" data-aq="${i}">${esc(q)}</button>`).join('');
+$('aChips').addEventListener('click', e => { const b = e.target.closest('[data-aq]'); if (!b) return; document.querySelectorAll('#aChips .chipb').forEach(x => x.classList.toggle('on', x === b)); $('aI').value = ASKP[+b.dataset.aq]; ask(ASKP[+b.dataset.aq]); });
+$('aGo').addEventListener('click', () => ask($('aI').value)); $('aI').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); ask($('aI').value); } });
+
+/* ======================================================================
+   IMPACT · isotype + strip plot
+   ====================================================================== */
+function drawIso(){ const w = 520, h = 400, s = d3.select('#iso').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Pictogram of 100 leavers by what was learned, before and after');
+  const P = 'M-4.2,-10a4.2,4.2 0 1,0 8.4,0a4.2,4.2 0 1,0 -8.4,0zM-5.5,-4.5h11a2,2 0 0 1 2,2v7h-3v9h-9v-9h-3v-7a2,2 0 0 1 2,-2z', DATA = { before: [65, 15, 20], after: [8, 7, 85] }, COL = ['#D3D0CA', '#F0A23B', '#E8634A'];
+  const cells = range(100).map(i => ({ i, x: 40 + (i % 10) * 46, y: 52 + Math.floor(i / 10) * 33 })); const g = s.selectAll('path').data(cells).join('path').attr('d', P).attr('transform', d => `translate(${d.x},${d.y + 6}) scale(1.05)`);
+  const lab = s.append('g'); function upd(k){ const D = DATA[k], cls = i => i < D[2] ? 2 : i < D[2] + D[1] ? 1 : 0;
+    g.transition().duration(DUR).delay(d => reduce ? 0 : d.i * 7).attr('fill', d => COL[cls(d.i)]);
+    lab.selectAll('*').remove(); [['Specific reason', D[2], COL[2]], ['Vague reason', D[1], COL[1]], ['No interview', D[0], '#8D8A84']].forEach((t, j) => { lab.append('text').attr('x', 30 + j * 168).attr('y', 22).attr('font-family','DM Serif Display, Georgia, serif').attr('font-size', 26).attr('fill', t[2]).text(t[1]); lab.append('text').attr('x', 30 + j * 168 + (String(t[1]).length * 15) + 6).attr('y', 22).attr('font-size', 11).attr('font-weight', 700).attr('fill', '#5E6676').text(t[0]); }); }
+  upd('after'); segBind('ic', upd); }
+function drawStrip(){ const R = mulberry32(31), rows = ROLES.map(r => RN[r]), DATA = { before: ROLES.flatMap(r => range(14).map(() => ({ r: RN[r], v: clamp(8 + Math.pow(R(), .8) * 52 + (R() - .5) * 6, 3, 62) }))), after: ROLES.flatMap(r => range(14).map(() => ({ r: RN[r], v: clamp(.3 + Math.pow(R(), 2.2) * 3.2, .1, 4) }))) };
+  const w = 520, h = 380, m = { t: 30, r: 16, b: 40, l: 140 }, s = d3.select('#strip').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Strip plot of days from last working day to exit insight, by role, before and after');
+  const x = d3.scaleLinear().domain([0, 62]).range([m.l, w - m.r]), y = d3.scaleBand().domain(rows).range([m.t, h - m.b]).padding(.3);
+  s.append('g').attr('class','grid').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(6).tickSize(-(h - m.b - m.t)).tickFormat(''));
+  s.append('g').attr('class','axis').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(6).tickFormat(v => v + ' d').tickSize(0).tickPadding(8));
+  s.append('g').attr('class','axis').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).tickSize(0).tickPadding(8));
+  const med = s.append('g'), dots = s.append('g'), lab = s.append('text').attr('x', w - m.r).attr('y', 16).attr('text-anchor','end').attr('font-size', 12).attr('font-weight', 800);
+  function upd(k){ const D = DATA[k], J = mulberry32(7);
+    dots.selectAll('circle').data(D.map((d, i) => Object.assign({ i }, d)), d => d.i).join('circle').attr('r', 4.2).attr('fill', k === 'after' ? '#E8634A' : '#9AA3B5').attr('opacity', .7).attr('stroke','#fff').attr('stroke-width', 1)
+      .on('mousemove', (ev, d) => showTip(`<div class="t">${esc(d.r)}</div><b>${d.v.toFixed(1)}</b> days to insight`, ev)).on('mouseleave', hideTip)
+      .transition().duration(DUR + 300).delay(d => reduce ? 0 : (d.i % 14) * 25).attr('cx', d => x(d.v)).attr('cy', d => y(d.r) + y.bandwidth() / 2 + (J() - .5) * y.bandwidth() * .9);
+    med.selectAll('line').data(rows).join('line').attr('stroke', '#1B2A41').attr('stroke-width', 2.5).attr('y1', r => y(r)).attr('y2', r => y(r) + y.bandwidth()).transition().duration(DUR + 300).attr('x1', r => x(d3.median(D.filter(d => d.r === r), d => d.v))).attr('x2', r => x(d3.median(D.filter(d => d.r === r), d => d.v)));
+    const mdn = d3.median(D, d => d.v); lab.attr('fill', k === 'after' ? '#E8634A' : '#5E6676').text(`Median ${mdn < 2 ? mdn.toFixed(1) : Math.round(mdn)} days to insight`); }
+  upd('after'); segBind('st', upd); }
+
+/* ======================================================================
+   BOOT
+   ====================================================================== */
+renderProf(); fillVoices(); setPills(); orbLoop(); REC = sampleRecord(); renderRecord(REC, true); renderDB(false);
+if (hasD3){ whenVisible($('iso'), drawIso); whenVisible($('strip'), drawStrip); }
+else ['reasons','heat','iso','strip'].forEach(id => $(id).innerHTML = '<p style="padding:20px;color:var(--muted)">Charts need an internet connection to load their library.</p>');
+if ($('kEl').value) connectEl(true); if ($('kOa').value) connectOa(true);
+window.__px = { ruleQ, codeOffline, firstQ, PROFILES, IV, askOffline, get REC(){ return REC; }, LIVE };
+})();
+
+</script>
+</body>
+</html>

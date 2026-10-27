@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oil and Gas · Plant Safety Video Series | HMC Case Study</title>
+<meta name="description" content="How Havish M Consulting helped the oil and gas company's plant HSE team create ten animated, bilingual safety videos as lightweight HTML, built with GenAI.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=DM+Serif+Display&family=Noto+Sans+Devanagari:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+:root{
+  --pri:#0B4EA2; --deep:#071A3A; --acc:#FFC20E; --bg:#F5F7FB; --text:#0F1B33;
+  --muted:#5D6B85; --green:#16A34A; --red:#DC2626; --card:#FFFFFF; --line:#DFE5F0;
+  --pri-10:rgba(11,78,162,.08); --acc-15:rgba(255,194,14,.2);
+  --radius:12px; --shadow:0 1px 2px rgba(7,26,58,.06),0 8px 24px rgba(7,26,58,.08);
+  --serif:"DM Serif Display",Georgia,serif; --sans:"DM Sans","Noto Sans Devanagari",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--serif);font-weight:400;color:var(--deep);margin:0;line-height:1.15}
+h2{font-size:clamp(1.6rem,3.2vw,2.2rem)}
+h3{font-size:1.2rem}
+p{margin:0}
+.wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+section{padding:64px 0}
+.eyebrow{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--pri);margin-bottom:10px}
+.lead{color:var(--muted);max-width:720px;margin-top:12px}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line)}
+.sec-head{margin-bottom:32px}
+
+.topbar{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+.logos{display:flex;align-items:center;gap:16px}
+.logos img{height:44px;width:auto;object-fit:contain}
+.vdiv{width:1px;height:36px;background:var(--line)}
+.tagline{font-size:.8rem;color:var(--muted);letter-spacing:.04em}
+.tagline b{color:var(--pri);font-weight:700}
+
+.hero{background:linear-gradient(135deg,var(--deep) 0%,#0A3778 55%,var(--pri) 100%);color:#fff;padding:80px 0 72px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-80px;top:-60px;width:460px;height:460px;pointer-events:none;opacity:.35;
+  background:repeating-linear-gradient(135deg,var(--acc) 0 22px,#071A3A 22px 44px);
+  -webkit-mask:radial-gradient(circle,#000 0 36%,transparent 37%);mask:radial-gradient(circle,#000 0 36%,transparent 37%)}
+.hero .eyebrow{color:var(--acc)}
+.hero h1{color:#fff;font-size:clamp(2.3rem,5.6vw,3.8rem);max-width:820px;position:relative;z-index:1}
+.hero .sub{font-size:clamp(1.05rem,2vw,1.25rem);color:rgba(255,255,255,.86);max-width:720px;margin-top:18px;position:relative;z-index:1}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px;position:relative;z-index:1}
+.pill{border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:6px 14px;font-size:.85rem;color:#fff;background:rgba(255,255,255,.06)}
+.pill span{color:var(--acc);font-weight:700;margin-right:6px}
+
+.kpis{margin-top:-40px;position:relative;z-index:2;padding:0}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi{padding:22px 20px;border-top:3px solid var(--acc)}
+.kpi .label{font-size:.82rem;color:var(--muted);font-weight:500}
+.kpi .val{font-family:var(--serif);font-size:clamp(1.9rem,4vw,2.6rem);color:var(--pri);line-height:1.1;margin-top:6px;white-space:nowrap}
+.kpi .val small{font-family:var(--sans);font-size:.9rem;color:var(--muted);margin-left:4px}
+.delta{display:inline-flex;align-items:center;gap:4px;font-size:.8rem;font-weight:700;margin-top:8px;padding:2px 8px;border-radius:999px;background:rgba(22,163,74,.1);color:var(--green)}
+.footnote{font-size:.78rem;color:var(--muted);margin-top:14px}
+
+.ch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.ch{padding:24px}
+.ico{width:44px;height:44px;border-radius:10px;background:var(--acc-15);display:grid;place-items:center;margin-bottom:16px}
+.ico svg{width:22px;height:22px;stroke:#8A6400;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ch h3{margin-bottom:8px}
+.ch p{font-size:.92rem;color:#3A4660}
+
+.tl{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.tl::before{content:"";position:absolute;left:10%;right:10%;top:27px;height:2px;background:var(--line)}
+.tl-step{position:relative;background:none;border:0;cursor:pointer;font:inherit;color:inherit;display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 4px 8px}
+.tl-dot{width:56px;height:56px;border-radius:50%;background:#fff;border:2px solid var(--line);display:grid;place-items:center;font-family:var(--serif);font-size:1.25rem;color:var(--pri);transition:all .25s;position:relative;z-index:1}
+.tl-name{font-weight:700;font-size:.95rem}
+.tl-dur{font-size:.75rem;color:var(--muted);margin-top:-8px}
+.tl-step:hover .tl-dot{border-color:var(--acc)}
+.tl-step[aria-expanded="true"] .tl-dot{background:var(--pri);border-color:var(--pri);color:#fff;box-shadow:0 0 0 6px var(--acc-15)}
+.tl-step:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:8px}
+.tl-panel{display:none;padding:24px 28px;margin-top:20px;border-left:4px solid var(--acc)}
+.tl-panel.open{display:block;animation:fadeUp .35s ease}
+.tl-panel h3{margin-bottom:6px}
+.tl-panel ul{margin:12px 0 0;padding-left:20px;color:#3A4660}
+.tl-panel li{margin:6px 0}
+.tl-panel .deliv{margin-top:14px;font-size:.85rem;color:var(--muted)}
+.tl-panel .deliv b{color:var(--pri)}
+.tl-hint{text-align:center;color:var(--muted);font-size:.8rem;margin-top:6px}
+
+.seg{display:inline-flex;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:22px;padding:4px;gap:4px}
+.seg button{border:0;background:none;font:inherit;font-size:.84rem;font-weight:700;padding:7px 14px;border-radius:999px;cursor:pointer;color:var(--muted);transition:all .2s}
+.seg button[aria-pressed="true"]{background:var(--pri);color:#fff}
+.seg button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+
+/* ===== Player ===== */
+.theatre{display:grid;grid-template-columns:minmax(0,3fr) minmax(260px,1fr);gap:16px;align-items:start}
+.player{background:#050E22;border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+.stage-wrap{position:relative;background:#DCEBFA;aspect-ratio:16/9}
+#stage{position:absolute;inset:0;width:100%;height:100%;display:block}
+.cap{background:#0B1A36;color:#fff;font-size:clamp(.82rem,1.6vw,1.05rem);font-weight:600;line-height:1.45;padding:10px 16px;min-height:3.9em;display:flex;align-items:center;justify-content:center;text-align:center;border-bottom:1px solid rgba(255,255,255,.08)}
+.cap[data-off="1"]{visibility:hidden}
+.badge-top{position:absolute;left:12px;top:10px;background:rgba(5,14,34,.72);color:#fff;font-size:.72rem;font-weight:700;letter-spacing:.06em;padding:4px 10px;border-radius:999px;pointer-events:none}
+.badge-top b{color:var(--acc)}
+.bigplay{position:absolute;inset:0;display:grid;place-items:center;background:rgba(5,14,34,.28);border:0;cursor:pointer;width:100%;padding:0}
+.bigplay span{width:76px;height:76px;border-radius:50%;background:var(--acc);display:grid;place-items:center;box-shadow:0 8px 30px rgba(0,0,0,.35)}
+.bigplay svg{width:30px;height:30px;margin-left:5px}
+.controls{display:flex;align-items:center;gap:8px;padding:10px 12px;color:#DCE6F7;flex-wrap:wrap}
+.cbtn{border:0;background:transparent;color:#DCE6F7;cursor:pointer;width:36px;height:36px;border-radius:8px;display:grid;place-items:center;padding:0}
+.cbtn:hover{background:rgba(255,255,255,.08)}
+.cbtn:focus-visible,.tbtn:focus-visible,.pl-item:focus-visible,.prog:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.cbtn svg{width:18px;height:18px;fill:currentColor}
+.time{font-size:.78rem;font-variant-numeric:tabular-nums;color:#AFC1E0;min-width:84px}
+.prog{flex:1 1 160px;position:relative;height:22px;cursor:pointer;min-width:120px}
+.prog .track{position:absolute;left:0;right:0;top:9px;height:4px;border-radius:2px;background:rgba(255,255,255,.18)}
+.prog .fill{position:absolute;left:0;top:9px;height:4px;border-radius:2px;background:var(--acc)}
+.prog .tick{position:absolute;top:6px;width:2px;height:10px;background:rgba(255,255,255,.35)}
+.prog .knob{position:absolute;top:4px;width:14px;height:14px;border-radius:50%;background:#fff;margin-left:-7px;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.tbtn{border:1px solid rgba(255,255,255,.22);background:transparent;color:#DCE6F7;font:inherit;font-size:.74rem;font-weight:700;border-radius:6px;padding:5px 9px;cursor:pointer}
+.tbtn[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:#071A3A}
+.player:fullscreen{display:flex;flex-direction:column;justify-content:center;border-radius:0}
+.player:fullscreen .stage-wrap{max-height:calc(100vh - 140px);width:auto;aspect-ratio:16/9;margin:0 auto}
+.playlist{display:grid;gap:8px;max-height:560px;overflow:auto;padding-right:2px}
+.pl-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:.8rem;color:var(--muted)}
+.pl-head b{color:var(--deep);font-size:.95rem}
+.pl-item{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
+.pl-item:hover{border-color:#B9C7E0}
+.pl-item[aria-current="true"]{border-color:var(--pri);box-shadow:0 0 0 2px var(--pri-10);background:#F7FAFF}
+.pl-num{width:44px;height:44px;border-radius:10px;background:var(--deep);color:var(--acc);display:grid;place-items:center;font-family:var(--serif);font-size:1.15rem}
+.pl-item[aria-current="true"] .pl-num{background:var(--pri);color:#fff}
+.pl-t{font-weight:700;font-size:.86rem;line-height:1.25;color:var(--deep)}
+.pl-s{font-size:.72rem;color:var(--muted)}
+.pl-d{font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums;text-align:right}
+.pl-d .done{display:block;color:var(--green);font-weight:700}
+.under{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}
+.under h3{font-size:1.25rem}
+.under p{font-size:.88rem;color:var(--muted)}
+.chapters{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chap{border:1px solid var(--line);background:#fff;border-radius:999px;font:inherit;font-size:.74rem;font-weight:600;padding:4px 10px;cursor:pointer;color:var(--muted)}
+.chap[aria-current="true"]{background:var(--deep);color:#fff;border-color:var(--deep)}
+
+/* charts */
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.chart svg{width:100%;height:auto;display:block}
+.axis text{font-family:var(--sans);font-size:11.5px;fill:var(--muted)}
+.axis line{stroke:var(--line)}
+.axis path{display:none}
+.grid line{stroke:var(--line);stroke-dasharray:2 3}
+.grid path{display:none}
+.ckey{display:flex;gap:16px;font-size:.8rem;color:var(--muted);margin-top:8px;flex-wrap:wrap}
+.ckey span{display:inline-flex;align-items:center;gap:6px}
+.ckey i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.cmp-head{display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+.cmp{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.cmp th,.cmp td{padding:16px 18px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);font-size:.92rem;overflow-wrap:anywhere}
+.cmp thead th{font-family:var(--sans);font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);background:#F8FAFD}
+.cmp tbody tr:last-child td,.cmp tbody tr:last-child th{border-bottom:0}
+.cmp tbody th{font-weight:700;color:var(--pri)}
+.cmp col.c1{width:24%}
+.cmp td{transition:background .3s,opacity .3s,color .3s}
+.cmp.hl-before td.b{background:#FEF6F6;color:#7F1D1D}
+.cmp.hl-before td.a{opacity:.38}
+.cmp.hl-after td.a{background:#F0FAF3;color:#14532D;font-weight:500}
+.cmp.hl-after td.b{opacity:.38}
+.cmp.hl-after thead th.a{color:var(--green)}
+.cmp.hl-before thead th.b{color:var(--red)}
+
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:.9rem;font-weight:500;display:inline-flex;align-items:center;gap:8px;box-shadow:0 1px 2px rgba(7,26,58,.04)}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--acc)}
+.chip em{font-style:normal;color:var(--muted);font-weight:400;font-size:.82rem}
+
+.tk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.tk{padding:26px}
+.tk .n{font-family:var(--serif);font-size:2.6rem;color:#D9A300;line-height:1}
+.tk h3{margin:12px 0 8px}
+.tk p{font-size:.92rem;color:#3A4660}
+
+footer{background:var(--deep);color:rgba(255,255,255,.75);padding:48px 0 32px;margin-top:32px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px}
+.f-brand{display:flex;align-items:center;gap:16px}
+.f-brand img{height:44px;width:auto;border-radius:6px;background:#fff;padding:4px}
+.f-brand b{display:block;color:#fff;font-family:var(--serif);font-weight:400;font-size:1.15rem}
+.copy{width:100%;border-top:1px solid rgba(255,255,255,.12);padding-top:18px;font-size:.8rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+
+#tip{position:fixed;pointer-events:none;z-index:70;background:var(--deep);color:#fff;font-size:.8rem;line-height:1.45;padding:10px 12px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transition:opacity .15s;max-width:260px}
+#tip b{color:var(--acc);font-weight:700}
+#tip .t{font-weight:700;font-size:.85rem;margin-bottom:2px;color:#fff}
+
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .js .reveal{opacity:1;transform:none;transition:none}
+  .tl-panel.open{animation:none}
+}
+@media (max-width:980px){
+  .kpi-grid,.ch-grid{grid-template-columns:repeat(2,1fr)}
+  .theatre{grid-template-columns:1fr}
+  .playlist{max-height:none;grid-template-columns:1fr 1fr}
+  .dash{grid-template-columns:1fr}
+  .tk-grid{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .wrap{padding:0 16px}
+  section{padding:48px 0}
+  .hero{padding:56px 0 64px}
+  .hero::after{opacity:.15}
+  .logos img{height:34px}
+  .vdiv{height:28px}
+  .kpi-grid{gap:10px}
+  .kpi{padding:16px 14px}
+  .ch-grid{grid-template-columns:1fr}
+  .tl::before{top:19px}
+  .tl-dot{width:40px;height:40px;font-size:1rem}
+  .tl-name{font-size:.75rem}
+  .tl-dur{display:none}
+  .tl-panel{padding:18px}
+  .playlist{grid-template-columns:1fr}
+  .controls{gap:4px;padding:8px}
+  .cbtn{width:32px;height:32px}
+  .time{min-width:0;order:9}
+  .prog{order:10;flex-basis:100%}
+  .bigplay span{width:56px;height:56px}
+  .cmp th,.cmp td{padding:12px 10px;font-size:.82rem}
+  .cmp thead th{font-size:.68rem;letter-spacing:.08em}
+  .chart-card{padding:14px}
+}
+@media print{
+  body{background:#fff;font-size:12px}
+  .topbar{position:static}
+  .hero{background:var(--pri)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:36px 0}
+  .hero::after{display:none}
+  .card{box-shadow:none;break-inside:avoid}
+  section{padding:28px 0}
+  .js .reveal{opacity:1!important;transform:none!important}
+  .seg,.tl-hint,.controls,.bigplay{display:none!important}
+  .tl-panel{display:block!important;margin-top:10px}
+  #tip{display:none}
+  footer{background:#fff;color:var(--text)}
+  footer .f-brand b{color:var(--deep)}
+  .kpis{margin-top:16px}
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="logos">
+      <img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting">
+    </div>
+    <div class="tagline">Customer Case Study · <b>Plant HSE</b></div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Oil and Gas × Havish M Consulting</div>
+    <h1>Plant Safety Video Series</h1>
+    <p class="sub">Ten bite-size animated safety videos, bilingual and built with GenAI as lightweight HTML. They play on a gate kiosk, a toolbox-talk tablet or a phone, even offline.</p>
+    <div class="pills">
+      <span class="pill"><span>Client</span>Oil and Gas</span>
+      <span class="pill"><span>Function</span>Plant HSE</span>
+      <span class="pill"><span>Theme</span>Safety Videos</span>
+    </div>
+  </div>
+</section>
+
+<section class="kpis">
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="card kpi reveal">
+        <div class="label">Animated safety videos</div>
+        <div class="val"><span class="count" data-to="10" data-dec="0">0</span></div>
+        <div class="delta">▲ core plant hazards covered</div>
+      </div>
+      <div class="card kpi reveal">
+        <div class="label">Length of each video</div>
+        <div class="val">~<span class="count" data-to="30" data-dec="0">0</span><small>sec</small></div>
+        <div class="delta">▲ one rule, one minute or less</div>
+      </div>
+      <div class="card kpi reveal">
+        <div class="label">Production time per video</div>
+        <div class="val"><span class="count" data-to="1" data-dec="0">0</span><small>day</small></div>
+        <div class="delta">▼ vs ~6 weeks with a video agency</div>
+      </div>
+      <div class="card kpi reveal">
+        <div class="label">Caption &amp; narration languages</div>
+        <div class="val"><span class="count" data-to="2" data-dec="0">0</span></div>
+        <div class="delta">▲ English and हिंदी, more to follow</div>
+      </div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="challenge">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Challenge</div>
+      <h2>Safety rules that live in binders don't reach the shop floor</h2>
+      <p class="lead">A refinery's safety depends on thousands of employees and contractors applying the same few rules every day. Training material was long, text-heavy and slow to update.</p>
+    </div>
+    <div class="ch-grid">
+      <div class="card ch reveal">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M4 4h12l4 4v12H4z"/><path d="M8 10h8M8 14h8M8 18h5"/></svg></div>
+        <h3>Long, dense SOPs</h3>
+        <p>Permit, LOTO and confined-space procedures ran to many pages. Contractors skimmed them at induction and forgot them by shift two.</p>
+      </div>
+      <div class="card ch reveal">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M3 5h18v12H3z"/><path d="M8 21h8M12 17v4"/><path d="M10 9l4 2-4 2z"/></svg></div>
+        <h3>Video was slow and costly</h3>
+        <p>Each agency-produced film took weeks of shooting and editing. Updating one step meant re-shooting.</p>
+      </div>
+      <div class="card ch reveal">
+        <div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></div>
+        <h3>Many languages on site</h3>
+        <p>A mixed workforce needed the same message in more than one language, spoken as well as written.</p>
+      </div>
+      <div class="card ch reveal">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14 0M8.5 16.1a6 6 0 0 1 7 0M12 20h.01"/><path d="M2 2l20 20"/></svg></div>
+        <h3>Low connectivity zones</h3>
+        <p>Heavy video files streamed poorly at gates and in process units, where training is needed most.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="approach" style="background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">HMC Approach</div>
+      <h2>One rule per video, animated in code</h2>
+      <p class="lead">HSE owned the content. GenAI did the drawing, animating and translating. Every frame was reviewed before release.</p>
+    </div>
+    <div class="tl reveal" role="tablist" aria-label="HMC approach steps">
+      <button class="tl-step" aria-expanded="true" aria-controls="tp0"><span class="tl-dot">1</span><span class="tl-name">Discover</span><span class="tl-dur">1 week</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp1"><span class="tl-dot">2</span><span class="tl-name">Design</span><span class="tl-dur">1 week</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp2"><span class="tl-dot">3</span><span class="tl-name">Build</span><span class="tl-dur">2 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp3"><span class="tl-dot">4</span><span class="tl-name">Adopt</span><span class="tl-dur">1 month</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp4"><span class="tl-dot">5</span><span class="tl-name">Scale</span><span class="tl-dur">Ongoing</span></button>
+    </div>
+    <p class="tl-hint">Select a step to see what happened.</p>
+    <div class="card tl-panel open" id="tp0">
+      <h3>Discover · Pick the rules that prevent the most harm</h3>
+      <p>We started from plant SOPs, the permit system and recent near-miss learnings.</p>
+      <ul>
+        <li>Shortlisted ten high-consequence topics, from PPE and permits to H₂S and evacuation.</li>
+        <li>Reduced each SOP to one core rule and three things to remember.</li>
+        <li>Mapped where people would watch: gate kiosks, toolbox talks, phones.</li>
+      </ul>
+      <p class="deliv"><b>Deliverable:</b> Ten-topic curriculum with key messages.</p>
+    </div>
+    <div class="card tl-panel" id="tp1">
+      <h3>Design · Storyboards in plain language</h3>
+      <p>Each video follows the same five-beat structure.</p>
+      <ul>
+        <li>Title, three to four action scenes, then a "remember" card. About 30 seconds.</li>
+        <li>One caption per scene, written for a Class 8 reading level, in English and Hindi.</li>
+        <li>Industry-standard visual language: yellow hard hats, navy coveralls, plant skyline.</li>
+      </ul>
+      <p class="deliv"><b>Deliverable:</b> Storyboards and a bilingual caption sheet.</p>
+    </div>
+    <div class="card tl-panel" id="tp2">
+      <h3>Build · GenAI draws and animates</h3>
+      <p>Claude turned each storyboard into an animated SVG scene written in code.</p>
+      <ul>
+        <li>A shared library of characters and plant equipment keeps all ten videos consistent.</li>
+        <li>Captions and optional voice narration in English and Hindi, switchable live.</li>
+        <li>Each video is a few kilobytes of code, not a video file: it plays offline.</li>
+      </ul>
+      <p class="deliv"><b>Deliverable:</b> Ten videos in one HTML player, reviewed by HSE frame by frame.</p>
+    </div>
+    <div class="card tl-panel" id="tp3">
+      <h3>Adopt · Where people already are</h3>
+      <p>The series went into existing safety routines, not a new app.</p>
+      <ul>
+        <li>Looped on gate-induction kiosks for contractors.</li>
+        <li>Played at the start of toolbox talks, one topic per day.</li>
+        <li>Shared to supervisors' phones as a single file.</li>
+      </ul>
+      <p class="deliv"><b>Deliverable:</b> Daily safety-minute rota and kiosk mode.</p>
+    </div>
+    <div class="card tl-panel" id="tp4">
+      <h3>Scale · More topics, more languages</h3>
+      <p>Adding a topic or a language is an edit, not a shoot.</p>
+      <ul>
+        <li>Regional languages added per site; new topics from incident learnings.</li>
+        <li>A quick recall quiz after each video for induction records.</li>
+        <li>HSE owns the content; the template stays the same.</li>
+      </ul>
+      <p class="deliv"><b>Deliverable:</b> Template and prompt pack for new topics.</p>
+    </div>
+  </div>
+</section>
+
+<section id="solution">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Solution</div>
+      <h2>The ten videos. Press play.</h2>
+      <p class="lead">Pick a topic from the playlist. Switch captions between English and Hindi, turn on voice narration, jump between chapters, or go full screen for a kiosk. Videos play one after another.</p>
+    </div>
+    <div class="theatre reveal">
+      <div>
+        <div class="player" id="player">
+          <div class="stage-wrap">
+            <svg id="stage" viewBox="0 0 960 540" role="img" aria-label="Animated safety video"></svg>
+            <div class="badge-top" id="badge"></div>
+            <button class="bigplay" id="bigplay" type="button" aria-label="Play video"><span><svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z" fill="#071A3A"/></svg></span></button>
+          </div>
+          <div class="cap" id="cap" aria-live="polite"></div>
+          <div class="controls">
+            <button class="cbtn" id="bPrev" type="button" aria-label="Previous video"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+            <button class="cbtn" id="bPlay" type="button" aria-label="Play"><svg viewBox="0 0 24 24" id="playIcon"><path d="M7 4l13 8-13 8z"/></svg></button>
+            <button class="cbtn" id="bNext" type="button" aria-label="Next video"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
+            <button class="cbtn" id="bRestart" type="button" aria-label="Restart video"><svg viewBox="0 0 24 24"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg></button>
+            <span class="time" id="time">0:00 / 0:00</span>
+            <div class="prog" id="prog" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="track"></div><div class="fill" id="fill"></div><div id="ticks"></div><div class="knob" id="knob"></div></div>
+            <button class="tbtn" id="bCC" type="button" aria-pressed="true" title="Captions">CC</button>
+            <button class="tbtn" id="bLang" type="button" aria-pressed="false" title="Caption language">EN / हिं</button>
+            <button class="tbtn" id="bVoice" type="button" aria-pressed="false" title="Voice narration">Voice</button>
+            <button class="tbtn" id="bAuto" type="button" aria-pressed="true" title="Play next automatically">Auto</button>
+            <button class="cbtn" id="bFs" type="button" aria-label="Full screen"><svg viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4zM14 4h6v6h-2V6h-4zM4 14h2v4h4v2H4zM18 14h2v6h-6v-2h4z"/></svg></button>
+          </div>
+        </div>
+        <div class="under">
+          <div><h3 id="vTitle"></h3><p id="vSub"></p></div>
+        </div>
+        <div class="chapters" id="chapters" aria-label="Chapters"></div>
+      </div>
+      <div>
+        <div class="pl-head"><b>Safety Minute series</b><span id="plCount"></span></div>
+        <div class="playlist" id="playlist"></div>
+      </div>
+    </div>
+    <p class="footnote">Content illustrative and aligned to common refinery practice; final scripts to be validated by the plant HSE team against site SOPs before use. Voice narration uses the device's built-in speech and may vary by browser.</p>
+  </div>
+</section>
+
+<section id="impact" style="background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Impact Dashboard</div>
+      <h2>Remembered, not just watched</h2>
+      <p class="lead">Short, visual and in their own language, the rules stuck. Recall improved most where the old material was densest.</p>
+    </div>
+    <div class="dash">
+      <div class="card chart-card reveal">
+        <div class="chart-head">
+          <div><h3>Recall after induction</h3><p class="sub">Correct answers in a 3-question check, % by topic</p></div>
+          <div class="seg" role="group" aria-label="Training format">
+            <button type="button" data-rc="before" aria-pressed="true">Classroom slides</button>
+            <button type="button" data-rc="after" aria-pressed="false">Safety videos</button>
+          </div>
+        </div>
+        <div class="chart" id="recall"></div>
+      </div>
+      <div class="card chart-card reveal">
+        <h3>Where the series is watched</h3>
+        <p class="sub">Plays per week by channel, first 8 weeks</p>
+        <div class="chart" id="reach"></div>
+        <div class="ckey"><span><i style="background:#0B4EA2"></i>Gate kiosk</span><span><i style="background:#FFC20E"></i>Toolbox talk</span><span><i style="background:#16A34A"></i>Phone share</span></div>
+      </div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <div class="cmp-head reveal">
+      <div><div class="eyebrow">Before vs After</div><h2>How safety rules reach the floor</h2></div>
+      <div class="seg" role="group" aria-label="Highlight column">
+        <button type="button" data-hl="before" aria-pressed="false">Before</button>
+        <button type="button" data-hl="after" aria-pressed="true">After</button>
+      </div>
+    </div>
+    <div class="card reveal" style="overflow:hidden">
+      <table class="cmp hl-after" id="cmp">
+        <colgroup><col class="c1"><col><col></colgroup>
+        <thead><tr><th scope="col">Dimension</th><th scope="col" class="b">Before</th><th scope="col" class="a">After</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Format</th><td class="b">Long SOP documents and slide decks</td><td class="a">~30-second animated videos, one rule each</td></tr>
+          <tr><th scope="row">Production</th><td class="b">Agency shoot, weeks per film</td><td class="a">Generated in code, about a day per video</td></tr>
+          <tr><th scope="row">Updates</th><td class="b">Re-shoot to change a step</td><td class="a">Edit a scene or caption and re-publish</td></tr>
+          <tr><th scope="row">Language</th><td class="b">English text only</td><td class="a">English and Hindi captions and narration, more to follow</td></tr>
+          <tr><th scope="row">Delivery</th><td class="b">Large files, poor streaming on site</td><td class="a">One light HTML file, plays offline on kiosk, tablet or phone</td></tr>
+          <tr><th scope="row">Reinforcement</th><td class="b">Once, at induction</td><td class="a">Daily safety minute at toolbox talks</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="tools" style="padding-top:16px">
+  <div class="wrap">
+    <div class="sec-head reveal" style="margin-bottom:20px"><div class="eyebrow">Tools &amp; Tech Used</div><h2>No camera crew required</h2></div>
+    <div class="chips reveal">
+      <span class="chip"><i></i>Claude <em>storyboards, SVG animation &amp; translation</em></span>
+      <span class="chip"><i></i>SVG + JavaScript <em>animated scenes</em></span>
+      <span class="chip"><i></i>Web Speech <em>optional narration</em></span>
+      <span class="chip"><i></i>Plant SOPs <em>source of every rule</em></span>
+      <span class="chip"><i></i>Single HTML file <em>offline kiosk &amp; mobile</em></span>
+    </div>
+  </div>
+</section>
+
+<section id="takeaways">
+  <div class="wrap">
+    <div class="sec-head reveal"><div class="eyebrow">Key Takeaways</div><h2>What transfers to any plant safety team</h2></div>
+    <div class="tk-grid">
+      <div class="card tk reveal"><div class="n">01</div><h3>One rule per video</h3><p>Thirty seconds on a single behaviour beats thirty minutes on everything. People remember the picture, not the paragraph.</p></div>
+      <div class="card tk reveal"><div class="n">02</div><h3>Code beats camera for safety content</h3><p>Animation in code is cheap to change. When a procedure changes, the video changes the same week.</p></div>
+      <div class="card tk reveal"><div class="n">03</div><h3>Say it in their language</h3><p>Captions and voice in the languages spoken on site reach the contractor who needs the message most.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="f-brand"><img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting"><div><b>Havish M Consulting</b></div></div>
+    <div class="copy"><span>© <span id="yr">2026</span> Havish M Consulting. All rights reserved.</span><span>Figures indicative; validated metrics available on request.</span></div>
+  </div>
+</footer>
+<div id="tip" role="tooltip"></div>
+
+<script>
+(function(){
+"use strict";
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DUR = reduce ? 0 : 800;
+document.getElementById('yr').textContent = new Date().getFullYear();
+
+/* ---------- page scaffolding ---------- */
+const tip = document.getElementById('tip');
+function showTip(html, ev){ tip.innerHTML = html; tip.style.opacity = 1; const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = ev.clientX + pad, y = ev.clientY + pad; if (x + w > innerWidth - 8) x = ev.clientX - w - pad; if (y + h > innerHeight - 8) y = ev.clientY - h - pad;
+  tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; }
+function hideTip(){ tip.style.opacity = 0; }
+window.addEventListener('scroll', hideTip, {passive:true});
+const onView = new Map();
+const io = ('IntersectionObserver' in window) ? new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; e.target.classList.add('in');
+  const fn = onView.get(e.target); if (fn){ fn(); onView.delete(e.target); } io.unobserve(e.target); }), {threshold:.15}) : null;
+function whenVisible(el, fn){ onView.set(el, fn); if (io) io.observe(el); else fn(); }
+document.querySelectorAll('.reveal').forEach(el => io ? io.observe(el) : el.classList.add('in'));
+function countUp(el){ const to = +el.dataset.to, dec = +el.dataset.dec || 0; if (reduce){ el.textContent = to.toFixed(dec); return; }
+  const t0 = performance.now(); (function s(t){ const p = Math.min(1,(t-t0)/1400), e = 1 - Math.pow(1-p,3); el.textContent = (to*e).toFixed(dec); if (p < 1) requestAnimationFrame(s); })(t0); }
+document.querySelectorAll('.count').forEach(el => whenVisible(el.closest('.kpi'), () => countUp(el)));
+const steps = document.querySelectorAll('.tl-step');
+steps.forEach(btn => btn.addEventListener('click', () => { const open = btn.getAttribute('aria-expanded') === 'true';
+  steps.forEach(b => { b.setAttribute('aria-expanded','false'); document.getElementById(b.getAttribute('aria-controls')).classList.remove('open'); });
+  if (!open){ btn.setAttribute('aria-expanded','true'); document.getElementById(btn.getAttribute('aria-controls')).classList.add('open'); } }));
+const cmp = document.getElementById('cmp');
+document.querySelectorAll('[data-hl]').forEach(b => b.addEventListener('click', () => { document.querySelectorAll('[data-hl]').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+  cmp.classList.toggle('hl-before', b.dataset.hl === 'before'); cmp.classList.toggle('hl-after', b.dataset.hl === 'after'); }));
+
+/* ======================================================================
+   ANIMATION TOOLKIT
+   ====================================================================== */
+const NS = 'http://www.w3.org/2000/svg';
+const FONT = 'DM Sans, Noto Sans Devanagari, system-ui, sans-serif';
+const C = {navy:'#071A3A', blue:'#0B4EA2', yel:'#FFC20E', red:'#E23B2E', green:'#16A34A', grey:'#94A3B8', skin:'#C68B59', suit:'#1F3F7A', dark:'#22324F', white:'#FFFFFF', sky1:'#CFE3F7', sky2:'#F2F7FD', ground:'#C9D2DF', steel:'#8A97AB', orange:'#F97316'};
+function S(tag, a, p){ const e = document.createElementNS(NS, tag); if (a) for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; }
+function T(p, x, y, txt, a){ const e = S('text', Object.assign({x, y, 'font-family':FONT, 'font-size':20, fill:C.navy, 'font-weight':700}, a || {}), p); e.textContent = txt; return e; }
+const cl = (v,a=0,b=1) => Math.max(a, Math.min(b, v));
+const seg = (t,a,b) => cl((t - a) / (b - a));
+const ez = x => x < .5 ? 2*x*x : 1 - Math.pow(-2*x + 2, 2)/2;
+const pop = x => { const c1 = 1.70158, c3 = c1 + 1; return x <= 0 ? 0 : 1 + c3*Math.pow(x-1,3) + c1*Math.pow(x-1,2); };
+const tf = (e, x, y, s = 1, r = 0) => e.setAttribute('transform', `translate(${x},${y}) rotate(${r}) scale(${s})`);
+const op = (e, v) => e.setAttribute('opacity', v);
+let LANG = 'en';
+const tr = (en, hi) => LANG === 'hi' ? hi : en;
+
+function sky(g){
+  const id = 'sk' + Math.random().toString(36).slice(2,7);
+  const d = S('defs', null, g), lg = S('linearGradient', {id, x1:0, y1:0, x2:0, y2:1}, d);
+  S('stop', {offset:0, 'stop-color':C.sky1}, lg); S('stop', {offset:1, 'stop-color':C.sky2}, lg);
+  S('rect', {x:0, y:0, width:960, height:540, fill:`url(#${id})`}, g);
+}
+function plant(g, o){
+  o = o || {};
+  sky(g);
+  const sk = S('g', {opacity: o.dim ? .45 : .9}, g);
+  // columns, tanks and pipe rack
+  [[70,150,34],[120,190,26],[790,170,30],[840,130,40],[890,200,24]].forEach(([x,h,w]) => {
+    S('rect', {x, y:400-h, width:w, height:h, rx:w/2, fill:'#AEBBD0'}, sk);
+    for (let k = 1; k < 5; k++) S('rect', {x:x-3, y:400-h + k*h/5, width:w+6, height:4, fill:'#97A6BE'}, sk);
+  });
+  [[180,70,90],[640,60,110]].forEach(([x,h,w]) => { S('rect', {x, y:400-h, width:w, height:h, fill:'#B9C5D8'}, sk); S('ellipse', {cx:x+w/2, cy:400-h, rx:w/2, ry:10, fill:'#C9D3E3'}, sk); });
+  S('rect', {x:0, y:330, width:960, height:6, fill:'#A3B1C7'}, sk); S('rect', {x:0, y:350, width:960, height:4, fill:'#A3B1C7'}, sk);
+  for (let x = 20; x < 960; x += 80) S('rect', {x, y:330, width:5, height:70, fill:'#A3B1C7'}, sk);
+  // flare stack
+  S('rect', {x:540, y:120, width:8, height:280, fill:'#9AA9C0'}, sk);
+  const flame = S('path', {d:'M544,120 C534,100 540,88 544,78 C548,88 556,100 544,120 Z', fill:C.orange}, sk);
+  // ground
+  S('rect', {x:0, y:400, width:960, height:140, fill:C.ground}, g);
+  S('rect', {x:0, y:400, width:960, height:4, fill:'#B4BFD0'}, g);
+  return t => { const k = 1 + .12*Math.sin(t*9) + .06*Math.sin(t*23); flame.setAttribute('transform', `translate(544,120) scale(${1/k},${k}) translate(-544,-120)`); };
+}
+function person(p, x, y, o){
+  o = o || {};
+  const g = S('g', null, p); tf(g, x, y, o.s || 1);
+  const suit = o.suit || C.suit;
+  const legs = S('g', null, g);
+  const legL = S('rect', {x:-16, y:40, width:13, height:60, rx:5, fill:o.pants || C.dark}, legs);
+  const legR = S('rect', {x:3, y:40, width:13, height:60, rx:5, fill:o.pants || C.dark}, legs);
+  const shoeL = S('rect', {x:-20, y:96, width:19, height:10, rx:4, fill:'#111827'}, legs);
+  const shoeR = S('rect', {x:1, y:96, width:19, height:10, rx:4, fill:'#111827'}, legs);
+  const body = S('rect', {x:-22, y:-30, width:44, height:76, rx:12, fill:suit}, g);
+  const stripe = S('rect', {x:-22, y:8, width:44, height:5, fill:'#E5E7EB', opacity:o.noStripe ? 0 : .9}, g);
+  const armL = S('g', null, g), armR = S('g', null, g);
+  S('rect', {x:-33, y:-24, width:11, height:54, rx:5, fill:suit}, armL); const handL = S('circle', {cx:-27.5, cy:32, r:6.5, fill:C.skin}, armL);
+  S('rect', {x:22, y:-24, width:11, height:54, rx:5, fill:suit}, armR); const handR = S('circle', {cx:27.5, cy:32, r:6.5, fill:C.skin}, armR);
+  const head = S('circle', {cx:0, cy:-47, r:16, fill:C.skin}, g);
+  S('path', {d:'M-16,-50 Q0,-68 16,-50 Q8,-58 0,-57 Q-8,-58 -16,-50 Z', fill:'#2B1B12'}, g);
+  const helmet = S('g', {opacity: o.helmet === false ? 0 : 1}, g);
+  S('path', {d:'M-19,-51 A19,18 0 0 1 19,-51 Z', fill:o.helmetColor || C.yel}, helmet); S('rect', {x:-23, y:-53, width:46, height:5, rx:2.5, fill:o.helmetColor || C.yel}, helmet);
+  S('rect', {x:-3, y:-69, width:6, height:16, rx:3, fill:'#E0A800'}, helmet);
+  const goggles = S('g', {opacity: o.goggles ? 1 : 0}, g);
+  S('rect', {x:-14, y:-49, width:28, height:8, rx:4, fill:'#7DD3FC', stroke:'#0F172A', 'stroke-width':1.5}, goggles);
+  const ear = S('g', {opacity: o.ear ? 1 : 0}, g);
+  S('rect', {x:-20, y:-52, width:6, height:12, rx:3, fill:C.red}, ear); S('rect', {x:14, y:-52, width:6, height:12, rx:3, fill:C.red}, ear);
+  const gloves = S('g', {opacity: o.gloves ? 1 : 0}, g);
+  S('circle', {cx:-27.5, cy:32, r:7.5, fill:C.orange}, armL === null ? g : gloves); S('circle', {cx:27.5, cy:32, r:7.5, fill:C.orange}, gloves);
+  const toes = S('g', {opacity: o.shoes ? 1 : 0}, g);
+  S('rect', {x:-20, y:96, width:8, height:10, rx:3, fill:'#94A3B8'}, toes); S('rect', {x:12, y:96, width:8, height:10, rx:3, fill:'#94A3B8'}, toes);
+  const monitor = S('g', {opacity: o.monitor ? 1 : 0}, g);
+  S('rect', {x:6, y:-24, width:12, height:16, rx:2, fill:C.yel, stroke:'#0F172A', 'stroke-width':1}, monitor);
+  const mScreen = S('rect', {x:8.5, y:-21, width:7, height:5, fill:'#22C55E'}, monitor);
+  const harness = S('g', {opacity: o.harness ? 1 : 0}, g);
+  S('path', {d:'M-14,-30 L10,40 M14,-30 L-10,40 M-20,30 L20,30', stroke:C.orange, 'stroke-width':4, fill:'none', 'stroke-linecap':'round'}, harness);
+  const scba = S('g', {opacity: o.scba ? 1 : 0}, g);
+  S('rect', {x:-28, y:-26, width:14, height:46, rx:6, fill:'#E5E7EB', stroke:'#64748B'}, scba);
+  S('rect', {x:-15, y:-55, width:30, height:18, rx:8, fill:'#334155', opacity:.9}, scba); S('rect', {x:-10, y:-52, width:20, height:9, rx:4, fill:'#93C5FD'}, scba);
+  return {g, legL, legR, armL, armR, handL, handR, body, stripe, helmet, goggles, ear, gloves, toes, monitor, mScreen, harness, scba, head};
+}
+function walk(P, t, speed = 6, amp = 18){ const a = Math.sin(t*speed)*amp;
+  P.legL.setAttribute('transform', `rotate(${a},-9,42)`); P.legR.setAttribute('transform', `rotate(${-a},9,42)`);
+  P.armL.setAttribute('transform', `rotate(${-a*.7},-27,-22)`); P.armR.setAttribute('transform', `rotate(${a*.7},27,-22)`); }
+function stand(P){ ['legL','legR','armL','armR'].forEach(k => P[k].removeAttribute('transform')); }
+function chip(p, x, y, txt, o){ o = o || {}; const g = S('g', null, p); tf(g, x, y);
+  const t = T(g, 0, 0, txt, {'font-size':o.fs || 17, fill:o.fg || '#fff', 'text-anchor':'middle', 'dominant-baseline':'central'});
+  const w = Math.max(60, txt.length * (o.fs || 17) * .58 + 26), h = (o.fs || 17) + 16;
+  const r = S('rect', {x:-w/2, y:-h/2, width:w, height:h, rx:h/2, fill:o.bg || C.navy}, g); g.insertBefore(r, t); return g; }
+function tick(p, x, y, s = 1, col = C.green){ const g = S('g', null, p); tf(g, x, y, s); S('circle', {r:16, fill:col}, g); S('path', {d:'M-7,0 L-2,6 L8,-6', stroke:'#fff', 'stroke-width':4, fill:'none', 'stroke-linecap':'round', 'stroke-linejoin':'round'}, g); return g; }
+function cross(p, x, y, s = 1){ const g = S('g', null, p); tf(g, x, y, s); S('circle', {r:16, fill:C.red}, g); S('path', {d:'M-6,-6 L6,6 M6,-6 L-6,6', stroke:'#fff', 'stroke-width':4, 'stroke-linecap':'round'}, g); return g; }
+function card(p, x, y, w, h, o){ o = o || {}; const g = S('g', null, p); tf(g, x, y);
+  S('rect', {x:3, y:5, width:w, height:h, rx:12, fill:'rgba(7,26,58,.15)'}, g); S('rect', {width:w, height:h, rx:12, fill:o.fill || '#fff', stroke:o.stroke || '#CBD5E1', 'stroke-width':2}, g);
+  if (o.head){ S('rect', {width:w, height:40, rx:12, fill:o.headFill || C.navy}, g); S('rect', {y:28, width:w, height:12, fill:o.headFill || C.navy}, g); T(g, 18, 27, o.head, {fill:o.headFg || C.yel, 'font-size':18}); }
+  return g; }
+function stamp(p, x, y, txt, col){ const g = S('g', null, p); tf(g, x, y);
+  S('rect', {x:-90, y:-26, width:180, height:52, rx:8, fill:'none', stroke:col, 'stroke-width':5}, g); T(g, 0, 10, txt, {'text-anchor':'middle', 'font-size':28, 'font-weight':800, fill:col, 'letter-spacing':2}); return g; }
+function valveWheel(p, x, y, r = 22){ const g = S('g', null, p); tf(g, x, y);
+  S('circle', {r, fill:'none', stroke:C.red, 'stroke-width':6}, g); for (let k = 0; k < 3; k++) S('rect', {x:-2.5, y:-r, width:5, height:2*r, fill:C.red, transform:`rotate(${k*60})`}, g); S('circle', {r:5, fill:'#7F1D1D'}, g); return g; }
+function pipe(p, x1, y1, x2, y2, w = 18, col = '#9AA6B8'){ return S('line', {x1, y1, x2, y2, stroke:col, 'stroke-width':w, 'stroke-linecap':'round'}, p); }
+function padlock(p, x, y, s = 1, col = C.red){ const g = S('g', null, p); tf(g, x, y, s);
+  S('path', {d:'M-9,-4 V-12 A9,9 0 0 1 9,-12 V-4', fill:'none', stroke:'#64748B', 'stroke-width':4}, g); S('rect', {x:-13, y:-5, width:26, height:22, rx:4, fill:col}, g); S('circle', {cy:5, r:3, fill:'#fff'}, g); return g; }
+function dangerTag(p, x, y, name, s = 1){ const g = S('g', null, p); tf(g, x, y, s);
+  S('rect', {x:-38, y:0, width:76, height:96, rx:6, fill:'#fff', stroke:C.red, 'stroke-width':3}, g); S('rect', {x:-38, y:0, width:76, height:28, rx:6, fill:C.red}, g);
+  T(g, 0, 19, tr('DANGER','खतरा'), {'text-anchor':'middle', fill:'#fff', 'font-size':14, 'font-weight':800});
+  T(g, 0, 46, tr('DO NOT','चालू न'), {'text-anchor':'middle', 'font-size':11}); T(g, 0, 60, tr('OPERATE','करें'), {'text-anchor':'middle', 'font-size':11});
+  T(g, 0, 84, name, {'text-anchor':'middle', 'font-size':10, fill:'#475569'}); S('circle', {cy:-2, r:4, fill:'none', stroke:'#64748B', 'stroke-width':2}, g); return g; }
+function meter(p, x, y, rows, s = 1){ const g = S('g', null, p); tf(g, x, y, s);
+  S('rect', {x:-70, y:-90, width:140, height:180, rx:16, fill:C.yel, stroke:'#0F172A', 'stroke-width':3}, g); S('rect', {x:-56, y:-74, width:112, height:116, rx:6, fill:'#0B2E1B'}, g);
+  const vals = rows.map((r,i) => { T(g, -48, -50 + i*28, r[0], {'font-size':13, fill:'#86EFAC', 'font-weight':600}); return T(g, 48, -50 + i*28, r[1], {'font-size':15, fill:'#BBF7D0', 'text-anchor':'end', 'font-weight':800}); });
+  S('circle', {cx:-30, cy:62, r:8, fill:'#334155'}, g); S('circle', {cx:0, cy:62, r:8, fill:'#334155'}, g); S('circle', {cx:30, cy:62, r:8, fill:'#334155'}, g);
+  const led = S('circle', {cx:0, cy:-82, r:5, fill:'#22C55E'}, g); return {g, vals, led}; }
+function extinguisher(p, x, y, s = 1){ const g = S('g', null, p); tf(g, x, y, s);
+  S('rect', {x:-14, y:-46, width:28, height:70, rx:12, fill:C.red}, g); S('rect', {x:-8, y:-56, width:16, height:12, fill:'#1F2937'}, g);
+  const hose = S('path', {d:'M8,-52 Q30,-50 30,-20', fill:'none', stroke:'#1F2937', 'stroke-width':4}, g); S('rect', {x:-10, y:-20, width:20, height:20, fill:'#fff', opacity:.85}, g);
+  const pin = S('rect', {x:-14, y:-58, width:12, height:4, fill:C.yel}, g); return {g, pin, hose}; }
+function flameShape(p, x, y, s = 1){ const g = S('g', null, p); tf(g, x, y, s);
+  const o = S('path', {d:'M0,0 C-30,-10 -26,-50 -6,-80 C-4,-56 10,-56 8,-40 C20,-52 22,-66 18,-80 C40,-56 36,-10 0,0 Z', fill:C.orange}, g);
+  const i = S('path', {d:'M0,-4 C-14,-8 -12,-28 -2,-44 C0,-32 8,-32 6,-24 C14,-30 14,-38 12,-44 C22,-30 18,-8 0,-4 Z', fill:C.yel}, g);
+  return {g, o, i}; }
+function windsock(p, x, y){ const g = S('g', null, p); tf(g, x, y);
+  S('rect', {x:-3, y:0, width:6, height:120, fill:'#64748B'}, g);
+  const sock = S('g', null, g); S('path', {d:'M0,4 L70,12 L70,28 L0,36 Z', fill:C.orange}, sock); S('path', {d:'M23,7 L23,33 M46,9 L46,31', stroke:'#fff', 'stroke-width':8}, sock);
+  return t => sock.setAttribute('transform', `rotate(${Math.sin(t*2.2)*4}) skewY(${Math.sin(t*5)*3})`); }
+function arrow(p, x1, y1, x2, y2, col = C.navy, w = 6){ const g = S('g', null, p); const a = Math.atan2(y2-y1, x2-x1)*180/Math.PI;
+  S('line', {x1, y1, x2, y2, stroke:col, 'stroke-width':w, 'stroke-linecap':'round'}, g);
+  S('path', {d:'M0,0 L-16,-9 L-16,9 Z', fill:col, transform:`translate(${x2},${y2}) rotate(${a})`}, g); return g; }
+function radio(p, x, y, s = 1){ const g = S('g', null, p); tf(g, x, y, s); S('rect', {x:-8, y:-18, width:16, height:30, rx:3, fill:'#1F2937'}, g); S('rect', {x:-5, y:-30, width:3, height:14, fill:'#1F2937'}, g); S('rect', {x:-5, y:-12, width:10, height:7, fill:'#86EFAC'}, g); return g; }
+function waves(p, x, y, col = C.red){ const g = S('g', null, p); tf(g, x, y); const arcs = [0,1,2].map(i => S('path', {d:`M${12+i*12},-${12+i*10} A${16+i*12},${16+i*12} 0 0 1 ${12+i*12},${12+i*10}`, fill:'none', stroke:col, 'stroke-width':4, 'stroke-linecap':'round'}, g));
+  return t => arcs.forEach((a,i) => op(a, (Math.sin(t*6 - i*1.2) + 1)/2)); }
+
+/* title & end cards */
+function titleScene(n, en, hi, subEn, subHi){
+  return {d:4.5, cap:{en:subEn, hi:subHi}, ch:{en:'Title', hi:'शीर्षक'}, b(g){
+    S('rect', {width:960, height:540, fill:C.navy}, g);
+    const band = S('g', null, g); for (let k = -2; k < 20; k++) S('rect', {x:k*60, y:0, width:30, height:44, fill:C.yel, transform:`skewX(-30)`}, band);
+    const band2 = S('g', null, g); for (let k = -2; k < 20; k++) S('rect', {x:k*60, y:496, width:30, height:44, fill:C.yel, transform:`skewX(-30)`}, band2);
+    const num = T(g, 120, 250, String(n).padStart(2,'0'), {'font-family':'DM Serif Display, Georgia, serif', 'font-size':150, fill:C.yel, 'font-weight':400});
+    const lbl = T(g, 330, 175, tr('SAFETY MINUTE','सेफ्टी मिनट'), {'font-size':22, fill:'#9DB7E6', 'letter-spacing':4});
+    const ttl = T(g, 330, 245, tr(en, hi), {'font-size':54, fill:'#fff', 'font-weight':800});
+    const sub = T(g, 330, 300, tr(subEn, subHi), {'font-size':24, fill:'#DCE6F7', 'font-weight':500});
+    const hat = S('g', null, g); tf(hat, 760, 400); S('path', {d:'M-70,0 A70,62 0 0 1 70,0 Z', fill:C.yel}, hat); S('rect', {x:-86, y:-6, width:172, height:14, rx:7, fill:C.yel}, hat); S('rect', {x:-10, y:-62, width:20, height:56, rx:8, fill:'#E0A800'}, hat);
+    return t => { const a = ez(seg(t,0,.8)), b = ez(seg(t,.3,1.1)), c = ez(seg(t,.6,1.4));
+      band.setAttribute('transform', `translate(${-t*20},0)`); band2.setAttribute('transform', `translate(${t*20},0)`);
+      op(num, a); tf(num, -40*(1-a), 0); op(lbl, b); op(ttl, b); tf(ttl, 0, 20*(1-b)); op(sub, c); tf(sub, 0, 20*(1-c));
+      const h = pop(seg(t,.9,1.8)); tf(hat, 760, 400 + (1-h)*200, .2 + .8*h, Math.sin(t*1.5)*3); };
+  }};
+}
+function endScene(rulesEn, rulesHi, capEn, capHi){
+  return {d:6, cap:{en:capEn, hi:capHi}, ch:{en:'Remember', hi:'याद रखें'}, b(g){
+    S('rect', {width:960, height:540, fill:'#F8FAFD'}, g);
+    S('rect', {width:960, height:90, fill:C.navy}, g);
+    T(g, 480, 58, tr('REMEMBER','याद रखें'), {fill:C.yel, 'font-size':32, 'letter-spacing':3, 'font-weight':800, 'text-anchor':'middle'});
+    const rules = (LANG === 'hi' ? rulesHi : rulesEn).map((r,i) => { const row = S('g', null, g); tf(row, 80, 170 + i*105);
+      S('rect', {x:0, y:-40, width:800, height:80, rx:14, fill:'#fff', stroke:'#DCE3EE', 'stroke-width':2}, row);
+      S('circle', {cx:42, cy:0, r:24, fill:C.yel}, row); T(row, 42, 9, String(i+1), {'text-anchor':'middle', 'font-size':24, 'font-weight':800});
+      T(row, 86, 9, r, {'font-size':26, 'font-weight':700}); return row; });
+    const tk = tick(g, 880, 60, 1.4, C.green);
+    return t => { rules.forEach((r,i) => { const a = ez(seg(t, .3 + i*.7, 1.1 + i*.7)); op(r, a); tf(r, 80 + 60*(1-a), 170 + i*105); });
+      const k = pop(seg(t, 2.8, 3.6)); tf(tk, 880, 45, 1.4*k); };
+  }};
+}
+
+/* ======================================================================
+   THE TEN VIDEOS
+   ====================================================================== */
+const VIDEOS = [];
+
+/* 01 · PPE */
+VIDEOS.push({title:{en:'Dress for the plant: PPE', hi:'प्लांट के लिए सही पोशाक: PPE'}, sub:{en:'Six items, every time, plus a gas monitor in process areas', hi:'छह उपकरण, हर बार, और प्रोसेस एरिया में गैस मॉनिटर'}, scenes:[
+  titleScene(1, 'Dress for the plant', 'प्लांट के लिए तैयार', 'The right PPE, every time.', 'सही PPE, हर बार।'),
+  {d:8, ch:{en:'Six items', hi:'छह उपकरण'}, cap:{en:'Helmet, safety goggles, flame-retardant coverall, gloves, safety shoes and ear protection.', hi:'हेलमेट, सुरक्षा चश्मा, अग्निरोधी कवरऑल, दस्ताने, सेफ्टी शूज़ और कानों की सुरक्षा।'}, b(g){
+    const fl = plant(g, {dim:true}); const P = person(g, 300, 260, {s:1.9, suit:'#9CA3AF', helmet:false, noStripe:true});
+    const items = [['helmet', tr('Helmet','हेलमेट')], ['goggles', tr('Safety goggles','सुरक्षा चश्मा')], ['suit', tr('FR coverall','अग्निरोधी कवरऑल')], ['gloves', tr('Gloves','दस्ताने')], ['toes', tr('Safety shoes','सेफ्टी शूज़')], ['ear', tr('Ear protection','कान की सुरक्षा')]];
+    const rows = items.map(([k,l],i) => { const r = S('g', null, g); tf(r, 560, 110 + i*58); S('rect', {x:0, y:-22, width:330, height:44, rx:22, fill:'#fff', stroke:'#CBD5E1', 'stroke-width':2}, r); T(r, 24, 7, l, {'font-size':20}); const tk = tick(r, 300, 0, .85); return {r, tk}; });
+    return t => { fl(t);
+      items.forEach(([k],i) => { const a = ez(seg(t, .4 + i*1.15, 1.2 + i*1.15));
+        if (k === 'suit'){ P.body.setAttribute('fill', d3.interpolateRgb('#9CA3AF', C.suit)(a)); P.armL.firstChild.setAttribute('fill', d3.interpolateRgb('#9CA3AF', C.suit)(a)); P.armR.firstChild.setAttribute('fill', d3.interpolateRgb('#9CA3AF', C.suit)(a)); op(P.stripe, .9*a); }
+        else { op(P[k], a); P[k].setAttribute('transform', `translate(0,${-40*(1-a)})`); }
+        op(rows[i].r, ez(seg(t, .2 + i*1.15, .8 + i*1.15))); op(rows[i].tk, a); tf(rows[i].tk, 300, 0, .85*pop(seg(t, .9 + i*1.15, 1.5 + i*1.15))); }); };
+  }},
+  {d:6.5, ch:{en:'Gas monitor', hi:'गैस मॉनिटर'}, cap:{en:'In process areas, wear a personal gas monitor, and bump-test it before every shift.', hi:'प्रोसेस एरिया में पर्सनल गैस मॉनिटर पहनें और हर शिफ्ट से पहले उसका बम्प-टेस्ट करें।'}, b(g){
+    const fl = plant(g); const P = person(g, 260, 270, {s:1.8, goggles:true, gloves:true, shoes:true, ear:true});
+    const M = meter(g, 640, 270, [['O₂','20.9%'],['LEL','0%'],['H₂S','0 ppm'],['CO','0 ppm']], 1.3);
+    const lineE = S('line', {x1:300, y1:240, x2:560, y2:250, stroke:C.navy, 'stroke-width':2, 'stroke-dasharray':'5 5'}, g);
+    const bump = chip(g, 640, 420, tr('BUMP TEST ✓  PASS','बम्प टेस्ट ✓  पास'), {bg:C.green});
+    return t => { fl(t); const a = ez(seg(t,.3,1.2)); op(P.monitor, a); op(lineE, a); op(M.g, ez(seg(t,.6,1.5))); tf(M.g, 640, 270 + 30*(1-ez(seg(t,.6,1.5))), 1.3);
+      op(M.led, (Math.sin(t*8) > 0) ? 1 : .3); op(bump, ez(seg(t,2.5,3.2))); tf(bump, 640, 420, pop(seg(t,2.5,3.2))); };
+  }},
+  {d:6.5, ch:{en:'Inspect', hi:'जाँच'}, cap:{en:'Damaged PPE does not protect you. Inspect before use, and replace what is cracked or torn.', hi:'खराब PPE आपकी रक्षा नहीं करता। इस्तेमाल से पहले जाँचें, टूटा या फटा हुआ बदलें।'}, b(g){
+    S('rect', {width:960, height:540, fill:'#F1F5FB'}, g);
+    const mk = (x, cracked) => { const h = S('g', null, g); tf(h, x, 250); S('path', {d:'M-80,0 A80,70 0 0 1 80,0 Z', fill:C.yel}, h); S('rect', {x:-96, y:-6, width:192, height:14, rx:7, fill:C.yel}, h);
+      if (cracked) S('path', {d:'M-10,-66 L4,-40 L-8,-24 L8,-4', stroke:'#7C2D12', 'stroke-width':4, fill:'none'}, h); return h; };
+    const old = mk(300, true), nu = mk(660, false);
+    const x = cross(g, 300, 340, 1.6), tk = tick(g, 660, 340, 1.6);
+    const l1 = T(g, 300, 410, tr('Cracked → replace','दरार → बदलें'), {'text-anchor':'middle', 'font-size':24}), l2 = T(g, 660, 410, tr('Good → wear','सही → पहनें'), {'text-anchor':'middle', 'font-size':24});
+    const ar = arrow(g, 420, 230, 540, 230, C.navy, 7);
+    return t => { op(old, ez(seg(t,0,.6))); op(x, ez(seg(t,1,1.5))); tf(x, 300, 340, 1.6*pop(seg(t,1,1.6))); op(l1, ez(seg(t,1.2,1.8)));
+      op(ar, ez(seg(t,2,2.6))); op(nu, ez(seg(t,2.4,3.1))); tf(nu, 660, 250 - 20*(1-ez(seg(t,2.4,3.1)))); op(tk, ez(seg(t,3.2,3.7))); tf(tk, 660, 340, 1.6*pop(seg(t,3.2,3.8))); op(l2, ez(seg(t,3.4,4))); };
+  }},
+  endScene(['All six PPE items, every time','Gas monitor on in process areas','Inspect it; replace if damaged'], ['छह PPE उपकरण, हर बार','प्रोसेस एरिया में गैस मॉनिटर चालू','जाँचें; खराब हो तो बदलें'], 'Right PPE. Every task. Every time.', 'सही PPE। हर काम में। हर बार।')
+]});
+
+/* 02 · Permit to Work */
+VIDEOS.push({title:{en:'No permit, no work', hi:'परमिट नहीं, तो काम नहीं'}, sub:{en:'Work permits: issue, display, revalidate, close', hi:'वर्क परमिट: जारी करना, प्रदर्शित करना, फिर से वैध करना, बंद करना'}, scenes:[
+  titleScene(2, 'No permit, no work', 'परमिट नहीं, काम नहीं', 'Every non-routine job starts with a permit.', 'हर गैर-नियमित काम परमिट से शुरू होता है।'),
+  {d:7.5, ch:{en:'The permit', hi:'परमिट'}, cap:{en:'The permit names the job, the hazards and controls, the gas test, the isolations and who signs.', hi:'परमिट में काम, खतरे और नियंत्रण, गैस टेस्ट, आइसोलेशन और हस्ताक्षर करने वाले होते हैं।'}, b(g){
+    S('rect', {width:960, height:540, fill:'#EEF3FA'}, g);
+    const c = card(g, 250, 50, 460, 420, {head:tr('WORK PERMIT','वर्क परमिट')});
+    const rows = [tr('Job & location','काम और स्थान'), tr('Hazards & controls (JSA)','खतरे और नियंत्रण (JSA)'), tr('Gas test recorded','गैस टेस्ट दर्ज'), tr('Isolations in place','आइसोलेशन लगे हैं'), tr('Issuer & receiver signed','जारीकर्ता और प्राप्तकर्ता के हस्ताक्षर')]
+      .map((l,i) => { const r = S('g', null, c); tf(r, 24, 90 + i*62); S('rect', {x:0, y:-20, width:30, height:30, rx:6, fill:'#fff', stroke:'#94A3B8', 'stroke-width':2}, r); const tk = S('path', {d:'M6,-6 L13,2 L26,-14', stroke:C.green, 'stroke-width':5, fill:'none', 'stroke-linecap':'round'}, r);
+        T(r, 46, 2, l, {'font-size':19, 'font-weight':600}); return tk; });
+    const st = stamp(g, 600, 410, tr('VALID','वैध'), C.green);
+    return t => { op(c, ez(seg(t,0,.5))); rows.forEach((tk,i) => { const a = seg(t, .8 + i*1, 1.3 + i*1); tk.setAttribute('stroke-dasharray', 40); tk.setAttribute('stroke-dashoffset', 40*(1-a)); });
+      const s = pop(seg(t, 6, 6.6)); op(st, s > 0 ? 1 : 0); st.setAttribute('transform', `translate(600,410) rotate(-12) scale(${.4 + .6*s})`); };
+  }},
+  {d:6.5, ch:{en:'At the job site', hi:'काम की जगह पर'}, cap:{en:'Keep the permit displayed at the job site. Work only within its scope and its time window.', hi:'परमिट को काम की जगह पर लगाकर रखें। सिर्फ उसके दायरे और समय सीमा में ही काम करें।'}, b(g){
+    const fl = plant(g);
+    pipe(g, 80, 360, 880, 360, 22);
+    const tape = S('g', null, g); for (let x = 100; x < 860; x += 30) S('rect', {x, y:300, width:15, height:8, fill:x % 60 ? C.red : '#fff'}, tape);
+    const P = person(g, 330, 285, {s:1.1, goggles:true, gloves:true});
+    const board = S('g', null, g); tf(board, 640, 230); S('rect', {x:-4, y:20, width:8, height:150, fill:'#64748B'}, board); S('rect', {x:-70, y:-60, width:140, height:90, rx:8, fill:'#fff', stroke:C.navy, 'stroke-width':3}, board);
+    T(board, 0, -30, tr('PERMIT','परमिट'), {'text-anchor':'middle', 'font-size':18}); T(board, 0, 0, '08:00–16:00', {'text-anchor':'middle', 'font-size':18, fill:C.blue});
+    const glow = S('rect', {x:-80, y:-70, width:160, height:110, rx:12, fill:'none', stroke:C.yel, 'stroke-width':6}, board);
+    return t => { fl(t); walk(P, t, 5, 14); tf(P.g, 200 + 130*ez(seg(t,0,3)), 285, 1.1); if (t > 3) stand(P);
+      op(board, ez(seg(t,.5,1.3))); op(glow, (Math.sin(t*5)+1)/2 * ez(seg(t,2,2.5))); op(tape, ez(seg(t,1,2))); };
+  }},
+  {d:6.5, ch:{en:'Revalidate', hi:'फिर से वैध करें'}, cap:{en:'If the time runs out, or the job or conditions change, stop and get the permit revalidated.', hi:'समय खत्म हो जाए, या काम या हालात बदल जाएँ, तो रुकें और परमिट फिर से वैध करवाएँ।'}, b(g){
+    S('rect', {width:960, height:540, fill:'#F1F5FB'}, g);
+    const clk = S('g', null, g); tf(clk, 300, 260); S('circle', {r:120, fill:'#fff', stroke:C.navy, 'stroke-width':8}, clk);
+    for (let k = 0; k < 12; k++) S('rect', {x:-3, y:-110, width:6, height:16, fill:C.navy, transform:`rotate(${k*30})`}, clk);
+    const hh = S('rect', {x:-5, y:-62, width:10, height:62, rx:5, fill:C.navy}, clk), mh = S('rect', {x:-3, y:-95, width:6, height:95, rx:3, fill:C.blue}, clk); S('circle', {r:10, fill:C.yel}, clk);
+    const pm = card(g, 520, 140, 330, 230, {head:tr('WORK PERMIT','वर्क परमिट')});
+    T(pm, 24, 100, tr('Valid until 16:00','16:00 तक वैध'), {'font-size':22}); T(pm, 24, 140, tr('Scope: flange repair','दायरा: फ्लैंज मरम्मत'), {'font-size':18, fill:'#475569', 'font-weight':600});
+    const st = stamp(g, 685, 320, tr('EXPIRED','समाप्त'), C.red); const stop = chip(g, 685, 430, tr('STOP · REVALIDATE','रुकें · फिर से वैध करें'), {bg:C.red});
+    return t => { const a = ez(seg(t,0,3.2)); hh.setAttribute('transform', `rotate(${300 + a*180})`); mh.setAttribute('transform', `rotate(${a*360*6})`);
+      const s = pop(seg(t,3.4,4)); op(st, s > 0 ? 1 : 0); st.setAttribute('transform', `translate(685,320) rotate(-10) scale(${.4 + .6*s})`); op(stop, ez(seg(t,4.4,5))); };
+  }},
+  {d:6, ch:{en:'Close out', hi:'बंद करना'}, cap:{en:'Close the permit only when the job is done, the area is clean and it is handed back safely.', hi:'परमिट तभी बंद करें जब काम पूरा हो, जगह साफ़ हो और सुरक्षित रूप से सौंप दी जाए।'}, b(g){
+    const fl = plant(g); pipe(g, 80, 360, 880, 360, 22);
+    const debris = [[260,385],[300,392],[520,388],[600,392]].map(([x,y]) => S('rect', {x, y, width:26, height:12, rx:3, fill:'#7C5E3C'}, g));
+    const pm = card(g, 600, 90, 300, 200, {head:tr('WORK PERMIT','वर्क परमिट')});
+    T(pm, 22, 92, tr('Job complete ✓','काम पूरा ✓'), {'font-size':19}); T(pm, 22, 126, tr('Area clean ✓','जगह साफ़ ✓'), {'font-size':19}); T(pm, 22, 160, tr('Handed back ✓','सौंप दिया ✓'), {'font-size':19});
+    const st = stamp(g, 750, 330, tr('CLOSED','बंद'), C.blue);
+    return t => { fl(t); debris.forEach((d,i) => { const a = ez(seg(t, .3 + i*.4, 1 + i*.4)); op(d, 1 - a); d.setAttribute('transform', `translate(${a*-200},0)`); });
+      op(pm, ez(seg(t,1.8,2.4))); const s = pop(seg(t,3.6,4.2)); op(st, s > 0 ? 1 : 0); st.setAttribute('transform', `translate(750,330) rotate(-8) scale(${.4 + .6*s})`); };
+  }},
+  endScene(['No valid permit, no work','Permit on display at the job','Changes? Stop and revalidate'], ['वैध परमिट नहीं, तो काम नहीं','परमिट काम की जगह पर लगा हो','बदलाव? रुकें और फिर से वैध करें'], 'No permit, no work. Every time.', 'परमिट नहीं, तो काम नहीं। हर बार।')
+]});
+
+/* 03 · LOTO */
+VIDEOS.push({title:{en:'Lock it, tag it, try it', hi:'लॉक करें, टैग लगाएँ, जाँचें'}, sub:{en:'Lockout-tagout before work on equipment', hi:'उपकरण पर काम से पहले लॉकआउट-टैगआउट'}, scenes:[
+  titleScene(3, 'Lock it. Tag it. Try it.', 'लॉक, टैग, जाँच', 'Isolation before every intervention.', 'हर काम से पहले आइसोलेशन।'),
+  {d:6.5, ch:{en:'Energy sources', hi:'ऊर्जा स्रोत'}, cap:{en:'Before working on equipment, identify every energy source: electrical, mechanical, pressure and chemical.', hi:'उपकरण पर काम से पहले हर ऊर्जा स्रोत पहचानें: बिजली, यांत्रिक, दबाव और रासायनिक।'}, b(g){
+    const fl = plant(g, {dim:true}); const pump = S('g', null, g); tf(pump, 420, 330);
+    S('rect', {x:-150, y:20, width:300, height:30, fill:'#475569'}, pump); S('rect', {x:-140, y:-60, width:140, height:80, rx:10, fill:C.blue}, pump);
+    for (let k = 0; k < 6; k++) S('rect', {x:-130 + k*20, y:-60, width:6, height:80, fill:'#0A3E80'}, pump);
+    const imp = S('g', null, pump); tf(imp, 70, -20); S('circle', {r:46, fill:'#CBD5E1', stroke:'#64748B', 'stroke-width':4}, imp); for (let k = 0; k < 6; k++) S('rect', {x:-4, y:-40, width:8, height:40, fill:'#64748B', transform:`rotate(${k*60})`}, imp);
+    pipe(g, 536, 310, 880, 310, 22); const vw = valveWheel(g, 700, 270, 26); S('rect', {x:692, y:290, width:16, height:22, fill:'#7F1D1D'}, g);
+    const panel = S('g', null, g); tf(panel, 150, 200); S('rect', {x:-50, y:-70, width:100, height:140, rx:8, fill:'#E5E7EB', stroke:'#64748B', 'stroke-width':3}, panel); const lever = S('rect', {x:-8, y:-40, width:16, height:40, rx:4, fill:C.green}, panel); T(panel, 0, 50, 'ON', {'text-anchor':'middle', 'font-size':16, fill:C.green});
+    const chips = [[150, 90, tr('⚡ Electrical','⚡ बिजली')], [350, 190, tr('⚙ Mechanical','⚙ यांत्रिक')], [700, 200, tr('◉ Pressure','◉ दबाव')], [800, 380, tr('☣ Chemical','☣ रासायनिक')]].map(([x,y,l]) => chip(g, x, y, l, {bg:C.navy}));
+    return t => { fl(t); imp.setAttribute('transform', `translate(70,-20) rotate(${t*400})`); chips.forEach((c,i) => { const a = pop(seg(t, .8 + i*1.1, 1.4 + i*1.1)); op(c, a > 0 ? 1 : 0); const [x,y] = [[150,90],[350,190],[700,200],[800,380]][i]; tf(c, x, y, a); }); };
+  }},
+  {d:7, ch:{en:'Isolate & lock', hi:'आइसोलेट और लॉक'}, cap:{en:'Isolate each source. Apply your own personal lock and a danger tag with your name.', hi:'हर स्रोत को आइसोलेट करें। अपना निजी लॉक और अपने नाम का खतरा टैग लगाएँ।'}, b(g){
+    const fl = plant(g, {dim:true}); const pump = S('g', null, g); tf(pump, 420, 330);
+    S('rect', {x:-150, y:20, width:300, height:30, fill:'#475569'}, pump); S('rect', {x:-140, y:-60, width:140, height:80, rx:10, fill:C.blue}, pump);
+    const imp = S('g', null, pump); tf(imp, 70, -20); S('circle', {r:46, fill:'#CBD5E1', stroke:'#64748B', 'stroke-width':4}, imp); for (let k = 0; k < 6; k++) S('rect', {x:-4, y:-40, width:8, height:40, fill:'#64748B', transform:`rotate(${k*60})`}, imp);
+    pipe(g, 536, 310, 880, 310, 22); const vw = valveWheel(g, 700, 270, 26); S('rect', {x:692, y:290, width:16, height:22, fill:'#7F1D1D'}, g);
+    const panel = S('g', null, g); tf(panel, 150, 200); S('rect', {x:-50, y:-70, width:100, height:140, rx:8, fill:'#E5E7EB', stroke:'#64748B', 'stroke-width':3}, panel); const lever = S('rect', {x:-8, y:-40, width:16, height:40, rx:4, fill:C.green}, panel); const onoff = T(panel, 0, 50, 'ON', {'text-anchor':'middle', 'font-size':16, fill:C.green});
+    const l1 = padlock(g, 150, 210, 1.3), l2 = padlock(g, 700, 330, 1.3); const t1 = dangerTag(g, 230, 160, 'R. Kumar', .9), t2 = dangerTag(g, 780, 330, 'R. Kumar', .9);
+    return t => { fl(t); const off = ez(seg(t,.5,1)); lever.setAttribute('y', -40 + 40*off); lever.setAttribute('fill', off > .5 ? C.red : C.green); onoff.textContent = off > .5 ? 'OFF' : 'ON'; onoff.setAttribute('fill', off > .5 ? C.red : C.green);
+      const spin = t < 1 ? t*400 : 400 + 300*(1 - Math.pow(1 - seg(t,1,3), 2)); imp.setAttribute('transform', `translate(70,-20) rotate(${spin})`);
+      vw.setAttribute('transform', `translate(700,270) rotate(${ez(seg(t,1.5,3))*540})`);
+      [[l1,150,210,3.2],[l2,700,330,3.9]].forEach(([l,x,y,s]) => { const a = ez(seg(t,s,s+.6)); op(l, a); tf(l, x, y - 60*(1-a), 1.3); });
+      [[t1,230,160,4.6],[t2,780,330,5.2]].forEach(([q,x,y,s]) => { const a = pop(seg(t,s,s+.6)); op(q, a > 0 ? 1 : 0); q.setAttribute('transform', `translate(${x},${y}) rotate(${(1-a)*20}) scale(${.9*Math.max(.01,a)})`); }); };
+  }},
+  {d:6.5, ch:{en:'Verify zero energy', hi:'शून्य ऊर्जा जाँचें'}, cap:{en:'Release stored energy, then try to start. Nothing moves: zero energy verified. Now you may work.', hi:'जमा ऊर्जा निकालें, फिर चालू करके देखें। कुछ नहीं चला: शून्य ऊर्जा की पुष्टि। अब काम करें।'}, b(g){
+    S('rect', {width:960, height:540, fill:'#F1F5FB'}, g);
+    const ga = S('g', null, g); tf(ga, 280, 260); S('circle', {r:110, fill:'#fff', stroke:C.navy, 'stroke-width':8}, ga);
+    for (let k = 0; k <= 10; k++){ const a = -220 + k*26; S('rect', {x:-3, y:-100, width:6, height:k % 5 ? 10 : 18, fill:C.navy, transform:`rotate(${a+90})`}, ga); }
+    const needle = S('rect', {x:-4, y:-90, width:8, height:90, rx:4, fill:C.red}, ga); S('circle', {r:12, fill:C.navy}, ga); T(ga, 0, 60, tr('PRESSURE','दबाव'), {'text-anchor':'middle', 'font-size':18});
+    const btn = S('g', null, g); tf(btn, 640, 220); S('rect', {x:-80, y:-50, width:160, height:100, rx:14, fill:'#E5E7EB', stroke:'#64748B', 'stroke-width':3}, btn); const push = S('circle', {r:30, fill:C.green}, btn); T(btn, 0, 80, tr('TRY START','चालू करके देखें'), {'text-anchor':'middle', 'font-size':18});
+    const zero = chip(g, 640, 420, tr('ZERO ENERGY ✓','शून्य ऊर्जा ✓'), {bg:C.green, fs:22});
+    return t => { const a = ez(seg(t,.3,2.3)); needle.setAttribute('transform', `rotate(${80 - a*210})`);
+      const pr = seg(t,2.8,3.3); push.setAttribute('r', 30 - 6*Math.sin(pr*Math.PI)); op(zero, ez(seg(t,3.6,4.2))); tf(zero, 640, 420, pop(seg(t,3.6,4.3))); };
+  }},
+  {d:6, ch:{en:'Your lock, your key', hi:'आपका लॉक, आपकी चाबी'}, cap:{en:'Only the person who applied a lock may remove it, after the job is complete and everyone is clear.', hi:'लॉक केवल वही हटा सकता है जिसने लगाया है, काम पूरा होने और सबके हटने के बाद।'}, b(g){
+    const fl = plant(g, {dim:true});
+    const lk = padlock(g, 480, 250, 2.4); const tg = dangerTag(g, 560, 250, 'R. Kumar', 1.1);
+    const other = person(g, 230, 300, {s:1.1, goggles:true}); const owner = person(g, 760, 300, {s:1.1, goggles:true, helmetColor:'#fff'});
+    T(owner.g, 0, -80, 'R. Kumar', {'text-anchor':'middle', 'font-size':14});
+    const x = cross(g, 330, 220, 1.3), k = tick(g, 680, 220, 1.3);
+    return t => { fl(t); walk(other, t, 6, 12); tf(other.g, 160 + 120*ez(seg(t,0,1.6)), 300, 1.1); if (t > 1.6) stand(other);
+      op(x, ez(seg(t,1.8,2.2))); tf(x, 330, 220, 1.3*pop(seg(t,1.8,2.4)));
+      if (t > 2.6){ walk(owner, t, 6, 12); } tf(owner.g, 760 - 120*ez(seg(t,2.6,4.2)), 300, 1.1); if (t > 4.2) stand(owner);
+      op(k, ez(seg(t,4.4,4.8))); tf(k, 680, 220, 1.3*pop(seg(t,4.4,5))); };
+  }},
+  endScene(['Identify every energy source','Your own lock and named tag','Try it: verify zero energy'], ['हर ऊर्जा स्रोत पहचानें','अपना लॉक और नाम वाला टैग','जाँचें: शून्य ऊर्जा की पुष्टि'], 'Lock it. Tag it. Try it.', 'लॉक करें। टैग लगाएँ। जाँचें।')
+]});
+
+/* 04 · Hot work */
+VIDEOS.push({title:{en:'Hot work: control every spark', hi:'हॉट वर्क: हर चिंगारी पर नियंत्रण'}, sub:{en:'Welding, cutting and grinding near hydrocarbons', hi:'हाइड्रोकार्बन के पास वेल्डिंग, कटिंग और ग्राइंडिंग'}, scenes:[
+  titleScene(4, 'Hot work', 'हॉट वर्क', 'Control every spark.', 'हर चिंगारी पर नियंत्रण।'),
+  {d:6, ch:{en:'Permit & gas test', hi:'परमिट और गैस टेस्ट'}, cap:{en:'Hot work needs a hot work permit, and a gas test showing no flammable gas at the job.', hi:'हॉट वर्क के लिए हॉट वर्क परमिट चाहिए, और गैस टेस्ट में कोई ज्वलनशील गैस न हो।'}, b(g){
+    S('rect', {width:960, height:540, fill:'#F1F5FB'}, g);
+    const pm = card(g, 110, 120, 330, 260, {head:tr('HOT WORK PERMIT','हॉट वर्क परमिट'), headFill:C.red, headFg:'#fff'});
+    T(pm, 22, 100, tr('Job: weld pipe support','काम: पाइप सपोर्ट वेल्डिंग'), {'font-size':18}); T(pm, 22, 140, tr('Fire watch: assigned','फायर वॉच: तय'), {'font-size':18}); T(pm, 22, 180, tr('Gas test: required','गैस टेस्ट: आवश्यक'), {'font-size':18});
+    const M = meter(g, 680, 260, [['LEL','0%'],['O₂','20.9%'],['H₂S','0 ppm'],['CO','0 ppm']], 1.3);
+    const ok = chip(g, 680, 450, tr('NO FLAMMABLE GAS ✓','कोई ज्वलनशील गैस नहीं ✓'), {bg:C.green});
+    return t => { op(pm, ez(seg(t,0,.6))); tf(pm, 110 - 40*(1-ez(seg(t,0,.6))), 120); op(M.g, ez(seg(t,1,1.6))); op(M.led, Math.sin(t*8) > 0 ? 1 : .3);
+      M.vals[0].textContent = t < 3 ? ['--','..','.','0%'][Math.floor(cl(t-1.6,0,1.4)/0.35)] || '0%' : '0%'; op(ok, ez(seg(t,3.3,3.9))); tf(ok, 680, 450, pop(seg(t,3.3,4))); };
+  }},
+  {d:6.5, ch:{en:'Prepare the area', hi:'जगह तैयार करें'}, cap:{en:'Clear combustibles away, cover drains and openings, and screen the area from sparks.', hi:'ज्वलनशील सामान हटाएँ, नालियाँ और खुले हिस्से ढकें, और चिंगारियों से बचाव के लिए स्क्रीन लगाएँ।'}, b(g){
+    const fl = plant(g); pipe(g, 80, 330, 880, 330, 22);
+    const drums = [[230,350],[290,350]].map(([x,y]) => { const d = S('g', null, g); tf(d, x, y); S('rect', {x:-22, y:0, width:44, height:58, rx:6, fill:'#2563EB'}, d); S('rect', {x:-22, y:14, width:44, height:5, fill:'#1E3A8A'}, d); S('rect', {x:-22, y:38, width:44, height:5, fill:'#1E3A8A'}, d); return d; });
+    const rags = S('path', {d:'M0,0 q10,-10 22,0 q10,8 22,0 l0,10 l-44,0 z', fill:'#B45309'}, g); tf(rags, 360, 398);
+    const drain = S('g', null, g); tf(drain, 600, 420); S('rect', {x:-50, y:-10, width:100, height:20, fill:'#334155'}, drain); for (let k = -40; k < 50; k += 12) S('rect', {x:k, y:-10, width:4, height:20, fill:'#94A3B8'}, drain);
+    const cover = S('rect', {x:-56, y:-14, width:112, height:28, rx:4, fill:'#A16207'}, drain);
+    const screen = S('g', null, g); tf(screen, 760, 400); S('rect', {x:-8, y:-120, width:110, height:120, fill:'#FCD34D', opacity:.85, stroke:'#92400E', 'stroke-width':3}, screen);
+    return t => { fl(t); drums.forEach((d,i) => { const a = ez(seg(t, .4 + i*.4, 1.6 + i*.4)); d.setAttribute('transform', `translate(${[230,290][i] - 300*a},350)`); });
+      const r = ez(seg(t,1.4,2.4)); rags.setAttribute('transform', `translate(${360 - 400*r},398)`);
+      const c = ez(seg(t,2.6,3.4)); cover.setAttribute('transform', `translate(${(1-c)*-200},0)`); op(cover, c);
+      const s = ez(seg(t,3.8,4.8)); screen.setAttribute('transform', `translate(760,400) scale(1,${Math.max(.01,s)})`); };
+  }},
+  {d:7, ch:{en:'Fire watch', hi:'फायर वॉच'}, cap:{en:'A trained fire watch with an extinguisher stays for the whole job, with continuous gas monitoring.', hi:'प्रशिक्षित फायर वॉच पूरे काम के दौरान एक्सटिंग्विशर के साथ मौजूद रहे, और गैस की लगातार निगरानी हो।'}, b(g){
+    const fl = plant(g); pipe(g, 80, 330, 880, 330, 22);
+    const W = person(g, 380, 300, {s:1.2, gloves:true, shoes:true, helmetColor:'#334155'});
+    const mask = S('rect', {x:-18, y:-58, width:36, height:28, rx:6, fill:'#111827'}, W.g);
+    const sparksG = S('g', null, g); const N = 26, ang = d3.range(N).map(i => -Math.PI + (i/N)*Math.PI*1.1 + .1), sp = d3.range(N).map(i => 60 + (i*37) % 90);
+    const sparks = d3.range(N).map(() => S('circle', {r:3, fill:C.yel}, sparksG));
+    const F = person(g, 640, 300, {s:1.2, goggles:true, gloves:true, monitor:true}); const ex = extinguisher(g, 690, 360, .9);
+    const fw = chip(g, 650, 150, tr('FIRE WATCH','फायर वॉच'), {bg:C.red});
+    return t => { fl(t); W.armR.setAttribute('transform', `rotate(${-50 + Math.sin(t*3)*4},27,-22)`);
+      sparks.forEach((s,i) => { const ph = (t*1.6 + i/N) % 1; const x = 425 + Math.cos(ang[i])*sp[i]*ph, y = 325 + Math.sin(ang[i])*sp[i]*ph*0.8 + 120*ph*ph; s.setAttribute('cx', x); s.setAttribute('cy', y); op(s, (1 - ph) * (t > .5 ? 1 : 0)); });
+      op(F.g, ez(seg(t,1.2,2))); op(ex.g, ez(seg(t,1.2,2))); op(fw, ez(seg(t,2.4,3))); tf(fw, 650, 150, pop(seg(t,2.4,3.1))); F.mScreen.setAttribute('fill', Math.sin(t*6) > 0 ? '#22C55E' : '#15803D'); };
+  }},
+  {d:6, ch:{en:'After the job', hi:'काम के बाद'}, cap:{en:'When welding stops, the fire watch stays on to check for smouldering before the area is left.', hi:'वेल्डिंग रुकने के बाद भी फायर वॉच रुके और जगह छोड़ने से पहले सुलगती आग की जाँच करे।'}, b(g){
+    const fl = plant(g); pipe(g, 80, 330, 880, 330, 22);
+    const F = person(g, 520, 300, {s:1.2, goggles:true, gloves:true, monitor:true}); const ex = extinguisher(g, 570, 360, .9);
+    const clk = S('g', null, g); tf(clk, 260, 200); S('circle', {r:60, fill:'#fff', stroke:C.navy, 'stroke-width':6}, clk); const hand = S('rect', {x:-3, y:-48, width:6, height:48, rx:3, fill:C.red}, clk); S('circle', {r:7, fill:C.navy}, clk);
+    const lbl = chip(g, 260, 300, tr('Fire watch continues','फायर वॉच जारी'), {bg:C.navy});
+    const eye = S('g', null, g); tf(eye, 520, 150); S('ellipse', {rx:30, ry:16, fill:'#fff', stroke:C.navy, 'stroke-width':4}, eye); const pupil = S('circle', {r:8, fill:C.navy}, eye);
+    return t => { fl(t); hand.setAttribute('transform', `rotate(${t*120})`); op(lbl, ez(seg(t,.5,1.1))); pupil.setAttribute('cx', Math.sin(t*1.5)*14); op(eye, ez(seg(t,1,1.6))); };
+  }},
+  endScene(['Hot work permit + gas test','Clear, cover and screen','Fire watch during and after'], ['हॉट वर्क परमिट + गैस टेस्ट','हटाएँ, ढकें और स्क्रीन लगाएँ','फायर वॉच काम के दौरान और बाद में'], 'Control every spark, before, during and after.', 'हर चिंगारी पर नियंत्रण: पहले, दौरान और बाद में।')
+]});
+
+/* 05 · Confined space */
+VIDEOS.push({title:{en:'Confined space: never just pop in', hi:'सीमित स्थान: बिना तैयारी कभी नहीं'}, sub:{en:'Isolate, ventilate, test, attend, rescue plan', hi:'आइसोलेट, वेंटिलेट, टेस्ट, अटेंडेंट, बचाव योजना'}, scenes:[
+  titleScene(5, 'Confined space', 'सीमित स्थान', 'Never just pop in.', 'बिना तैयारी कभी अंदर न जाएँ।'),
+  {d:7, ch:{en:'Isolate & ventilate', hi:'आइसोलेट और वेंटिलेट'}, cap:{en:'Isolate and blind every line into the vessel, then ventilate it with fresh air.', hi:'बर्तन में आने वाली हर लाइन को आइसोलेट और ब्लाइंड करें, फिर ताज़ी हवा से वेंटिलेट करें।'}, b(g){
+    const fl = plant(g, {dim:true});
+    const v = S('g', null, g); tf(v, 480, 280); S('rect', {x:-110, y:-180, width:220, height:320, rx:100, fill:'#94A3B8', stroke:'#64748B', 'stroke-width':4}, v);
+    S('circle', {cx:0, cy:60, r:40, fill:'#1E293B', stroke:'#475569', 'stroke-width':8}, v);
+    pipe(g, 120, 160, 370, 160, 20); pipe(g, 590, 220, 860, 220, 20);
+    const b1 = S('g', null, g); tf(b1, 340, 160); S('rect', {x:-6, y:-34, width:12, height:68, fill:C.yel, stroke:'#92400E', 'stroke-width':2}, b1); S('rect', {x:-4, y:-60, width:8, height:28, fill:C.yel}, b1);
+    const b2 = S('g', null, g); tf(b2, 620, 220); S('rect', {x:-6, y:-34, width:12, height:68, fill:C.yel, stroke:'#92400E', 'stroke-width':2}, b2); S('rect', {x:-4, y:-60, width:8, height:28, fill:C.yel}, b2);
+    const bl = chip(g, 340, 90, tr('BLIND','ब्लाइंड'), {bg:'#92400E'}), bl2 = chip(g, 620, 150, tr('BLIND','ब्लाइंड'), {bg:'#92400E'});
+    const fan = S('g', null, g); tf(fan, 200, 400); S('rect', {x:-40, y:-40, width:80, height:80, rx:12, fill:'#334155'}, fan); const blades = S('g', null, fan); for (let k = 0; k < 4; k++) S('ellipse', {rx:8, ry:26, cy:-14, fill:'#CBD5E1', transform:`rotate(${k*90})`}, blades);
+    const air = d3.range(5).map(() => S('path', {d:'M0,0 q14,-8 28,0 t28,0', fill:'none', stroke:'#38BDF8', 'stroke-width':4, 'stroke-linecap':'round'}, g));
+    return t => { fl(t); const a = ez(seg(t,.4,1.4)), b = ez(seg(t,1.4,2.4)); b1.setAttribute('transform', `translate(340,${160 - 120*(1-a)})`); op(b1, a); op(bl, a);
+      b2.setAttribute('transform', `translate(620,${220 - 120*(1-b)})`); op(b2, b); op(bl2, b);
+      const f = ez(seg(t,3,3.6)); op(fan, f); blades.setAttribute('transform', `rotate(${t*720})`);
+      air.forEach((w,i) => { const ph = ((t - 3.2)*.6 + i/5) % 1; op(w, t > 3.4 ? (1 - ph) : 0); w.setAttribute('transform', `translate(${250 + ph*170},${400 - ph*60})`); }); };
+  }},
+  {d:7, ch:{en:'Gas test', hi:'गैस टेस्ट'}, cap:{en:'Test the atmosphere at the top, middle and bottom, and record the results on the permit.', hi:'ऊपर, बीच और नीचे हवा की जाँच करें, और नतीजे परमिट पर दर्ज करें।'}, b(g){
+    S('rect', {width:960, height:540, fill:'#EEF3FA'}, g);
+    const v = S('g', null, g); tf(v, 300, 280); S('rect', {x:-110, y:-200, width:220, height:380, rx:100, fill:'#CBD5E1', stroke:'#64748B', 'stroke-width':4}, v);
+    const probe = S('g', null, g); const line = S('line', {x1:300, y1:40, x2:300, y2:100, stroke:'#0F172A', 'stroke-width':3}, probe); const tipC = S('circle', {cx:300, cy:100, r:8, fill:C.yel, stroke:'#0F172A'}, probe);
+    const tbl = card(g, 520, 90, 380, 330, {head:tr('GAS TEST RECORD','गैस टेस्ट रिकॉर्ड')});
+    const lv = [tr('Top','ऊपर'), tr('Middle','बीच'), tr('Bottom','नीचे')];
+    T(tbl, 22, 72, '', {}); const hdr = ['O₂','LEL','H₂S','CO']; hdr.forEach((h,i) => T(tbl, 140 + i*58, 72, h, {'font-size':15, fill:'#475569'}));
+    const rows = lv.map((l,i) => { const r = S('g', null, tbl); tf(r, 0, 120 + i*62); T(r, 22, 0, l, {'font-size':18}); ['20.9','0','0','0'].forEach((v,j) => T(r, 140 + j*58, 0, v, {'font-size':18, fill:C.green})); tick(r, 352, -6, .7); return r; });
+    const ys = [100, 260, 420];
+    return t => { const lvl = t < 1.8 ? 0 : t < 3.8 ? 1 : 2; const y = ys[0] + (ys[1]-ys[0])*ez(seg(t,1.4,2.2)) + (ys[2]-ys[1])*ez(seg(t,3.4,4.2));
+      line.setAttribute('y2', y); tipC.setAttribute('cy', y); op(tbl, ez(seg(t,0,.5)));
+      rows.forEach((r,i) => op(r, ez(seg(t, [1,3,5][i], [1.5,3.5,5.5][i])))); };
+  }},
+  {d:7, ch:{en:'Attendant', hi:'अटेंडेंट'}, cap:{en:'The entrant wears a harness and lifeline. A trained attendant stays at the manway, keeps the log and never leaves.', hi:'अंदर जाने वाला हार्नेस और लाइफलाइन पहने। प्रशिक्षित अटेंडेंट मैनवे पर रहे, लॉग रखे और कभी न हटे।'}, b(g){
+    const fl = plant(g, {dim:true});
+    const v = S('g', null, g); tf(v, 380, 280); S('rect', {x:-150, y:-180, width:300, height:320, rx:120, fill:'#94A3B8', stroke:'#64748B', 'stroke-width':4}, v);
+    const clip = S('clipPath', {id:'mwc'}, g); S('circle', {cx:380, cy:330, r:58}, clip);
+    S('circle', {cx:380, cy:330, r:58, fill:'#1E293B', stroke:'#475569', 'stroke-width':10}, g);
+    const inside = S('g', {'clip-path':'url(#mwc)'}, g); const E = person(inside, 380, 360, {s:.9, harness:true, goggles:true, monitor:true});
+    const tri = S('g', null, g); S('path', {d:'M330,140 L380,60 L430,140', stroke:'#475569', 'stroke-width':6, fill:'none'}, tri);
+    const rope = S('path', {d:'M380,60 L380,300', stroke:C.orange, 'stroke-width':3, fill:'none', 'stroke-dasharray':'6 4'}, g);
+    const A = person(g, 650, 300, {s:1.2, goggles:true, gloves:true}); const rd = radio(A.g, 30, 10, 1); const cbd = S('rect', {x:-40, y:0, width:26, height:34, rx:3, fill:'#fff', stroke:'#64748B', 'stroke-width':2}, A.g);
+    const c1 = chip(g, 680, 130, tr('ATTENDANT · never leaves','अटेंडेंट · कभी न हटे'), {bg:C.navy});
+    const log = card(g, 760, 360, 170, 120, {head:tr('ENTRY LOG','एंट्री लॉग')}); const l1 = T(log, 16, 72, '09:05 IN ✓', {'font-size':16, fill:C.green}), l2 = T(log, 16, 100, tr('Check ✓','जाँच ✓'), {'font-size':16, fill:C.green});
+    return t => { fl(t); const d = ez(seg(t,.3,2)); E.g.setAttribute('transform', `translate(380,${300 + 60*d}) scale(.9)`); rope.setAttribute('d', `M380,60 L380,${260 + 60*d}`);
+      op(c1, ez(seg(t,2.2,2.8))); tf(c1, 680, 130, pop(seg(t,2.2,2.9))); op(log, ez(seg(t,3,3.6))); op(l1, ez(seg(t,3.5,4))); op(l2, ez(seg(t,4.5,5)));
+      A.armR.setAttribute('transform', `rotate(${-20 + Math.sin(t*2)*6},27,-22)`); };
+  }},
+  {d:7, ch:{en:'Emergency', hi:'आपात स्थिति'}, cap:{en:'If something goes wrong, raise the alarm. Never enter to rescue without breathing apparatus.', hi:'कुछ गलत हो तो अलार्म बजाएँ। ब्रीदिंग एपरेटस के बिना बचाने के लिए कभी अंदर न जाएँ।'}, b(g){
+    const fl = plant(g, {dim:true}); const flash = S('rect', {width:960, height:540, fill:C.red, opacity:0}, g);
+    S('circle', {cx:380, cy:330, r:58, fill:'#1E293B', stroke:'#475569', 'stroke-width':10}, g);
+    const A = person(g, 560, 300, {s:1.1, goggles:true}); radio(A.g, 30, -10, 1); const wv = waves(g, 600, 230, C.red);
+    const U = person(g, 200, 300, {s:1.1}); const x = cross(g, 260, 210, 1.3);
+    const R = person(g, 900, 300, {s:1.1, scba:true, helmetColor:C.red}); const k = tick(g, 700, 200, 1.3); const rl = chip(g, 760, 140, tr('Rescue team with BA','BA के साथ बचाव दल'), {bg:C.green});
+    return t => { fl(t); op(flash, (Math.sin(t*10) > .6 ? .18 : 0) * (t < 4 ? 1 : 0)); wv(t);
+      walk(U, t, 7, 16); tf(U.g, 140 + 120*ez(seg(t,.8,2)), 300, 1.1); if (t > 2) stand(U); op(x, ez(seg(t,2,2.4))); tf(x, 260, 210, 1.3*pop(seg(t,2,2.6)));
+      if (t > 3) walk(R, t, 6, 14); tf(R.g, 900 - 180*ez(seg(t,3,5)), 300, 1.1); if (t > 5) stand(R); op(k, ez(seg(t,5,5.4))); op(rl, ez(seg(t,5.2,5.8))); };
+  }},
+  endScene(['Isolate, blind and ventilate','Test top, middle and bottom','Attendant stays; no BA, no rescue entry'], ['आइसोलेट, ब्लाइंड और वेंटिलेट करें','ऊपर, बीच और नीचे जाँच','अटेंडेंट रहे; BA नहीं, तो बचाव प्रवेश नहीं'], 'Plan the entry. Plan the rescue.', 'प्रवेश की योजना। बचाव की योजना।')
+]});
+
+/* 06 · H2S */
+VIDEOS.push({title:{en:'H₂S: don’t trust your nose', hi:'H₂S: नाक पर भरोसा न करें'}, sub:{en:'Hydrogen sulphide awareness and escape', hi:'हाइड्रोजन सल्फाइड जागरूकता और बचाव'}, scenes:[
+  titleScene(6, 'H₂S awareness', 'H₂S जागरूकता', 'Don’t trust your nose.', 'अपनी नाक पर भरोसा न करें।'),
+  {d:7, ch:{en:'Smell fades', hi:'गंध गायब'}, cap:{en:'H₂S smells of rotten eggs at first, but it can deaden your sense of smell. Never rely on smell.', hi:'H₂S पहले सड़े अंडे जैसी गंध देती है, पर यह सूंघने की शक्ति खत्म कर सकती है। गंध पर कभी भरोसा न करें।'}, b(g){
+    S('rect', {width:960, height:540, fill:'#F1F5FB'}, g);
+    const bar = (x, lbl, col) => { const b = S('g', null, g); tf(b, x, 420); S('rect', {x:-50, y:-300, width:100, height:300, rx:12, fill:'#E2E8F0'}, b); const f = S('rect', {x:-50, y:0, width:100, height:0, rx:12, fill:col}, b);
+      T(b, 0, 40, lbl, {'text-anchor':'middle', 'font-size':20}); return f; };
+    const f1 = bar(330, tr('H₂S level','H₂S स्तर'), C.red), f2 = bar(630, tr('What you smell','आपको जो गंध आती है'), '#F59E0B');
+    const note = chip(g, 480, 70, tr('More gas ≠ more smell','ज़्यादा गैस ≠ ज़्यादा गंध'), {bg:C.navy, fs:22});
+    return t => { const a = ez(seg(t,.5,5)); const h1 = 280*a; f1.setAttribute('y', -h1); f1.setAttribute('height', h1);
+      const s = a < .3 ? a/.3 : Math.max(0, 1 - (a - .3)/.4); const h2 = 260*s; f2.setAttribute('y', -h2); f2.setAttribute('height', h2); op(note, ez(seg(t,4,4.6))); };
+  }},
+  {d:6.5, ch:{en:'Alarm', hi:'अलार्म'}, cap:{en:'When your personal monitor alarms: stop work, make safe if you can, and leave the area at once.', hi:'जब पर्सनल मॉनिटर अलार्म दे: काम रोकें, हो सके तो सुरक्षित करें, और तुरंत जगह छोड़ें।'}, b(g){
+    const fl = plant(g); const P = person(g, 420, 290, {s:1.5, goggles:true, gloves:true, monitor:true});
+    const M = meter(g, 760, 250, [['H₂S','ALARM'],['O₂','20.9%'],['LEL','0%']], 1.1);
+    const ring = S('circle', {cx:433, cy:260, r:20, fill:'none', stroke:C.red, 'stroke-width':5}, g);
+    const steps = [tr('STOP','रुकें'), tr('MAKE SAFE','सुरक्षित करें'), tr('LEAVE','निकलें')].map((s,i) => chip(g, 140, 150 + i*70, s, {bg:C.red, fs:20}));
+    return t => { fl(t); const blink = Math.sin(t*12) > 0; P.mScreen.setAttribute('fill', blink ? C.red : '#7F1D1D'); op(M.led, blink ? 1 : .2); M.led.setAttribute('fill', C.red); M.vals[0].setAttribute('fill', '#FCA5A5');
+      ring.setAttribute('r', 20 + (t*30) % 40); op(ring, 1 - ((t*30) % 40)/40); steps.forEach((s,i) => { op(s, ez(seg(t, 1 + i*1.2, 1.5 + i*1.2))); tf(s, 140, 150 + i*70, pop(seg(t, 1 + i*1.2, 1.7 + i*1.2))); }); };
+  }},
+  {d:7.5, ch:{en:'Escape route', hi:'बचाव मार्ग'}, cap:{en:'Check the windsock. Move crosswind or upwind, away from the release, to the assembly point.', hi:'विंडसॉक देखें। हवा की दिशा के आर-पार या विपरीत, रिसाव से दूर, असेंबली पॉइंट तक जाएँ।'}, b(g){
+    S('rect', {width:960, height:540, fill:'#E8EEF6'}, g);
+    for (let x = 0; x < 960; x += 60) S('line', {x1:x, y1:0, x2:x, y2:540, stroke:'#DCE3EE'}, g); for (let y = 0; y < 540; y += 60) S('line', {x1:0, y1:y, x2:960, y2:y, stroke:'#DCE3EE'}, g);
+    const cloud = S('g', null, g); [[0,0,60],[50,10,50],[-40,15,45],[90,30,40]].forEach(([x,y,r]) => S('circle', {cx:x, cy:y, r, fill:'#FACC15', opacity:.45}, cloud));
+    const winds = d3.range(4).map(i => arrow(g, 60, 120 + i*100, 140, 120 + i*100, '#64748B', 4));
+    const ws = windsock(g, 860, 60);
+    const ap = S('g', null, g); tf(ap, 300, 470); S('rect', {x:-4, y:-60, width:6, height:60, fill:'#334155'}, ap); S('path', {d:'M2,-60 L52,-48 L2,-36 Z', fill:C.green}, ap); T(ap, 0, 22, tr('ASSEMBLY','असेंबली'), {'text-anchor':'middle', 'font-size':16, fill:C.green});
+    const bad = S('path', {d:'M420,300 L700,300', stroke:C.red, 'stroke-width':5, 'stroke-dasharray':'10 8', fill:'none'}, g); const bx = cross(g, 720, 300, 1); T(g, 720, 340, tr('Downwind','हवा की दिशा में'), {'text-anchor':'middle', 'font-size':15, fill:C.red});
+    const good = S('path', {d:'M420,300 L420,430 L300,470', stroke:C.green, 'stroke-width':6, fill:'none'}, g); const gl = good.getTotalLength();
+    const dot = S('circle', {r:14, fill:C.blue, stroke:'#fff', 'stroke-width':3}, g);
+    return t => { ws(t); cloud.setAttribute('transform', `translate(${420 + t*28},${220 + Math.sin(t)*6})`);
+      winds.forEach((w,i) => w.setAttribute('transform', `translate(${(t*80 + i*40) % 200},0)`));
+      op(bad, ez(seg(t,1,1.6))); op(bx, ez(seg(t,1.6,2))); good.setAttribute('stroke-dasharray', gl); const a = ez(seg(t,2.6,6)); good.setAttribute('stroke-dashoffset', gl*(1-a));
+      const pt = good.getPointAtLength(gl*a); dot.setAttribute('cx', pt.x); dot.setAttribute('cy', pt.y); };
+  }},
+  {d:7, ch:{en:'Rescue', hi:'बचाव'}, cap:{en:'If someone is down, do not rush in. Raise the alarm; only rescuers wearing breathing apparatus go in.', hi:'अगर कोई गिरा है, तो दौड़कर न जाएँ। अलार्म बजाएँ; केवल ब्रीदिंग एपरेटस पहने बचावकर्मी ही जाएँ।'}, b(g){
+    const fl = plant(g); const V = person(g, 480, 360, {s:1.1, goggles:true}); V.g.setAttribute('transform', 'translate(480,380) rotate(-80) scale(1.1)');
+    const haze = S('ellipse', {cx:480, cy:360, rx:160, ry:70, fill:'#FACC15', opacity:.25}, g);
+    const U = person(g, 150, 300, {s:1.1}); const x = cross(g, 260, 200, 1.3);
+    const R = person(g, 900, 300, {s:1.1, scba:true, helmetColor:C.red}); const k = tick(g, 700, 200, 1.3);
+    return t => { fl(t); op(haze, .18 + .08*Math.sin(t*2)); walk(U, t, 8, 18); tf(U.g, 150 + 110*ez(seg(t,.4,1.6)), 300, 1.1); if (t > 1.6) stand(U);
+      op(x, ez(seg(t,1.6,2))); tf(x, 260, 200, 1.3*pop(seg(t,1.6,2.2))); if (t > 2.8) walk(R, t, 6, 14); tf(R.g, 900 - 260*ez(seg(t,2.8,5.4)), 300, 1.1); if (t > 5.4) stand(R);
+      op(k, ez(seg(t,5.4,5.8))); tf(k, 700, 200, 1.3*pop(seg(t,5.4,6))); };
+  }},
+  endScene(['Never rely on smell','Alarm: stop, make safe, leave','Upwind or crosswind; no BA, no rescue'], ['गंध पर कभी भरोसा न करें','अलार्म: रुकें, सुरक्षित करें, निकलें','हवा के विपरीत या आर-पार; BA नहीं, बचाव नहीं'], 'Your monitor, not your nose.', 'आपका मॉनिटर, आपकी नाक नहीं।')
+]});
+
+/* 07 · Working at height */
+VIDEOS.push({title:{en:'Working at height: always tied off', hi:'ऊँचाई पर काम: हमेशा बंधे रहें'}, sub:{en:'Scaffold tags, harness, double lanyard, dropped objects', hi:'स्कैफोल्ड टैग, हार्नेस, डबल लैनयार्ड, गिरती वस्तुएँ'}, scenes:[
+  titleScene(7, 'Working at height', 'ऊँचाई पर काम', '100% tied off, 100% of the time.', '100% बंधे रहें, 100% समय।'),
+  {d:6.5, ch:{en:'Scaffold tag', hi:'स्कैफोल्ड टैग'}, cap:{en:'Use only a scaffold with a valid green tag. Red tag: do not use.', hi:'केवल वैध हरे टैग वाला स्कैफोल्ड इस्तेमाल करें। लाल टैग: इस्तेमाल न करें।'}, b(g){
+    const fl = plant(g, {dim:true});
+    const sc = S('g', null, g); for (let x = 330; x <= 630; x += 100) S('rect', {x, y:120, width:8, height:280, fill:'#64748B'}, sc);
+    for (let y = 140; y <= 400; y += 65) S('rect', {x:330, y, width:308, height:6, fill:'#64748B'}, sc); S('rect', {x:322, y:200, width:324, height:12, fill:'#A16207'}, sc);
+    for (let y = 140; y < 400; y += 65) S('line', {x1:338, y1:y, x2:430, y2:y+65, stroke:'#94A3B8', 'stroke-width':4}, sc);
+    const tag = S('g', null, g); tf(tag, 250, 300); S('rect', {x:-60, y:-80, width:120, height:160, rx:10, fill:'#fff', stroke:C.navy, 'stroke-width':3}, tag);
+    const band = S('rect', {x:-60, y:-80, width:120, height:60, rx:10, fill:C.red}, tag); const lbl = T(tag, 0, -42, tr('DO NOT USE','उपयोग न करें'), {'text-anchor':'middle', fill:'#fff', 'font-size':14});
+    T(tag, 0, 10, tr('Inspected','निरीक्षित'), {'text-anchor':'middle', 'font-size':14}); T(tag, 0, 34, '10/10', {'text-anchor':'middle', 'font-size':14, fill:'#475569'});
+    const x = cross(g, 250, 420, 1.1), k = tick(g, 250, 420, 1.1);
+    return t => { fl(t); const green = t > 3.2; band.setAttribute('fill', green ? C.green : C.red); lbl.textContent = green ? tr('SAFE TO USE','उपयोग हेतु सुरक्षित') : tr('DO NOT USE','उपयोग न करें');
+      op(x, !green ? ez(seg(t,.8,1.2)) : 0); op(k, green ? ez(seg(t,3.4,3.8)) : 0); tf(k, 250, 420, 1.1*pop(seg(t,3.4,4))); tag.setAttribute('transform', `translate(250,300) rotate(${t > 2.8 && t < 3.6 ? Math.sin(t*30)*6 : 0})`); };
+  }},
+  {d:8, ch:{en:'Tie off', hi:'बंधे रहें'}, cap:{en:'Full-body harness and double lanyard, anchored overhead. Move one hook at a time, so one is always connected.', hi:'फुल-बॉडी हार्नेस और डबल लैनयार्ड, ऊपर एंकर किया हुआ। एक बार में एक हुक बदलें, ताकि एक हमेशा जुड़ा रहे।'}, b(g){
+    const fl = plant(g, {dim:true});
+    S('rect', {x:120, y:120, width:720, height:12, rx:6, fill:'#475569'}, g); T(g, 130, 110, tr('ANCHOR','एंकर'), {'font-size':14, fill:'#475569'});
+    S('rect', {x:100, y:340, width:760, height:14, fill:'#A16207'}, g);
+    const P = person(g, 300, 230, {s:1.1, harness:true, goggles:true, gloves:true});
+    const l1 = S('path', {fill:'none', stroke:C.orange, 'stroke-width':4}, g), l2 = S('path', {fill:'none', stroke:'#2563EB', 'stroke-width':4}, g);
+    const h1 = S('circle', {r:9, fill:'none', stroke:C.orange, 'stroke-width':4}, g), h2 = S('circle', {r:9, fill:'none', stroke:'#2563EB', 'stroke-width':4}, g);
+    const ok = chip(g, 720, 200, tr('Always 1 hook on ✓','हमेशा 1 हुक जुड़ा ✓'), {bg:C.green});
+    return t => { fl(t); const px = 220 + 400*ez(seg(t,.5,7)); tf(P.g, px, 230, 1.1); walk(P, t, 5, 10);
+      // hooks leapfrog: hook A moves during odd segments, hook B during even
+      const cyc = 1.6, k = Math.floor((t - .5)/cyc), f = ((t - .5) % cyc)/cyc;
+      const base = 220 + 400*ez(seg(.5 + Math.max(0,k)*cyc, .5, 7));
+      const ahead = px + 60, behind = px - 20;
+      let ax, bx; if (k % 2 === 0){ ax = d3.interpolateNumber(behind, ahead)(ez(cl(f*1.4))); bx = px + 20; } else { bx = d3.interpolateNumber(behind, ahead)(ez(cl(f*1.4))); ax = px + 20; }
+      const ay = 126 - (k % 2 === 0 ? Math.sin(cl(f*1.4)*Math.PI)*24 : 0), by = 126 - (k % 2 !== 0 ? Math.sin(cl(f*1.4)*Math.PI)*24 : 0);
+      h1.setAttribute('cx', ax); h1.setAttribute('cy', ay); h2.setAttribute('cx', bx); h2.setAttribute('cy', by);
+      const back = [px, 230 - 8];
+      l1.setAttribute('d', `M${back[0]},${back[1]} Q${(back[0]+ax)/2},${(back[1]+ay)/2 + 10} ${ax},${ay}`); l2.setAttribute('d', `M${back[0]},${back[1]} Q${(back[0]+bx)/2},${(back[1]+by)/2 + 10} ${bx},${by}`);
+      op(ok, ez(seg(t,2,2.6))); };
+  }},
+  {d:6.5, ch:{en:'Dropped objects', hi:'गिरती वस्तुएँ'}, cap:{en:'Tether your tools and barricade the area below. A dropped spanner can kill.', hi:'अपने औज़ार बाँधें और नीचे की जगह को घेरें। गिरा हुआ स्पैनर जान ले सकता है।'}, b(g){
+    const fl = plant(g, {dim:true}); S('rect', {x:280, y:160, width:400, height:14, fill:'#A16207'}, g);
+    const P = person(g, 480, 50, {s:.95, harness:true, gloves:true});
+    const tool = S('g', null, g); S('rect', {x:-6, y:0, width:12, height:46, rx:4, fill:'#475569'}, tool); S('circle', {cy:0, r:12, fill:'none', stroke:'#475569', 'stroke-width':6}, tool);
+    const teth = S('line', {stroke:C.orange, 'stroke-width':3}, g);
+    const bar = S('g', null, g); for (let x = 300; x < 680; x += 40) S('rect', {x, y:450, width:24, height:12, fill:x % 80 ? C.red : '#fff'}, bar); S('rect', {x:300, y:450, width:380, height:2, fill:C.red}, bar);
+    const sign = chip(g, 490, 500, tr('DANGER: WORK OVERHEAD','खतरा: ऊपर काम चल रहा है'), {bg:C.red});
+    const W = person(g, 140, 340, {s:1, goggles:true}); const k = tick(g, 480, 300, 1.2);
+    return t => { fl(t); const f = ez(seg(t,.6,1.4)), bounce = t > 1.4 ? Math.exp(-(t-1.4)*3)*Math.sin((t-1.4)*14)*10 : 0;
+      const ty = 160 + 120*f + bounce; tool.setAttribute('transform', `translate(520,${ty}) rotate(${f*200})`); teth.setAttribute('x1', 505); teth.setAttribute('y1', 160); teth.setAttribute('x2', 520); teth.setAttribute('y2', ty);
+      op(k, ez(seg(t,2,2.4))); tf(k, 580, 280, 1.2*pop(seg(t,2,2.6))); op(bar, ez(seg(t,2.8,3.4))); op(sign, ez(seg(t,3.2,3.8)));
+      walk(W, t, 6, 14); tf(W.g, 140 + 80*ez(seg(t,3.6,5)), 340, 1); if (t > 5) stand(W); };
+  }},
+  endScene(['Green tag only','Harness + double lanyard, always one hook on','Tether tools; barricade below'], ['केवल हरा टैग','हार्नेस + डबल लैनयार्ड, हमेशा एक हुक जुड़ा','औज़ार बाँधें; नीचे घेराबंदी'], 'Tied off. Every second you’re up there.', 'बंधे रहें। ऊपर रहने के हर पल।')
+]});
+
+/* 08 · Static & ignition */
+VIDEOS.push({title:{en:'Static & ignition: earth before you load', hi:'स्टैटिक और आग: लोडिंग से पहले अर्थिंग'}, sub:{en:'Tanker loading gantry discipline', hi:'टैंकर लोडिंग गैन्ट्री का अनुशासन'}, scenes:[
+  titleScene(8, 'Earth before you load', 'लोडिंग से पहले अर्थिंग', 'Control static and ignition sources.', 'स्टैटिक और आग के स्रोतों पर नियंत्रण।'),
+  {d:7, ch:{en:'At the gate', hi:'गेट पर'}, cap:{en:'Vehicles need a spark arrestor. Mobile phones and lighters stay outside the hazardous area.', hi:'वाहनों में स्पार्क अरेस्टर होना चाहिए। मोबाइल फ़ोन और लाइटर खतरनाक क्षेत्र के बाहर रहें।'}, b(g){
+    const fl = plant(g);
+    const truck = S('g', null, g); S('rect', {x:0, y:-90, width:250, height:80, rx:36, fill:'#E5E7EB', stroke:'#64748B', 'stroke-width':3}, truck); S('rect', {x:30, y:-58, width:190, height:10, fill:C.blue}, truck);
+    S('rect', {x:255, y:-90, width:80, height:80, rx:10, fill:C.blue}, truck); S('rect', {x:280, y:-80, width:46, height:30, rx:4, fill:'#BFDBFE'}, truck);
+    [40,110,200,300].forEach(x => S('circle', {cx:x, cy:-6, r:18, fill:'#1F2937'}, truck));
+    const arr = S('g', null, truck); S('rect', {x:-30, y:-30, width:34, height:14, rx:3, fill:'#64748B'}, arr); S('rect', {x:-46, y:-33, width:20, height:20, rx:4, fill:'#334155'}, arr);
+    const gate = S('rect', {x:620, y:300, width:12, height:100, fill:'#334155'}, g); const boom = S('rect', {x:620, y:300, width:200, height:10, fill:C.red}, g);
+    const sa = chip(g, 250, 250, tr('SPARK ARRESTOR ✓','स्पार्क अरेस्टर ✓'), {bg:C.green});
+    const box = S('g', null, g); tf(box, 800, 160); S('rect', {x:-80, y:-50, width:160, height:100, rx:12, fill:'#fff', stroke:C.navy, 'stroke-width':3}, box);
+    S('rect', {x:-52, y:-28, width:28, height:48, rx:5, fill:'#1F2937'}, box); S('rect', {x:10, y:-20, width:16, height:36, rx:4, fill:'#F97316'}, box); cross(box, 50, -40, .7);
+    T(box, 0, 76, tr('Leave outside','बाहर छोड़ें'), {'text-anchor':'middle', 'font-size':16});
+    return t => { fl(t); const x = -340 + 520*ez(seg(t,0,2.6)); truck.setAttribute('transform', `translate(${x},400)`); op(sa, ez(seg(t,2.6,3.2))); tf(sa, x + 80, 250, pop(seg(t,2.6,3.3)));
+      op(box, ez(seg(t,3.6,4.2))); boom.setAttribute('transform', `rotate(${-80*ez(seg(t,5,6))},626,305)`); };
+  }},
+  {d:7, ch:{en:'Earthing', hi:'अर्थिंग'}, cap:{en:'Connect the earthing clamp to the tanker and confirm the indicator is green before loading starts.', hi:'टैंकर पर अर्थिंग क्लैंप लगाएँ और लोडिंग शुरू करने से पहले इंडिकेटर हरा होने की पुष्टि करें।'}, b(g){
+    const fl = plant(g, {dim:true});
+    const truck = S('g', null, g); tf(truck, 200, 420); S('rect', {x:0, y:-110, width:380, height:100, rx:46, fill:'#E5E7EB', stroke:'#64748B', 'stroke-width':3}, truck); [60,150,300].forEach(x => S('circle', {cx:x, cy:-6, r:20, fill:'#1F2937'}, truck));
+    const post = S('g', null, g); tf(post, 720, 420); S('rect', {x:-14, y:-200, width:28, height:200, fill:'#334155'}, post); S('rect', {x:-40, y:-230, width:80, height:44, rx:8, fill:'#1F2937'}, post);
+    const led = S('circle', {cx:0, cy:-208, r:12, fill:C.red}, post); const st = T(post, 0, 30, '', {'text-anchor':'middle', 'font-size':18});
+    const cable = S('path', {fill:'none', stroke:'#16A34A', 'stroke-width':5}, g); const clamp = S('rect', {width:22, height:16, rx:3, fill:'#15803D'}, g);
+    const P = person(g, 640, 300, {s:1, gloves:true, goggles:true});
+    return t => { fl(t); const a = ez(seg(t,.6,3)); const cx = 706 - (706 - 560)*a, cy = 300 + 30*a; cable.setAttribute('d', `M706,300 Q${(706+cx)/2},${360} ${cx},${cy}`); clamp.setAttribute('x', cx - 11); clamp.setAttribute('y', cy - 8);
+      tf(P.g, 640 - 80*a, 300, 1); if (t < 3) walk(P, t, 6, 10); else stand(P);
+      const ok = t > 3.6; led.setAttribute('fill', ok ? C.green : C.red); st.textContent = ok ? tr('EARTH OK','अर्थ ठीक') : tr('NOT EARTHED','अर्थ नहीं'); st.setAttribute('fill', ok ? C.green : C.red); };
+  }},
+  {d:7, ch:{en:'Loading', hi:'लोडिंग'}, cap:{en:'Start the flow slowly, stay with the vehicle throughout, and use only approved, non-sparking tools.', hi:'प्रवाह धीरे शुरू करें, पूरे समय वाहन के पास रहें, और केवल स्वीकृत, चिंगारी-रहित औज़ार इस्तेमाल करें।'}, b(g){
+    const fl = plant(g, {dim:true});
+    const truck = S('g', null, g); tf(truck, 200, 420); S('rect', {x:0, y:-110, width:380, height:100, rx:46, fill:'#E5E7EB', stroke:'#64748B', 'stroke-width':3}, truck); [60,150,300].forEach(x => S('circle', {cx:x, cy:-6, r:20, fill:'#1F2937'}, truck)); S('rect', {x:170, y:-122, width:40, height:14, rx:4, fill:'#64748B'}, truck);
+    S('rect', {x:120, y:60, width:500, height:20, fill:'#475569'}, g); S('rect', {x:560, y:60, width:20, height:250, fill:'#475569'}, g);
+    const arm = S('g', null, g); S('rect', {x:-8, y:0, width:16, height:200, rx:6, fill:'#F59E0B'}, arm);
+    const gauge = S('g', null, g); tf(gauge, 780, 180); S('rect', {x:-80, y:-60, width:160, height:120, rx:12, fill:'#fff', stroke:C.navy, 'stroke-width':3}, gauge); T(gauge, 0, -30, tr('FLOW','प्रवाह'), {'text-anchor':'middle', 'font-size':16});
+    const fb = S('rect', {x:-60, y:-10, width:0, height:24, rx:6, fill:C.green}, gauge); const ft = T(gauge, 0, 44, '', {'text-anchor':'middle', 'font-size':16});
+    const D = person(g, 680, 300, {s:1.1, goggles:true, gloves:true}); const stay = chip(g, 700, 440, tr('Driver stays with vehicle','ड्राइवर वाहन के पास रहे'), {bg:C.navy});
+    return t => { fl(t); const a = ez(seg(t,.3,2)); arm.setAttribute('transform', `translate(390,${80 + 210*a - 200}) `); arm.setAttribute('transform', `translate(390,${-110 + 230*a})`);
+      const f = t < 2.4 ? 0 : t < 4.5 ? .25 : .25 + .55*ez(seg(t,4.5,5.5)); fb.setAttribute('width', 120*f); ft.textContent = t < 2.4 ? '' : t < 4.5 ? tr('Slow start','धीमी शुरुआत') : tr('Normal rate','सामान्य दर');
+      op(stay, ez(seg(t,3,3.6))); };
+  }},
+  endScene(['Spark arrestor; phones out','Earth and confirm green','Slow start; stay with the vehicle'], ['स्पार्क अरेस्टर; फ़ोन बाहर','अर्थिंग और हरे की पुष्टि','धीमी शुरुआत; वाहन के पास रहें'], 'No earth, no load.', 'अर्थिंग नहीं, तो लोडिंग नहीं।')
+]});
+
+/* 09 · Leak & fire */
+VIDEOS.push({title:{en:'Leak or fire: act in the right order', hi:'रिसाव या आग: सही क्रम में कार्य'}, sub:{en:'Alarm, isolate, contain; extinguisher PASS', hi:'अलार्म, आइसोलेट, नियंत्रित करें; एक्सटिंग्विशर PASS'}, scenes:[
+  titleScene(9, 'Leak or fire', 'रिसाव या आग', 'Act in the right order.', 'सही क्रम में कार्य करें।'),
+  {d:6.5, ch:{en:'Raise the alarm', hi:'अलार्म बजाएँ'}, cap:{en:'Spot a leak? Raise the alarm first and inform the control room.', hi:'रिसाव दिखा? पहले अलार्म बजाएँ और कंट्रोल रूम को सूचित करें।'}, b(g){
+    const fl = plant(g); pipe(g, 60, 300, 900, 300, 26); const fl1 = S('rect', {x:470, y:276, width:20, height:48, fill:'#64748B'}, g);
+    const drips = d3.range(6).map(() => S('path', {d:'M0,0 q-6,10 0,14 q6,-4 0,-14 z', fill:'#A16207'}, g));
+    const pool = S('ellipse', {cx:480, cy:410, rx:10, ry:4, fill:'#A16207', opacity:.6}, g);
+    const P = person(g, 220, 290, {s:1.1, goggles:true, gloves:true, monitor:true}); const rd = radio(g, 0, 0, 1.2); const wv = waves(g, 0, 0, C.red);
+    const cr = S('g', null, g); tf(cr, 780, 150); S('rect', {x:-70, y:-50, width:140, height:90, rx:10, fill:'#fff', stroke:C.navy, 'stroke-width':3}, cr); T(cr, 0, -14, tr('CONTROL','कंट्रोल'), {'text-anchor':'middle', 'font-size':15}); T(cr, 0, 10, tr('ROOM','रूम'), {'text-anchor':'middle', 'font-size':15}); const crw = waves(cr, -90, 0, C.green);
+    const ex = S('text', {x:0, y:0, 'font-size':40, 'font-weight':800, fill:C.red, 'font-family':FONT}, g); ex.textContent = '!';
+    return t => { fl(t); drips.forEach((d,i) => { const ph = (t*.9 + i/6) % 1; d.setAttribute('transform', `translate(482,${324 + ph*84})`); op(d, 1 - ph*.5); });
+      const pr = 10 + 40*ez(seg(t,0,6)); pool.setAttribute('rx', pr); pool.setAttribute('ry', pr*.3);
+      walk(P, t, 6, 12); tf(P.g, 120 + 160*ez(seg(t,0,1.6)), 290, 1.1); if (t > 1.6) stand(P); ex.setAttribute('x', 298); ex.setAttribute('y', 180); op(ex, ez(seg(t,1.6,2)));
+      rd.setAttribute('transform', `translate(312,258) scale(1.2)`); op(rd, ez(seg(t,2.4,2.8)));
+      if (t > 2.8) { crw(t); } };
+  }},
+  {d:7, ch:{en:'Isolate & contain', hi:'आइसोलेट और नियंत्रित करें'}, cap:{en:'If it is safe and you are trained: isolate the source, remove ignition sources and contain the spill.', hi:'अगर सुरक्षित है और आप प्रशिक्षित हैं: स्रोत आइसोलेट करें, आग के स्रोत हटाएँ और रिसाव रोकें।'}, b(g){
+    const fl = plant(g); pipe(g, 60, 300, 900, 300, 26); S('rect', {x:470, y:276, width:20, height:48, fill:'#64748B'}, g);
+    const vw = valveWheel(g, 300, 250, 28); S('rect', {x:292, y:272, width:16, height:28, fill:'#7F1D1D'}, g);
+    const pool = S('ellipse', {cx:480, cy:410, rx:60, ry:18, fill:'#A16207', opacity:.6}, g);
+    const booms = S('g', null, g); S('ellipse', {cx:480, cy:410, rx:90, ry:30, fill:'none', stroke:C.yel, 'stroke-width':12}, booms);
+    const drips = d3.range(6).map(() => S('path', {d:'M0,0 q-6,10 0,14 q6,-4 0,-14 z', fill:'#A16207'}, g));
+    const ig = chip(g, 760, 160, tr('Ignition sources OFF','आग के स्रोत बंद'), {bg:C.red}); const c3 = chip(g, 760, 220, tr('Spill contained','रिसाव नियंत्रित'), {bg:C.green});
+    return t => { fl(t); vw.setAttribute('transform', `translate(300,250) rotate(${ez(seg(t,.4,2.4))*720})`);
+      const flow = 1 - ez(seg(t,1,2.6)); drips.forEach((d,i) => { const ph = (t*.9 + i/6) % 1; d.setAttribute('transform', `translate(482,${324 + ph*84})`); op(d, flow*(1 - ph*.5)); });
+      op(ig, ez(seg(t,2.8,3.4))); const b = ez(seg(t,3.6,4.8)); booms.setAttribute('transform', `translate(480,410) scale(${b}) translate(-480,-410)`); op(booms, b); op(c3, ez(seg(t,5,5.6))); };
+  }},
+  {d:8, ch:{en:'P-A-S-S', hi:'P-A-S-S'}, cap:{en:'For a small fire, use the extinguisher: Pull the pin, Aim at the base, Squeeze the handle, Sweep side to side.', hi:'छोटी आग के लिए एक्सटिंग्विशर: पिन खींचें, आग की जड़ पर निशाना, हैंडल दबाएँ, दाएँ-बाएँ घुमाएँ।'}, b(g){
+    S('rect', {width:960, height:540, fill:'#F1F5FB'}, g); S('rect', {y:420, width:960, height:120, fill:C.ground}, g);
+    const F = flameShape(g, 650, 420, 1.4); const ex = extinguisher(g, 300, 380, 1.8);
+    const spray = S('path', {fill:'#E5E7EB', opacity:.85}, g);
+    const letters = [['P', tr('Pull','खींचें')], ['A', tr('Aim','निशाना')], ['S', tr('Squeeze','दबाएँ')], ['S', tr('Sweep','घुमाएँ')]].map(([l,w],i) => { const c = S('g', null, g); tf(c, 160 + i*110, 90);
+      S('circle', {r:34, fill:C.navy}, c); T(c, 0, 12, l, {'text-anchor':'middle', 'font-size':34, fill:C.yel, 'font-weight':800}); T(c, 0, 62, w, {'text-anchor':'middle', 'font-size':16}); return c; });
+    return t => { const flick = 1 + .08*Math.sin(t*14); const out = ez(seg(t,4.6,7)); F.g.setAttribute('transform', `translate(650,420) scale(${1.4*(1-out)*flick + .001},${1.4*(1-out)/flick + .001})`);
+      letters.forEach((c,i) => { const a = pop(seg(t, .2 + i*1.4, .8 + i*1.4)); op(c, a > 0 ? 1 : 0); tf(c, 160 + i*110, 90, a); c.firstChild.setAttribute('fill', (t > .2 + i*1.4 && t < 1.6 + i*1.4) ? C.red : C.navy); });
+      ex.pin.setAttribute('transform', `translate(${-30*ez(seg(t,.4,1.2))},${-10*ez(seg(t,.4,1.2))})`); op(ex.pin, 1 - ez(seg(t,1,1.4)));
+      const aim = ez(seg(t,1.6,2.6)); ex.g.setAttribute('transform', `translate(300,380) rotate(${-10*aim}) scale(1.8)`);
+      const on = t > 4.2; const sw = on ? Math.sin((t-4.2)*4)*18 : 0; spray.setAttribute('d', on ? `M354,290 L${600},${400 + sw - 20} L${600},${400 + sw + 30} Z` : ''); };
+  }},
+  {d:6, ch:{en:'Know when to go', hi:'कब निकलना है'}, cap:{en:'If the fire grows, or you are unsure, leave. Let the fire team take over.', hi:'अगर आग बढ़े या आप अनिश्चित हों, तो निकल जाएँ। फायर टीम को संभालने दें।'}, b(g){
+    const fl = plant(g); const F = flameShape(g, 540, 400, 2.8);
+    const P = person(g, 420, 300, {s:1.1, goggles:true}); const tk = S('g', null, g);
+    S('rect', {x:0, y:-70, width:200, height:70, rx:12, fill:C.red}, tk); S('rect', {x:150, y:-110, width:60, height:44, rx:8, fill:C.red}, tk); [40,160].forEach(x => S('circle', {cx:x, cy:0, r:18, fill:'#1F2937'}, tk)); S('rect', {x:20, y:-90, width:120, height:10, fill:'#E5E7EB'}, tk);
+    const lt = S('circle', {cx:180, cy:-114, r:8, fill:'#60A5FA'}, tk);
+    return t => { fl(t); const k = 1 + .1*Math.sin(t*12); F.g.setAttribute('transform', `translate(540,400) scale(${2.8*k},${2.8/k})`);
+      walk(P, t, 7, 16); tf(P.g, 420 - 340*ez(seg(t,.4,3)), 300, 1.1); tk.setAttribute('transform', `translate(${1170 - 300*ez(seg(t,2.6,4.6))},420) scale(-1,1)`); lt.setAttribute('fill', Math.sin(t*12) > 0 ? '#60A5FA' : '#EF4444'); };
+  }},
+  endScene(['Alarm first, then control room','Isolate and contain only if safe','Small fire: PASS. Growing fire: leave'], ['पहले अलार्म, फिर कंट्रोल रूम','सुरक्षित हो तभी आइसोलेट करें','छोटी आग: PASS. बढ़ती आग: निकलें'], 'Alarm. Isolate. Contain. Or leave.', 'अलार्म। आइसोलेट। नियंत्रण। या निकलें।')
+]});
+
+/* 10 · Emergency evacuation */
+VIDEOS.push({title:{en:'When the siren sounds', hi:'जब सायरन बजे'}, sub:{en:'Stop, make safe, walk to the assembly point, headcount', hi:'रुकें, सुरक्षित करें, असेंबली पॉइंट तक चलें, गिनती'}, scenes:[
+  titleScene(10, 'When the siren sounds', 'जब सायरन बजे', 'Know exactly what to do.', 'ठीक-ठीक जानें क्या करना है।'),
+  {d:6.5, ch:{en:'Stop & make safe', hi:'रुकें और सुरक्षित करें'}, cap:{en:'On the emergency siren, stop work at once and make your job safe.', hi:'आपात सायरन बजते ही तुरंत काम रोकें और अपने काम को सुरक्षित करें।'}, b(g){
+    const fl = plant(g); const sir = S('g', null, g); tf(sir, 120, 140); S('rect', {x:-6, y:0, width:12, height:260, fill:'#475569'}, sir); S('path', {d:'M-30,-10 L30,-10 L20,-50 L-20,-50 Z', fill:C.red}, sir); const wv = waves(sir, 26, -30, C.red);
+    const A = person(g, 420, 300, {s:1.2, goggles:true, gloves:true}), B = person(g, 640, 300, {s:1.2, goggles:true, gloves:true});
+    const tool = S('rect', {x:0, y:0, width:40, height:10, rx:3, fill:'#475569'}, g);
+    const c1 = chip(g, 530, 140, tr('STOP · MAKE SAFE','रुकें · सुरक्षित करें'), {bg:C.red, fs:22});
+    return t => { fl(t); wv(t); A.armR.setAttribute('transform', t < 1.5 ? `rotate(${-40 + Math.sin(t*10)*10},27,-22)` : ''); B.armL.setAttribute('transform', t < 1.5 ? `rotate(${40 + Math.sin(t*10)*10},-27,-22)` : '');
+      const d = ez(seg(t,1.5,2.2)); tool.setAttribute('transform', `translate(450,${330 + 80*d}) rotate(${d*30})`); op(c1, ez(seg(t,2,2.6))); tf(c1, 530, 140, pop(seg(t,2,2.7))); };
+  }},
+  {d:8, ch:{en:'Walk to assembly', hi:'असेंबली तक चलें'}, cap:{en:'Check the windsock. Walk, don’t run, to your assembly point, upwind of the emergency.', hi:'विंडसॉक देखें। दौड़ें नहीं, चलकर अपने असेंबली पॉइंट तक जाएँ, जो आपात स्थल से हवा के विपरीत हो।'}, b(g){
+    S('rect', {width:960, height:540, fill:'#E8EEF6'}, g);
+    const roads = S('g', null, g); S('rect', {x:0, y:240, width:960, height:60, fill:'#CBD5E1'}, roads); S('rect', {x:180, y:0, width:60, height:540, fill:'#CBD5E1'}, roads);
+    [[340,60,160,130],[560,60,180,130],[340,340,160,140],[560,340,180,140]].forEach(([x,y,w,h]) => S('rect', {x, y, width:w, height:h, rx:8, fill:'#B6C2D4'}, g));
+    const em = S('g', null, g); tf(em, 820, 260); S('circle', {r:40, fill:C.red, opacity:.25}, em); S('circle', {r:16, fill:C.red}, em); T(em, 0, 70, tr('Emergency','आपात'), {'text-anchor':'middle', 'font-size':16, fill:C.red});
+    const ws = windsock(g, 860, 80); [0,1,2].forEach(i => arrow(g, 760 - i*40, 420 + i*14, 700 - i*40, 420 + i*14, '#64748B', 3));
+    const ap = S('g', null, g); tf(ap, 90, 120); S('rect', {x:-56, y:-36, width:112, height:72, rx:10, fill:C.green}, ap); T(ap, 0, -6, tr('ASSEMBLY','असेंबली'), {'text-anchor':'middle', fill:'#fff', 'font-size':15}); T(ap, 0, 18, tr('POINT A','पॉइंट A'), {'text-anchor':'middle', fill:'#fff', 'font-size':15});
+    const route = S('path', {d:'M520,270 L210,270 L210,120 L146,120', fill:'none', stroke:C.green, 'stroke-width':6, 'stroke-dasharray':'14 10'}, g); const L = route.getTotalLength();
+    const dots = d3.range(6).map(i => S('circle', {r:10, fill:C.blue, stroke:'#fff', 'stroke-width':3}, g));
+    const walkC = chip(g, 470, 500, tr('WALK, DON’T RUN','दौड़ें नहीं, चलें'), {bg:C.navy, fs:20});
+    return t => { ws(t); dots.forEach((d,i) => { const a = ez(seg(t, .4 + i*.35, 6 + i*.25)); const p = route.getPointAtLength(L*a); d.setAttribute('cx', p.x + (i%2)*8); d.setAttribute('cy', p.y + (i%3)*6 - 6); });
+      op(walkC, ez(seg(t,1.5,2.1))); route.setAttribute('stroke-dashoffset', -t*30); };
+  }},
+  {d:6.5, ch:{en:'Headcount', hi:'गिनती'}, cap:{en:'Report to the area warden for headcount. Visitors and contractors stay with their escort.', hi:'गिनती के लिए एरिया वार्डन को रिपोर्ट करें। विज़िटर और ठेकेदार अपने एस्कॉर्ट के साथ रहें।'}, b(g){
+    const fl = plant(g, {dim:true}); const W = person(g, 760, 300, {s:1.2, helmetColor:'#fff', goggles:true}); S('rect', {x:-44, y:0, width:28, height:36, rx:3, fill:'#fff', stroke:'#64748B', 'stroke-width':2}, W.g);
+    const people = d3.range(8).map(i => person(g, 100 + i*70, 330, {s:.75, goggles:i%2 === 0, helmetColor:i === 7 ? C.green : C.yel}));
+    const board = card(g, 300, 60, 330, 170, {head:tr('HEADCOUNT · AREA 3','गिनती · एरिया 3')}); const cnt = T(board, 165, 130, '0 / 12', {'text-anchor':'middle', 'font-size':52, fill:C.blue, 'font-family':'DM Serif Display, Georgia, serif', 'font-weight':400});
+    return t => { fl(t); const n = Math.min(12, Math.floor(ez(seg(t,.4,4.4))*12 + .0001)); cnt.textContent = `${n} / 12`; cnt.setAttribute('fill', n === 12 ? C.green : C.blue); };
+  }},
+  {d:6, ch:{en:'All clear', hi:'सब ठीक'}, cap:{en:'Do not go back until the all-clear is announced.', hi:'"सब ठीक" की घोषणा होने तक वापस न जाएँ।'}, b(g){
+    S('rect', {width:960, height:540, fill:C.navy}, g);
+    const wait = S('g', null, g); tf(wait, 480, 230); S('rect', {x:-220, y:-60, width:440, height:120, rx:20, fill:C.red}, wait); T(wait, 0, 18, tr('WAIT','रुकें'), {'text-anchor':'middle', fill:'#fff', 'font-size':60, 'font-weight':800});
+    const ok = S('g', null, g); tf(ok, 480, 230); S('rect', {x:-260, y:-60, width:520, height:120, rx:20, fill:C.green}, ok); T(ok, 0, 18, tr('ALL CLEAR','सब ठीक'), {'text-anchor':'middle', fill:'#fff', 'font-size':60, 'font-weight':800});
+    const bar = S('rect', {x:280, y:340, width:0, height:12, rx:6, fill:C.yel}, g); S('rect', {x:280, y:340, width:400, height:12, rx:6, fill:'none', stroke:'#334155', 'stroke-width':2}, g);
+    return t => { const a = seg(t,.3,3.4); bar.setAttribute('width', 400*a); const done = t > 3.6; op(wait, done ? 0 : 1); op(ok, done ? 1 : 0); tf(ok, 480, 230, done ? pop(seg(t,3.6,4.3)) : .01); };
+  }},
+  endScene(['Stop and make safe','Walk upwind to your assembly point','Headcount; wait for the all-clear'], ['रुकें और सुरक्षित करें','हवा के विपरीत असेंबली पॉइंट तक चलें','गिनती; "सब ठीक" का इंतज़ार'], 'Stop. Walk. Report. Wait.', 'रुकें। चलें। रिपोर्ट करें। इंतज़ार करें।')
+]});
+
+/* ======================================================================
+   PLAYER
+   ====================================================================== */
+const stage = document.getElementById('stage'), capEl = document.getElementById('cap'), badge = document.getElementById('badge');
+const bPlay = document.getElementById('bPlay'), playIcon = document.getElementById('playIcon'), bigplay = document.getElementById('bigplay');
+const fill = document.getElementById('fill'), knob = document.getElementById('knob'), prog = document.getElementById('prog'), ticks = document.getElementById('ticks'), timeEl = document.getElementById('time');
+let V = 0, time = 0, playing = false, last = 0, cur = -1, upd = null, capsOn = true, voice = false, auto = true, built = '';
+const watched = new Set();
+const durOf = v => v.scenes.reduce((a,s) => a + s.d, 0);
+const fmt = s => Math.floor(s/60) + ':' + String(Math.floor(s % 60)).padStart(2,'0');
+function locate(v, t){ let acc = 0; for (let i = 0; i < v.scenes.length; i++){ if (t < acc + v.scenes[i].d || i === v.scenes.length - 1) return {i, lt:t - acc, start:acc}; acc += v.scenes[i].d; } }
+function speak(txt){ if (!voice || !('speechSynthesis' in window)) return; try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(txt); u.lang = LANG === 'hi' ? 'hi-IN' : 'en-IN'; u.rate = 1; speechSynthesis.speak(u); } catch(e){} }
+function buildScene(i){
+  const v = VIDEOS[V]; while (stage.firstChild) stage.removeChild(stage.firstChild);
+  const g = S('g', null, stage); upd = v.scenes[i].b(g) || (() => {}); cur = i; built = V + ':' + i + ':' + LANG;
+  capEl.textContent = v.scenes[i].cap[LANG]; capEl.setAttribute('lang', LANG === 'hi' ? 'hi' : 'en');
+  document.querySelectorAll('.chap').forEach((c,j) => c.setAttribute('aria-current', j === i ? 'true' : 'false'));
+  if (playing) speak(v.scenes[i].cap[LANG]);
+}
+function render(){
+  const v = VIDEOS[V], D = durOf(v), {i, lt} = locate(v, time);
+  if (built !== V + ':' + i + ':' + LANG) buildScene(i);
+  try { upd(reduce && !playing ? v.scenes[i].d : cl(lt, 0, v.scenes[i].d)); } catch(e){ console.error(e); }
+  const p = time / D * 100; fill.style.width = p + '%'; knob.style.left = p + '%'; prog.setAttribute('aria-valuenow', Math.round(p));
+  timeEl.textContent = `${fmt(time)} / ${fmt(D)}`;
+}
+function loop(ts){
+  if (playing){ const dt = Math.min(.1, (ts - last)/1000); time += dt; const D = durOf(VIDEOS[V]);
+    if (time >= D){ time = D; watched.add(V); markPlaylist(); if (auto && V < VIDEOS.length - 1){ load(V + 1, true); } else { setPlaying(false); } } }
+  last = ts; render(); requestAnimationFrame(loop);
+}
+function setPlaying(p){ playing = p; bigplay.hidden = p; playIcon.innerHTML = p ? '<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>' : '<path d="M7 4l13 8-13 8z"/>';
+  bPlay.setAttribute('aria-label', p ? 'Pause' : 'Play'); last = performance.now();
+  if (p){ if (time >= durOf(VIDEOS[V]) - .01) time = 0; const v = VIDEOS[V], {i} = locate(v, time); speak(v.scenes[i].cap[LANG]); }
+  else if ('speechSynthesis' in window) speechSynthesis.cancel(); }
+function load(i, play){
+  V = i; time = 0; built = ''; const v = VIDEOS[V];
+  badge.innerHTML = `${tr('SAFETY MINUTE','सेफ्टी मिनट')} <b>${String(V+1).padStart(2,'0')}</b> / 10`;
+  document.getElementById('vTitle').textContent = `${String(V+1).padStart(2,'0')} · ${v.title[LANG]}`;
+  document.getElementById('vSub').textContent = v.sub[LANG];
+  const D = durOf(v); ticks.innerHTML = ''; let acc = 0;
+  v.scenes.slice(0,-1).forEach(s => { acc += s.d; const d = document.createElement('div'); d.className = 'tick'; d.style.left = (acc/D*100) + '%'; ticks.appendChild(d); });
+  const ch = document.getElementById('chapters'); ch.innerHTML = ''; acc = 0;
+  v.scenes.forEach((s,j) => { const b = document.createElement('button'); b.className = 'chap'; b.type = 'button'; b.textContent = `${j+1}. ${s.ch[LANG]}`; const st = acc; b.addEventListener('click', () => { time = st + .01; built = ''; }); ch.appendChild(b); acc += s.d; });
+  document.querySelectorAll('.pl-item').forEach((b,j) => b.setAttribute('aria-current', j === V ? 'true' : 'false'));
+  setPlaying(!!play); render();
+}
+/* playlist */
+const pl = document.getElementById('playlist');
+function buildPlaylist(){
+  pl.innerHTML = '';
+  VIDEOS.forEach((v,i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'pl-item'; b.setAttribute('aria-current', i === V ? 'true' : 'false');
+    b.innerHTML = `<span class="pl-num">${String(i+1).padStart(2,'0')}</span><span><span class="pl-t">${v.title[LANG]}</span><br><span class="pl-s">${v.sub[LANG]}</span></span><span class="pl-d">${fmt(durOf(v))}${watched.has(i) ? '<span class="done">✓</span>' : ''}</span>`;
+    b.addEventListener('click', () => load(i, true)); pl.appendChild(b); });
+  document.getElementById('plCount').textContent = `${watched.size} / 10 ${tr('watched','देखे गए')} · ${fmt(VIDEOS.reduce((a,v) => a + durOf(v), 0))}`;
+}
+function markPlaylist(){ buildPlaylist(); }
+/* controls */
+bPlay.addEventListener('click', () => setPlaying(!playing));
+bigplay.addEventListener('click', () => setPlaying(true));
+document.getElementById('bPrev').addEventListener('click', () => load((V + 9) % 10, playing));
+document.getElementById('bNext').addEventListener('click', () => load((V + 1) % 10, playing));
+document.getElementById('bRestart').addEventListener('click', () => { time = 0; built = ''; if (!playing) setPlaying(true); });
+const bCC = document.getElementById('bCC'); bCC.addEventListener('click', () => { capsOn = !capsOn; bCC.setAttribute('aria-pressed', capsOn); capEl.dataset.off = capsOn ? '0' : '1'; });
+const bLang = document.getElementById('bLang'); bLang.addEventListener('click', () => { LANG = LANG === 'en' ? 'hi' : 'en'; bLang.setAttribute('aria-pressed', LANG === 'hi'); bLang.textContent = LANG === 'hi' ? 'हिं / EN' : 'EN / हिं'; buildPlaylist(); const t0 = time; const p = playing; load(V, false); time = t0; built = ''; if (p) setPlaying(true); });
+const bVoice = document.getElementById('bVoice'); bVoice.addEventListener('click', () => { voice = !voice; bVoice.setAttribute('aria-pressed', voice); if (voice && playing){ const v = VIDEOS[V]; speak(v.scenes[locate(v,time).i].cap[LANG]); } else if ('speechSynthesis' in window) speechSynthesis.cancel(); });
+if (!('speechSynthesis' in window)) bVoice.hidden = true;
+const bAuto = document.getElementById('bAuto'); bAuto.addEventListener('click', () => { auto = !auto; bAuto.setAttribute('aria-pressed', auto); });
+document.getElementById('bFs').addEventListener('click', () => { const p = document.getElementById('player'); if (document.fullscreenElement) document.exitFullscreen(); else (p.requestFullscreen || p.webkitRequestFullscreen || (() => {})).call(p); });
+function seekFrom(ev){ const r = prog.getBoundingClientRect(); const x = cl((ev.clientX - r.left) / r.width); time = x * durOf(VIDEOS[V]); built = ''; render(); }
+let dragging = false;
+prog.addEventListener('pointerdown', e => { dragging = true; prog.setPointerCapture(e.pointerId); seekFrom(e); });
+prog.addEventListener('pointermove', e => { if (dragging) seekFrom(e); });
+prog.addEventListener('pointerup', () => { dragging = false; });
+prog.addEventListener('keydown', e => { const D = durOf(VIDEOS[V]); if (e.key === 'ArrowRight'){ time = Math.min(D, time + 2); built = ''; } if (e.key === 'ArrowLeft'){ time = Math.max(0, time - 2); built = ''; } });
+document.getElementById('player').addEventListener('keydown', e => { if (e.key === ' ' && e.target.tagName !== 'BUTTON'){ e.preventDefault(); setPlaying(!playing); } });
+buildPlaylist(); load(0, false); requestAnimationFrame(loop);
+
+/* ======================================================================
+   IMPACT CHARTS
+   ====================================================================== */
+if (typeof d3 === 'undefined') return;
+const TOP = ['PPE','Permit','LOTO','Hot work','Confined space','H₂S','Height','Static','Leak & fire','Evacuation'];
+const RC = {before:[72,58,49,55,44,51,63,47,60,70], after:[93,88,86,87,84,90,91,85,88,94]};
+let rcMode = 'before', rcUpd = null;
+function drawRecall(){
+  const w = 560, h = 320, m = {t:14, r:40, b:24, l:106};
+  const s = d3.select('#recall').append('svg').attr('viewBox', `0 0 ${w} ${h}`);
+  const y = d3.scaleBand(TOP, [m.t, h - m.b]).padding(.28), x = d3.scaleLinear([0,100], [m.l, w - m.r]);
+  s.append('g').attr('class','grid').attr('transform',`translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(5).tickSize(-(h-m.t-m.b)).tickFormat(''));
+  s.append('g').attr('class','axis').attr('transform',`translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(5).tickFormat(d => d + '%').tickSize(0).tickPadding(6));
+  s.append('g').attr('class','axis').attr('transform',`translate(${m.l},0)`).call(d3.axisLeft(y).tickSize(0).tickPadding(8));
+  s.append('line').attr('x1', x(80)).attr('x2', x(80)).attr('y1', m.t).attr('y2', h - m.b).attr('stroke','#DC2626').attr('stroke-dasharray','4 4');
+  s.append('text').attr('x', x(80) + 4).attr('y', m.t + 8).attr('font-size',10.5).attr('fill','#DC2626').attr('font-family','DM Sans, sans-serif').text('80% target');
+  const bars = s.selectAll('rect.b').data(TOP).join('rect').attr('class','b').attr('x', m.l).attr('y', d => y(d)).attr('height', y.bandwidth()).attr('rx',4).attr('width',0).style('cursor','pointer')
+    .on('mousemove', (ev,d) => { const i = TOP.indexOf(d); showTip(`<div class="t">${d}</div>Classroom: <b>${RC.before[i]}%</b><br>Videos: <b>${RC.after[i]}%</b>`, ev); }).on('mouseleave', hideTip);
+  const lbl = s.selectAll('text.v').data(TOP).join('text').attr('class','v').attr('y', d => y(d) + y.bandwidth()/2 + 4).attr('font-size',11.5).attr('font-weight',700).attr('font-family','DM Sans, sans-serif');
+  rcUpd = () => { const v = RC[rcMode], col = rcMode === 'before' ? '#94A3B8' : '#0B4EA2';
+    bars.transition().duration(DUR).attr('width', (d,i) => x(v[i]) - m.l).attr('fill', (d,i) => v[i] >= 80 ? col : (rcMode === 'before' ? '#CBD5E1' : col));
+    lbl.transition().duration(DUR).attr('x', (d,i) => x(v[i]) + 5).attr('fill', col).tween('text', function(d){ const i = TOP.indexOf(d), from = +(this.dataset.v || 0), to = v[i]; this.dataset.v = to; const it = d3.interpolateNumber(from, to); return t => this.textContent = Math.round(it(t)) + '%'; }); };
+  rcUpd();
+}
+document.querySelectorAll('[data-rc]').forEach(b => b.addEventListener('click', () => { if (b.dataset.rc === rcMode) return; rcMode = b.dataset.rc;
+  document.querySelectorAll('[data-rc]').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); if (rcUpd) rcUpd(); }));
+whenVisible(document.getElementById('recall').closest('.chart-card'), drawRecall);
+
+function drawReach(){
+  const W = d3.range(1,9), data = W.map(w => ({w, kiosk:Math.round(180 + 90*(1 - Math.exp(-(w-1)/2.5))), tbt:Math.round(60 + 260*(1 - Math.exp(-(w-1)/3))), phone:Math.round(20 + 180*(1 - Math.exp(-(w-1)/4)))}));
+  const w = 560, h = 320, m = {t:14, r:16, b:30, l:44}, keys = ['kiosk','tbt','phone'], col = {kiosk:'#0B4EA2', tbt:'#FFC20E', phone:'#16A34A'}, nm = {kiosk:'Gate kiosk', tbt:'Toolbox talk', phone:'Phone share'};
+  const s = d3.select('#reach').append('svg').attr('viewBox', `0 0 ${w} ${h}`);
+  const x = d3.scaleBand(W, [m.l, w - m.r]).padding(.3), y = d3.scaleLinear([0, d3.max(data, d => d.kiosk + d.tbt + d.phone)*1.1], [h - m.b, m.t]);
+  s.append('g').attr('class','grid').attr('transform',`translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickSize(-(w-m.l-m.r)).tickFormat(''));
+  s.append('g').attr('class','axis').attr('transform',`translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickSize(0).tickPadding(6));
+  s.append('g').attr('class','axis').attr('transform',`translate(0,${h - m.b})`).call(d3.axisBottom(x).tickFormat(d => 'W' + d).tickSize(0).tickPadding(8));
+  const st = d3.stack().keys(keys)(data);
+  s.selectAll('g.l').data(st).join('g').attr('class','l').attr('fill', d => col[d.key]).selectAll('rect').data(d => d.map(v => Object.assign(v, {key:d.key}))).join('rect')
+    .attr('x', v => x(v.data.w)).attr('width', x.bandwidth()).attr('y', y(0)).attr('height', 0).attr('rx',2).style('cursor','pointer')
+    .on('mousemove', (ev,v) => showTip(`<div class="t">Week ${v.data.w}</div>${nm[v.key]}: <b>${v[1]-v[0]}</b> plays<br>Total: ${v.data.kiosk + v.data.tbt + v.data.phone}`, ev)).on('mouseleave', hideTip)
+    .transition().delay((v,i) => reduce ? 0 : i*60).duration(DUR).attr('y', v => y(v[1])).attr('height', v => y(v[0]) - y(v[1]));
+}
+whenVisible(document.getElementById('reach').closest('.chart-card'), drawReach);
+})();
+</script>
+</body>
+</html>

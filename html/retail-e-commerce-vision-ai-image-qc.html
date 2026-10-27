@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Retail · AI Photography QC | HMC Case Study</title>
+<meta name="description" content="How Havish M Consulting built a dual-tier vision AI pipeline for the retailer that turns photography style guides into JSON rulebooks, filters junk images cheaply and judges every product image set against the rules.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+:root{
+  --pri:#E4287C; --deep:#1D1640; --acc:#00A3E0; --vio:#6C4CF5; --bad:#E2231A; --good:#1FA36B; --amb:#FFB400;
+  --bg:#F7F6FA; --text:#1C1A2B; --muted:#5F5C70; --card:#FFFFFF; --line:#E6E3EE;
+  --radius:12px; --shadow:0 1px 2px rgba(29,22,64,.06),0 8px 24px rgba(29,22,64,.08);
+  --serif:"DM Serif Display",Georgia,serif; --sans:"DM Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif; --mono:ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--serif);font-weight:400;color:var(--deep);margin:0;line-height:1.15}
+h2{font-size:clamp(1.6rem,3.2vw,2.2rem)}
+h3{font-size:1.2rem}
+p{margin:0}
+.wrap{max-width:1260px;margin:0 auto;padding:0 24px}
+section{padding:64px 0}
+.eyebrow{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--pri);margin-bottom:10px}
+.lead{color:var(--muted);max-width:800px;margin-top:12px}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line)}
+.sec-head{margin-bottom:28px}
+.alt{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.topbar{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+.logos{display:flex;align-items:center;gap:16px}
+.logos img{height:44px;width:auto;object-fit:contain}
+.logos img.cl{height:30px}
+.vdiv{width:1px;height:36px;background:var(--line)}
+.tagline{font-size:.8rem;color:var(--muted);letter-spacing:.04em}
+.tagline b{color:var(--pri);font-weight:700}
+.hero{background:radial-gradient(120% 140% at 88% 0%,#4A2470 0%,#2A1446 45%,#120821 100%);color:#fff;padding:76px 0 70px;position:relative;overflow:hidden}
+.hero canvas{position:absolute;right:0;top:0;width:58%;height:100%;pointer-events:none}
+.hero .eyebrow{color:#FF9BC6}
+.hero h1{color:#fff;font-size:clamp(2.3rem,5.4vw,3.8rem);max-width:720px;position:relative;z-index:1}
+.hero h1 em{font-style:normal;color:#FF9BC6}
+.hero .sub{font-size:clamp(1.05rem,2vw,1.2rem);color:rgba(255,255,255,.86);max-width:640px;margin-top:18px;position:relative;z-index:1}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px;position:relative;z-index:1}
+.pill{border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:6px 14px;font-size:.85rem;color:#fff;background:rgba(255,255,255,.06)}
+.pill span{color:#FF9BC6;font-weight:700;margin-right:6px}
+.kpis{margin-top:-30px;position:relative;z-index:2;padding:0}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi{padding:22px 20px;border-top:3px solid var(--acc)}
+.kpi .label{font-size:.82rem;color:var(--muted);font-weight:500}
+.kpi .val{font-family:var(--serif);font-size:clamp(1.9rem,4vw,2.6rem);color:var(--pri);line-height:1.1;margin-top:6px;white-space:nowrap}
+.kpi .val small{font-family:var(--sans);font-size:.9rem;color:var(--muted);margin-left:4px}
+.delta{display:inline-flex;align-items:center;gap:4px;font-size:.8rem;font-weight:700;margin-top:8px;padding:2px 8px;border-radius:999px;background:rgba(31,166,122,.1);color:var(--good)}
+.footnote{font-size:.78rem;color:var(--muted);margin-top:14px}
+.ch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.chc{padding:24px}
+.ico{width:44px;height:44px;border-radius:10px;background:var(--pri-15);display:grid;place-items:center;margin-bottom:16px}
+.ico svg{width:22px;height:22px;stroke:var(--pri);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.chc h3{margin-bottom:8px}
+.chc p{font-size:.92rem;color:#433A52}
+.tl{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.tl::before{content:"";position:absolute;left:10%;right:10%;top:27px;height:3px;background:linear-gradient(90deg,var(--pri),var(--acc));border-radius:2px;opacity:.55}
+.tl-step{position:relative;background:none;border:0;cursor:pointer;font:inherit;color:inherit;display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 4px 8px}
+.tl-dot{width:56px;height:56px;border-radius:50%;background:#fff;border:2px solid var(--line);display:grid;place-items:center;font-family:var(--serif);font-size:1.25rem;color:var(--pri);transition:all .25s;position:relative;z-index:1}
+.tl-name{font-weight:700;font-size:.95rem}
+.tl-dur{font-size:.75rem;color:var(--muted);margin-top:-8px}
+.tl-step:hover .tl-dot{border-color:var(--pri)}
+.tl-step[aria-expanded="true"] .tl-dot{background:var(--pri);border-color:var(--pri);color:#fff;box-shadow:0 0 0 6px var(--pri-15)}
+.tl-step:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:8px}
+.tl-panel{display:none;padding:24px 28px;margin-top:20px;border-left:4px solid var(--acc)}
+.tl-panel.open{display:block;animation:fadeUp .35s ease}
+.tl-panel h3{margin-bottom:6px}
+.tl-panel ul{margin:12px 0 0;padding-left:20px;color:#433A52}
+.tl-panel li{margin:6px 0}
+.tl-panel .deliv{margin-top:14px;font-size:.85rem;color:var(--muted)}
+.tl-panel .deliv b{color:var(--pri)}
+.tl-hint{text-align:center;color:var(--muted);font-size:.8rem;margin-top:6px}
+.seg{display:inline-flex;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:22px;padding:4px;gap:4px}
+.seg button{border:0;background:none;font:inherit;font-size:.82rem;font-weight:700;padding:6px 13px;border-radius:999px;cursor:pointer;color:var(--muted);transition:all .2s}
+.seg button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.seg button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.seg.sm button{font-size:.76rem;padding:5px 10px}
+.mod-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.mod-head h3{font-size:1.5rem}
+.mod-head p{font-size:.88rem;color:var(--muted);max-width:720px;margin-top:4px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--deep);color:#FF9BC6;font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:8px}
+.module{margin-bottom:54px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 12px;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer;color:var(--deep);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:border-color .15s,color .15s,background .15s}
+.btn:hover{border-color:var(--pri);color:var(--pri)}
+.btn.go{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.go:hover{background:#178A65;color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+
+
+.logos img.cl{height:30px}
+.hero{background:radial-gradient(110% 140% at 82% 10%,#4A1D5A 0%,#1D1640 52%,#0E0B22 100%)}
+.hero .eyebrow,.hero .pill span{color:#FF9BC6}
+.hero h1 em{color:#7FD6F5;font-style:italic}
+.badge{color:#FF9BC6}
+.kpi{border-top:3px solid var(--pri)}
+.chc p,.tl-panel ul,.tk p{color:#46435A}
+.tl::before{background:linear-gradient(90deg,var(--bad),var(--amb),var(--acc),var(--pri))}
+.module .btn.go,.btn.go{background:var(--deep);border-color:var(--deep);color:#fff}
+.module .btn.go:hover,.btn.go:hover{background:#000;color:#fff}
+.btn.sm{padding:6px 10px;font-size:.74rem}
+.btn.ai{background:linear-gradient(110deg,#1D1640 0%,#7A2A6E 38%,#FF9BC6 50%,#7A2A6E 62%,#1D1640 100%);background-size:260% 100%;color:#fff;border-color:transparent;animation:shim 3.2s linear infinite}
+.btn.ai:hover{color:#fff;filter:brightness(1.1)} .btn.ai[disabled]{opacity:.7;cursor:progress}
+@keyframes shim{from{background-position:130% 0}to{background-position:-130% 0}}
+.chart svg{width:100%;height:auto;display:block}
+.axis text{font-family:var(--sans);font-size:11px;fill:var(--muted)}
+.axis line{stroke:var(--line)} .axis path{display:none}
+.ckey{display:flex;gap:12px;font-size:.74rem;color:var(--muted);margin-top:6px;flex-wrap:wrap}
+.ckey span{display:inline-flex;align-items:center;gap:6px}
+.ckey i{width:12px;height:12px;border-radius:3px;display:inline-block}
+h4.lbl{margin:0 0 8px;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.chipb{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;font:700 .74rem var(--sans);color:var(--deep);cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.chipb:hover{border-color:var(--pri)} .chipb.on{background:var(--deep);border-color:var(--deep);color:#fff}
+.sigs{display:flex;gap:5px;flex-wrap:wrap}
+.ms{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.ms .k{font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.ms .v{font-family:var(--serif);font-size:1.3rem;color:var(--deep);line-height:1.15;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.ms .s{font-size:.68rem;color:var(--muted)}
+select.sel,input.inp{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:600 .78rem var(--sans);background:#fff;color:var(--deep);width:100%;min-width:0}
+.note{font-size:.72rem;color:var(--muted);line-height:1.45;margin:0}
+.pill2{display:inline-flex;align-items:center;gap:6px;font:800 .62rem var(--sans);letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.pill2.off{background:#ECEAF2;color:#5F5C70} .pill2.on{background:#FCE3EF;color:#A0175A}
+.pill2 i{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block}
+.pill2.on i{animation:blink 1.4s infinite}
+@keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
+.tag{font:800 .6rem var(--sans);letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 8px;white-space:nowrap;display:inline-block}
+.tag.r{background:#FCE1E0;color:#9E1A14} .tag.a{background:#FFF1CC;color:#8A5E00} .tag.g{background:#DCF3E8;color:#13704A} .tag.b{background:#DDF2FB;color:#00658C} .tag.n{background:#ECEAF2;color:#5F5C70} .tag.v{background:#ECE7FF;color:#4A30C2}
+.spark{color:#FF9BC6;display:inline-block;animation:tw 2.4s ease-in-out infinite}
+@keyframes tw{50%{opacity:.4;transform:scale(.8) rotate(20deg)}}
+.aikey{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:18px;padding:16px 18px;margin:0 0 32px;align-items:center;border:2px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(120deg,#E2231A,#FFB400,#00A3E0,#E4287C,#E2231A) border-box;background-size:100% 100%,300% 100%;animation:bord 9s linear infinite}
+@keyframes bord{to{background-position:0 0,300% 0}}
+.aikey h3{margin:0;font:400 1.35rem var(--serif);color:var(--deep)}
+.krow{display:grid;grid-template-columns:minmax(0,1.4fr) 150px auto auto;gap:8px;align-items:center;margin-bottom:8px}
+.krow input{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:500 .78rem var(--mono);color:var(--deep);background:#fff;min-width:0;width:100%}
+.kfoot{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.74rem}
+.drop{border:1.5px dashed #C9C3DA;border-radius:10px;padding:12px;text-align:center;font-size:.74rem;color:var(--muted);background:#fff;cursor:pointer;transition:all .2s;display:block}
+.drop:hover,.drop.over{border-color:var(--pri);background:#FDF0F6;color:var(--deep)}
+.drop b{display:block;color:var(--deep);font-size:.8rem;margin-bottom:2px}
+/* image tile */
+.ph{position:relative;background:#EDEDED;border-radius:8px;overflow:hidden;aspect-ratio:3/4}
+.ph svg,.ph img{width:100%;height:100%;display:block;object-fit:cover}
+.ph .no{position:absolute;left:6px;top:6px;background:rgba(29,22,64,.82);color:#fff;font:800 .62rem var(--sans);border-radius:6px;padding:2px 6px}
+.ph .st{position:absolute;right:6px;top:6px}
+/* 01 rulebook */
+.rb{display:grid;grid-template-columns:230px minmax(0,1.3fr) minmax(0,1fr);overflow:hidden}
+.rb>div{min-width:0;padding:14px}
+.rb>div:first-child{border-right:1px solid var(--line);background:#FAF9FC;display:flex;flex-direction:column;gap:8px}
+.rb>div:last-child{border-left:1px solid var(--line);background:#16122F;color:#E6E3F5;display:flex;flex-direction:column;gap:8px}
+.reg{display:flex;flex-direction:column;gap:4px;max-height:360px;overflow:auto}
+.ri{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 6px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 8px;cursor:pointer;text-align:left;font:inherit;color:inherit;transition:all .2s}
+.ri b{font-size:.76rem;color:var(--deep)} .ri span{font-size:.64rem;color:var(--muted)}
+.ri .tag{align-self:start;justify-self:end}
+.ri.on{border-color:var(--pri);box-shadow:0 0 0 3px rgba(228,40,124,.14)}
+.guide{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff;position:relative;overflow:hidden}
+.guide h5{margin:0 0 8px;font:800 .78rem var(--sans);color:var(--deep);display:flex;gap:6px;align-items:center}
+.gseq{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px}
+.gs{border:1px solid var(--line);border-radius:8px;padding:6px;text-align:center;font-size:.62rem;color:var(--muted);background:#FCFBFE}
+.gs b{display:block;color:var(--deep);font-size:.72rem;margin:2px 0}
+.gs .ph{margin-bottom:4px}
+.gstd{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:8px}
+.gstd div{border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:.66rem;color:#46435A;background:#FCFBFE}
+.gstd b{display:block;color:var(--deep);font-size:.7rem;margin-bottom:2px}
+.guide .scan{position:absolute;left:0;right:0;height:40px;top:-50px;background:linear-gradient(180deg,rgba(228,40,124,0),rgba(228,40,124,.18) 70%,rgba(228,40,124,.85));pointer-events:none;opacity:0}
+.guide.scanning .scan{opacity:1;animation:scan 1.4s linear infinite}
+@keyframes scan{from{top:-50px}to{top:100%}}
+.json{font:500 .7rem/1.5 var(--mono);white-space:pre-wrap;word-break:break-word;margin:0;max-height:420px;overflow:auto;color:#D9D5EE}
+.json .k{color:#7FD6F5} .json .s{color:#FFC48A} .json .n{color:#B6F09C} .json .p{color:#8A86A8}
+.rb .note{color:#A7A2C4}
+/* 02 gate */
+.gt{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);overflow:hidden}
+.gt>div{min-width:0;padding:14px}
+.gt>div+div{border-left:1px solid var(--line);background:#FAF9FC;display:flex;flex-direction:column;gap:8px}
+.lanes{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.lane{background:#FAF9FC;border:1px solid var(--line);border-radius:10px;padding:6px;min-height:300px;display:flex;flex-direction:column;gap:4px}
+.lane h6{margin:0 0 2px;font:800 .62rem var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--deep);text-align:center}
+.lane .c{font:400 1.25rem var(--serif);text-align:center;color:var(--deep)}
+.lane .sub{font-size:.6rem;color:var(--muted);text-align:center;margin-bottom:4px;min-height:2.2em}
+.lane .tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;align-content:start}
+.mini{aspect-ratio:3/4;border-radius:3px;overflow:hidden;background:#EDEDED;position:relative;animation:pop .35s ease}
+.mini svg{width:100%;height:100%;display:block}
+.mini.x{outline:2px solid var(--bad);opacity:.55}
+.mini.x::after{content:"✕";position:absolute;inset:0;display:grid;place-items:center;color:var(--bad);font:800 .9rem var(--sans)}
+@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
+.glog{display:flex;flex-direction:column;gap:5px;max-height:300px;overflow:auto}
+.gl{display:grid;grid-template-columns:44px minmax(0,1fr);gap:8px;background:#fff;border:1px solid var(--line);border-radius:9px;padding:6px;font-size:.68rem;animation:fadeUp .3s ease}
+.gl b{color:var(--deep);font-size:.72rem;display:block}
+.gl .bar{height:5px;background:#ECEAF2;border-radius:3px;overflow:hidden;margin:2px 0 3px}
+.gl .bar i{display:block;height:100%;background:#0F6E8F}
+.gl.x{border-left:3px solid var(--bad)} .gl.ok{border-left:3px solid var(--good)}
+.route{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+/* 03 judge */
+.jd{display:grid;grid-template-columns:250px minmax(0,1fr);overflow:hidden}
+.jd>div{min-width:0;padding:14px}
+.jd>div:first-child{border-right:1px solid var(--line);background:#FAF9FC;display:flex;flex-direction:column;gap:10px}
+.sets{display:flex;flex-direction:column;gap:5px}
+.seq{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+.th{display:flex;flex-direction:column;gap:4px;cursor:grab}
+.th.drag{opacity:.4} .th.over .ph{outline:3px dashed var(--pri)}
+.th .ctl{display:flex;gap:3px;justify-content:space-between;align-items:center}
+.th .ctl button{border:1px solid var(--line);background:#fff;border-radius:6px;font:700 .62rem var(--sans);padding:2px 6px;cursor:pointer;color:var(--deep)}
+.th .ctl button:hover{border-color:var(--pri)}
+.th .ctl select{font:600 .6rem var(--sans);border:1px solid var(--line);border-radius:6px;padding:2px;min-width:0;flex:1;color:var(--deep);background:#fff}
+.box{position:absolute;border:2.5px solid var(--bad);border-radius:3px;box-shadow:0 0 0 2px rgba(255,255,255,.7);pointer-events:none}
+.box span{position:absolute;left:2px;top:2px;background:var(--bad);color:#fff;font:800 .52rem var(--sans);padding:1px 4px;border-radius:3px;white-space:nowrap}
+.verdict{border-radius:12px;padding:12px 14px;margin:12px 0 10px;border:1px solid}
+.verdict.pass{background:#E7F6EE;border-color:#B5E3CA} .verdict.fail{background:#FCE8E7;border-color:#F3BDBA}
+.verdict h5{margin:0 0 4px;font:800 .9rem var(--sans);display:flex;gap:6px;align-items:center}
+.verdict.pass h5{color:#13704A} .verdict.fail h5{color:#9E1A14}
+.verdict p{margin:0;font-size:.8rem;line-height:1.5;color:#2D2A3E}
+.m4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.qa{background:#E8F4FB;border:1px solid #BFE3F5;border-radius:10px;padding:10px 12px;font-size:.78rem;color:#1C3A4C;margin-top:8px}
+.ck{border:1px solid var(--line);border-radius:10px;margin-top:8px;overflow:hidden;background:#fff}
+.ck>button{all:unset;box-sizing:border-box;width:100%;display:flex;justify-content:space-between;gap:8px;align-items:center;padding:8px 12px;background:#F7F6FA;cursor:pointer;font:700 .76rem var(--sans);color:var(--deep)}
+.ck>button:focus-visible{outline:2px solid var(--pri);outline-offset:-2px}
+.ck .bd{padding:8px 12px 10px;font-size:.78rem;line-height:1.5;color:#2D2A3E}
+.ck .bd code{font:600 .68rem var(--mono);background:#F1EFF7;border-radius:4px;padding:1px 5px}
+.ck .hint{font-size:.7rem;color:var(--muted);margin-top:4px}
+.ck.closed .bd{display:none}
+.conf{height:7px;background:#ECEAF2;border-radius:4px;overflow:hidden;margin-top:4px}
+.conf i{display:block;height:100%;background:#0F6E8F;border-radius:4px;transition:width .6s}
+/* 04 report */
+.rp{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);overflow:hidden}
+.rp>div{min-width:0;padding:14px}
+.rp>div+div{border-left:1px solid var(--line);background:#FAF9FC;display:flex;flex-direction:column;gap:8px}
+.rs{width:100%;border-collapse:collapse;font-size:.72rem}
+.rs th{text-align:left;font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);padding:5px 4px}
+.rs td{padding:5px 4px;border-bottom:1px solid #F0EEF5;vertical-align:top}
+.rsw{max-height:300px;overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff}
+.out{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:.8rem;line-height:1.55;color:#2D2A3E;min-height:200px}
+.out ul{margin:4px 0 8px;padding-left:18px} .out p{margin:0 0 6px}
+.dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--pri);margin-right:3px;animation:blink 1s infinite}
+.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--deep);color:#fff;padding:10px 16px;border-radius:999px;font-size:.82rem;font-weight:700;opacity:0;transition:all .3s;z-index:1200;pointer-events:none;max-width:calc(100vw - 32px);text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.cmp-head{display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+.cmp{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.cmp th,.cmp td{padding:16px 18px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);font-size:.92rem;overflow-wrap:anywhere}
+.cmp thead th{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);background:#F7F6FA}
+.cmp tbody tr:last-child td,.cmp tbody tr:last-child th{border-bottom:0}
+.cmp tbody th{font-weight:700;color:var(--pri)}
+.cmp col.c1{width:22%}
+.cmp td{transition:background .3s,opacity .3s,color .3s}
+.cmp.hl-before td.b{background:#FCEEF3;color:#7A1236}
+.cmp.hl-before td.a{opacity:.38}
+.cmp.hl-after td.a{background:#ECF8F3;color:#0E4F39;font-weight:500}
+.cmp.hl-after td.b{opacity:.38}
+.cmp.hl-after thead th.a{color:var(--acc)}
+.cmp.hl-before thead th.b{color:var(--bad)}
+.tchips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:.9rem;font-weight:500;display:inline-flex;align-items:center;gap:8px}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 3px var(--acc-15)}
+.chip em{font-style:normal;color:var(--muted);font-weight:400;font-size:.82rem}
+.tk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.tk{padding:26px}
+.tk .n{font-family:var(--serif);font-size:2.6rem;color:var(--acc);line-height:1}
+.tk h3{margin:12px 0 8px}
+.tk p{font-size:.92rem;color:#433A52}
+footer{background:var(--deep);color:rgba(255,255,255,.75);padding:48px 0 32px;margin-top:32px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px}
+.f-brand{display:flex;align-items:center;gap:16px}
+.f-brand img{height:44px;width:auto;border-radius:6px;background:#fff;padding:4px}
+.f-brand b{display:block;color:#fff;font-family:var(--serif);font-weight:400;font-size:1.15rem}
+.copy{width:100%;border-top:1px solid rgba(255,255,255,.12);padding-top:18px;font-size:.8rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+#tip{position:fixed;pointer-events:none;z-index:95;background:var(--deep);color:#fff;font-size:.8rem;line-height:1.45;padding:10px 12px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transition:opacity .15s;max-width:300px}
+#tip b{color:#7DE3BE;font-weight:700}
+#tip .t{font-weight:700;font-size:.85rem;margin-bottom:2px;color:#fff}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.cmp.hl-after td.a{background:#FDEEF5;color:#1D1640}
+.chip i{background:var(--pri);box-shadow:0 0 0 3px rgba(228,40,124,.22)}
+.tk .n{color:var(--pri)}
+#tip{z-index:1300} #tip b{color:#FF9BC6}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.js .reveal{opacity:1;transform:none;transition:none}.aikey,.btn.ai,.spark,.pill2.on i,.guide.scanning .scan{animation:none!important}.mini,.gl{animation:none}}
+@media (max-width:1180px){.rb{grid-template-columns:210px minmax(0,1fr)}.rb>div:last-child{grid-column:1/-1;border-left:0}}
+@media (max-width:980px){.kpi-grid,.ch-grid{grid-template-columns:repeat(2,1fr)}.dash{grid-template-columns:1fr}.tk-grid{grid-template-columns:1fr}.hero canvas{width:100%;opacity:.3}
+  .rb,.gt,.jd,.rp,.aikey{grid-template-columns:minmax(0,1fr)}.rb>div:first-child,.jd>div:first-child{border-right:0;border-bottom:1px solid var(--line)}.gt>div+div,.rp>div+div{border-left:0;border-top:1px solid var(--line)}
+  .krow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.krow input[type=password]{grid-column:1/-1}.reg{max-height:200px}}
+@media (max-width:640px){
+  .wrap{padding:0 16px} section{padding:48px 0} .hero{padding:52px 0 56px} .logos img{height:34px} .logos img.cl{height:22px} .vdiv{height:28px}
+  .kpi-grid{gap:10px} .kpi{padding:16px 14px} .ch-grid{grid-template-columns:1fr}
+  .tl::before{top:19px} .tl-dot{width:40px;height:40px;font-size:1rem} .tl-name{font-size:.75rem} .tl-dur{display:none} .tl-panel{padding:18px}
+  .sx{overflow-x:auto;-webkit-overflow-scrolling:touch} .sx svg{min-width:500px} .sx.ln .lanes{min-width:560px}
+  .m4{grid-template-columns:repeat(2,minmax(0,1fr))} .gstd{grid-template-columns:minmax(0,1fr)} .route{grid-template-columns:minmax(0,1fr)}
+  .cmp th,.cmp td{padding:12px 10px;font-size:.82rem} .cmp thead th{font-size:.68rem;letter-spacing:.08em} .chart-card{padding:14px}
+}
+@media print{
+  body{background:#fff;font-size:12px} .topbar{position:static}
+  .hero{background:#1D1640!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:36px 0} .hero canvas{display:none}
+  .card{box-shadow:none;break-inside:avoid} section{padding:28px 0} .js .reveal{opacity:1!important;transform:none!important}
+  .seg,.tl-hint,.btn,#tip,.toast,.aikey,.drop,.th .ctl{display:none!important} .tl-panel{display:block!important;margin-top:10px} .ck.closed .bd{display:block}
+  footer{background:#fff;color:var(--text)} footer .f-brand b{color:var(--deep)} .kpis{margin-top:16px}
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="logos">
+      <img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting">
+    </div>
+    <div class="tagline">Customer Case Study · <b>AI Photography QC</b></div>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas id="heroCv" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="eyebrow">Retail × Havish M Consulting</div>
+    <h1>Every product photo checked against the style guide, <em>in seconds</em></h1>
+    <p class="sub">The retailer's studios shoot thousands of product images for e-commerce, and every set must follow strict style guides on sequence, framing, cropping and background. HMC built a dual-tier vision AI pipeline that turns the style guides into JSON rulebooks, filters junk images cheaply, and judges every image set with a clear, explainable QC report.</p>
+    <div class="pills">
+      <span class="pill"><span>Client</span>Retail</span>
+      <span class="pill"><span>Function</span>E-commerce · Studio Operations</span>
+      <span class="pill"><span>Theme</span>Vision AI Image QC</span>
+    </div>
+  </div>
+</section>
+
+<section class="kpis">
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="card kpi reveal"><div class="label">Manual image review time</div><div class="val"><span class="count" data-to="90">0</span><small>% less</small></div><div class="delta">▼ QA makes only the final call</div></div>
+      <div class="card kpi reveal"><div class="label">Images stopped before the expensive VLM</div><div class="val"><span class="count" data-to="26">0</span><small>%</small></div><div class="delta">▼ fewer paid API calls</div></div>
+      <div class="card kpi reveal"><div class="label">Average judge confidence</div><div class="val"><span class="count" data-to="95">0</span><small>%</small></div><div class="delta">▲ with evidence per rule</div></div>
+      <div class="card kpi reveal"><div class="label">Image sets checked on the latest rulebook</div><div class="val"><span class="count" data-to="100">0</span><small>%</small></div><div class="delta">▲ same rules in every studio</div></div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="challenge">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Challenge</div>
+      <h2>A style guide nobody could check at scale</h2>
+      <p class="lead">Studio shoot, manual review against the style guides, then the bottleneck: slow, subjective and error-prone checks before new SKUs could go live.</p>
+    </div>
+    <div class="ch-grid">
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="12" cy="13.5" r="3.5"/><path d="M8 7l2-3h4l2 3"/></svg></div><h3>Thousands of raw images</h3><p>Every season, every category, from several studios and agencies.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7"/></svg></div><h3>Massive style guides</h3><p>Sequence, shot types, framing, creases and backgrounds differ by category and season.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div><h3>Hours of manual QA</h3><p>QA teams compared each image to the guide by eye, set by set.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 12h16M12 4v16"/><circle cx="12" cy="12" r="9"/></svg></div><h3>Subjective and late</h3><p>Different reviewers, different answers; reshoots found after the set was struck.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="approach" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">HMC Approach</div>
+      <h2>Rules first, cheap filters next, the VLM last</h2>
+      <p class="lead">A pipeline that spends expensive vision AI only where it adds value.</p>
+    </div>
+    <div class="tl reveal" aria-label="HMC approach steps">
+      <button class="tl-step" aria-expanded="true" aria-controls="tp0"><span class="tl-dot">1</span><span class="tl-name">Discover</span><span class="tl-dur">2 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp1"><span class="tl-dot">2</span><span class="tl-name">Design</span><span class="tl-dur">2 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp2"><span class="tl-dot">3</span><span class="tl-name">Build</span><span class="tl-dur">6 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp3"><span class="tl-dot">4</span><span class="tl-name">Adopt</span><span class="tl-dur">Kidswear studio</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp4"><span class="tl-dot">5</span><span class="tl-name">Scale</span><span class="tl-dur">All categories</span></button>
+    </div>
+    <p class="tl-hint">Select a step to see what happened.</p>
+    <div class="card tl-panel open" id="tp0"><h3>Discover · How QA really judges a set</h3><p>Sat with QA reviewers and photographers.</p><ul><li>Style guides by category: sequence, shot types and quality standards.</li><li>Most common rejections: wrong order, model shots instead of flat lays, cropped edges, creases.</li><li>Where junk images entered the queue.</li></ul><p class="deliv"><b>Deliverable:</b> Rejection taxonomy and pipeline design.</p></div>
+    <div class="card tl-panel" id="tp1"><h3>Design · Guidelines as JSON</h3><p>A machine-readable rulebook per category.</p><ul><li>Required sequence with shot type and notes per position.</li><li>Quality standards: first image, negative space, creases, cropping, background.</li><li>Tiered pipeline so cheap checks run before the VLM.</li></ul><p class="deliv"><b>Deliverable:</b> Rulebook schema and rule registry.</p></div>
+    <div class="card tl-panel" id="tp2"><h3>Build · Scraper, router, gatekeepers, judge</h3><p>End to end in one app.</p><ul><li>Guideline scraper and VLM that writes the JSON rulebook.</li><li>Router matching each SKU to its rulebook; Tier 0, 1 and 1.5 gatekeepers.</li><li>Tier 2 VLM judge with per-rule scores, evidence and crop coordinates.</li></ul><p class="deliv"><b>Deliverable:</b> Working QC pipeline.</p></div>
+    <div class="card tl-panel" id="tp3"><h3>Adopt · Photographers see it first</h3><p>Feedback before the set is struck.</p><ul><li>Instant, explainable result per image set.</li><li>QA managers review the aggregated report and make the final call.</li><li>Rulebooks marked "AI draft" until the retailer reviews them.</li></ul><p class="deliv"><b>Deliverable:</b> Pilot results and studio SOP.</p></div>
+    <div class="card tl-panel" id="tp4"><h3>Scale · Every category and studio</h3><p>Global alignment across studios.</p><ul><li>Rule registry for all categories, versioned by season.</li><li>Agency submissions checked on upload.</li><li>QC report feeds the catalogue go-live process.</li></ul><p class="deliv"><b>Deliverable:</b> Roll-out plan.</p></div>
+  </div>
+</section>
+
+<section id="solution">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Solution</div>
+      <h2>Run the QC pipeline</h2>
+      <p class="lead">Turn a style guide into rules, push a batch through the gatekeepers, and judge image sets. Rearrange or break the images and watch the verdict change. Product images here are drawn illustrations; with an OpenAI key you can judge your own photos.</p>
+    </div>
+
+    <div class="card aikey reveal" id="aiKey">
+      <div><h3><span class="spark">✦</span> Use a live vision model</h3>
+        <p class="note">Optional. Without a key, rulebooks come from the registry and the judge applies the rules to the sample sets. Add your OpenAI key to extract a rulebook from a style-guide screenshot and to judge your own product photos.</p></div>
+      <div>
+        <div class="krow"><input type="password" id="apiKey" placeholder="OpenAI API key (sk-…)" autocomplete="off" spellcheck="false" aria-label="OpenAI API key"><input type="text" class="inp" id="oaModel" value="gpt-4.1-mini" list="models" spellcheck="false" aria-label="OpenAI model" style="font-family:var(--mono)"><datalist id="models"><option value="gpt-4.1-mini"><option value="gpt-4o-mini"><option value="gpt-4o"><option value="gpt-4.1"></datalist><button class="btn sm go" id="keySave" type="button">Connect</button><span class="pill2 off" id="keyPill"><i></i>Rules engine</span></div>
+        <div class="kfoot"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="remember"> Remember on this device</label><button class="btn sm" id="keyClr" type="button">Disconnect</button><span class="note" id="keyMsg">Your key and images go only from this browser to OpenAI.</span></div>
+      </div>
+    </div>
+
+    <div class="module reveal" id="m1">
+      <div class="mod-head"><div><div class="badge">01 · Rule registry</div><h3>From style guide to JSON rulebook</h3><p>Each category's visual style guide is read and turned into a strict, machine-readable rulebook: the required image sequence and the quality standards. Pick a category, then extract.</p></div><span class="pill2 off aipill"><i></i>Rules engine</span></div>
+      <div class="card rb">
+        <div><input class="inp" id="regQ" type="search" placeholder="Search rulebooks…" aria-label="Search rulebooks"><div class="reg" id="reg"></div>
+          <label class="drop" for="sgFile"><b>⬆ Style guide screenshot</b>Extract a new rulebook with your key<input type="file" id="sgFile" accept="image/*" hidden></label></div>
+        <div><div class="guide" id="guide"><div class="scan"></div><div id="gBody"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h4 class="lbl" style="margin:0;color:#A7A2C4">JSON rulebook</h4><div style="display:flex;gap:6px"><button class="btn sm ai" id="ext" type="button">✦ Extract</button><button class="btn sm" id="jDl" type="button" style="background:#2A2450;color:#fff;border-color:#3A3366">⬇</button></div></div><pre class="json" id="json"></pre><p class="note" id="jNote"></p></div>
+      </div>
+    </div>
+
+    <div class="module reveal" id="m2">
+      <div class="mod-head"><div><div class="badge">02 · Routing &amp; Tier 1 gatekeepers</div><h3>Stop junk before it reaches the VLM</h3><p>A batch of 50 SKUs arrives from the studio and an agency. The router matches each SKU to its rulebook; cheap gatekeepers check that each image decodes, meets resolution and file size, and actually shows the right garment. Only clean image sets go to the Tier 2 judge.</p></div><button class="btn go" id="runB" type="button">▶ Run batch</button></div>
+      <div class="card gt">
+        <div><div class="sx ln"><div class="lanes" id="lanes"></div></div><div class="ckey"><span><i style="background:#E2231A"></i>Stopped at this tier</span><span>Each tile is one image</span></div></div>
+        <div><div class="route" id="route"></div><h4 class="lbl" style="margin:4px 0 0">Gatekeeper logs</h4><div class="glog" id="glog"><p class="note">Run the batch to see the logs.</p></div></div>
+      </div>
+      <p class="footnote">Synthetic batch; garment images are illustrations. Thresholds: 2000 × 2667 px minimum, 3 MB maximum, apparel classifier confidence 0.80.</p>
+    </div>
+
+    <div class="module reveal" id="m3">
+      <div class="mod-head"><div><div class="badge">03 · Tier 2 VLM judge</div><h3>Judge an image set against its rulebook</h3><p>Pick a submitted set. Drag images to reorder, or use the menu under each image to break it (crop an edge, add creases, swap in a model shot). The judge re-checks sequence, shot type, cropping, creases, negative space and background, with evidence and crop coordinates.</p></div><span class="pill2 off aipill"><i></i>Rules engine</span></div>
+      <div class="card jd">
+        <div>
+          <div><h4 class="lbl">Submitted sets</h4><div class="sets" id="sets"></div></div>
+          <div><h4 class="lbl">Rulebook</h4><select class="sel" id="jRule" aria-label="Rulebook"></select><p class="note" id="jReq" style="margin-top:4px"></p></div>
+          <label class="drop" for="upImgs"><b>⬆ Upload your product photos</b>In order · judged live with your key<input type="file" id="upImgs" accept="image/*" multiple hidden></label>
+          <button class="btn ai" id="jGo" type="button">✦ Judge with GenAI</button>
+        </div>
+        <div>
+          <h4 class="lbl">Submitted images, in order</h4><div class="seq" id="seq"></div>
+          <div id="vd"></div>
+        </div>
+      </div>
+      <p class="footnote">Rulebooks marked "AI draft" are not reviewed by the retailer; for demonstration only.</p>
+    </div>
+
+    <div class="module reveal" id="m4" style="margin-bottom:0">
+      <div class="mod-head"><div><div class="badge">04 · Final QC report</div><h3>What to reshoot, before the set is struck</h3><p>The batch rolls up into one report: pass rate, the rules that fail most, and a reshoot list by studio. QA managers review it and make the final call; photographers get a plain note on what to fix.</p></div><span class="pill2 off aipill"><i></i>Rules engine</span></div>
+      <div class="card rp">
+        <div><div class="m4" id="rk"></div><h4 class="lbl" style="margin-top:12px">Failing rules</h4><div class="chart" id="rules"></div><h4 class="lbl" style="margin-top:10px">Reshoot list</h4><div class="rsw"><table class="rs" id="rs"><thead><tr><th>SKU</th><th>Category</th><th>Studio</th><th>Failed rules</th></tr></thead><tbody></tbody></table></div>
+          <div style="margin-top:8px"><button class="btn sm" id="rsCsv" type="button">⬇ QC report CSV</button></div></div>
+        <div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><select class="sel" id="stu" style="max-width:220px" aria-label="Studio"></select><button class="btn sm ai" id="nGo" type="button">✦ Photographer note</button><button class="btn sm" id="nCopy" type="button">Copy</button></div><div class="out" id="nOut"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="impact" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Impact Dashboard</div>
+      <h2>Less review, more SKUs live</h2>
+      <p class="lead">QA hours per thousand images fell by about 90%, and the studio clears far more SKUs a day for the site.</p>
+    </div>
+    <div class="dash">
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>QA hours per 1,000 images</h3><p class="sub">Donut: where the review time goes</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-dn="before" aria-pressed="false">Before</button><button type="button" data-dn="after" aria-pressed="true">After</button></div></div>
+        <div class="chart" id="donut"></div>
+      </div>
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>SKUs cleared for the site, per day</h3><p class="sub">Spiral heatmap: one ring per week, one cell per day, week 1 at the centre</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-sp="before" aria-pressed="false">Before</button><button type="button" data-sp="after" aria-pressed="true">After</button></div></div>
+        <div class="chart" id="spiral"></div>
+      </div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <div class="cmp-head reveal"><div><div class="eyebrow">Before vs After</div><h2>How product images are checked now</h2></div>
+      <div class="seg" role="group" aria-label="Highlight column"><button type="button" data-hl="before" aria-pressed="false">Before</button><button type="button" data-hl="after" aria-pressed="true">After</button></div></div>
+    <div class="card reveal" style="overflow:hidden">
+      <table class="cmp hl-after" id="cmp"><colgroup><col class="c1"><col><col></colgroup>
+        <thead><tr><th scope="col">Dimension</th><th scope="col" class="b">Before</th><th scope="col" class="a">After</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Style guides</th><td class="b">PDFs and screenshots, shared by hand</td><td class="a">Scraped and turned into JSON rulebooks</td></tr>
+          <tr><th scope="row">Junk images</th><td class="b">Reviewed like everything else</td><td class="a">Stopped by cheap gatekeepers</td></tr>
+          <tr><th scope="row">Checking a set</th><td class="b">By eye, against the guide</td><td class="a">VLM judge, rule by rule, with evidence</td></tr>
+          <tr><th scope="row">Consistency</th><td class="b">Depends on the reviewer</td><td class="a">Same rules, every studio, every time</td></tr>
+          <tr><th scope="row">Feedback</th><td class="b">After the set is struck</td><td class="a">Instant, while the photographer is on set</td></tr>
+          <tr><th scope="row">QA effort</th><td class="b">Hours per batch</td><td class="a">Review the report, make the final call</td></tr>
+        </tbody></table>
+    </div>
+  </div>
+</section>
+
+<section id="tools" style="padding-top:16px">
+  <div class="wrap">
+    <div class="sec-head reveal" style="margin-bottom:20px"><div class="eyebrow">Tools &amp; Tech Used</div><h2>The QC pipeline stack</h2></div>
+    <div class="tchips reveal">
+      <span class="chip"><i></i>Azure OpenAI GPT-4.1 mini <em>vision judge and rule extraction</em></span>
+      <span class="chip"><i></i>Guideline scraper <em>style guides from the internal ecosystem</em></span>
+      <span class="chip"><i></i>JSON rule registry <em>versioned rulebooks by category</em></span>
+      <span class="chip"><i></i>ML classifiers <em>Tier 1.5 junk and category checks</em></span>
+      <span class="chip"><i></i>Python image checks <em>decode, resolution, file size</em></span>
+      <span class="chip"><i></i>QC web app <em>photographer and QA views</em></span>
+    </div>
+  </div>
+</section>
+
+<section id="takeaways">
+  <div class="wrap">
+    <div class="sec-head reveal"><div class="eyebrow">Key Takeaways</div><h2>What any e-commerce studio can borrow</h2></div>
+    <div class="tk-grid">
+      <div class="card tk reveal"><div class="n">01</div><h3>Turn the guide into data first</h3><p>A JSON rulebook is something every studio, agency and model can follow the same way.</p></div>
+      <div class="card tk reveal"><div class="n">02</div><h3>Filter cheaply, judge carefully</h3><p>Basic checks and small classifiers stop junk for a fraction of the cost of a vision model.</p></div>
+      <div class="card tk reveal"><div class="n">03</div><h3>Explain every verdict</h3><p>A score, an observation and the exact image and crop make the AI's call easy to trust and to act on.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="f-brand"><img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting"><div><b>Havish M Consulting</b></div></div>
+    <div class="copy"><span>© <span id="yr">2026</span> Havish M Consulting. All rights reserved.</span><span>Figures indicative; validated metrics available on request.</span></div>
+  </div>
+</footer>
+<div id="tip" role="tooltip"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(function(){
+"use strict";
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DUR = reduce ? 0 : 700;
+const $ = id => document.getElementById(id);
+$('yr').textContent = new Date().getFullYear();
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hasD3 = typeof d3 !== 'undefined';
+const sleep = ms => new Promise(r => setTimeout(r, reduce ? Math.min(ms, 30) : ms));
+const sum = a => a.reduce((x, y) => x + (+y || 0), 0);
+const range = n => Array.from({ length: n }, (_, i) => i);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const tip = $('tip');
+function showTip(html, ev){ tip.innerHTML = html; tip.style.opacity = 1; const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight; let x = ev.clientX + pad, y = ev.clientY + pad; if (x + w > innerWidth - 8) x = ev.clientX - w - pad; if (y + h > innerHeight - 8) y = ev.clientY - h - pad; tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; }
+function hideTip(){ tip.style.opacity = 0; }
+window.addEventListener('scroll', hideTip, { passive: true });
+function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => el.classList.remove('on'), 3000); }
+const onView = new Map();
+const io = ('IntersectionObserver' in window) ? new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; e.target.classList.add('in'); const fn = onView.get(e.target); if (fn){ fn(); onView.delete(e.target); } io.unobserve(e.target); }), { threshold: .12 }) : null;
+function whenVisible(el, fn){ onView.set(el, fn); if (io) io.observe(el); else fn(); }
+document.querySelectorAll('.reveal').forEach(el => io ? io.observe(el) : el.classList.add('in'));
+function countUp(el){ const to = +el.dataset.to, dp = +(el.dataset.dp || 0); if (reduce || !to){ el.textContent = to.toFixed(dp); return; } const t0 = performance.now(); (function s(t){ const p = Math.min(1, (t - t0) / 1400), e = 1 - Math.pow(1 - p, 3); el.textContent = (to * e).toFixed(dp); if (p < 1) requestAnimationFrame(s); })(t0); }
+document.querySelectorAll('.count').forEach(el => whenVisible(el.closest('.kpi'), () => countUp(el)));
+const tlSteps = document.querySelectorAll('.tl-step');
+tlSteps.forEach(btn => btn.addEventListener('click', () => { const open = btn.getAttribute('aria-expanded') === 'true'; tlSteps.forEach(b => { b.setAttribute('aria-expanded','false'); $(b.getAttribute('aria-controls')).classList.remove('open'); }); if (!open){ btn.setAttribute('aria-expanded','true'); $(btn.getAttribute('aria-controls')).classList.add('open'); } }));
+function segBind(attr, fn){ const bs = document.querySelectorAll(`[data-${attr}]`); bs.forEach(b => b.addEventListener('click', () => { bs.forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); fn(b.dataset[attr]); })); }
+const cmpT = $('cmp');
+segBind('hl', v => { cmpT.classList.toggle('hl-before', v === 'before'); cmpT.classList.toggle('hl-after', v === 'after'); });
+function md(s){ const lines = esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').split(/\n/); let out = '', inL = false;
+  lines.forEach(l => { const m = l.match(/^\s*(?:[-*•]|\d+[.)])\s+(.*)/); if (m){ if (!inL){ out += '<ul>'; inL = true; } out += '<li>' + m[1] + '</li>'; } else { if (inL){ out += '</ul>'; inL = false; } if (l.trim()) out += '<p>' + l.replace(/^#+\s*/, '') + '</p>'; } });
+  if (inL) out += '</ul>'; return out; }
+const csvCell = v => { const s = v == null ? '' : String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+function download(name, text, type){ const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); toast('Downloaded ' + name); }
+
+/* ======================================================================
+   GARMENT ILLUSTRATIONS (300 × 400, 3:4)
+   ====================================================================== */
+function dk(hex, f){ const n = parseInt(hex.slice(1), 16), r = n >> 16, g = n >> 8 & 255, b = n & 255, m = v => Math.round(v * (1 - f)); return '#' + ((1 << 24) + (m(r) << 16) + (m(g) << 8) + m(b)).toString(16).slice(1); }
+function lt(hex, f){ const n = parseInt(hex.slice(1), 16), r = n >> 16, g = n >> 8 & 255, b = n & 255, m = v => Math.round(v + (255 - v) * f); return '#' + ((1 << 24) + (m(r) << 16) + (m(g) << 8) + m(b)).toString(16).slice(1); }
+const motif = (x, y, s, col) => `<g transform="translate(${x},${y}) scale(${s})"><circle r="22" fill="#fff" opacity=".9"/><path d="M-14 -6 L-8 -22 L0 -10 L8 -22 L14 -6 Q14 14 0 16 Q-14 14 -14 -6Z" fill="${dk(col, .45)}"/><circle cx="-6" cy="0" r="2.4" fill="#fff"/><circle cx="6" cy="0" r="2.4" fill="#fff"/><path d="M10 -16 l8 -6 l2 8z" fill="#E2231A"/></g>`;
+function shapeOf(g, col, back, print){ const s = dk(col, .28), sw = 'stroke-width="2.2" stroke-linejoin="round"';
+  if (g === 'tee') return `<path d="M98 92 L130 78 Q150 ${back ? 84 : 98} 170 78 L202 92 L246 132 L222 160 L204 146 L204 318 Q150 326 96 318 L96 146 L78 160 L54 132 Z" fill="${col}" stroke="${s}" ${sw}/><path d="M130 78 Q150 ${back ? 88 : 104} 170 78" fill="none" stroke="${s}" stroke-width="5" opacity=".5"/>${print && !back ? motif(150, 190, 1.4, col) : ''}${back && print === 'back' ? motif(150, 160, 1.2, col) : ''}`;
+  if (g === 'dress') return `<path d="M112 84 Q150 ${back ? 90 : 104} 188 84 L204 96 L196 168 L252 330 Q150 346 48 330 L104 168 L96 96 Z" fill="${col}" stroke="${s}" ${sw}/><path d="M104 168 Q150 178 196 168" fill="none" stroke="${s}" stroke-width="3"/>${[80, 110, 150, 190, 220].map(x => `<path d="M${150 + (x - 150) * .35} 176 L${x} 330" stroke="${s}" stroke-width="1.4" opacity=".55"/>`).join('')}<path d="M96 96 Q78 110 84 128 L104 120Z M204 96 Q222 110 216 128 L196 120Z" fill="${lt(col, .25)}" stroke="${s}" stroke-width="1.6"/>${print && !back ? motif(150, 132, .95, col) : ''}${back && print === 'back' ? motif(150, 130, .95, col) : ''}`;
+  if (g === 'gilet') return `${back ? `<path d="M112 70 Q150 20 188 70 L188 96 L112 96Z" fill="${dk(col, .1)}" stroke="${s}" ${sw}/>` : `<path d="M110 92 Q104 40 150 30 Q196 40 190 92 L172 96 Q170 60 150 58 Q130 60 128 96Z" fill="${dk(col, .1)}" stroke="${s}" ${sw}/>`}<path d="M110 92 L128 96 Q150 104 172 96 L190 92 L214 120 Q206 150 214 180 L214 322 Q150 334 86 322 L86 180 Q94 150 86 120 Z" fill="${col}" stroke="${s}" ${sw}/>${back ? '' : `<path d="M150 102 L150 326" stroke="#9AA0A6" stroke-width="3"/><rect x="146" y="102" width="8" height="12" rx="2" fill="#C9CDD2"/><path d="M104 230 L134 230 M166 230 L196 230" stroke="${lt(col, .25)}" stroke-width="3"/>`}${[150, 200, 250, 300].map(y => `<path d="M88 ${y} Q150 ${y + 6} 212 ${y}" fill="none" stroke="${lt(col, .15)}" stroke-width="1.2" opacity=".6"/>`).join('')}`;
+  if (g === 'cardi') return `<path d="M100 88 L130 78 Q150 96 170 78 L200 88 L250 250 L226 258 L206 150 L206 320 Q150 330 94 320 L94 150 L74 258 L50 250 Z" fill="${col}" stroke="${s}" ${sw}/>${back ? '' : `<path d="M150 98 L150 324" stroke="${s}" stroke-width="2"/>${[130, 170, 210, 250, 290].map(y => `<circle cx="156" cy="${y}" r="4" fill="#fff" stroke="${s}" stroke-width="1.4"/>`).join('')}`}${range(14).map(i => `<circle cx="${110 + (i % 7) * 13}" cy="${180 + Math.floor(i / 7) * 60}" r="2" fill="${dk(col, .18)}"/>`).join('')}`;
+  if (g === 'pants') return `<path d="M100 70 L200 70 L204 96 L222 326 L164 330 L150 150 L136 330 L78 326 L96 96 Z" fill="${col}" stroke="${s}" ${sw}/><rect x="100" y="70" width="100" height="18" fill="${dk(col, .12)}" stroke="${s}" stroke-width="1.6"/>${back ? `<rect x="112" y="110" width="26" height="24" rx="3" fill="none" stroke="${s}" stroke-width="1.6"/><rect x="162" y="110" width="26" height="24" rx="3" fill="none" stroke="${s}" stroke-width="1.6"/>` : `<path d="M150 88 L150 140" stroke="${s}" stroke-width="1.6"/>`}`;
+  return ''; }
+function svgOf(o){ const W = 300, H = 400, col = o.col || '#F4A7C6', bgc = o.bg === 'busy' ? '#C8A27C' : o.bg === 'white' ? '#FFFFFF' : '#EDEDED';
+  let bg = `<rect width="${W}" height="${H}" fill="${bgc}"/>` + (o.bg === 'busy' ? range(9).map(i => `<rect y="${i * 46}" width="${W}" height="22" fill="#B48A63" opacity=".55"/>`).join('') + range(6).map(i => `<circle cx="${30 + i * 50}" cy="${(i * 97) % 380}" r="14" fill="#7FA36B" opacity=".7"/>`).join('') : '');
+  if (o.shot === 'junk') return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"><rect width="${W}" height="${H}" fill="#B9906A"/>${range(9).map(i => `<rect y="${i * 46}" width="${W}" height="20" fill="#A47C57" opacity=".7"/>`).join('')}<ellipse cx="150" cy="290" rx="110" ry="26" fill="#F5F2EE"/><path d="M80 170 L220 170 L206 288 Q150 300 94 288Z" fill="#FAFAF7" stroke="#D6D0C8" stroke-width="3"/><path d="M220 192 Q262 196 256 228 Q250 258 212 256" fill="none" stroke="#FAFAF7" stroke-width="14"/><ellipse cx="150" cy="172" rx="70" ry="12" fill="#5B3A22"/>${[120, 150, 180].map(x => `<path d="M${x} 150 q-12 -22 0 -40 q12 -20 0 -42" fill="none" stroke="#fff" stroke-width="4" opacity=".6"/>`).join('')}</svg>`;
+  if (o.shot === 'corrupt') return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"><rect width="${W}" height="${H}" fill="#2B2B33"/>${range(14).map(i => `<rect y="${i * 29}" x="${(i * 37) % 80 - 40}" width="${W + 80}" height="${8 + (i * 7) % 14}" fill="${['#E2231A','#00A3E0','#1FA36B','#FFB400','#888'][i % 5]}" opacity=".45"/>`).join('')}<rect x="95" y="150" width="110" height="90" rx="10" fill="#fff" opacity=".92"/><path d="M118 220 L140 192 L156 210 L170 196 L184 220Z" fill="#9AA0A6"/><path d="M118 168 L182 228" stroke="#E2231A" stroke-width="6"/></svg>`;
+  const back = /back/.test(o.shot), g = o.shot === 'bottom-front' || o.shot === 'bottom-back' ? 'pants' : o.g, pr = o.print ? (back ? (o.printBack ? 'back' : '') : 'front') : '';
+  let body;
+  if (o.shot === 'set-flat') body = `<g transform="translate(-6,40) scale(.6)">${shapeOf(o.g === 'set' ? 'tee' : o.g, col, false, pr)}</g><g transform="translate(140,70) scale(.56)">${shapeOf('pants', o.col2 || dk(col, .1), false)}</g>`;
+  else if (o.shot === 'model') body = `<rect x="0" y="330" width="${W}" height="70" fill="#E2D8CE"/><circle cx="150" cy="62" r="26" fill="#D9B59A"/><path d="M124 56 Q150 20 176 56 Q170 40 150 38 Q130 40 124 56Z" fill="#6B4A36"/><g transform="translate(60,62) scale(.6)">${shapeOf(o.g === 'set' ? 'tee' : o.g === 'pants' ? 'tee' : o.g, col, false, pr)}</g><rect x="122" y="252" width="22" height="92" rx="8" fill="${o.g === 'set' ? (o.col2 || dk(col, .1)) : '#D9B59A'}"/><rect x="156" y="252" width="22" height="92" rx="8" fill="${o.g === 'set' ? (o.col2 || dk(col, .1)) : '#D9B59A'}"/><rect x="118" y="340" width="28" height="12" rx="5" fill="#fff"/><rect x="154" y="340" width="28" height="12" rx="5" fill="#fff"/>`;
+  else { const isB = /bottom|waist/.test(o.shot), g2 = g === 'set' ? (isB ? 'pants' : 'tee') : g; body = shapeOf(g2, g2 === 'pants' && o.g === 'set' ? (o.col2 || dk(col, .1)) : col, back, pr); }
+  const Z = { 'detail-collar': [150, 108, 2.3], 'detail-hem': [150, 296, 2.1], 'detail-print': [150, 150, 2.2], 'detail-hood': [150, 70, 2.2], 'detail-zip': [150, 228, 2.4], 'detail-waist': [150, 92, 2.3], 'detail-bottom': [150, 300, 2.1] }[o.shot];
+  let tr = ''; if (Z) tr = `translate(${150 - Z[0] * Z[2]},${200 - Z[1] * Z[2]}) scale(${Z[2]})`;
+  else if (o.crop === 'r') tr = 'translate(78,0)'; else if (o.crop === 'l') tr = 'translate(-78,0)'; else if (o.crop === 't') tr = 'translate(0,-62)'; else if (o.crop === 'b') tr = 'translate(0,74)';
+  if (!Z && o.off) tr = 'translate(-38,40) scale(.78)';
+  const cre = o.crease ? `<g opacity=".6">${[170, 205, 240, 275].map((y, i) => `<path d="M${102 + i * 4} ${y} q14 -9 28 0 t28 0 t28 0" fill="none" stroke="${dk(col, .4)}" stroke-width="2.2"/>`).join('')}<path d="M120 150 L180 300 M190 160 L120 290" stroke="${dk(col, .35)}" stroke-width="1.6"/></g>` : '';
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${bg}<g transform="${tr}">${body}${cre}</g></svg>`; }
+const svgURL = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
+function raster(svg){ return new Promise(res => { const im = new Image(); im.onload = () => { const c = document.createElement('canvas'); c.width = 600; c.height = 800; c.getContext('2d').drawImage(im, 0, 0, 600, 800); try { res(c.toDataURL('image/jpeg', .85)); } catch (e){ res(null); } }; im.onerror = () => res(null); im.src = svgURL(svg); }); }
+
+/* ======================================================================
+   RULEBOOKS
+   ====================================================================== */
+const SHOT = { 'flat-front':'Flat lay · front', 'flat-back':'Flat lay · back', 'detail-collar':'Close-up · collar and upper front', 'detail-hem':'Close-up · lower front or hem', 'detail-print':'Close-up · upper back print', 'set-flat':'Group flat lay of all items', 'bottom-front':'Bottom · flat lay front', 'bottom-back':'Bottom · flat lay back', 'detail-hood':'Close-up · hood', 'detail-zip':'Close-up · zip and pocket', 'detail-waist':'Close-up · waistband', 'detail-bottom':'Close-up · bottom hem', 'model':'Model shot', 'junk':'Not a product image', 'corrupt':'Unreadable file' };
+const FULL = new Set(['flat-front','flat-back','set-flat','bottom-front','bottom-back']);
+const STD = { first:'The first image must show the full front of the product laid flat, fully visible and centred on a neutral light grey background.', neg:'The product should be centred with balanced negative space around it, avoiding excessive empty space.', creases:'No visible creases, wrinkles or poor presentation on any garment.', crop:'No edges of the full product shots (front and back) may be cropped. Close-up and detail shots are exempt and expected to be cropped.', bg:'Neutral light grey (#EDEDED) or white seamless background; no props or textures.', ai:'Not applicable for this category.' };
+const RB = [
+  { id:'tops', name:'Tops', ver:'v1.3', status:'Approved', g:'tee', seq:[['flat-front','Flat of single top, front view','The full front of the top is visible, laid flat on a neutral light grey background, centred with no edges cropped.'], ['flat-back','Flat of single top, back view','The full back of the top is visible, laid flat on the same background, centred with no edges cropped.'], ['detail-collar','Close-up of collar and upper front','Close-up framing of the collar and upper front; cropping of edges is expected.'], ['detail-hem','Close-up of lower front and label','Close-up of the lower front including buttons and label; cropping is expected.']] },
+  { id:'dresses', name:'Dresses', ver:'v1.1', status:'Approved', g:'dress', seq:[['flat-front','Flat lay of dress, front','Entire dress laid flat, front, no edges cropped.'], ['flat-back','Flat lay of dress, back','Entire dress laid flat, back, no edges cropped.'], ['detail-collar','Close-up of neckline and shoulder','Upper front close-up; cropping expected.'], ['detail-hem','Close-up of lower skirt','Skirt pleats and hem; cropping expected.'], ['detail-print','Close-up of upper back print','Back print detail; cropping expected.']] },
+  { id:'sets', name:'Top & bottom sets', ver:'v1.0', status:'AI draft', g:'set', seq:[['set-flat','Group flat lay of top and bottom','Both items laid flat side by side, fully visible.'], ['flat-front','Top, flat front','Full front of the top, no cropping.'], ['flat-back','Top, flat back','Full back of the top, no cropping.'], ['bottom-front','Bottom, flat front','Full front of the bottom, no cropping.'], ['bottom-back','Bottom, flat back','Full back of the bottom, no cropping.'], ['detail-collar','Close-up of top detail','Print or neckline close-up.'], ['detail-bottom','Close-up of bottom detail','Hem or cuff close-up.']] },
+  { id:'outer', name:'Outerwear & gilets', ver:'v1.2', status:'Approved', g:'gilet', seq:[['flat-front','Flat lay, front, zipped','Full front, zipped, no cropping.'], ['flat-back','Flat lay, back','Full back, no cropping.'], ['detail-hood','Close-up of hood','Hood lining and shape; cropping expected.'], ['detail-zip','Close-up of zip and pocket','Zip pull and pocket; cropping expected.']] },
+  { id:'bottoms', name:'Bottoms', ver:'v1.0', status:'Approved', g:'pants', seq:[['bottom-front','Flat lay, front','Full front, no cropping.'], ['bottom-back','Flat lay, back','Full back, pockets visible.'], ['detail-waist','Close-up of waistband','Waistband and label; cropping expected.'], ['detail-bottom','Close-up of hem','Hem or cuff; cropping expected.']] },
+  { id:'night', name:'Nightwear sets', ver:'v0.9', status:'AI draft', g:'set', seq:[['set-flat','Group flat lay','Both items flat, fully visible.'], ['flat-front','Top, flat front','No cropping.'], ['bottom-front','Bottom, flat front','No cropping.'], ['detail-collar','Close-up of print','Cropping expected.'], ['detail-bottom','Close-up of cuff','Cropping expected.']] } ];
+const rbBy = id => RB.find(r => r.id === id) || RB[0];
+const rbJSON = r => ({ category: r.name, rulebook_version: r.ver, status: r.status === 'AI draft' ? 'AI draft · not reviewed by the retailer' : 'Approved', required_images: r.seq.length, sequence: r.seq.map((s, i) => ({ position: i + 1, shot_type: s[0], description: s[1], note: s[2], crop_allowed: !FULL.has(s[0]) })), quality_standards: { first_image_rule: STD.first, negative_space: STD.neg, creases: STD.creases, cropping: STD.crop, background: STD.bg, ai_imagery: STD.ai } });
+
+/* ======================================================================
+   KEY
+   ====================================================================== */
+let KEY = '', OAM = 'gpt-4.1-mini';
+try { const k = localStorage.getItem('hmc_cpq_key'); if (k){ $('apiKey').value = k; $('remember').checked = true; } } catch (e){}
+function setMode(){ const on = !!KEY; $('keyPill').className = 'pill2 ' + (on ? 'on' : 'off'); $('keyPill').innerHTML = `<i></i>${on ? 'Live · ' + esc(OAM) : 'Rules engine'}`; document.querySelectorAll('.aipill').forEach(el => { el.className = 'pill2 aipill ' + (on ? 'on' : 'off'); el.innerHTML = `<i></i>${on ? 'Live · ' + esc(OAM) : 'Rules engine'}`; }); }
+async function connect(silent){ const k = $('apiKey').value.trim(), m = $('oaModel').value.trim() || 'gpt-4.1-mini'; if (!/^sk-/.test(k)){ if (!silent) $('keyMsg').innerHTML = '<span style="color:var(--bad)">That does not look like an OpenAI key.</span>'; return; }
+  $('keyMsg').textContent = 'Checking key…';
+  try { const r = await fetch('https://api.openai.com/v1/models', { headers: { Authorization: 'Bearer ' + k } }); if (r.status === 401) throw new Error('OpenAI rejected this key (401).'); if (!r.ok) throw new Error('OpenAI returned ' + r.status + '.');
+    KEY = k; OAM = m; try { if ($('remember').checked) localStorage.setItem('hmc_cpq_key', k); else localStorage.removeItem('hmc_cpq_key'); } catch (e){}
+    setMode(); $('keyMsg').innerHTML = `<b style="color:var(--good)">Connected.</b> Rule extraction and judging now use ${esc(m)}.`; if (!silent) toast('OpenAI connected'); }
+  catch (err){ $('keyMsg').innerHTML = `<span style="color:var(--bad)">${esc(err.message || 'Could not reach OpenAI from this browser.')}</span>`; } }
+$('keySave').addEventListener('click', () => connect(false));
+$('oaModel').addEventListener('change', () => { OAM = $('oaModel').value.trim() || 'gpt-4.1-mini'; setMode(); });
+$('keyClr').addEventListener('click', () => { KEY = ''; $('apiKey').value = ''; try { localStorage.removeItem('hmc_cpq_key'); } catch (e){} setMode(); $('keyMsg').textContent = 'Disconnected. The rules engine still works.'; });
+async function openai(messages, { json = false, onDelta } = {}){
+  const body = { model: OAM, messages, temperature: .1 }; if (json) body.response_format = { type:'json_object' }; if (onDelta) body.stream = true;
+  const r = await fetch('https://api.openai.com/v1/chat/completions', { method:'POST', headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + KEY }, body: JSON.stringify(body) });
+  if (!r.ok){ let msg = 'OpenAI error ' + r.status; try { const j = await r.json(); if (j.error && j.error.message) msg += ': ' + j.error.message; } catch (e){} throw new Error(msg); }
+  if (!onDelta){ const j = await r.json(); return { text: j.choices[0].message.content, usage: j.usage || {} }; }
+  const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '', full = '';
+  for (;;){ const { value, done } = await rd.read(); if (done) break; buf += dec.decode(value, { stream: true }); const parts = buf.split('\n'); buf = parts.pop();
+    for (const ln of parts){ const s2 = ln.trim(); if (!s2.startsWith('data:')) continue; const dd = s2.slice(5).trim(); if (dd === '[DONE]') continue; try { const j = JSON.parse(dd), t = j.choices && j.choices[0].delta && j.choices[0].delta.content; if (t){ full += t; onDelta(full); } } catch (e){} } }
+  return { text: full }; }
+function fail(what, err){ toast(what + ' unavailable (' + String(err && err.message || err).slice(0, 70) + ')'); }
+
+/* ======================================================================
+   01 · RULE REGISTRY
+   ====================================================================== */
+let RSEL = 'tops', EXT = 0;
+function renderReg(){ const q = $('regQ').value.trim().toLowerCase(); $('reg').innerHTML = RB.filter(r => !q || (r.name + ' ' + r.seq.map(s => s[1]).join(' ')).toLowerCase().includes(q)).map(r => `<button type="button" class="ri${r.id === RSEL ? ' on' : ''}" data-r="${r.id}"><b>${esc(r.name)}</b><span class="tag ${r.status === 'AI draft' ? 'a' : 'g'}">${esc(r.status)}</span><span>${r.ver} · ${r.seq.length} images${r.live ? ' · extracted live' : ''}</span></button>`).join('') || '<p class="note">No rulebook matches.</p>'; }
+$('regQ').addEventListener('input', renderReg);
+$('reg').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (!b) return; RSEL = b.dataset.r; renderReg(); renderGuide(); showJSON(false); });
+function renderGuide(){ const r = rbBy(RSEL), col = { tops:'#7FB3E8', dresses:'#F4A7C6', sets:'#C9A7F4', outer:'#3A3F46', bottoms:'#6C8EBF', night:'#9FD7C4' }[r.id] || '#F4A7C6';
+  $('gBody').innerHTML = `<h5>🎬 Required image sequence · ${esc(r.name)} <span class="tag ${r.status === 'AI draft' ? 'a' : 'g'}">${esc(r.status)}</span></h5><p class="note" style="margin:-4px 0 8px">Images must be submitted in this exact order.</p>
+    <div class="gseq">${r.seq.map((s, i) => `<div class="gs"><div class="ph">${r.img && r.img[i] ? `<img src="${r.img[i]}" alt="">` : svgOf({ shot: s[0], g: r.g, col, print: true, printBack: true })}<span class="no">#${i + 1}</span></div><b>${esc(SHOT[s[0]] || s[0])}</b>${esc(s[2] || '')}</div>`).join('')}</div>
+    <h5 style="margin-top:10px">✅ Quality standards</h5><div class="gstd"><div><b>First image rule</b>${esc(STD.first)}</div><div><b>Framing · negative space</b>${esc(STD.neg)}</div><div><b>Creases</b>${esc(STD.creases)}</div><div><b>Cropping</b>${esc(STD.crop)}</div><div><b>Background</b>${esc(STD.bg)}</div><div><b>AI imagery</b>${esc(STD.ai)}</div></div>`; }
+function hl(j){ return esc(JSON.stringify(j, null, 2)).replace(/(&quot;[^&]*?&quot;)(\s*:)/g, '<span class="k">$1</span><span class="p">$2</span>').replace(/:\s(&quot;.*?&quot;)/g, ': <span class="s">$1</span>').replace(/:\s(\d+|true|false)/g, ': <span class="n">$1</span>'); }
+async function showJSON(anim){ const r = rbBy(RSEL), j = r.json || rbJSON(r), tok = ++EXT; $('jNote').textContent = `${r.seq.length} positions · 6 quality standards · ${r.status === 'AI draft' ? 'AI draft, not reviewed by the retailer; for demo purposes only' : 'reviewed and approved'}`;
+  if (!anim){ $('json').innerHTML = hl(j); return; } const txt = JSON.stringify(j, null, 2); $('guide').classList.add('scanning');
+  for (let i = 0; i <= txt.length; i += reduce ? txt.length : 28){ if (tok !== EXT) return; $('json').innerHTML = esc(txt.slice(0, i)) + '<span style="color:#FF9BC6">▍</span>'; $('json').scrollTop = $('json').scrollHeight; await sleep(16); }
+  $('guide').classList.remove('scanning'); $('json').innerHTML = hl(j); $('json').scrollTop = 0; }
+$('ext').addEventListener('click', () => showJSON(true));
+$('jDl').addEventListener('click', () => { const r = rbBy(RSEL); download(`rulebook-${r.id}-${r.ver}.json`, JSON.stringify(r.json || rbJSON(r), null, 2), 'application/json'); });
+function shrink(file, max = 1400){ return new Promise((res, rej) => { const fr = new FileReader(); fr.onerror = rej; fr.onload = () => { const img = new Image(); img.onload = () => { const s = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); res({ url: c.toDataURL('image/jpeg', .86), w: img.width, h: img.height, kb: Math.round(file.size / 1024) }); }; img.onerror = () => rej(new Error('Not an image')); img.src = fr.result; }; fr.readAsDataURL(file); }); }
+const SHOTLIST = Object.keys(SHOT).filter(k => !['junk','corrupt'].includes(k));
+$('sgFile').addEventListener('change', async e => { const f = e.target.files[0]; e.target.value = ''; if (!f) return; if (!KEY){ toast('Add your OpenAI key to extract a rulebook from a screenshot'); $('aiKey').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block:'center' }); return; }
+  let im; try { im = await shrink(f, 1600); } catch (err){ toast('Could not open that image'); return; }
+  $('guide').classList.add('scanning'); $('gBody').innerHTML = `<img src="${im.url}" alt="Style guide screenshot" style="width:100%;border-radius:8px">`; $('json').innerHTML = '<span class="p">Reading the style guide…</span>';
+  try { const { text } = await openai([{ role:'system', content:`You turn a retail e-commerce photography style guide (screenshot) into a strict JSON rulebook. Read only what is shown. Return JSON: {"category": string, "required_images": number, "sequence": [{"position": number, "shot_type": one of ${JSON.stringify(SHOTLIST)} or a short new snake-case type, "description": string, "note": string, "crop_allowed": boolean}], "quality_standards": {"first_image_rule": string, "negative_space": string, "creases": string, "cropping": string, "background": string, "ai_imagery": string}}` }, { role:'user', content:[{ type:'text', text:'Extract the rulebook.' }, { type:'image_url', image_url:{ url: im.url, detail:'high' } }] }], { json: true });
+    const j = JSON.parse(text), id = 'x' + Date.now().toString(36), r = { id, name: j.category || 'New category', ver:'v0.1', status:'AI draft', live: true, g:'tee', seq: (j.sequence || []).map(s => [s.shot_type, s.description || '', s.note || '']), json: Object.assign({ rulebook_version:'v0.1', status:'AI draft · not reviewed by the retailer' }, j) };
+    RB.push(r); RSEL = id; renderReg(); renderGuide(); showJSON(true); fillRuleSel(); toast('Rulebook extracted and added to the registry'); }
+  catch (err){ fail('Rule extraction', err); renderGuide(); showJSON(false); }
+  $('guide').classList.remove('scanning'); });
+
+/* ======================================================================
+   02 · ROUTING + GATEKEEPERS
+   ====================================================================== */
+const PAL = ['#F4A7C6','#7FB3E8','#C9A7F4','#3A3F46','#9FD7C4','#F6C28B','#6C8EBF','#E8E1D4'], GN = { tee:'Tee', dress:'Dress', gilet:'Gilet', cardi:'Cardigan', pants:'Jogger' };
+const BATCH = (() => { const R = mulberry32(14), out = []; let n = 0; const fails = { 3:'corrupt', 9:'lowres', 14:'junk', 18:'oversize', 22:'corrupt', 27:'lowres', 31:'junk', 35:'wrongcat', 40:'lowres', 44:'blank', 47:'oversize', 51:'junk', 55:'lowres', 58:'corrupt', 61:'wrongcat', 63:'lowres', 66:'oversize' };
+  for (let i = 0; i < 68; i++){ const g = ['tee','dress','gilet','cardi','pants'][Math.floor(R() * 5)], f = fails[i] || null, w = f === 'lowres' ? 800 + Math.round(R() * 6) * 100 : 2400, h = Math.round(w * 4 / 3), kb = f === 'oversize' ? 4200 + Math.round(R() * 2400) : 600 + Math.round(R() * 900);
+    out.push({ i, g, col: PAL[Math.floor(R() * PAL.length)], f, w, h, kb, sku: 'CP-' + (26100 + Math.floor(i / 4) * 7), name: `${['Girls','Boys','Juniors','Baby'][Math.floor(R() * 4)]} ${['Solid','Printed','Textured','Striped'][Math.floor(R() * 4)]} ${GN[g]}`, conf: f === 'junk' ? .06 + R() * .1 : f === 'wrongcat' ? .41 + R() * .2 : f === 'blank' ? .12 : .9 + R() * .09, opt: 80 + Math.round(R() * 18) }); n++; }
+  return out; })();
+const TIERS = [['Submitted', 'raw images from studio and agency'], ['Tier 0 · decode', 'file opens and is an image'], ['Tier 1 · basic', '≥ 2000 × 2667 px, ≤ 3 MB'], ['Tier 1.5 · ML', 'apparel classifier, right category'], ['To Tier 2 judge', 'clean sets for the VLM']];
+const stopAt = b => b.f === 'corrupt' ? 1 : (b.f === 'lowres' || b.f === 'oversize') ? 2 : (b.f === 'junk' || b.f === 'wrongcat' || b.f === 'blank') ? 3 : 5;
+const reason = b => ({ corrupt:'File did not decode (truncated JPEG)', lowres:`Resolution ${b.w} × ${b.h} below 2000 × 2667`, oversize:`File size ${(b.kb / 1024).toFixed(1)} MB above 3 MB`, junk:`Classifier: not apparel (${Math.round(b.conf * 100)}%) · looks like a mug`, wrongcat:`Classifier: category mismatch (${Math.round(b.conf * 100)}%)`, blank:'Classifier: blank or near-empty frame' })[b.f] || 'Ready for Tier 2 judge';
+const miniSVG = b => svgOf(b.f === 'junk' ? { shot:'junk' } : b.f === 'corrupt' ? { shot:'corrupt' } : { shot: b.f === 'wrongcat' ? 'model' : 'flat-front', g: b.g, col: b.col, bg: b.f === 'blank' ? 'white' : 'grey', print: b.i % 3 === 0 });
+function lanesInit(){ $('lanes').innerHTML = TIERS.map((t, i) => `<div class="lane"><h6>${t[0]}</h6><div class="c" id="lc${i}">0</div><div class="sub">${t[1]}</div><div class="tiles" id="lt${i}"></div></div>`).join('');
+  $('route').innerHTML = `<div class="ms"><div class="k">SKUs ingested</div><div class="v" id="r0">—</div><div class="s">this batch</div></div><div class="ms"><div class="k">Routed to a rulebook</div><div class="v" id="r1">—</div><div class="s">by category metadata</div></div><div class="ms"><div class="k">Unmatched</div><div class="v" id="r2">—</div><div class="s">sent to registry backlog</div></div><div class="ms" style="grid-column:1/-1"><div class="k">VLM calls avoided</div><div class="v" id="r3">—</div><div class="s" id="r3s">images stopped before Tier 2</div></div>`; }
+let RUN = 0;
+async function runBatch(){ const tok = ++RUN, btn = $('runB'); btn.disabled = true; lanesInit(); $('glog').innerHTML = ''; const cnt = [0, 0, 0, 0, 0];
+  $('r0').textContent = '50'; await sleep(250); $('r1').textContent = '38'; $('r2').textContent = '12';
+  for (const b of BATCH){ if (tok !== RUN) return; const st = stopAt(b);
+    for (let t = 0; t < Math.min(st, 5); t++){ cnt[t]++; $('lc' + t).textContent = cnt[t]; }
+    const lane = Math.min(st, 4) - (st === 5 ? 0 : 0), target = st === 5 ? 4 : st; const tile = document.createElement('div'); tile.className = 'mini' + (st < 5 ? ' x' : ''); tile.innerHTML = miniSVG(b); tile.title = `${b.name} · ${reason(b)}`; $('lt' + target).appendChild(tile);
+    if (st === 5){ cnt[4] = cnt[4]; } const gl = document.createElement('div'); gl.className = 'gl ' + (st < 5 ? 'x' : 'ok');
+    gl.innerHTML = `<div class="ph" style="border-radius:5px">${miniSVG(b)}</div><div><b>${esc(b.name)} · ${b.sku}</b><span>Resolution: ${b.w} × ${b.h} (${b.w >= 2000 ? 'passed' : 'failed'})</span><div class="bar"><i style="width:${Math.min(100, b.w / 2400 * 90)}%;background:${b.w >= 2000 ? '#0F6E8F' : '#E2231A'}"></i></div><span>File size: ${(b.kb / 1024).toFixed(1)} MB (${b.kb <= 3072 ? 'passed' : 'failed'}) · optimisation ${b.opt}%</span><div class="bar"><i style="width:${b.opt}%"></i></div><span style="font-weight:800;color:${st < 5 ? 'var(--bad)' : 'var(--good)'}">${st < 5 ? '● STOPPED · ' : '● PASSED · '}${esc(reason(b))}</span></div>`;
+    $('glog').prepend(gl); const stopped = BATCH.slice(0, b.i + 1).filter(x => stopAt(x) < 5).length; $('r3').textContent = `${stopped} of ${b.i + 1}`; $('r3s').textContent = `${Math.round(stopped / (b.i + 1) * 100)}% of images never reach the paid VLM · ~${(stopped * 1150).toLocaleString('en-IN')} tokens saved`;
+    await sleep(reduce ? 0 : 70); }
+  $('lc4').textContent = BATCH.filter(b => stopAt(b) === 5).length; $('lt0').innerHTML = '<p class="note" style="text-align:center;grid-column:1/-1">Studio A · 24<br>Studio B · 22<br>Agency X · 22</p>'; btn.disabled = false; btn.textContent = '↻ Run again'; toast(`${BATCH.filter(b => stopAt(b) === 5).length} of ${BATCH.length} images passed to the Tier 2 judge`); }
+$('runB').addEventListener('click', runBatch);
+
+/* ======================================================================
+   03 · TIER 2 JUDGE
+   ====================================================================== */
+const I = (shot, extra) => Object.assign({ shot }, extra || {});
+const SETS = [
+  { id:'S1', sku:'CP-26188', name:'Girls Kitten Print Frill Dress', rb:'dresses', g:'dress', col:'#F4A7C6', print:true, printBack:true, studio:'Studio A · Dubai', imgs:[I('flat-front'), I('flat-back'), I('detail-collar'), I('detail-hem'), I('detail-print')] },
+  { id:'S2', sku:'CP-26201', name:'Girls Foil Print Top & Jogger Set', rb:'sets', g:'set', col:'#F4A7C6', col2:'#E88AB4', print:true, studio:'Agency X', imgs:[I('model'), I('model'), I('detail-collar'), I('flat-front'), I('detail-bottom'), I('bottom-front')] },
+  { id:'S3', sku:'CP-26214', name:'Boys Graphic Crew Tee', rb:'tops', g:'tee', col:'#7FB3E8', print:true, studio:'Studio B · Mumbai', imgs:[I('flat-front', { crop:'r' }), I('flat-back', { crease:true }), I('detail-collar'), I('detail-hem')] },
+  { id:'S4', sku:'CP-26230', name:'Juniors Hooded Gilet with Zip', rb:'outer', g:'gilet', col:'#3A3F46', studio:'Studio A · Dubai', imgs:[I('flat-front', { off:true }), I('flat-back'), I('detail-zip'), I('detail-hood')] },
+  { id:'S5', sku:'CP-26242', name:'Juniors Textured Cardigan', rb:'tops', g:'cardi', col:'#C9A7F4', studio:'Studio B · Mumbai', imgs:[I('flat-front'), I('flat-back'), I('detail-collar'), I('detail-hem')] } ];
+let JS = null;
+function loadSet(id){ const s = SETS.find(x => x.id === id); JS = { set: s, rb: s.rb, imgs: s.imgs.map((x, k) => Object.assign({ k: s.id + k }, x)), up: null, live: null }; $('jRule').value = s.rb; renderSets(); renderJudge(); }
+function renderSets(){ $('sets').innerHTML = SETS.map(s => { const r = judgeRules({ set: s, rb: s.rb, imgs: s.imgs }); return `<button type="button" class="ri${JS && JS.set === s && !JS.up ? ' on' : ''}" data-s="${s.id}"><b>${esc(s.name)}</b><span class="tag ${r.pass ? 'g' : 'r'}">${r.pass ? 'pass' : 'fail'}</span><span>${s.sku} · ${esc(rbBy(s.rb).name)} · ${s.imgs.length} images</span></button>`; }).join(''); }
+$('sets').addEventListener('click', e => { const b = e.target.closest('[data-s]'); if (b) loadSet(b.dataset.s); });
+function fillRuleSel(){ $('jRule').innerHTML = RB.map(r => `<option value="${r.id}">${esc(r.name)} · ${r.ver}${r.status === 'AI draft' ? ' · AI draft' : ''}</option>`).join(''); if (JS) $('jRule').value = JS.rb; }
+$('jRule').addEventListener('change', () => { JS.rb = $('jRule').value; JS.live = null; renderJudge(); });
+const imgSVG = (x, s) => svgOf(Object.assign({ g: s.g, col: s.col, col2: s.col2, print: s.print, printBack: s.printBack, bg:'grey' }, x));
+function boxesFor(x){ const B = []; if (x.crop){ B.push(Object.assign({ label:'Cropped edge' }, { r:{ x:.83, y:.15, w:.17, h:.7 }, l:{ x:0, y:.15, w:.17, h:.7 }, t:{ x:.13, y:0, w:.74, h:.1 }, b:{ x:.13, y:.9, w:.74, h:.1 } }[x.crop])); }
+  if (x.crease) B.push({ x:.32, y:.36, w:.38, h:.4, label:'Creases' }); if (x.off) B.push({ x:.66, y:.06, w:.32, h:.88, label:'Unbalanced space' }); if (x.bg === 'busy') B.push({ x:.02, y:.02, w:.96, h:.96, label:'Background' }); if (x.shot === 'model') B.push({ x:.05, y:.03, w:.9, h:.94, label:'Model shot' }); return B; }
+function judgeRules(J){ const r = rbBy(J.rb), req = r.seq.map(s => s[0]), im = J.imgs, N = req.length, M = im.length, ev = n => im.map((_, i) => '#' + (i + 1)).slice(0, n || M).join(', ');
+  const sn = s => (SHOT[s] || s).toLowerCase().replace(' · ', ', '), pos = im.filter((x, i) => x.shot === req[i]).length, missing = req.filter(s => !im.some(x => x.shot === s)), extra = im.filter(x => !req.includes(x.shot));
+  const seqOK = M === N && pos === N, typeBad = im.map((x, i) => [x, i]).filter(([x]) => x.shot === 'model' || !req.includes(x.shot));
+  const full = im.map((x, i) => [x, i]).filter(([x]) => FULL.has(x.shot)), cropBad = full.filter(([x]) => x.crop), creaseBad = im.map((x, i) => [x, i]).filter(([x]) => x.crease), offBad = full.filter(([x]) => x.off), bgBad = im.map((x, i) => [x, i]).filter(([x]) => x.bg === 'busy');
+  const names = arr => arr.map(([, i]) => '#' + (i + 1)).join(', ');
+  const C = [
+    { n:'Sequence check', pass: seqOK, score:`${pos}/${N} images in the right position`, ev: ev(), obs: seqOK ? `Images are in the correct order: ${req.map(sn).join(', then ')}.` : (() => { const k = Math.min(M, N) - pos, parts = [M === N ? `All ${N} images are present` : `${M} images were submitted instead of ${N}`]; if (missing.length) parts.push(`missing: ${missing.map(sn).join('; ')}`); if (k > 0) parts.push(`${k} ${k > 1 ? 'are' : 'is'} in the wrong position`); return parts.join('; ') + '.'; })(), hint: seqOK ? `All ${N} required images are present and in the sequence set by the rulebook.` : 'Reorder or reshoot so each position matches the rulebook.' },
+    { n:'Shot type check', pass: !typeBad.length, score:`${M - typeBad.length}/${M} images of an allowed type`, ev: ev(), obs: typeBad.length ? `${names(typeBad)} ${typeBad.length > 1 ? 'are' : 'is'} ${typeBad.map(([x]) => SHOT[x.shot].toLowerCase()).filter((v, i, a) => a.indexOf(v) === i).join(' and ')}, not ${typeBad.length > 1 ? 'shot types' : 'a shot type'} this rulebook allows${r.id === 'sets' || FULL.has(req[0]) ? ' (flat lay required)' : ''}.` : 'Each image matches a shot type required by the rulebook.', hint: typeBad.length ? 'Replace model shots with flat lays as specified.' : 'Each image matches the required shot type for its position.' },
+    { n:'First image rule', pass: im[0] && im[0].shot === req[0] && !im[0].crop && !im[0].off, score: im[0] && im[0].shot === req[0] ? '1/1' : '0/1', ev:'#1', obs: im[0] && im[0].shot === req[0] ? (im[0].crop || im[0].off ? 'Image 1 is the right shot but is not fully visible and centred.' : `Image 1 is the ${SHOT[req[0]].toLowerCase()}, fully visible and centred.`) : `Image 1 is a ${SHOT[im[0] ? im[0].shot : 'junk'].toLowerCase()}; the rulebook needs the ${SHOT[req[0]].toLowerCase()} first.`, hint: STD.first },
+    { n:'Cropping check', pass: !cropBad.length, score:`${full.length - cropBad.length}/${full.length} full shots uncropped`, ev: full.map(([, i]) => '#' + (i + 1)).join(', ') || '—', obs: cropBad.length ? `${names(cropBad)}: an edge of the product is cut off by the frame (flagged in red). Close-ups may be cropped.` : 'Full flat shots show the entire product with no edges cropped. Close-ups have acceptable cropping.', hint:'No cropping of edges on full flat shots; close-ups are allowed to be cropped.' },
+    { n:'Creases check', pass: !creaseBad.length, score:`${M - creaseBad.length}/${M} images clear of creases`, ev: ev(), obs: creaseBad.length ? `Visible creases and wrinkles on ${names(creaseBad)}; steam and reshoot.` : 'Garments are wrinkle-free and neatly presented.', hint: STD.creases },
+    { n:'Negative space check', pass: !offBad.length, score:`${full.length - offBad.length}/${full.length} full shots centred`, ev: full.map(([, i]) => '#' + (i + 1)).join(', ') || '—', obs: offBad.length ? `${names(offBad)}: product sits off-centre with too much empty space on one side.` : 'Products are centred with balanced negative space.', hint: STD.neg },
+    { n:'Background check', pass: !bgBad.length, score:`${M - bgBad.length}/${M} on a neutral background`, ev: ev(), obs: bgBad.length ? `${names(bgBad)} shot on a textured background with props.` : 'All images are on a neutral light grey background.', hint: STD.bg } ];
+  const fails = C.filter(c => !c.pass), pass = !fails.length;
+  const summary = pass ? `The image set contains exactly ${N} images in the correct sequence: ${req.map(sn).join('; ')}. Full shots are uncropped and centred, garments are wrinkle-free, and the background is a clean neutral grey.` : `The image set fails ${fails.length} check${fails.length > 1 ? 's' : ''}: ${fails.map(c => c.n.replace(' check', '').replace(' rule', '').toLowerCase()).join(', ')}. ${fails[0].obs}`;
+  const qa = pass ? `The image set is well executed and meets all structural and sequence requirements for ${r.name.toLowerCase()}.` : `Main issue: ${fails[0].obs.charAt(0).toLowerCase() + fails[0].obs.slice(1)} Reshoot ${fails.length > 1 ? 'and fix the other flagged items' : 'the flagged image'} before approval.`;
+  return { pass, C, summary, qa, conf: clamp(.97 - fails.length * .012, .9, .97), tokens: 1600 + M * 1150, latency: null, model:'Rules engine', boxes: im.map(boxesFor) }; }
+function renderJudge(){ const r = rbBy(JS.rb); $('jReq').textContent = `${r.seq.length} images required · ${r.seq.map((s, i) => `#${i + 1} ${SHOT[s[0]] ? SHOT[s[0]].split(' · ').pop() : s[0]}`).join(' · ')}`;
+  if (JS.up){ $('seq').innerHTML = JS.up.map((u, i) => `<div class="th"><div class="ph"><img src="${u.url}" alt="Uploaded image ${i + 1}"><span class="no">#${i + 1}</span>${JS.live && JS.live.boxes[i] ? JS.live.boxes[i].map(bx => `<div class="box" style="left:${bx.x * 100}%;top:${bx.y * 100}%;width:${bx.w * 100}%;height:${bx.h * 100}%"><span>${esc(bx.label)}</span></div>`).join('') : ''}</div><div class="ctl"><button type="button" data-mv="${i}" data-d="-1" aria-label="Move left">◀</button><span class="note">${u.w}×${u.h}</span><button type="button" data-mv="${i}" data-d="1" aria-label="Move right">▶</button></div></div>`).join('');
+    $('vd').innerHTML = JS.live ? verdictHTML(JS.live) : `<div class="verdict" style="background:#F3F1F8;border-color:var(--line)"><h5>Your ${JS.up.length} photos are ready</h5><p>${KEY ? 'Press <b>Judge with GenAI</b> to check them against the selected rulebook.' : 'Add your OpenAI key above, then press <b>Judge with GenAI</b>. The rules engine can only judge the sample sets.'}</p></div>`; bindAcc(); return; }
+  const res = JS.live || judgeRules(JS), s = JS.set;
+  $('seq').innerHTML = JS.imgs.map((x, i) => `<div class="th" draggable="true" data-i="${i}"><div class="ph">${imgSVG(x, s)}<span class="no">#${i + 1}</span>${(res.boxes[i] || []).map(bx => `<div class="box" style="left:${bx.x * 100}%;top:${bx.y * 100}%;width:${bx.w * 100}%;height:${bx.h * 100}%"><span>${esc(bx.label)}</span></div>`).join('')}</div>
+    <div class="ctl"><button type="button" data-mv="${i}" data-d="-1" aria-label="Move image ${i + 1} left">◀</button><select data-ed="${i}" aria-label="Edit image ${i + 1}"><option value="">${esc((SHOT[x.shot] || x.shot).split(' · ').pop())}</option><option value="crop">${x.crop ? 'Fix crop' : 'Crop an edge'}</option><option value="crease">${x.crease ? 'Remove creases' : 'Add creases'}</option><option value="off">${x.off ? 'Re-centre' : 'Off-centre'}</option><option value="bg">${x.bg === 'busy' ? 'Grey background' : 'Busy background'}</option><option value="model">${x.shot === 'model' ? 'Restore flat lay' : 'Swap for model shot'}</option><option value="del">Remove image</option></select><button type="button" data-mv="${i}" data-d="1" aria-label="Move image ${i + 1} right">▶</button></div></div>`).join('') + `<div class="th" style="cursor:default;justify-content:center"><button class="btn sm" type="button" id="jReset">↺ Reset set</button>${missingAdd()}</div>`;
+  $('vd').innerHTML = verdictHTML(res); bindAcc(); bindDrag(); const rs = $('jReset'); if (rs) rs.addEventListener('click', () => loadSet(JS.set.id)); const ad = $('jAdd'); if (ad) ad.addEventListener('change', e => { if (!e.target.value) return; JS.imgs.push({ k: 'a' + Date.now(), shot: e.target.value }); JS.live = null; renderJudge(); }); }
+function missingAdd(){ const r = rbBy(JS.rb), miss = r.seq.map(s => s[0]).filter(s => !JS.imgs.some(x => x.shot === s)); return miss.length ? `<select id="jAdd" style="margin-top:6px;font:600 .66rem var(--sans);border:1px solid var(--line);border-radius:6px;padding:4px" aria-label="Add a missing shot"><option value="">+ Add missing shot</option>${miss.map(s => `<option value="${s}">${esc(SHOT[s] || s)}</option>`).join('')}</select>` : ''; }
+function verdictHTML(res){ return `<div class="verdict ${res.pass ? 'pass' : 'fail'}"><h5>${res.pass ? '✅ Overall: PASS' : '✕ Overall: FAIL'}</h5><p>${esc(res.summary)}</p></div>
+  <div class="m4"><div class="ms"><div class="k">Model</div><div class="v" style="font-size:1rem">${esc(res.model)}</div></div><div class="ms"><div class="k">Latency</div><div class="v">${res.latency != null ? res.latency.toFixed(2) + ' s' : '0.4 s'}</div></div><div class="ms"><div class="k">Tokens</div><div class="v">${res.tokens ? res.tokens.toLocaleString('en-IN') : '—'}</div><div class="s">${res.model === 'Rules engine' ? 'estimate for a VLM call' : 'from the API'}</div></div><div class="ms"><div class="k">Confidence</div><div class="v">${Math.round(res.conf * 100)}%</div></div></div>
+  <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:10px;align-items:start;margin-top:8px"><div><h4 class="lbl" style="margin:6px 0 2px">Confidence score</h4><div style="font-size:.74rem">${(res.conf * 100).toFixed(1)}%</div><div class="conf"><i style="width:${res.conf * 100}%"></i></div></div><div class="qa">📝 <b>QA notes:</b> ${esc(res.qa)}</div></div>
+  <h4 class="lbl" style="margin:14px 0 0">📋 Detailed rule evaluation</h4>${res.C.map((c, i) => `<div class="ck${i > 2 && c.pass ? ' closed' : ''}"><button type="button" aria-expanded="${!(i > 2 && c.pass)}"><span>${c.pass ? '✅' : '❌'} ${esc(c.n)} <span style="color:var(--muted);font-weight:600">· evidence: ${esc(c.ev)}</span></span><span class="tag ${c.pass ? 'g' : 'r'}">${c.pass ? 'Pass' : 'Fail'}</span></button><div class="bd"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span class="tag ${c.pass ? 'g' : 'r'}">${c.pass ? 'Pass' : 'Fail'}</span><span>Score: <code>${esc(c.score)}</code></span></div><p style="margin:6px 0 0"><b>Observation:</b> ${esc(c.obs)}</p><div class="hint">💡 ${esc(c.hint || '')}</div></div></div>`).join('')}`; }
+function bindAcc(){ document.querySelectorAll('#vd .ck>button').forEach(b => b.addEventListener('click', () => { const c = b.parentElement; c.classList.toggle('closed'); b.setAttribute('aria-expanded', !c.classList.contains('closed')); })); }
+$('seq').addEventListener('click', e => { const b = e.target.closest('[data-mv]'); if (!b) return; const i = +b.dataset.mv, j = i + +b.dataset.d, arr = JS.up || JS.imgs; if (j < 0 || j >= arr.length) return; [arr[i], arr[j]] = [arr[j], arr[i]]; if (!JS.up) JS.live = null; renderJudge(); });
+$('seq').addEventListener('change', e => { const s = e.target.closest('[data-ed]'); if (!s || !s.value) return; const x = JS.imgs[+s.dataset.ed], v = s.value;
+  if (v === 'crop') x.crop = x.crop ? null : 'r'; else if (v === 'crease') x.crease = !x.crease; else if (v === 'off') x.off = !x.off; else if (v === 'bg') x.bg = x.bg === 'busy' ? 'grey' : 'busy'; else if (v === 'model'){ if (x.shot === 'model'){ x.shot = x.prev || 'flat-front'; } else { x.prev = x.shot; x.shot = 'model'; } } else if (v === 'del') JS.imgs.splice(+s.dataset.ed, 1);
+  JS.live = null; renderJudge(); });
+let DRG = null;
+function bindDrag(){ document.querySelectorAll('#seq .th[draggable]').forEach(t => { t.addEventListener('dragstart', e => { DRG = +t.dataset.i; t.classList.add('drag'); try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', t.dataset.i); } catch (er){} });
+  t.addEventListener('dragend', () => t.classList.remove('drag')); t.addEventListener('dragover', e => { e.preventDefault(); t.classList.add('over'); }); t.addEventListener('dragleave', () => t.classList.remove('over'));
+  t.addEventListener('drop', e => { e.preventDefault(); t.classList.remove('over'); const to = +t.dataset.i; if (DRG == null || DRG === to) return; const [m] = JS.imgs.splice(DRG, 1); JS.imgs.splice(to, 0, m); DRG = null; JS.live = null; renderJudge(); }); }); }
+$('upImgs').addEventListener('change', async e => { const fs = [...e.target.files].filter(f => /^image\//.test(f.type)); e.target.value = ''; if (!fs.length) return; const up = []; for (const f of fs.slice(0, 10)){ try { up.push(await shrink(f, 1024)); } catch (er){} }
+  if (!up.length){ toast('Could not open those images'); return; } JS = { set: JS ? JS.set : SETS[0], rb: $('jRule').value, imgs: [], up, live: null }; renderSets(); renderJudge(); toast(`${up.length} photos loaded in order`); });
+const JSYS = r => `You are the Tier 2 QC judge for the retailer's e-commerce product photography. Judge the image set (images are numbered #1, #2, ... in the order given) strictly against this JSON rulebook:\n${JSON.stringify(r.json || rbJSON(r))}\nCheck: Sequence check, Shot type check, First image rule, Cropping check (full shots must not be cropped; close-ups may be), Creases check, Negative space check, Background check. Return only JSON: {"overall": "PASS"|"FAIL", "summary": 2-4 sentences, "confidence": 0-1, "qa_notes": one or two sentences on what to fix, "checks": [{"name": string, "pass": boolean, "score": e.g. "4/5 images correct", "evidence": "#1, #2", "observation": string, "hint": string}], "boxes": [{"image": number, "x": 0-1, "y": 0-1, "w": 0-1, "h": 0-1, "label": short issue}]} where boxes mark cropped edges, creases or other flagged areas using fractions of image width and height.`;
+$('jGo').addEventListener('click', async () => { if (!KEY){ toast('Add your OpenAI key above to judge with GenAI'); $('aiKey').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block:'center' }); return; }
+  const btn = $('jGo'), r = rbBy(JS.rb); btn.disabled = true; $('vd').innerHTML = '<div class="verdict" style="background:#F3F1F8;border-color:var(--line)"><h5><span class="dots"><span></span><span></span><span></span></span> Judging with ' + esc(OAM) + '…</h5><p>Sending the images and the rulebook to the vision model.</p></div>';
+  try { const urls = JS.up ? JS.up.map(u => u.url) : await Promise.all(JS.imgs.map(x => raster(imgSVG(x, JS.set)))); if (urls.some(u => !u)) throw new Error('could not prepare the images');
+    const t0 = performance.now(), { text, usage } = await openai([{ role:'system', content: JSYS(r) }, { role:'user', content: [{ type:'text', text:`Judge these ${urls.length} images in order.` }, ...urls.map(u => ({ type:'image_url', image_url:{ url: u, detail:'low' } }))] }], { json: true });
+    const j = JSON.parse(text), n = urls.length, boxes = range(n).map(i => (j.boxes || []).filter(b => +b.image === i + 1).map(b => ({ x: clamp(+b.x || 0, 0, 1), y: clamp(+b.y || 0, 0, 1), w: clamp(+b.w || .1, .02, 1), h: clamp(+b.h || .1, .02, 1), label: b.label || 'Flag' })));
+    JS.live = { pass: String(j.overall).toUpperCase() === 'PASS', summary: j.summary || '', qa: j.qa_notes || '', conf: clamp(+j.confidence || .9, 0, 1), model: OAM, latency: (performance.now() - t0) / 1000, tokens: usage.total_tokens || null, boxes, C: (j.checks || []).map(c => ({ n: c.name, pass: !!c.pass, score: c.score || '', ev: c.evidence || '', obs: c.observation || '', hint: c.hint || '' })) };
+    addSession(JS.live); renderJudge(); toast('Judged by ' + OAM); }
+  catch (err){ fail('GenAI judge', err); renderJudge(); }
+  btn.disabled = false; });
+
+/* ======================================================================
+   04 · FINAL QC REPORT
+   ====================================================================== */
+const STUDIOS = ['Studio A · Dubai', 'Studio B · Mumbai', 'Agency X'], RULES = ['Sequence check','Shot type check','First image rule','Cropping check','Creases check','Negative space check','Background check'];
+const RPT = (() => { const R = mulberry32(61), out = [], cats = ['Tops','Dresses','Top & bottom sets','Outerwear & gilets','Bottoms'], w = { 'Agency X':[.2,.18,.1,.08,.06,.06,.08], 'Studio A · Dubai':[.04,.02,.02,.05,.1,.06,.01], 'Studio B · Mumbai':[.05,.02,.03,.1,.05,.03,.01] };
+  for (let i = 0; i < 38; i++){ const st = STUDIOS[i % 3], cat = cats[Math.floor(R() * cats.length)], f = RULES.filter((r, k) => R() < w[st][k]); out.push({ sku: 'CP-' + (26100 + i * 7), cat, st, f, name: `${['Girls','Boys','Juniors','Baby'][Math.floor(R() * 4)]} ${cat.replace(/s$/, '').replace(/ & .*/, '')}` }); } return out; })();
+const SESSION = [];
+function addSession(res){ const s = JS.set; SESSION.unshift({ sku: JS.up ? 'Your upload' : s.sku, cat: rbBy(JS.rb).name, st: JS.up ? 'Your studio' : s.studio, f: res.C.filter(c => !c.pass).map(c => c.n), live: true }); renderReport(); }
+let rlSvg = null;
+function rows(){ return [...SESSION, ...RPT]; }
+function renderReport(){ const R2 = rows(), fail = R2.filter(r => r.f.length), cnt = RULES.map(r => [r, R2.filter(x => x.f.includes(r)).length]).sort((a, b) => b[1] - a[1]);
+  $('rk').innerHTML = `<div class="ms"><div class="k">SKUs judged</div><div class="v">${R2.length}</div></div><div class="ms"><div class="k">Pass</div><div class="v" style="color:var(--good)">${Math.round((R2.length - fail.length) / R2.length * 100)}%</div></div><div class="ms"><div class="k">To reshoot</div><div class="v" style="color:var(--bad)">${fail.length}</div></div><div class="ms"><div class="k">Top failing rule</div><div class="v" style="font-size:.95rem">${esc(cnt[0][0].replace(' check', ''))}</div></div>`;
+  $('rs').querySelector('tbody').innerHTML = fail.map(r => `<tr><td><b>${esc(r.sku)}</b>${r.live ? ' <span class="tag v">this session</span>' : ''}</td><td>${esc(r.cat)}</td><td>${esc(r.st)}</td><td>${r.f.map(x => `<span class="tag r" style="margin:1px">${esc(x.replace(' check', '').replace(' rule', ''))}</span>`).join('')}</td></tr>`).join('');
+  if (!hasD3) return; const w = 520, rh = 26, m = { l: 150, r: 40, t: 4 }, h = m.t + RULES.length * rh + 6;
+  if (!rlSvg) rlSvg = d3.select('#rules').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Number of SKUs failing each rule');
+  const x = d3.scaleLinear().domain([0, Math.max(4, cnt[0][1])]).range([0, w - m.l - m.r]);
+  const g = rlSvg.selectAll('g.r').data(cnt, d => d[0]).join(en => { const gg = en.append('g').attr('class','r'); gg.append('text').attr('class','l').attr('x', m.l - 8).attr('y', rh / 2 + 4).attr('text-anchor','end').attr('font-size', 11.5).attr('font-weight', 700).attr('fill','#1D1640'); gg.append('rect').attr('x', m.l).attr('y', 5).attr('height', rh - 10).attr('rx', 4).attr('fill','#E4287C'); gg.append('text').attr('class','v').attr('y', rh / 2 + 4).attr('font-size', 11).attr('font-weight', 800).attr('fill','#1D1640'); return gg; });
+  g.transition().duration(DUR).attr('transform', (d, i) => `translate(0,${m.t + i * rh})`); g.select('text.l').text(d => d[0]); g.select('rect').transition().duration(DUR).attr('width', d => x(d[1])); g.select('text.v').transition().duration(DUR).attr('x', d => m.l + x(d[1]) + 6).text(d => d[1]); }
+$('rsCsv').addEventListener('click', () => download('retail-qc-report.csv', '﻿' + [['sku','category','studio','result','failed_rules']].concat(rows().map(r => [r.sku, r.cat, r.st, r.f.length ? 'FAIL' : 'PASS', r.f.join('; ')])).map(r => r.map(csvCell).join(',')).join('\n'), 'text/csv;charset=utf-8'));
+$('stu').innerHTML = STUDIOS.map(s => `<option>${esc(s)}</option>`).join('');
+const FIX = { 'Sequence check':'shoot and upload in the rulebook order; check the count before upload', 'Shot type check':'replace model shots with flat lays where the rulebook asks for them', 'First image rule':'make image 1 the full front flat lay, centred', 'Cropping check':'leave a margin on all four sides of full shots', 'Creases check':'steam garments before the shot', 'Negative space check':'centre the product with even space around it', 'Background check':'shoot on the neutral grey seamless, no props' };
+function noteTpl(st){ const R2 = rows().filter(r => r.st === st), f = R2.filter(r => r.f.length), byRule = RULES.map(r => [r, f.filter(x => x.f.includes(r))]).filter(x => x[1].length).sort((a, b) => b[1].length - a[1].length);
+  return `Hi ${st.split(' · ')[0]} team,\n**${R2.length - f.length} of ${R2.length} SKUs passed QC; ${f.length} need a reshoot before go-live.**\n${byRule.map(([r, arr]) => `- ${r.replace(' check', '').replace(' rule', ' rule')} (${arr.length}): ${FIX[r]}. SKUs: ${arr.slice(0, 4).map(x => x.sku).join(', ')}${arr.length > 4 ? '…' : ''}`).join('\n') || '- Nothing to reshoot. Thank you.'}\nThe full report with flagged images is in the QC app. Please reshoot while the set is still up.\nQA · Retail e-commerce`; }
+async function note(){ const st = $('stu').value, out = $('nOut'), btn = $('nGo'); btn.disabled = true; out.innerHTML = '<div class="dots"><span></span><span></span><span></span></div>'; let done = false;
+  if (KEY){ try { const R2 = rows().filter(r => r.st === st); await openai([{ role:'system', content:'You are the e-commerce QA lead at the retailer writing a short, friendly note to a photography studio about this batch. Use only the data. Give the pass count in bold, then one bullet per failing rule with the SKUs and a practical fix, then ask them to reshoot while the set is up. Under 140 words.' }, { role:'user', content: JSON.stringify({ studio: st, skus: R2.map(r => ({ sku: r.sku, category: r.cat, failed: r.f })) }) }], { onDelta: t => { out.innerHTML = md(t) + `<p class="note" style="margin-top:8px">✦ Drafted by ${esc(OAM)}</p>`; } }); done = true; } catch (err){ fail('GenAI note', err); } }
+  if (!done){ await sleep(300); out.innerHTML = md(noteTpl(st)) + '<p class="note" style="margin-top:8px">Template note from the QC results · add an OpenAI key for a GenAI draft</p>'; }
+  btn.disabled = false; }
+$('nGo').addEventListener('click', note); $('stu').addEventListener('change', note);
+$('nCopy').addEventListener('click', () => { try { navigator.clipboard.writeText($('nOut').innerText).then(() => toast('Note copied'), () => toast('Copy blocked by the browser')); } catch (e){ toast('Copy blocked by the browser'); } });
+
+/* ======================================================================
+   IMPACT · donut + spiral
+   ====================================================================== */
+function drawDonut(){ const K = ['Checking images by eye','Rework emails','Reshoot coordination','Reviewing the AI report','Rulebook upkeep'], COL = ['#1D1640','#6C4CF5','#00A3E0','#E4287C','#FFB400'], D = { before:[38, 5, 5, 0, 0], after:[0, .3, 1.3, 3.2, .3] };
+  const w = 520, h = 300, R = 118, svg = d3.select('#donut').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Donut of QA hours per 1,000 images by activity, before and after'), g = svg.append('g').attr('transform', `translate(${150},${h / 2})`);
+  const pie = d3.pie().sort(null).value(d => d.v).padAngle(.012), arc = d3.arc().innerRadius(R * .62).outerRadius(R), ct = g.append('text').attr('text-anchor','middle').attr('font-family','DM Serif Display, Georgia, serif').attr('font-size', 34).attr('fill','#1D1640').attr('y', 6), cs = g.append('text').attr('text-anchor','middle').attr('font-size', 11).attr('fill','#5F5C70').attr('y', 26).text('hours per 1,000 images');
+  const lg = svg.append('g').attr('transform', `translate(300,${h / 2 - K.length * 13})`); let cur = null;
+  function upd(k){ const tot = sum(D[k]), data = pie(K.map((n, i) => ({ n, v: D[k][i] || .0001, i })));
+    const a2 = arc;
+    g.selectAll('path').data(data, d => d.data.n).join(en => en.append('path').attr('fill', d => COL[d.data.i]).each(function(d){ this._c = d; }))
+      .on('mousemove', (ev, d) => showTip(`<div class="t">${esc(d.data.n)}</div><b>${D[k][d.data.i]}</b> hours per 1,000 images`, ev)).on('mouseleave', hideTip)
+      .transition().duration(DUR + 200).attrTween('d', function(d){ const i = d3.interpolate(this._c, d); this._c = i(1); return t => a2(i(t)); });
+    const from = cur == null ? tot : cur; cur = tot; ct.transition().duration(DUR + 200).tween('text', function(){ const i = d3.interpolate(from, tot); return t => { this.textContent = i(t).toFixed(1).replace(/\.0$/, ''); }; });
+    lg.selectAll('g').data(K).join(en => { const gg = en.append('g').attr('transform', (d, i) => `translate(0,${i * 26})`); gg.append('rect').attr('width', 12).attr('height', 12).attr('rx', 3).attr('fill', (d, i) => COL[i]); gg.append('text').attr('class','n').attr('x', 18).attr('y', 10).attr('font-size', 11.5).attr('fill','#1D1640'); return gg; })
+      .select('text.n').text((d, i) => `${d} · ${D[k][i]} h`).attr('opacity', (d, i) => D[k][i] ? 1 : .35); }
+  upd('after'); segBind('dn', upd); }
+function drawSpiral(){ const R = mulberry32(9), days = 56, D = { before: range(days).map(i => (i % 7 >= 5 ? 30 : 120) + R() * 40), after: range(days).map(i => (i % 7 >= 5 ? 160 : 560) + R() * 120) }, w = 520, h = 420, cx = w / 2, cy = h / 2 + 4;
+  const svg = d3.select('#spiral').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Spiral heatmap of SKUs cleared per day over eight weeks, one ring per week, before and after');
+  const step = 2 * Math.PI / 7, r0 = 52, band = 18, rad = i => r0 + i * band / 7, col = d3.scaleSequential(d3.interpolateRgb('#F4EFF9', '#C2185B')).domain([0, 700]);
+  const arc = d3.arc().innerRadius(d => rad(d.i) - band / 2 + 1).outerRadius(d => rad(d.i) + band / 2 - 1).startAngle(d => (d.i % 7) * step + .02).endAngle(d => (d.i % 7 + 1) * step - .02).cornerRadius(3);
+  const g = svg.append('g').attr('transform', `translate(${cx},${cy})`);
+  ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach((d, i) => { const a = (i + .5) * step, rr = rad(days) + 16; g.append('text').attr('x', Math.sin(a) * rr).attr('y', -Math.cos(a) * rr + 4).attr('text-anchor','middle').attr('font-size', 10.5).attr('font-weight', 700).attr('fill','#5F5C70').text(d); });
+  const lab = g.append('text').attr('y', 6).attr('text-anchor','middle').attr('font-family','DM Serif Display, Georgia, serif').attr('font-size', 24).attr('fill','#C2185B'), lab2 = g.append('text').attr('y', 22).attr('text-anchor','middle').attr('font-size', 9.5).attr('fill','#5F5C70').text('avg per weekday');
+  const cells = g.append('g'), lg = svg.append('g').attr('transform', `translate(${w - 150},${h - 18})`), gid = 'spg' + Math.floor(Math.random() * 1e6), grad = svg.append('defs').append('linearGradient').attr('id', gid);
+  [0, .5, 1].forEach(o => grad.append('stop').attr('offset', o).attr('stop-color', col(o * 700))); lg.append('rect').attr('width', 110).attr('height', 8).attr('rx', 4).attr('fill', `url(#${gid})`); lg.append('text').attr('y', -4).attr('font-size', 9.5).attr('fill','#5F5C70').text('0'); lg.append('text').attr('x', 110).attr('y', -4).attr('text-anchor','end').attr('font-size', 9.5).attr('fill','#5F5C70').text('700 SKUs');
+  function upd(k){ const V = D[k]; cells.selectAll('path').data(V.map((v, i) => ({ v, i }))).join('path').attr('d', arc).attr('stroke','#fff').attr('stroke-width', .6)
+      .on('mousemove', (ev, d) => showTip(`<div class="t">Week ${Math.floor(d.i / 7) + 1}, ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][d.i % 7]}</div><b>${Math.round(d.v)}</b> SKUs cleared`, ev)).on('mouseleave', hideTip)
+      .transition().duration(DUR).delay(d => reduce ? 0 : d.i * 9).attr('fill', d => col(d.v));
+    lab.text(Math.round(d3.mean(V.filter((v, i) => i % 7 < 5)))); }
+  upd('after'); segBind('sp', upd); }
+
+/* ======================================================================
+   HERO · images through gates
+   ====================================================================== */
+(function hero(){ const cv = $('heroCv'), cx = cv.getContext('2d'); let W = 0, H = 0, run = false; const R = mulberry32(3);
+  const items = range(9).map(i => ({ junk: i === 2 || i === 6, fail: i === 4, col: PAL[i % PAL.length], off: i * .11 }));
+  function size(){ const dpr = Math.min(2, devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function tile(x, y, s, it, a){ cx.globalAlpha = a; cx.fillStyle = '#EDEDED'; cx.fillRect(x - 15 * s, y - 20 * s, 30 * s, 40 * s);
+    if (it.junk){ cx.fillStyle = '#B9906A'; cx.fillRect(x - 15 * s, y - 20 * s, 30 * s, 40 * s); cx.fillStyle = '#FAFAF7'; cx.fillRect(x - 8 * s, y - 4 * s, 16 * s, 14 * s); cx.fillStyle = '#5B3A22'; cx.fillRect(x - 8 * s, y - 5 * s, 16 * s, 3 * s); }
+    else { cx.fillStyle = it.col; cx.beginPath(); cx.moveTo(x - 8 * s, y - 12 * s); cx.lineTo(x + 8 * s, y - 12 * s); cx.lineTo(x + 13 * s, y - 6 * s); cx.lineTo(x + 9 * s, y - 3 * s); cx.lineTo(x + 8 * s, y + 14 * s); cx.lineTo(x - 8 * s, y + 14 * s); cx.lineTo(x - 9 * s, y - 3 * s); cx.lineTo(x - 13 * s, y - 6 * s); cx.closePath(); cx.fill(); }
+    cx.globalAlpha = 1; }
+  function draw(t){ cx.clearRect(0, 0, W, H); const nar = W < 700, s = nar ? .8 : 1.5, x0 = nar ? W * .5 : W * .58, x1 = W * .97, y = nar ? H * .1 : H * .5, g1 = x0 + (x1 - x0) * .35, g2 = x0 + (x1 - x0) * .7;
+    cx.strokeStyle = 'rgba(255,255,255,.15)'; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(x0, y + 34 * s); cx.lineTo(x1, y + 34 * s); cx.stroke();
+    [[g1, '#00A3E0', 'TIER 1'], [g2, '#E4287C', 'TIER 2 · VLM']].forEach(([gx, c, l]) => { cx.strokeStyle = c; cx.lineWidth = 3; cx.beginPath(); cx.moveTo(gx, y - 40 * s); cx.lineTo(gx, y + 34 * s); cx.stroke(); cx.fillStyle = c; cx.globalAlpha = .12; cx.fillRect(gx - 4, y - 40 * s, 8, 74 * s); cx.globalAlpha = 1; if (!nar){ cx.font = '800 10px DM Sans, sans-serif'; cx.textAlign = 'center'; cx.fillText(l, gx, y - 48 * s); } });
+    items.forEach(it => { const p = ((t * .07 + it.off) % 1), x = x0 + (x1 - x0) * p; let yy = y, a = 1;
+      if (it.junk && x > g1){ const d = (x - g1) / (x1 - x0); yy = y + d * 260; a = Math.max(0, 1 - d * 4); }
+      tile(x, yy, s, it, a);
+      if (!it.junk && x > g2 && !nar){ cx.font = '800 9px DM Sans, sans-serif'; cx.textAlign = 'center'; cx.fillStyle = it.fail ? '#FF8A84' : '#7FE3B0'; cx.fillText(it.fail ? 'FAIL' : 'PASS', x, y - 26 * s); }
+      if (it.junk && x > g1 && x < g1 + 40 && !nar){ cx.font = '800 9px DM Sans, sans-serif'; cx.fillStyle = '#FF8A84'; cx.fillText('NOT APPAREL', x + 10, y + 30); } });
+    cx.textAlign = 'left'; }
+  size(); draw(4); window.addEventListener('resize', () => { size(); draw(4); }); if (reduce) return; const t0 = performance.now(); function loop(now){ if (!run) return; draw((now - t0) / 1000); requestAnimationFrame(loop); }
+  if (io) new IntersectionObserver(es => { const on = es[0].isIntersecting; if (on && !run){ run = true; requestAnimationFrame(loop); } else if (!on) run = false; }).observe(cv); })();
+
+/* ======================================================================
+   BOOT
+   ====================================================================== */
+setMode(); renderReg(); renderGuide(); showJSON(false); lanesInit(); fillRuleSel(); loadSet('S2'); renderReport();
+whenVisible($('m1'), () => setTimeout(() => showJSON(true), 300));
+whenVisible($('m2'), () => setTimeout(runBatch, 400));
+whenVisible($('m4'), note);
+if (hasD3){ whenVisible($('donut'), drawDonut); whenVisible($('spiral'), drawSpiral); }
+else ['rules','donut','spiral'].forEach(id => $(id).innerHTML = '<p style="padding:20px;color:var(--muted)">Charts need an internet connection to load their library.</p>');
+if ($('apiKey').value) connect(true);
+window.__cp = { SETS, judgeRules, RB, rbBy, BATCH, stopAt, svgOf, JS: () => JS };
+})();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lighting and Electrical Distributor · GenAI for Business Planning | HMC Case Study</title>
+<meta name="description" content="How Havish M Consulting enabled the distributor's leaders to plan with GenAI: a planning cockpit, an LED retrofit savings studio and a BOQ-to-quotation engine, prototyped during the programme.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{
+  --pri:#2B63B0; --deep:#0C1B33; --acc:#FFB627; --warm:#FFD27A; --bad:#D64545; --good:#1F9D63; --warn:#F2A60C;
+  --bg:#F4F6FA; --text:#15202E; --muted:#5E6B7E; --card:#FFFFFF; --line:#DFE5EE;
+  --pri-15:rgba(43,99,176,.10); --acc-15:rgba(255,182,39,.16);
+  --radius:12px; --shadow:0 1px 2px rgba(12,27,51,.06),0 8px 24px rgba(12,27,51,.08);
+  --serif:"DM Serif Display",Georgia,serif; --sans:"DM Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif; --mono:ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--serif);font-weight:400;color:var(--deep);margin:0;line-height:1.15}
+h2{font-size:clamp(1.6rem,3.2vw,2.2rem)}
+h3{font-size:1.2rem}
+p{margin:0}
+.wrap{max-width:1260px;margin:0 auto;padding:0 24px}
+section{padding:64px 0}
+.eyebrow{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--pri);margin-bottom:10px}
+.lead{color:var(--muted);max-width:800px;margin-top:12px}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line)}
+.sec-head{margin-bottom:28px}
+.alt{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.topbar{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+.logos{display:flex;align-items:center;gap:16px}
+.logos img{height:44px;width:auto;object-fit:contain}
+.logos img.cl{height:30px}
+.vdiv{width:1px;height:36px;background:var(--line)}
+.tagline{font-size:.8rem;color:var(--muted);letter-spacing:.04em}
+.tagline b{color:var(--pri);font-weight:700}
+.hero{background:radial-gradient(120% 140% at 88% 0%,#4A2470 0%,#2A1446 45%,#120821 100%);color:#fff;padding:76px 0 70px;position:relative;overflow:hidden}
+.hero canvas{position:absolute;right:0;top:0;width:58%;height:100%;pointer-events:none}
+.hero .eyebrow{color:#FFD27A}
+.hero h1{color:#fff;font-size:clamp(2.3rem,5.4vw,3.8rem);max-width:720px;position:relative;z-index:1}
+.hero h1 em{font-style:normal;color:#FFD27A}
+.hero .sub{font-size:clamp(1.05rem,2vw,1.2rem);color:rgba(255,255,255,.86);max-width:640px;margin-top:18px;position:relative;z-index:1}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px;position:relative;z-index:1}
+.pill{border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:6px 14px;font-size:.85rem;color:#fff;background:rgba(255,255,255,.06)}
+.pill span{color:#FFD27A;font-weight:700;margin-right:6px}
+.kpis{margin-top:-30px;position:relative;z-index:2;padding:0}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi{padding:22px 20px;border-top:3px solid var(--acc)}
+.kpi .label{font-size:.82rem;color:var(--muted);font-weight:500}
+.kpi .val{font-family:var(--serif);font-size:clamp(1.9rem,4vw,2.6rem);color:var(--pri);line-height:1.1;margin-top:6px;white-space:nowrap}
+.kpi .val small{font-family:var(--sans);font-size:.9rem;color:var(--muted);margin-left:4px}
+.delta{display:inline-flex;align-items:center;gap:4px;font-size:.8rem;font-weight:700;margin-top:8px;padding:2px 8px;border-radius:999px;background:rgba(31,166,122,.1);color:var(--good)}
+.footnote{font-size:.78rem;color:var(--muted);margin-top:14px}
+.ch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.chc{padding:24px}
+.ico{width:44px;height:44px;border-radius:10px;background:var(--pri-15);display:grid;place-items:center;margin-bottom:16px}
+.ico svg{width:22px;height:22px;stroke:var(--pri);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.chc h3{margin-bottom:8px}
+.chc p{font-size:.92rem;color:#433A52}
+.tl{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.tl::before{content:"";position:absolute;left:10%;right:10%;top:27px;height:3px;background:linear-gradient(90deg,var(--pri),var(--acc));border-radius:2px;opacity:.55}
+.tl-step{position:relative;background:none;border:0;cursor:pointer;font:inherit;color:inherit;display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 4px 8px}
+.tl-dot{width:56px;height:56px;border-radius:50%;background:#fff;border:2px solid var(--line);display:grid;place-items:center;font-family:var(--serif);font-size:1.25rem;color:var(--pri);transition:all .25s;position:relative;z-index:1}
+.tl-name{font-weight:700;font-size:.95rem}
+.tl-dur{font-size:.75rem;color:var(--muted);margin-top:-8px}
+.tl-step:hover .tl-dot{border-color:var(--pri)}
+.tl-step[aria-expanded="true"] .tl-dot{background:var(--pri);border-color:var(--pri);color:#fff;box-shadow:0 0 0 6px var(--pri-15)}
+.tl-step:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:8px}
+.tl-panel{display:none;padding:24px 28px;margin-top:20px;border-left:4px solid var(--acc)}
+.tl-panel.open{display:block;animation:fadeUp .35s ease}
+.tl-panel h3{margin-bottom:6px}
+.tl-panel ul{margin:12px 0 0;padding-left:20px;color:#433A52}
+.tl-panel li{margin:6px 0}
+.tl-panel .deliv{margin-top:14px;font-size:.85rem;color:var(--muted)}
+.tl-panel .deliv b{color:var(--pri)}
+.tl-hint{text-align:center;color:var(--muted);font-size:.8rem;margin-top:6px}
+.seg{display:inline-flex;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:22px;padding:4px;gap:4px}
+.seg button{border:0;background:none;font:inherit;font-size:.82rem;font-weight:700;padding:6px 13px;border-radius:999px;cursor:pointer;color:var(--muted);transition:all .2s}
+.seg button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.seg button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.seg.sm button{font-size:.76rem;padding:5px 10px}
+.mod-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.mod-head h3{font-size:1.5rem}
+.mod-head p{font-size:.88rem;color:var(--muted);max-width:720px;margin-top:4px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--deep);color:#FFD27A;font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:8px}
+.module{margin-bottom:54px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 12px;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer;color:var(--deep);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:border-color .15s,color .15s,background .15s}
+.btn:hover{border-color:var(--pri);color:var(--pri)}
+.btn.go{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.go:hover{background:#178A65;color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+
+
+.logos img.cl{height:42px}
+.hero{background:radial-gradient(120% 140% at 80% 0%,#1D3F73 0%,#0C1B33 50%,#060D1A 100%)}
+.hero .eyebrow,.hero .pill span{color:#FFD27A}
+.hero h1 em{color:#FFC94D;font-style:italic;text-shadow:0 0 30px rgba(255,182,39,.35)}
+.badge{color:#FFD27A}
+.kpi{border-top:3px solid var(--acc)}
+.chc p,.tl-panel ul,.tk p{color:#3C4A5E}
+.tl::before{background:linear-gradient(90deg,var(--pri),var(--acc))}
+.module .btn.go,.btn.go{background:var(--pri);border-color:var(--pri);color:#fff}
+.module .btn.go:hover,.btn.go:hover{background:#1F4C8A;color:#fff}
+.chart svg{width:100%;height:auto;display:block}
+.axis text{font-family:var(--sans);font-size:11px;fill:var(--muted)}
+.axis line{stroke:var(--line)} .axis path{display:none}
+.grid line{stroke:var(--line);stroke-dasharray:2 3} .grid path{display:none}
+.ckey{display:flex;gap:12px;font-size:.74rem;color:var(--muted);margin-top:6px;flex-wrap:wrap}
+.ckey span{display:inline-flex;align-items:center;gap:6px}
+.ckey i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.panel2{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);overflow:hidden}
+.p-main{padding:14px;min-width:0;border-right:1px solid var(--line)}
+.p-side{padding:14px;background:#F8FAFD;display:flex;flex-direction:column;gap:10px;min-width:0}
+.p-side h4,.p-main h4,h4.lbl{margin:0;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.chipb{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;font:700 .74rem var(--sans);color:var(--deep);cursor:pointer;transition:all .2s}
+.chipb:hover{border-color:var(--pri)}
+.chipb.on{background:var(--deep);border-color:var(--deep);color:#fff}
+.bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.bar b{font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+.ms{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.ms .k{font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.ms .v{font-family:var(--serif);font-size:1.3rem;color:var(--deep);line-height:1.15;font-variant-numeric:tabular-nums}
+.ms.a .v{color:var(--good)} .ms.b .v{color:var(--bad)} .ms.o .v{color:#C27C00}
+.mstat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.mstat.m4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.rng{display:flex;flex-direction:column;gap:3px;min-width:0}
+.rng .t{display:flex;justify-content:space-between;font-size:.76rem;font-weight:700;color:var(--deep);gap:8px}
+.rng .t b{color:var(--pri);font-variant-numeric:tabular-nums;white-space:nowrap}
+.rng input{width:100%;accent-color:var(--pri)}
+.tgl{display:flex;gap:6px;flex-wrap:wrap}
+.tgl label{display:inline-flex;gap:6px;align-items:center;font-size:.76rem;font-weight:700;color:var(--deep);background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 10px;cursor:pointer}
+/* journey */
+.jr{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;position:relative}
+.jr::before{content:"";position:absolute;left:4%;right:4%;top:22px;height:3px;background:#E3E8F0;border-radius:2px}
+.jr .fill{position:absolute;left:4%;top:22px;height:3px;background:linear-gradient(90deg,var(--pri),var(--acc));border-radius:2px;transition:width .6s ease;width:0}
+.js-step{position:relative;text-align:center;cursor:pointer;background:none;border:0;padding:0;font:inherit;color:inherit}
+.js-step .dot{width:44px;height:44px;border-radius:50%;margin:0 auto 6px;display:grid;place-items:center;background:#fff;border:2px solid #D3DBE7;font-size:1.1rem;transition:all .3s;position:relative;z-index:1}
+.js-step.done .dot{background:var(--pri);border-color:var(--pri);color:#fff}
+.js-step.on .dot{background:var(--acc);border-color:var(--acc);box-shadow:0 0 0 6px rgba(255,182,39,.22)}
+.js-step span{font-size:.7rem;font-weight:800;color:var(--deep);line-height:1.2;display:block}
+.jcard{margin-top:14px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:14px;animation:fadeUp .35s ease}
+.jcard h5{margin:0 0 6px;font:400 1.3rem var(--serif);color:var(--deep)}
+.jcard p{margin:0 0 8px;font-size:.86rem;color:#3C4A5E}
+.jout{background:#F8FAFD;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.8rem}
+.jout li{margin:3px 0}
+/* prompt */
+.prompt{font-family:var(--mono);font-size:.72rem;background:#0C1B33;color:#D9E3F2;border-radius:10px;padding:10px 12px;line-height:1.6;white-space:pre-wrap}
+.prompt b{color:#FFD27A;font-weight:700}
+.memo{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;font-size:.84rem;line-height:1.6;min-height:180px}
+.memo .who{font-size:.66rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--pri);margin-bottom:6px}
+.caret{display:inline-block;width:7px;height:1em;background:var(--pri);vertical-align:-2px;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:.2}50%{opacity:1}}
+.cats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.cat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.cat h6{margin:0 0 4px;font-size:.74rem;color:var(--deep);display:flex;justify-content:space-between}
+.cat h6 b{color:var(--pri)}
+.cat .rng .t{font-size:.66rem;font-weight:600}
+.qs{display:flex;gap:6px;flex-wrap:wrap}
+/* studio */
+.st3{position:relative;background:linear-gradient(180deg,#0F1D33,#1C2D47);border-radius:10px;overflow:hidden;touch-action:none}
+.st3 canvas{display:block;width:100%;height:auto;cursor:grab}
+.st3 .hud{position:absolute;left:10px;top:10px;display:flex;gap:6px;flex-wrap:wrap}
+.st3 .hud button{border:0;background:rgba(255,255,255,.14);color:#fff;font:700 .72rem var(--sans);padding:6px 11px;border-radius:999px;cursor:pointer;backdrop-filter:blur(4px)}
+.st3 .hud button.on{background:var(--acc);color:#0C1B33}
+.st3 .leg{position:absolute;right:10px;bottom:10px;background:rgba(12,27,51,.78);color:#fff;border-radius:8px;padding:6px 8px;font-size:.62rem}
+.st3 .leg .gr{width:140px;height:8px;border-radius:4px;margin:4px 0 2px}
+.st3 .leg .lb{display:flex;justify-content:space-between}
+.st3 .badge3{position:absolute;left:10px;bottom:10px;color:#fff;font:800 .72rem var(--sans);background:rgba(12,27,51,.78);padding:6px 10px;border-radius:8px}
+/* boq */
+.boq{width:100%;border-collapse:collapse;font-size:.76rem}
+.boq th,.boq td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.boq th{font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:#F8FAFD;position:sticky;top:0}
+.boq td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.boq tr.run td{background:#FFF8E6}
+.boq tr.done td{animation:fadeUp .3s ease}
+.boq .spec{color:#3C4A5E}
+.boq .sku{font-family:var(--mono);font-weight:700;color:var(--deep);font-size:.72rem}
+.cf{display:inline-block;min-width:44px;text-align:center;font-weight:800;font-size:.68rem;border-radius:999px;padding:2px 6px}
+.cf.h{background:#DDF3E8;color:#167A4C} .cf.m{background:#FFF1CC;color:#8A5A00} .cf.l{background:#FBE1E1;color:#A32F2F}
+.ok,.no{display:inline-block;font-size:.62rem;font-weight:800;border-radius:4px;padding:0 4px;margin:1px 2px 1px 0}
+.ok{background:#E3F4EC;color:#167A4C} .no{background:#FBE1E1;color:#A32F2F}
+.alts{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.alts button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:2px 6px;font:700 .64rem var(--mono);color:var(--deep);cursor:pointer}
+.alts button.on{background:var(--deep);color:#fff;border-color:var(--deep)}
+.tw{max-height:430px;overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.cmp-head{display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+.cmp{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.cmp th,.cmp td{padding:16px 18px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);font-size:.92rem;overflow-wrap:anywhere}
+.cmp thead th{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);background:#F7F9FC}
+.cmp tbody tr:last-child td,.cmp tbody tr:last-child th{border-bottom:0}
+.cmp tbody th{font-weight:700;color:var(--pri)}
+.cmp col.c1{width:22%}
+.cmp td{transition:background .3s,opacity .3s,color .3s}
+.cmp.hl-before td.b{background:#FCEEF3;color:#7A1236}
+.cmp.hl-before td.a{opacity:.38}
+.cmp.hl-after td.a{background:#ECF8F3;color:#0E4F39;font-weight:500}
+.cmp.hl-after td.b{opacity:.38}
+.cmp.hl-after thead th.a{color:var(--acc)}
+.cmp.hl-before thead th.b{color:var(--bad)}
+.tchips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:.9rem;font-weight:500;display:inline-flex;align-items:center;gap:8px}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 3px var(--acc-15)}
+.chip em{font-style:normal;color:var(--muted);font-weight:400;font-size:.82rem}
+.tk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.tk{padding:26px}
+.tk .n{font-family:var(--serif);font-size:2.6rem;color:var(--acc);line-height:1}
+.tk h3{margin:12px 0 8px}
+.tk p{font-size:.92rem;color:#433A52}
+footer{background:var(--deep);color:rgba(255,255,255,.75);padding:48px 0 32px;margin-top:32px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px}
+.f-brand{display:flex;align-items:center;gap:16px}
+.f-brand img{height:44px;width:auto;border-radius:6px;background:#fff;padding:4px}
+.f-brand b{display:block;color:#fff;font-family:var(--serif);font-weight:400;font-size:1.15rem}
+.copy{width:100%;border-top:1px solid rgba(255,255,255,.12);padding-top:18px;font-size:.8rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+#tip{position:fixed;pointer-events:none;z-index:95;background:var(--deep);color:#fff;font-size:.8rem;line-height:1.45;padding:10px 12px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transition:opacity .15s;max-width:300px}
+#tip b{color:#7DE3BE;font-weight:700}
+#tip .t{font-weight:700;font-size:.85rem;margin-bottom:2px;color:#fff}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.cmp.hl-after td.a{background:#EAF1FB;color:#0C1B33}
+.chip i{background:var(--acc);box-shadow:0 0 0 3px rgba(255,182,39,.22)}
+.tk .n{color:var(--pri)}
+#tip b{color:#FFD27A}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.js .reveal{opacity:1;transform:none;transition:none}.jcard,.boq tr.done td,.tl-panel.open{animation:none}.jr .fill{transition:none}}
+@media (max-width:1100px){.panel2{grid-template-columns:minmax(0,1fr)}.p-main{border-right:0;border-bottom:1px solid var(--line)}.jcard{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:980px){.kpi-grid,.ch-grid{grid-template-columns:repeat(2,1fr)}.dash{grid-template-columns:1fr}.tk-grid{grid-template-columns:1fr}.hero canvas{width:100%;opacity:.4}.cats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){
+  .wrap{padding:0 16px} section{padding:48px 0} .hero{padding:52px 0 56px} .logos img{height:34px} .logos img.cl{height:32px} .vdiv{height:28px}
+  .kpi-grid{gap:10px} .kpi{padding:16px 14px} .ch-grid{grid-template-columns:1fr}
+  .tl::before{top:19px} .tl-dot{width:40px;height:40px;font-size:1rem} .tl-name{font-size:.75rem} .tl-dur{display:none} .tl-panel{padding:18px}
+  .jr{grid-template-columns:repeat(4,minmax(0,1fr));row-gap:14px} .jr::before,.jr .fill{display:none} .js-step .dot{width:38px;height:38px}
+  .mstat,.mstat.m4{grid-template-columns:repeat(2,minmax(0,1fr))} .cats{grid-template-columns:minmax(0,1fr)}
+  .st3 .leg{display:none}
+  .sx{overflow-x:auto;-webkit-overflow-scrolling:touch} .sx svg{min-width:540px}
+  .cmp th,.cmp td{padding:12px 10px;font-size:.82rem} .cmp thead th{font-size:.68rem;letter-spacing:.08em} .chart-card{padding:14px}
+}
+@media print{
+  body{background:#fff;font-size:12px} .topbar{position:static}
+  .hero{background:#0C1B33!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:36px 0} .hero canvas{display:none}
+  .card{box-shadow:none;break-inside:avoid} section{padding:28px 0} .js .reveal{opacity:1!important;transform:none!important}
+  .seg,.tl-hint,.btn,.rng input,.hud{display:none!important} .tl-panel{display:block!important;margin-top:10px} #tip{display:none}
+  footer{background:#fff;color:var(--text)} footer .f-brand b{color:var(--deep)} .kpis{margin-top:16px}
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="logos">
+      <img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting">
+    </div>
+    <div class="tagline">Customer Case Study · <b>Leadership · GenAI for Business Planning</b></div>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas id="heroCv" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="eyebrow">Lighting and Electrical Distributor × Havish M Consulting</div>
+    <h1>Leaders who plan with GenAI, <em>and switch on new ideas</em></h1>
+    <p class="sub">The distributor distributes lighting solutions and electrical products across the UAE. HMC ran a GenAI programme for its leaders built around their own business planning: from first prompts to a working planning cockpit, with two customer-facing prototypes built by the teams along the way.</p>
+    <div class="pills">
+      <span class="pill"><span>Client</span>Lighting and Electrical Distributor</span>
+      <span class="pill"><span>Function</span>Leadership · Business Planning</span>
+      <span class="pill"><span>Theme</span>GenAI Leadership Enablement</span>
+    </div>
+  </div>
+</section>
+
+<section class="kpis">
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="card kpi reveal"><div class="label">Leadership workshops</div><div class="val"><span class="count" data-to="4">0</span><small>sessions</small></div><div class="delta">on the distributor's own planning problems</div></div>
+      <div class="card kpi reveal"><div class="label">Leaders enabled</div><div class="val"><span class="count" data-to="24">0</span><small>leaders</small></div><div class="delta">sales, product, operations, finance</div></div>
+      <div class="card kpi reveal"><div class="label">Use cases prototyped</div><div class="val"><span class="count" data-to="9">0</span><small>prototypes</small></div><div class="delta">three shown on this page</div></div>
+      <div class="card kpi reveal"><div class="label">Faster first draft of the plan</div><div class="val"><span class="count" data-to="60">0</span><small>%</small></div><div class="delta">category narratives and scenarios</div></div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="challenge">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Challenge</div>
+      <h2>Planning a distribution business in a fast-moving market</h2>
+      <p class="lead">A lighting and electrical distributor plans across many categories, brands and project pipelines. Leaders wanted to use GenAI, but needed it grounded in their own planning work, not generic demos.</p>
+    </div>
+    <div class="ch-grid">
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l3-4 3 2 5-6"/></svg></div><h3>Planning by spreadsheet</h3><p>Category plans built bottom-up in workbooks, with scenarios slow to run and harder to explain.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 1-1 1.7M12 17h.01"/></svg></div><h3>GenAI curiosity, little practice</h3><p>Leaders had tried chat tools, but not on planning, pricing or customer proposals.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg></div><h3>Value story hard to tell</h3><p>Energy savings sell lighting, but quantifying them for each customer took specialist time.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div><h3>Slow quotations</h3><p>Matching consultant BOQs to the catalogue line by line delayed responses to tenders.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="approach" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">HMC Approach</div>
+      <h2>Learn on your own problems, leave with something working</h2>
+      <p class="lead">Every session used the distributor's planning questions and data patterns, so leaders practised on the work they do.</p>
+    </div>
+    <div class="tl reveal" aria-label="HMC approach steps">
+      <button class="tl-step" aria-expanded="true" aria-controls="tp0"><span class="tl-dot">1</span><span class="tl-name">Discover</span><span class="tl-dur">2 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp1"><span class="tl-dot">2</span><span class="tl-name">Design</span><span class="tl-dur">1 week</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp2"><span class="tl-dot">3</span><span class="tl-name">Build</span><span class="tl-dur">4 workshops</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp3"><span class="tl-dot">4</span><span class="tl-name">Adopt</span><span class="tl-dur">Hackathon</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp4"><span class="tl-dot">5</span><span class="tl-name">Scale</span><span class="tl-dur">6-month roadmap</span></button>
+    </div>
+    <p class="tl-hint">Select a step to see what happened.</p>
+    <div class="card tl-panel open" id="tp0"><h3>Discover · Baseline and one-to-ones</h3><p>Started with the people.</p><ul><li>GenAI baseline assessment and pre-workshop pulse check.</li><li>One-to-one calls with leaders on their planning pain points.</li><li>Use-case assessment to pick problems worth solving.</li></ul><p class="deliv"><b>Deliverable:</b> Readiness baseline and use-case long list.</p></div>
+    <div class="card tl-panel" id="tp1"><h3>Design · A programme around planning</h3><p>Built the curriculum backwards from the annual plan.</p><ul><li>Sessions mapped to planning tasks: market scan, category plans, scenarios, proposals.</li><li>Problems built on distributor-style data.</li><li>HMC safety framework for responsible use.</li></ul><p class="deliv"><b>Deliverable:</b> Programme design and session packs.</p></div>
+    <div class="card tl-panel" id="tp2"><h3>Build · Hands-on workshops</h3><p>Leaders did the work in the room.</p><ul><li>Prompting for planning: structure, context, constraints, format.</li><li>Scenario planning and plan narratives with GenAI.</li><li>Prototyping customer tools with GenAI-assisted building.</li></ul><p class="deliv"><b>Deliverable:</b> Prompts, workflows and prototypes.</p></div>
+    <div class="card tl-panel" id="tp3"><h3>Adopt · Hackathon and showcase</h3><p>Teams presented working prototypes.</p><ul><li>Cross-functional teams built on real problems.</li><li>Leadership panel judged value and feasibility.</li><li>Assets captured in a reusable repository.</li></ul><p class="deliv"><b>Deliverable:</b> Prototype showcase and asset library.</p></div>
+    <div class="card tl-panel" id="tp4"><h3>Scale · Roadmap and tracking</h3><p>From prototypes to practice.</p><ul><li>Six-month roadmap of prioritised use cases.</li><li>Implementation tracking with owners.</li><li>Recap content for onboarding new leaders.</li></ul><p class="deliv"><b>Deliverable:</b> Adoption roadmap.</p></div>
+  </div>
+</section>
+
+<section id="solution">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Solution</div>
+      <h2>A programme, a planning cockpit and two prototypes</h2>
+      <p class="lead">The programme journey first, then what leaders built: a GenAI planning cockpit, an LED retrofit savings studio and a BOQ-to-quotation engine. Prototypes are shown as illustrative replicas with synthetic data.</p>
+    </div>
+
+    <div class="module reveal" id="jrModule">
+      <div class="mod-head"><div><div class="badge">01 · The programme journey</div><h3>Seven steps from curiosity to a roadmap</h3><p>Click through the journey, or press play. Each step shows what leaders did and what they left with.</p></div>
+        <button class="btn go" id="jrPlay" type="button">▶ Play the journey</button></div>
+      <div class="card" style="padding:18px">
+        <div class="jr" id="jr"><div class="fill" id="jrFill"></div></div>
+        <div id="jrCard"></div>
+      </div>
+    </div>
+
+    <div class="module reveal" id="plModule">
+      <div class="mod-head"><div><div class="badge">02 · Planning cockpit</div><h3>Build next year's plan, then let GenAI write it up</h3><p>Set growth, price and share assumptions by category, or pick a scenario. The bridge updates live; then generate the leadership memo from the numbers, and ask follow-up questions.</p></div></div>
+      <div class="bar" id="scBar"></div>
+      <div class="card panel2">
+        <div class="p-main">
+          <div class="mstat m4" id="plK"></div>
+          <div class="chart sx" id="plBridge" style="margin-top:8px"></div>
+          <div class="cats" id="cats" style="margin-top:10px"></div>
+        </div>
+        <div class="p-side">
+          <h4>The prompt leaders used</h4>
+          <div class="prompt" id="prompt"></div>
+          <button class="btn go" id="memoGo" type="button">✦ Draft the planning memo</button>
+          <div class="memo" id="memo"><div class="who">✦ Planning assistant</div><span style="color:var(--muted)">Press "Draft the planning memo" to turn the numbers into a narrative.</span></div>
+          <div class="qs" id="qs"></div>
+        </div>
+      </div>
+      <p class="footnote">Categories and figures synthetic (AED million); narrative generated from the numbers on screen.</p>
+    </div>
+
+    <div class="module reveal" id="ltModule">
+      <div class="mod-head"><div><div class="badge">03 · Prototype · Light &amp; savings studio</div><h3>Show a customer what LED saves, before they buy</h3><p>Built by the sales team in the hackathon. Pick a space, switch from legacy lighting to LED, add sensors, and watch light levels, energy, AED savings, CO₂ and payback update. Drag to orbit; move the clock to bring in daylight.</p></div></div>
+      <div class="bar" id="spBar"></div>
+      <div class="card panel2">
+        <div class="p-main">
+          <div class="st3" id="st3"><div class="hud"><button type="button" id="tLeg">Legacy</button><button type="button" id="tLed" class="on">LED</button><button type="button" id="tHeat" class="on">Lux heat-map</button></div><div class="badge3" id="badge3"></div><div class="leg"><div>Illuminance (lux)</div><div class="gr" id="legGr"></div><div class="lb" id="legLb"></div></div></div>
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px">
+            <div class="rng"><div class="t"><span>Time of day</span><b id="hrV"></b></div><input type="range" id="hr" min="6" max="22" step=".5" value="20" aria-label="Time of day"></div>
+            <div class="rng"><div class="t"><span>Tariff AED/kWh</span><b id="tfV"></b></div><input type="range" id="tf" min="20" max="50" value="38" aria-label="Electricity tariff"></div>
+            <div class="rng"><div class="t"><span>Fittings</span><b id="nfV"></b></div><input type="range" id="nf" min="0" max="10" value="5" aria-label="Fitting density"></div>
+          </div>
+          <div class="tgl" style="margin-top:8px"><label><input type="checkbox" id="occ" checked> Occupancy sensors</label><label><input type="checkbox" id="day" checked> Daylight dimming</label></div>
+        </div>
+        <div class="p-side">
+          <div class="mstat" id="ltK"></div>
+          <div class="mstat" id="ltK2"></div>
+          <h4>Energy per year</h4><div class="chart" id="ltBars"></div>
+          <h4>Cumulative cash, 10 years</h4><div class="chart" id="ltCash"></div>
+        </div>
+      </div>
+      <p class="footnote">Lumen-method estimate with a point-source pattern; fittings, prices, tariff and grid factor are illustrative assumptions.</p>
+    </div>
+
+    <div class="module reveal" id="bqModule" style="margin-bottom:0">
+      <div class="mod-head"><div><div class="badge">04 · Prototype · BOQ to quotation</div><h3>From a consultant's BOQ to a priced quote in minutes</h3><p>Built by the projects team. Each BOQ line is read, matched to catalogue items on specification, and scored. Pick alternatives, set the margin, and generate the cover note.</p></div>
+        <div style="display:flex;gap:8px"><button class="btn" id="bqReset" type="button">↺ Reset</button><button class="btn go" id="bqRun" type="button">▶ Match BOQ</button></div></div>
+      <div class="card panel2">
+        <div class="p-main"><div class="tw"><table class="boq" id="boq"></table></div></div>
+        <div class="p-side">
+          <div class="mstat" id="bqK" style="grid-template-columns:repeat(2,minmax(0,1fr))"></div>
+          <div class="rng"><div class="t"><span>Target gross margin</span><b id="mgV"></b></div><input type="range" id="mg" min="8" max="40" value="22" aria-label="Target gross margin"></div>
+          <div class="chart" id="bqMix"></div>
+          <button class="btn go" id="bqNote" type="button">✦ Write cover note</button>
+          <div class="memo" id="bqMemo" style="min-height:120px"><div class="who">✦ Quotation assistant</div><span style="color:var(--muted)">Match the BOQ, then write the cover note.</span></div>
+        </div>
+      </div>
+      <p class="footnote">Sample BOQ and catalogue; item codes, specifications and prices are illustrative.</p>
+    </div>
+  </div>
+</section>
+
+<section id="impact" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Impact Dashboard</div>
+      <h2>From a workshop to a way of working</h2>
+      <p class="lead">Leaders moved from trying GenAI to using it on the plan, and the best prototypes entered the roadmap.</p>
+    </div>
+    <div class="dash">
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>Adoption funnel</h3><p class="sub">Leaders reaching each stage, of 24 enrolled</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-fn="before" aria-pressed="false">Week 1</button><button type="button" data-fn="after" aria-pressed="true">Month 3</button></div></div>
+        <div class="chart" id="funnel"></div>
+      </div>
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>Annual planning cycle</h3><p class="sub">Weeks per planning step</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-gt="before" aria-pressed="false">Before</button><button type="button" data-gt="after" aria-pressed="true">After</button></div></div>
+        <div class="chart" id="gantt"></div>
+      </div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <div class="cmp-head reveal"><div><div class="eyebrow">Before vs After</div><h2>How leaders plan and sell now</h2></div>
+      <div class="seg" role="group" aria-label="Highlight column"><button type="button" data-hl="before" aria-pressed="false">Before</button><button type="button" data-hl="after" aria-pressed="true">After</button></div></div>
+    <div class="card reveal" style="overflow:hidden">
+      <table class="cmp hl-after" id="cmp"><colgroup><col class="c1"><col><col></colgroup>
+        <thead><tr><th scope="col">Dimension</th><th scope="col" class="b">Before</th><th scope="col" class="a">After</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">GenAI use</th><td class="b">Occasional, personal experiments</td><td class="a">Structured prompts on planning tasks</td></tr>
+          <tr><th scope="row">Scenarios</th><td class="b">One base case, rebuilt by hand</td><td class="a">Base, upside and downside in minutes</td></tr>
+          <tr><th scope="row">Plan narrative</th><td class="b">Written from scratch each year</td><td class="a">Drafted from the numbers, refined by leaders</td></tr>
+          <tr><th scope="row">Customer value</th><td class="b">Product specs and price</td><td class="a">Energy, AED and payback per space</td></tr>
+          <tr><th scope="row">Quotations</th><td class="b">BOQ matched line by line</td><td class="a">Spec-matched with confidence, reviewed by exception</td></tr>
+          <tr><th scope="row">Ideas</th><td class="b">Discussed, rarely built</td><td class="a">Prototyped, judged and on a roadmap</td></tr>
+        </tbody></table>
+    </div>
+  </div>
+</section>
+
+<section id="tools" style="padding-top:16px">
+  <div class="wrap">
+    <div class="sec-head reveal" style="margin-bottom:20px"><div class="eyebrow">Tools &amp; Tech Used</div><h2>What leaders worked with</h2></div>
+    <div class="tchips reveal">
+      <span class="chip"><i></i>GenAI assistants <em>planning, narratives, analysis</em></span>
+      <span class="chip"><i></i>Structured prompting <em>role, context, task, format, constraints</em></span>
+      <span class="chip"><i></i>Excel with GenAI <em>scenario models</em></span>
+      <span class="chip"><i></i>GenAI-assisted building <em>HTML prototypes</em></span>
+      <span class="chip"><i></i>HMC safety framework <em>responsible use</em></span>
+    </div>
+  </div>
+</section>
+
+<section id="takeaways">
+  <div class="wrap">
+    <div class="sec-head reveal"><div class="eyebrow">Key Takeaways</div><h2>What any leadership team can borrow</h2></div>
+    <div class="tk-grid">
+      <div class="card tk reveal"><div class="n">01</div><h3>Teach on the real work</h3><p>Leaders adopt GenAI faster when the first prompt is about their own plan, not a generic example.</p></div>
+      <div class="card tk reveal"><div class="n">02</div><h3>Numbers first, narrative second</h3><p>Let the model write from the scenario, and keep the assumptions in the leader's hands.</p></div>
+      <div class="card tk reveal"><div class="n">03</div><h3>End every workshop with a build</h3><p>A working prototype turns enthusiasm into a roadmap item with an owner.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="f-brand"><img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting"><div><b>Havish M Consulting</b></div></div>
+    <div class="copy"><span>© <span id="yr">2026</span> Havish M Consulting. All rights reserved.</span><span>Figures indicative; validated metrics available on request.</span></div>
+  </div>
+</footer>
+<div id="tip" role="tooltip"></div>
+
+<script>
+(function(){
+"use strict";
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DUR = reduce ? 0 : 650;
+const $ = id => document.getElementById(id);
+$('yr').textContent = new Date().getFullYear();
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hasD3 = typeof d3 !== 'undefined', hasThree = typeof THREE !== 'undefined';
+const sleep = ms => new Promise(r => setTimeout(r, reduce ? 0 : ms));
+const sum = a => a.reduce((x, y) => x + y, 0);
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const aed = n => 'AED ' + Math.round(n).toLocaleString('en-US');
+const tip = $('tip');
+function showTip(html, ev){ tip.innerHTML = html; tip.style.opacity = 1; const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = ev.clientX + pad, y = ev.clientY + pad; if (x + w > innerWidth - 8) x = ev.clientX - w - pad; if (y + h > innerHeight - 8) y = ev.clientY - h - pad;
+  tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; }
+function hideTip(){ tip.style.opacity = 0; }
+window.addEventListener('scroll', hideTip, {passive:true});
+const onView = new Map();
+const io = ('IntersectionObserver' in window) ? new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; e.target.classList.add('in');
+  const fn = onView.get(e.target); if (fn){ fn(); onView.delete(e.target); } io.unobserve(e.target); }), {threshold:.1}) : null;
+function whenVisible(el, fn){ onView.set(el, fn); if (io) io.observe(el); else fn(); }
+document.querySelectorAll('.reveal').forEach(el => io ? io.observe(el) : el.classList.add('in'));
+function countUp(el){ const to = +el.dataset.to; if (reduce || !to){ el.textContent = to; return; }
+  const t0 = performance.now(); (function s(t){ const p = Math.min(1,(t-t0)/1400), e = 1 - Math.pow(1-p,3); el.textContent = Math.round(to*e); if (p < 1) requestAnimationFrame(s); })(t0); }
+document.querySelectorAll('.count').forEach(el => whenVisible(el.closest('.kpi'), () => countUp(el)));
+const tlSteps = document.querySelectorAll('.tl-step');
+tlSteps.forEach(btn => btn.addEventListener('click', () => { const open = btn.getAttribute('aria-expanded') === 'true';
+  tlSteps.forEach(b => { b.setAttribute('aria-expanded','false'); $(b.getAttribute('aria-controls')).classList.remove('open'); });
+  if (!open){ btn.setAttribute('aria-expanded','true'); $(btn.getAttribute('aria-controls')).classList.add('open'); } }));
+function segBind(attr, fn){ const bs = document.querySelectorAll(`[data-${attr}]`); bs.forEach(b => b.addEventListener('click', () => { bs.forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); fn(b.dataset[attr]); })); }
+const cmp = $('cmp');
+segBind('hl', v => { cmp.classList.toggle('hl-before', v === 'before'); cmp.classList.toggle('hl-after', v === 'after'); });
+async function stream(el, html, tokRef, tok){ const parts = html.split(/(<[^>]+>|\s+)/).filter(Boolean); let out = '';
+  for (let i = 0; i < parts.length; i++){ if (tokRef() !== tok) return; out += parts[i]; if (!reduce && !parts[i].startsWith('<') && i % 2 === 0){ el.innerHTML = out + '<span class="caret"></span>'; await new Promise(r => setTimeout(r, 16)); } } el.innerHTML = out; }
+
+/* HERO · a ceiling of downlights switching on, casting warm cones */
+(function hero(){
+  const cv = $('heroCv'), cx = cv.getContext('2d'); let W = 0, H = 0, run = false; const R = mulberry32(8);
+  const L = Array.from({ length: 18 }, (_, i) => ({ c: i % 6, r: Math.floor(i / 6), on: R() * 4, ph: R() * 6 }));
+  function size(){ const dpr = Math.min(2, devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; cx.setTransform(dpr,0,0,dpr,0,0); }
+  function draw(time){ cx.clearRect(0, 0, W, H); const t = time / 1000;
+    L.forEach(l => { const x = W * (.5 + l.c * .085), y = H * (.14 + l.r * .1), on = Math.min(1, Math.max(0, ((t % 10) - l.on) * 1.5)), k = on * (.85 + .15 * Math.sin(t * 2 + l.ph));
+      const cone = cx.createLinearGradient(x, y, x, H); cone.addColorStop(0, `rgba(255,201,77,${.32 * k})`); cone.addColorStop(1, 'rgba(255,201,77,0)');
+      cx.fillStyle = cone; cx.beginPath(); cx.moveTo(x - 6, y); cx.lineTo(x + 6, y); cx.lineTo(x + 60 + l.r * 20, H); cx.lineTo(x - 60 - l.r * 20, H); cx.closePath(); cx.fill();
+      cx.fillStyle = on > .1 ? `rgba(255,236,190,${.5 + .5 * k})` : 'rgba(150,170,200,.35)'; cx.beginPath(); cx.ellipse(x, y, 10, 3.5, 0, 0, 7); cx.fill();
+      if (on > .1){ const g = cx.createRadialGradient(x, y, 0, x, y, 26); g.addColorStop(0, `rgba(255,214,120,${.55 * k})`); g.addColorStop(1, 'rgba(255,214,120,0)'); cx.fillStyle = g; cx.beginPath(); cx.arc(x, y, 26, 0, 7); cx.fill(); } }); }
+  size(); draw(reduce ? 9000 : 0);
+  window.addEventListener('resize', () => { size(); draw(reduce ? 9000 : performance.now()); });
+  if (reduce) return;
+  function loop(t){ if (!run) return; draw(t); requestAnimationFrame(loop); }
+  if (io) new IntersectionObserver(es => { const on = es[0].isIntersecting; if (on && !run){ run = true; requestAnimationFrame(loop); } else if (!on) run = false; }).observe(cv);
+})();
+
+/* ======================================================================
+   01 · JOURNEY
+   ====================================================================== */
+const JR = [
+  { i:'🧭', n:'Baseline & pulse check', d:'A GenAI baseline assessment and pre-workshop pulse check captured where each leader started and what they expected.', o:['Readiness profile per leader','Expectations and concerns','Starting point for measuring progress'] },
+  { i:'🤝', n:'Leadership one-to-ones', d:'Short calls with each leader on their planning pain points: where the annual plan takes time, and where they want sharper answers.', o:['Pain-point map by function','Planning questions to solve in the room'] },
+  { i:'🗂️', n:'Use-case assessment', d:'Candidate use cases scored on value, feasibility and risk, so workshops focused on the ones that matter.', o:['Long list of use cases','Shortlist for workshops and hackathon'] },
+  { i:'🧑‍🏫', n:'Workshops on the distributor’s problems', d:'Hands-on sessions on market scans, category plans, scenarios, plan narratives and customer proposals, using distributor-style data.', o:['Prompt library for planning','Scenario workflow','Responsible-use guidelines'] },
+  { i:'⚡', n:'Hackathon', d:'Cross-functional teams built working prototypes with GenAI-assisted building, including the light and savings studio and the BOQ-to-quote engine.', o:['Working prototypes','Team presentations to leadership'] },
+  { i:'🏆', n:'Showcase & assets', d:'A leadership panel judged the prototypes. Prompts, outputs and screenshots went into a reusable repository.', o:['Winning use cases','Asset repository for onboarding'] },
+  { i:'🗺️', n:'Roadmap & tracking', d:'A six-month roadmap with owners, and implementation tracking so prototypes become practice.', o:['Six-month roadmap','Owner and milestone per use case'] }
+];
+let jrI = 0, jrTok = 0;
+$('jr').insertAdjacentHTML('beforeend', JR.map((j, i) => `<button type="button" class="js-step" data-j="${i}"><div class="dot" aria-hidden="true">${j.i}</div><span>${esc(j.n)}</span></button>`).join(''));
+function jrShow(i){ jrI = i; document.querySelectorAll('.js-step').forEach((b, k) => { b.classList.toggle('done', k < i); b.classList.toggle('on', k === i); });
+  $('jrFill').style.width = (i / (JR.length - 1) * 92) + '%'; const j = JR[i];
+  $('jrCard').innerHTML = `<div class="jcard"><div><div style="font-size:.66rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--pri)">Step ${i + 1} of ${JR.length}</div><h5>${esc(j.n)}</h5><p>${esc(j.d)}</p></div><div class="jout"><b style="font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Leaders left with</b><ul style="margin:6px 0 0;padding-left:18px">${j.o.map(o => `<li>${esc(o)}</li>`).join('')}</ul></div></div>`; }
+$('jr').addEventListener('click', e => { const b = e.target.closest('[data-j]'); if (b){ jrTok++; jrShow(+b.dataset.j); } });
+$('jrPlay').addEventListener('click', async () => { const t = ++jrTok; for (let i = 0; i < JR.length; i++){ if (t !== jrTok) return; jrShow(i); await sleep(1600); } });
+jrShow(0);
+
+if (!hasD3){ ['plBridge','ltBars','funnel','gantt'].forEach(id => $(id).innerHTML = '<p style="padding:30px;color:var(--muted)">These charts need an internet connection to load their chart library.</p>'); return; }
+
+/* ======================================================================
+   02 · PLANNING COCKPIT
+   ====================================================================== */
+const CATS = [
+  { k:'indoor', n:'Indoor downlights & panels', ly:42, c:'#2B63B0' }, { k:'linear', n:'Linear & architectural', ly:28, c:'#5B8BD0' },
+  { k:'industrial', n:'High-bay & industrial', ly:24, c:'#0C1B33' }, { k:'outdoor', n:'Outdoor & façade', ly:19, c:'#FFB627' },
+  { k:'emergency', n:'Emergency & controls', ly:12, c:'#E07A1F' }, { k:'electrical', n:'Electrical products', ly:30, c:'#1F9D63' }
+];
+const SCN = {
+  Base:{ indoor:[6,1,0], linear:[8,1,1], industrial:[4,0,0], outdoor:[7,2,1], emergency:[10,1,2], electrical:[5,1,0] },
+  Upside:{ indoor:[10,2,1], linear:[14,2,2], industrial:[9,1,1], outdoor:[12,3,2], emergency:[16,2,3], electrical:[8,2,1] },
+  Downside:{ indoor:[2,-3,-1], linear:[3,-2,0], industrial:[-2,-3,-1], outdoor:[3,-2,0], emergency:[6,-1,1], electrical:[1,-2,-1] }
+};
+let SC = 'Base'; const A = JSON.parse(JSON.stringify(SCN.Base));
+$('scBar').innerHTML = '<b>Scenario</b>' + Object.keys(SCN).map(s => `<button type="button" class="chipb${s === SC ? ' on' : ''}" data-sc="${s}">${s}</button>`).join('') + '<span style="font-size:.72rem;color:var(--muted);margin-left:6px">or tune each category below</span>';
+$('cats').innerHTML = CATS.map(c => `<div class="cat"><h6><span>${esc(c.n)}</span><b id="cp-${c.k}"></b></h6>${['Market growth','Price','Share gain'].map((l, j) => `<div class="rng"><div class="t"><span>${l}</span><b id="cv-${c.k}-${j}"></b></div><input type="range" min="${j === 0 ? -10 : -6}" max="${j === 0 ? 20 : 6}" value="0" data-c="${c.k}" data-j="${j}" aria-label="${esc(c.n)} ${l}"></div>`).join('')}</div>`).join('');
+function plan(){ return CATS.map(c => { const [g, p, s] = A[c.k], vol = c.ly * (g / 100), pr = c.ly * (1 + g / 100) * (p / 100), sh = c.ly * (1 + g / 100) * (1 + p / 100) * (s / 100); return { ...c, g, p, s, vol, pr, sh, plan: c.ly + vol + pr + sh }; }); }
+function syncInputs(){ CATS.forEach(c => A[c.k].forEach((v, j) => { const el = document.querySelector(`[data-c="${c.k}"][data-j="${j}"]`); el.value = v; $(`cv-${c.k}-${j}`).textContent = (v > 0 ? '+' : '') + v + (j === 2 ? ' pt' : '%'); })); }
+let brSvg = null;
+function drawPlan(){
+  const P = plan(), LY = sum(P.map(p => p.ly)), PL = sum(P.map(p => p.plan)), V = sum(P.map(p => p.vol)), PR = sum(P.map(p => p.pr)), SH = sum(P.map(p => p.sh));
+  P.forEach(p => $('cp-' + p.k).textContent = `${p.plan.toFixed(1)}M · ${p.plan >= p.ly ? '+' : ''}${((p.plan / p.ly - 1) * 100).toFixed(1)}%`);
+  $('plK').innerHTML = `<div class="ms"><div class="k">Last year</div><div class="v">AED ${LY.toFixed(0)}M</div></div><div class="ms ${PL >= LY ? 'a' : 'b'}"><div class="k">Plan</div><div class="v">AED ${PL.toFixed(1)}M</div></div><div class="ms ${PL >= LY ? 'a' : 'b'}"><div class="k">Growth</div><div class="v">${PL >= LY ? '+' : ''}${((PL / LY - 1) * 100).toFixed(1)}%</div></div><div class="ms o"><div class="k">Biggest driver</div><div class="v" style="font-size:.95rem">${esc(P.reduce((a, b) => (b.plan - b.ly) > (a.plan - a.ly) ? b : a).n.split(' ')[0])}</div></div>`;
+  const D = [{ k:'Last year', a:0, b:LY, t:'tot' }, { k:'Market growth', a:LY, b:LY + V }, { k:'Price', a:LY + V, b:LY + V + PR }, { k:'Share gain', a:LY + V + PR, b:PL }, { k:'Plan', a:0, b:PL, t:'tot' }];
+  const w = 620, h = 220, m = { t: 22, r: 10, b: 26, l: 44 }, x = d3.scaleBand().domain(D.map(d => d.k)).range([m.l, w - m.r]).padding(.3), y = d3.scaleLinear().domain([LY * .85, Math.max(LY, PL) * 1.08]).range([h - m.b, m.t]);
+  if (!brSvg){ brSvg = d3.select('#plBridge').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Revenue bridge from last year to plan'); brSvg.append('g').attr('class','grid'); brSvg.append('g').attr('class','axis ya'); brSvg.append('g').attr('class','b'); brSvg.append('g').attr('class','v'); brSvg.append('g').attr('class','x'); }
+  brSvg.select('g.grid').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickSize(-(w - m.l - m.r)).tickFormat(''));
+  brSvg.select('g.ya').attr('transform', `translate(${m.l},0)`).transition().duration(DUR).call(d3.axisLeft(y).ticks(4).tickSize(0).tickPadding(6).tickFormat(v => v.toFixed(0) + 'M'));
+  const lo = d => d.t ? y.domain()[0] : Math.min(d.a, d.b), hi = d => d.t ? d.b : Math.max(d.a, d.b);
+  brSvg.select('g.b').selectAll('rect').data(D, d => d.k).join(en => en.append('rect').attr('y', h - m.b).attr('height', 0)).attr('x', d => x(d.k)).attr('width', x.bandwidth()).attr('rx', 4).attr('fill', d => d.t ? '#0C1B33' : d.b >= d.a ? '#2B63B0' : '#D64545')
+    .on('mousemove', (ev, d) => showTip(`<div class="t">${d.k}</div><b>AED ${(d.t ? d.b : d.b - d.a).toFixed(1)}M</b>`, ev)).on('mouseleave', hideTip)
+    .transition().duration(DUR).attr('y', d => y(hi(d))).attr('height', d => Math.max(1, y(lo(d)) - y(hi(d))));
+  brSvg.select('g.v').selectAll('text').data(D, d => d.k).join('text').attr('text-anchor','middle').attr('font-size', 11).attr('font-weight', 800).attr('fill','#0C1B33').attr('x', d => x(d.k) + x.bandwidth() / 2).text(d => d.t ? d.b.toFixed(1) : (d.b - d.a >= 0 ? '+' : '−') + Math.abs(d.b - d.a).toFixed(1)).transition().duration(DUR).attr('y', d => y(hi(d)) - 6);
+  brSvg.select('g.x').selectAll('text').data(D, d => d.k).join('text').attr('text-anchor','middle').attr('font-size', 11).attr('fill','#5E6B7E').attr('x', d => x(d.k) + x.bandwidth() / 2).attr('y', h - 8).text(d => d.k);
+  $('prompt').innerHTML = `<b>Role:</b> You are the head of planning at a lighting and electrical distributor.\n<b>Context:</b> ${SC === 'Custom' ? 'Custom' : SC} scenario. Last year AED ${LY.toFixed(0)}M across ${CATS.length} categories. Assumptions by category (growth / price / share): ${P.map(p => `${p.n.split(' ')[0]} ${p.g}/${p.p}/${p.s}`).join('; ')}.\n<b>Task:</b> Write a one-page plan memo for the leadership team.\n<b>Format:</b> Headline, three drivers, two risks, one ask.\n<b>Constraints:</b> Use only these numbers. Flag any assumption above 12% growth.`;
+  memoTok++; $('memo').innerHTML = '<div class="who">✦ Planning assistant</div><span style="color:var(--muted)">Assumptions changed. Press "Draft the planning memo" to regenerate.</span>';
+}
+let memoTok = 0;
+function memoHtml(){ const P = plan(), LY = sum(P.map(p => p.ly)), PL = sum(P.map(p => p.plan)), up = P.slice().sort((a, b) => (b.plan - b.ly) - (a.plan - a.ly)), hot = P.filter(p => p.g > 12), neg = P.filter(p => p.plan < p.ly);
+  return `<div class="who">✦ Planning assistant · ${esc(SC)} scenario</div><p style="margin:0 0 6px"><b>Headline:</b> We plan AED ${PL.toFixed(1)}M next year, ${PL >= LY ? 'up' : 'down'} ${Math.abs((PL / LY - 1) * 100).toFixed(1)}% on AED ${LY.toFixed(0)}M.</p>` +
+    `<p style="margin:0 0 6px"><b>Drivers:</b> ${up.slice(0, 3).map(p => `${p.n} (${p.plan - p.ly >= 0 ? '+' : '−'}AED ${Math.abs(p.plan - p.ly).toFixed(1)}M, growth ${p.g}%, price ${p.p}%)`).join('; ')}.</p>` +
+    `<p style="margin:0 0 6px"><b>Risks:</b> ${neg.length ? `${neg.map(p => p.n).join(' and ')} decline under these assumptions` : 'price pressure from imports could erode the price gains'}; ${hot.length ? `growth above 12% assumed for ${hot.map(p => p.n.split(' ')[0]).join(', ')}, which needs a named project pipeline to support it` : 'project timing could shift revenue between years'}.</p>` +
+    `<p style="margin:0"><b>Ask:</b> ${PL >= LY ? `approve focus investment in ${up[0].n.toLowerCase()}, where most of the growth sits` : 'agree a cost and inventory response before the plan is locked'}.</p>`; }
+$('memoGo').addEventListener('click', () => { const t = ++memoTok; stream($('memo'), memoHtml(), () => memoTok, t); });
+const QS = [['Which category drives growth?', () => { const P = plan().sort((a, b) => (b.plan - b.ly) - (a.plan - a.ly)); return `<b>${esc(P[0].n)}</b> adds the most: AED ${(P[0].plan - P[0].ly).toFixed(1)}M, ${((P[0].plan / P[0].ly - 1) * 100).toFixed(1)}% on last year. Next is ${esc(P[1].n)} at AED ${(P[1].plan - P[1].ly).toFixed(1)}M.`; }],
+  ['What if prices fall 3% everywhere?', () => { const P = plan(), base = sum(P.map(p => p.plan)), alt = sum(CATS.map(c => { const [g, p, s] = A[c.k]; return c.ly * (1 + g / 100) * (1 + (p - 3) / 100) * (1 + s / 100); })); return `Plan drops by <b>AED ${(base - alt).toFixed(1)}M</b> to AED ${alt.toFixed(1)}M. Growth falls from ${((base / sum(CATS.map(c => c.ly)) - 1) * 100).toFixed(1)}% to ${((alt / sum(CATS.map(c => c.ly)) - 1) * 100).toFixed(1)}%.`; }],
+  ['Which assumptions look aggressive?', () => { const P = plan().filter(p => p.g > 12 || p.s > 2 || p.p > 3); return P.length ? `Check ${P.map(p => `<b>${esc(p.n)}</b> (${p.g}% growth, ${p.p}% price, ${p.s} pt share)`).join(', ')}. Ask for the named projects behind them.` : 'None stand out: all categories are within 12% growth, 3% price and 2 points of share.'; }]];
+$('qs').innerHTML = QS.map((q, i) => `<button type="button" class="chipb" data-qq="${i}">${q[0]}</button>`).join('');
+$('qs').addEventListener('click', e => { const b = e.target.closest('[data-qq]'); if (!b) return; const t = ++memoTok; stream($('memo'), `<div class="who">✦ Planning assistant · ${esc(QS[+b.dataset.qq][0])}</div>` + QS[+b.dataset.qq][1](), () => memoTok, t); });
+$('scBar').addEventListener('click', e => { const b = e.target.closest('[data-sc]'); if (!b) return; SC = b.dataset.sc; Object.assign(A, JSON.parse(JSON.stringify(SCN[SC]))); $('scBar').querySelectorAll('[data-sc]').forEach(x => x.classList.toggle('on', x === b)); syncInputs(); drawPlan(); });
+$('cats').addEventListener('input', e => { const el = e.target; if (!el.dataset.c) return; A[el.dataset.c][+el.dataset.j] = +el.value; SC = 'Custom'; $('scBar').querySelectorAll('[data-sc]').forEach(x => x.classList.remove('on')); syncInputs(); drawPlan(); });
+syncInputs();
+
+/* ======================================================================
+   03 · LIGHT & SAVINGS STUDIO
+   ====================================================================== */
+const SPACES = {
+  office:{ n:'Open office', w:24, d:14, h:2.8, target:500, hrs:12, days:300, occ:.25, leg:{ n:'4×18W T8 troffer', W:80, lm:3600, dep:.75, price:0 }, led:{ n:'LED panel 34W', W:34, lm:4000, price:160, inst:45 }, maint:22, base:44 },
+  warehouse:{ n:'Warehouse', w:40, d:24, h:9, target:200, hrs:20, days:350, occ:.35, leg:{ n:'400W metal halide', W:450, lm:28000, dep:.65, price:0 }, led:{ n:'LED high-bay 150W', W:150, lm:22500, price:620, inst:120 }, maint:85, base:24 },
+  retail:{ n:'Retail floor', w:20, d:14, h:3.5, target:750, hrs:14, days:360, occ:.1, leg:{ n:'2×26W CFL downlight', W:60, lm:2400, dep:.7, price:0 }, led:{ n:'LED downlight 22W', W:22, lm:2500, price:95, inst:35 }, maint:18, base:80 },
+  carpark:{ n:'Car park', w:48, d:30, h:2.8, target:75, hrs:24, days:365, occ:.45, leg:{ n:'2×36W T8 batten', W:80, lm:5000, dep:.75, price:0 }, led:{ n:'LED batten 40W', W:40, lm:5200, price:110, inst:35 }, maint:20, base:30 }
+};
+let SP = 'office', mode = 'led', heatOn = true;
+$('spBar').innerHTML = '<b>Space</b>' + Object.entries(SPACES).map(([k, s]) => `<button type="button" class="chipb${k === SP ? ' on' : ''}" data-sp="${k}">${s.n}</button>`).join('');
+const MF = .8, UF = .62, CO2 = .4, GX = 48, GY = 28;
+function layout(){ const S = SPACES[SP], dens = .6 + +$('nf').value / 10 * .8, n0 = S.target * S.w * S.d / (S.led.lm * MF * UF) * dens;
+  const ar = S.w / S.d, cols = Math.max(2, Math.round(Math.sqrt(n0 * ar))), rows = Math.max(2, Math.round(n0 / cols));
+  const F = []; for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) F.push({ x: (c + .5) * S.w / cols, y: (r + .5) * S.d / rows }); return { F, cols, rows }; }
+function daylight(hr){ return Math.max(0, Math.sin((hr - 6) / 13 * Math.PI)) * 1400; }
+function luxGrid(fix, lmEach, h, S, hr, dimmed){ const g = new Float32Array(GX * GY), dl = daylight(hr), winDepth = SP === 'office' || SP === 'retail' ? 4 : SP === 'carpark' ? 6 : 2.5;
+  for (let j = 0; j < GY; j++) for (let i = 0; i < GX; i++){ const px = (i + .5) / GX * S.w, py = (j + .5) / GY * S.d; let e = 0;
+    fix.forEach((f, k) => { const d2 = (px - f.x) ** 2 + (py - f.y) ** 2 + h * h; e += (lmEach * (dimmed ? dimmed[k] : 1)) / Math.PI * h * h / (d2 * d2); });
+    g[j * GX + i] = e; }
+  const m0 = d3.mean(g) || 1; for (let q = 0; q < g.length; q++) g[q] = g[q] * .72 + m0 * .28;
+  const lumenAvg = fix.length * lmEach * MF * UF / (S.w * S.d), dimAvg = dimmed ? d3.mean(dimmed) : 1, mean = d3.mean(g) || 1, k = lumenAvg * dimAvg / mean;
+  for (let j = 0; j < GY; j++) for (let i = 0; i < GX; i++){ const py = (j + .5) / GY * S.d; g[j * GX + i] = g[j * GX + i] * k + dl * Math.exp(-py / winDepth) * .35; }
+  return g; }
+function calc(){ const S = SPACES[SP], { F } = layout(), hr = +$('hr').value, tariff = +$('tf').value / 100, occ = $('occ').checked, dayD = $('day').checked;
+  const legLm = S.leg.lm * S.leg.dep, ledLm = S.led.lm;
+  const dl = daylight(hr), winDepth = SP === 'office' || SP === 'retail' ? 4 : SP === 'carpark' ? 6 : 2.5;
+  const dimmed = mode === 'led' && dayD ? F.map(f => Math.max(.2, Math.min(1, 1 - (dl * Math.exp(-f.y / winDepth) * .35) / S.target))) : null;
+  const grid = luxGrid(F, mode === 'led' ? ledLm : legLm, S.h, S, hr, dimmed);
+  const hoursLeg = S.hrs * S.days, hoursLed = hoursLeg * (occ ? 1 - S.occ : 1), dimF = dayD ? (SP === 'warehouse' ? .9 : SP === 'carpark' ? .92 : .8) : 1;
+  const kwhLeg = F.length * S.leg.W * hoursLeg / 1000, kwhLed = F.length * S.led.W * hoursLed * dimF / 1000;
+  const save = (kwhLeg - kwhLed) * tariff + F.length * S.maint, capex = F.length * (S.led.price + S.led.inst) + (occ ? Math.ceil(S.w * S.d / 60) * 180 : 0) + (dayD ? 2500 : 0);
+  return { S, F, grid, n: F.length, kwhLeg, kwhLed, save, capex, payback: capex / Math.max(1, save) * 12, co2: (kwhLeg - kwhLed) * CO2 / 1000, wm2Leg: F.length * S.leg.W / (S.w * S.d), wm2Led: F.length * S.led.W / (S.w * S.d), avg: d3.mean(grid), uni: d3.min(grid) / d3.mean(grid), tariff }; }
+const heatCol = d3.scaleSequential(t => d3.interpolateInferno(.12 + .85 * t));
+let LT = null, barSvg = null, cashSvg = null;
+function drawLt(){
+  const R = calc(), S = R.S, hr = +$('hr').value;
+  $('hrV').textContent = `${String(Math.floor(hr)).padStart(2, '0')}:${hr % 1 ? '30' : '00'}`; $('tfV').textContent = R.tariff.toFixed(2); $('nfV').textContent = `${R.n} fittings`;
+  $('ltK').innerHTML = `<div class="ms ${R.avg >= S.target * .95 ? 'a' : 'b'}"><div class="k">Avg lux now (target ${S.target})</div><div class="v">${Math.round(R.avg)}</div></div><div class="ms"><div class="k">Uniformity min/avg</div><div class="v">${R.uni.toFixed(2)}</div></div><div class="ms"><div class="k">W/m² legacy → LED</div><div class="v">${R.wm2Leg.toFixed(1)} → ${R.wm2Led.toFixed(1)}</div></div>`;
+  $('ltK2').innerHTML = `<div class="ms a"><div class="k">Savings per year</div><div class="v">${aed(R.save)}</div></div><div class="ms o"><div class="k">Payback</div><div class="v">${R.payback < 120 ? R.payback.toFixed(0) + ' months' : '> 10 yrs'}</div></div><div class="ms a"><div class="k">CO₂ avoided</div><div class="v">${R.co2.toFixed(1)} t/yr</div></div>`;
+  $('badge3').textContent = `${S.n} · ${S.w}×${S.d} m · ${mode === 'led' ? S.led.n : S.leg.n} × ${R.n}`;
+  const mx = Math.max(S.target * 1.6, d3.quantile(Array.from(R.grid).sort((a, b) => a - b), .98)); heatCol.domain([0, mx]);
+  $('legGr').style.background = `linear-gradient(90deg,${d3.range(0, 1.01, .1).map(t => heatCol(t * mx)).join(',')})`; $('legLb').innerHTML = `<span>0</span><span>${Math.round(mx / 2)}</span><span>${Math.round(mx)}</span>`;
+  if (LT) LT.update(R, mx);
+  const w = 360, h = 120, m = { t: 6, r: 70, b: 6, l: 70 };
+  if (!barSvg){ barSvg = d3.select('#ltBars').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Annual energy legacy versus LED'); barSvg.append('g').attr('class','b'); barSvg.append('g').attr('class','l'); barSvg.append('g').attr('class','v'); }
+  const D = [{ k:'Legacy', v: R.kwhLeg, c:'#8C98AA' }, { k:'LED', v: R.kwhLed, c:'#FFB627' }], x = d3.scaleLinear().domain([0, R.kwhLeg]).range([m.l, w - m.r]), y = d3.scaleBand().domain(D.map(d => d.k)).range([m.t, h - m.b]).padding(.3);
+  barSvg.select('g.l').selectAll('text').data(D).join('text').attr('x', m.l - 8).attr('text-anchor','end').attr('font-size', 12).attr('font-weight', 700).attr('fill','#15202E').attr('y', d => y(d.k) + y.bandwidth() / 2 + 4).text(d => d.k);
+  barSvg.select('g.b').selectAll('rect').data(D).join('rect').attr('x', m.l).attr('y', d => y(d.k)).attr('height', y.bandwidth()).attr('rx', 4).attr('fill', d => d.c).transition().duration(DUR).attr('width', d => x(d.v) - m.l);
+  barSvg.select('g.v').selectAll('text').data(D).join('text').attr('font-size', 11).attr('font-weight', 800).attr('fill','#15202E').attr('y', d => y(d.k) + y.bandwidth() / 2 + 4).text(d => (d.v / 1000).toFixed(1) + ' MWh').transition().duration(DUR).attr('x', d => x(d.v) + 5);
+  const w2 = 360, h2 = 170, m2 = { t: 10, r: 22, b: 24, l: 54 }, yrs = d3.range(0, 11), cash = yrs.map(t => -R.capex + R.save * t);
+  if (!cashSvg){ cashSvg = d3.select('#ltCash').append('svg').attr('viewBox', `0 0 ${w2} ${h2}`).attr('role','img').attr('aria-label','Cumulative cash over ten years'); cashSvg.append('g').attr('class','axis ya'); cashSvg.append('g').attr('class','axis xa'); cashSvg.append('line').attr('class','z'); cashSvg.append('path').attr('class','ar'); cashSvg.append('path').attr('class','ln'); cashSvg.append('circle').attr('class','pb').attr('r', 5); cashSvg.append('text').attr('class','pbt').attr('font-size', 10.5).attr('font-weight', 800).attr('fill','#1F9D63'); }
+  const x2 = d3.scaleLinear().domain([0, 10]).range([m2.l, w2 - m2.r]), y2 = d3.scaleLinear().domain([Math.min(-R.capex, 0) * 1.1, Math.max(cash[10], 1) * 1.1]).nice().range([h2 - m2.b, m2.t]);
+  cashSvg.select('g.ya').attr('transform', `translate(${m2.l},0)`).transition().duration(DUR).call(d3.axisLeft(y2).ticks(4).tickSize(0).tickPadding(4).tickFormat(v => (v / 1000).toFixed(0) + 'k'));
+  cashSvg.select('g.xa').attr('transform', `translate(0,${h2 - m2.b})`).call(d3.axisBottom(x2).ticks(5).tickFormat(v => 'yr ' + v).tickSize(0).tickPadding(6));
+  cashSvg.select('line.z').attr('x1', m2.l).attr('x2', w2 - m2.r).attr('stroke','#9AA6B8').transition().duration(DUR).attr('y1', y2(0)).attr('y2', y2(0));
+  cashSvg.select('path.ar').datum(cash).attr('fill','rgba(31,157,99,.14)').transition().duration(DUR).attr('d', d3.area().x((d, i) => x2(i)).y0(y2(0)).y1(d => y2(d)));
+  cashSvg.select('path.ln').datum(cash).attr('fill','none').attr('stroke','#1F9D63').attr('stroke-width', 2.4).transition().duration(DUR).attr('d', d3.line().x((d, i) => x2(i)).y(d => y2(d)));
+  const pbY = R.payback / 12; cashSvg.select('circle.pb').attr('fill','#1F9D63').attr('opacity', pbY <= 10 ? 1 : 0).transition().duration(DUR).attr('cx', x2(Math.min(10, pbY))).attr('cy', y2(0));
+  cashSvg.select('text.pbt').attr('opacity', pbY <= 10 ? 1 : 0).text(`payback ${pbY.toFixed(1)} yrs`).transition().duration(DUR).attr('x', Math.min(w2 - 90, x2(Math.min(10, pbY)) + 6)).attr('y', y2(0) - 8);
+}
+function buildLt(){
+  if (!hasThree){ $('st3').insertAdjacentHTML('afterbegin', '<p style="padding:60px 20px;text-align:center;color:#C9D4E5">The 3D view needs an internet connection to load its library.</p>'); drawLt(); return; }
+  const host = $('st3'), W0 = 960, H0 = 520, renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1)); renderer.setSize(W0, H0, false); host.insertBefore(renderer.domElement, host.firstChild); renderer.domElement.style.width = '100%'; renderer.domElement.style.height = 'auto'; renderer.domElement.setAttribute('aria-label','3D room with light fittings and floor light levels');
+  const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(42, W0 / H0, .1, 500);
+  scene.add(new THREE.AmbientLight(0xffffff, .55)); const dir = new THREE.DirectionalLight(0xffffff, .5); dir.position.set(10, 30, 20); scene.add(dir);
+  const root = new THREE.Group(); scene.add(root);
+  const cnv = document.createElement('canvas'); cnv.width = GX; cnv.height = GY; const ctx = cnv.getContext('2d'); const tex = new THREE.CanvasTexture(cnv); tex.magFilter = THREE.LinearFilter; tex.minFilter = THREE.LinearFilter;
+  let floor = null, walls = null, win = null, fixMeshes = [], cones = [];
+  let theta = .6, phi = 1.0, dist = 40, drag = null, visible = false, spin = !reduce;
+  function rebuild(S){ while (root.children.length) root.remove(root.children[0]); fixMeshes = []; cones = [];
+    floor = new THREE.Mesh(new THREE.PlaneGeometry(S.w, S.d), new THREE.MeshBasicMaterial({ map: tex })); floor.rotation.x = -Math.PI / 2; root.add(floor);
+    const wm = new THREE.MeshLambertMaterial({ color: 0xC9D4E5, transparent: true, opacity: .16, side: THREE.DoubleSide });
+    const back = new THREE.Mesh(new THREE.PlaneGeometry(S.w, S.h), wm); back.position.set(0, S.h / 2, -S.d / 2); root.add(back);
+    const side = new THREE.Mesh(new THREE.PlaneGeometry(S.d, S.h), wm); side.rotation.y = Math.PI / 2; side.position.set(-S.w / 2, S.h / 2, 0); root.add(side);
+    win = new THREE.Mesh(new THREE.PlaneGeometry(S.w, S.h * .55), new THREE.MeshBasicMaterial({ color: 0xBFE3FF, transparent: true, opacity: .35, side: THREE.DoubleSide })); win.position.set(0, S.h * .55, -S.d / 2 + .02); root.add(win);
+    const edges = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(S.w, S.h, S.d)), new THREE.LineBasicMaterial({ color: 0x5B6E8C, transparent: true, opacity: .5 })); edges.position.y = S.h / 2; root.add(edges);
+    dist = Math.max(S.w, S.d) * 1.55; }
+  function setFix(R){ fixMeshes.forEach(m => root.remove(m)); cones.forEach(m => root.remove(m)); fixMeshes = []; cones = []; const S = R.S, led = mode === 'led';
+    const geo = SP === 'retail' ? new THREE.CylinderGeometry(.18, .18, .06, 18) : SP === 'warehouse' ? new THREE.CylinderGeometry(.45, .25, .5, 20) : SP === 'carpark' ? new THREE.BoxGeometry(1.2, .08, .12) : new THREE.BoxGeometry(.6, .05, .6);
+    const mat = new THREE.MeshBasicMaterial({ color: led ? 0xFFF4D6 : 0xFFD08A });
+    const coneMat = new THREE.MeshBasicMaterial({ color: led ? 0xFFF1C4 : 0xFFB45C, transparent: true, opacity: led ? .07 : .05, depthWrite: false });
+    R.F.forEach(f => { const m = new THREE.Mesh(geo, mat); m.position.set(f.x - S.w / 2, S.h - .05, f.y - S.d / 2); root.add(m); fixMeshes.push(m);
+      if (R.n <= 140){ const c = new THREE.Mesh(new THREE.ConeGeometry(S.h * .55, S.h - .1, 18, 1, true), coneMat); c.position.set(f.x - S.w / 2, (S.h - .1) / 2, f.y - S.d / 2); root.add(c); cones.push(c); } }); }
+  function paintFloor(R, mx){ const img = ctx.createImageData(GX, GY); for (let j = 0; j < GY; j++) for (let i = 0; i < GX; i++){ const v = R.grid[j * GX + i], c = d3.rgb(heatOn ? heatCol(Math.min(mx, v)) : d3.interpolateRgb('#2A3240', '#F3EBD9')(Math.min(1, v / (R.S.target * 1.3)))), o = (j * GX + i) * 4; img.data[o] = c.r; img.data[o + 1] = c.g; img.data[o + 2] = c.b; img.data[o + 3] = 255; } ctx.putImageData(img, 0, 0); tex.needsUpdate = true; }
+  let curSp = null;
+  LT = { update(R, mx){ if (curSp !== SP){ rebuild(R.S); curSp = SP; } setFix(R); paintFloor(R, mx); const dl = daylight(+$('hr').value); win.material.opacity = .12 + dl / 1400 * .5; render(); } };
+  function place(){ cam.position.set(dist * Math.sin(phi) * Math.sin(theta), dist * Math.cos(phi), dist * Math.sin(phi) * Math.cos(theta)); cam.lookAt(0, 0, 0); }
+  function render(){ place(); renderer.render(scene, cam); }
+  const cvs = renderer.domElement;
+  cvs.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY }; spin = false; cvs.setPointerCapture(e.pointerId); });
+  cvs.addEventListener('pointermove', e => { if (!drag) return; theta -= (e.clientX - drag.x) * .006; phi = Math.max(.3, Math.min(1.35, phi - (e.clientY - drag.y) * .005)); drag.x = e.clientX; drag.y = e.clientY; render(); });
+  cvs.addEventListener('pointerup', () => { drag = null; });
+  cvs.addEventListener('wheel', e => { e.preventDefault(); dist = Math.max(10, Math.min(140, dist * (e.deltaY > 0 ? 1.1 : .9))); render(); }, { passive: false });
+  function frame(){ if (!visible) return; requestAnimationFrame(frame); if (spin){ theta += .0015; render(); } }
+  new IntersectionObserver(es => { const on = es[0].isIntersecting; if (on && !visible){ visible = true; requestAnimationFrame(frame); } else if (!on) visible = false; }, { threshold: .05 }).observe(host);
+  drawLt();
+}
+$('spBar').addEventListener('click', e => { const b = e.target.closest('[data-sp]'); if (!b) return; SP = b.dataset.sp; $('spBar').querySelectorAll('[data-sp]').forEach(x => x.classList.toggle('on', x === b)); $('nf').value = 5; drawLt(); });
+['hr','tf','nf'].forEach(id => $(id).addEventListener('input', drawLt)); ['occ','day'].forEach(id => $(id).addEventListener('change', drawLt));
+$('tLeg').addEventListener('click', () => { mode = 'leg'; $('tLeg').classList.add('on'); $('tLed').classList.remove('on'); drawLt(); });
+$('tLed').addEventListener('click', () => { mode = 'led'; $('tLed').classList.add('on'); $('tLeg').classList.remove('on'); drawLt(); });
+$('tHeat').addEventListener('click', () => { heatOn = !heatOn; $('tHeat').classList.toggle('on', heatOn); drawLt(); });
+
+/* ======================================================================
+   04 · BOQ TO QUOTE
+   ====================================================================== */
+const CAT = [
+  { sku:'BM-DL18-840-44-D', t:'downlight', W:18, cct:4000, ip:44, beam:60, dim:'DALI', cut:150, cost:62 }, { sku:'BM-DL18-830-20', t:'downlight', W:18, cct:3000, ip:20, beam:60, dim:'none', cut:150, cost:41 },
+  { sku:'BM-DL15-840-65-D', t:'downlight', W:15, cct:4000, ip:65, beam:40, dim:'DALI', cut:125, cost:74 }, { sku:'BM-DL24-840-44-D', t:'downlight', W:24, cct:4000, ip:44, beam:60, dim:'DALI', cut:175, cost:79 },
+  { sku:'BM-PN36-840-20-D', t:'panel', W:36, cct:4000, ip:20, beam:110, dim:'DALI', cut:600, cost:118 }, { sku:'BM-PN34-840-40', t:'panel', W:34, cct:4000, ip:40, beam:110, dim:'0-10V', cut:600, cost:104 },
+  { sku:'BM-PN30-865-20', t:'panel', W:30, cct:6500, ip:20, beam:110, dim:'none', cut:600, cost:79 }, { sku:'BM-LN40-840-20-D', t:'linear', W:40, cct:4000, ip:20, beam:90, dim:'DALI', cut:0, cost:146 },
+  { sku:'BM-LN36-830-20', t:'linear', W:36, cct:3000, ip:20, beam:90, dim:'none', cut:0, cost:112 }, { sku:'BM-HB150-850-65', t:'highbay', W:150, cct:5000, ip:65, beam:90, dim:'1-10V', cut:0, cost:540 },
+  { sku:'BM-HB200-850-65', t:'highbay', W:200, cct:5000, ip:65, beam:60, dim:'1-10V', cut:0, cost:690 }, { sku:'BM-FL100-840-66', t:'flood', W:100, cct:4000, ip:66, beam:60, dim:'none', cut:0, cost:310 },
+  { sku:'BM-FL150-830-66', t:'flood', W:150, cct:3000, ip:66, beam:30, dim:'none', cut:0, cost:395 }, { sku:'BM-BT40-840-65', t:'batten', W:40, cct:4000, ip:65, beam:120, dim:'none', cut:0, cost:96 },
+  { sku:'BM-BT40-840-65-MS', t:'batten', W:40, cct:4000, ip:65, beam:120, dim:'sensor', cut:0, cost:128 }, { sku:'BM-EX3-NM-65', t:'exit', W:3, cct:6500, ip:65, beam:0, dim:'self-test', cut:0, cost:88 },
+  { sku:'BM-EM5-M-20', t:'emergency', W:5, cct:6500, ip:20, beam:0, dim:'self-test', cut:0, cost:72 }, { sku:'BM-TR30-930-20-D', t:'track', W:30, cct:3000, ip:20, beam:24, dim:'DALI', cut:0, cost:168 }
+];
+const BOQ = [
+  { id:'L-01', txt:'Recessed LED downlight, 18W, 4000K, IP44, 60° beam, Ø150 cut-out, DALI dimmable', q:240, req:{ t:'downlight', W:18, cct:4000, ip:44, beam:60, dim:'DALI', cut:150 } },
+  { id:'L-02', txt:'LED panel 600×600, 36W, 4000K, UGR<19, DALI', q:180, req:{ t:'panel', W:36, cct:4000, ip:20, beam:110, dim:'DALI', cut:600 } },
+  { id:'L-03', txt:'Linear suspended profile, 40W/1.2 m, 4000K, DALI', q:96, req:{ t:'linear', W:40, cct:4000, ip:20, beam:90, dim:'DALI', cut:0 } },
+  { id:'L-04', txt:'Bathroom downlight, 15W, 4000K, IP65, narrow beam', q:64, req:{ t:'downlight', W:15, cct:4000, ip:65, beam:40, dim:'none', cut:125 } },
+  { id:'L-05', txt:'High-bay for loading bay, 150W, 5000K, IP65', q:28, req:{ t:'highbay', W:150, cct:5000, ip:65, beam:90, dim:'1-10V', cut:0 } },
+  { id:'L-06', txt:'Car park batten 1.2 m, 40W, IP65, with microwave sensor', q:210, req:{ t:'batten', W:40, cct:4000, ip:65, beam:120, dim:'sensor', cut:0 } },
+  { id:'L-07', txt:'Façade floodlight 120W, 3000K, IP66, 30° beam', q:16, req:{ t:'flood', W:120, cct:3000, ip:66, beam:30, dim:'none', cut:0 } },
+  { id:'L-08', txt:'Maintained exit sign, self-test, IP65', q:44, req:{ t:'exit', W:3, cct:6500, ip:65, beam:0, dim:'self-test', cut:0 } },
+  { id:'L-09', txt:'Retail track spot 30W, 3000K, CRI 90, 24°, DALI', q:120, req:{ t:'track', W:30, cct:3000, ip:20, beam:24, dim:'DALI', cut:0 } }
+];
+function score(r, s){ const ck = [['Type', s.t === r.t, 3], ['Watts', Math.abs(s.W - r.W) / r.W <= .1, 2], ['CCT', s.cct === r.cct, 2], ['IP', s.ip >= r.ip, 2], ['Beam', !r.beam || Math.abs(s.beam - r.beam) <= 10, 1], ['Control', r.dim === 'none' || s.dim === r.dim, 1.5], ['Cut-out', !r.cut || s.cut === r.cut, 1]];
+  const tot = sum(ck.map(c => c[2])), got = sum(ck.filter(c => c[1]).map(c => c[2])); return { s, ck, conf: s.t === r.t ? got / tot : got / tot * .4 }; }
+const BQ = BOQ.map(b => ({ ...b, cands: CAT.map(s => score(b.req, s)).sort((a, c) => c.conf - a.conf || a.s.cost - c.s.cost).slice(0, 3), pick: 0, done: false }));
+const cfc = v => v >= .85 ? 'h' : v >= .65 ? 'm' : 'l';
+function drawBoq(runIdx){
+  const mg = +$('mg').value / 100; $('mgV').textContent = Math.round(mg * 100) + '%';
+  $('boq').innerHTML = `<tr><th>BOQ line</th><th>Matched item</th><th class="n">Qty</th><th class="n">Unit AED</th><th class="n">Total AED</th></tr>` + BQ.map((b, i) => { const c = b.cands[b.pick], unit = c.s.cost / (1 - mg);
+    return `<tr class="${i === runIdx ? 'run' : b.done ? 'done' : ''}"><td style="width:42%"><b>${b.id}</b> <span class="spec">${esc(b.txt)}</span></td><td>${b.done ? `<span class="sku">${c.s.sku}</span> <span class="cf ${cfc(c.conf)}">${Math.round(c.conf * 100)}%</span><div>${c.ck.map(k => `<span class="${k[1] ? 'ok' : 'no'}">${k[1] ? '✓' : '✗'} ${k[0]}</span>`).join('')}</div><div class="alts">${b.cands.map((a, j) => `<button type="button" class="${j === b.pick ? 'on' : ''}" data-b="${i}" data-p="${j}" title="${Math.round(a.conf * 100)}% match">${a.s.sku.split('-').slice(1, 3).join('-')}</button>`).join('')}</div>` : i === runIdx ? '<span style="color:var(--muted)">reading spec…</span>' : '<span style="color:#B3BDCB">—</span>'}</td><td class="n">${b.q}</td><td class="n">${b.done ? unit.toFixed(0) : ''}</td><td class="n"><b>${b.done ? Math.round(unit * b.q).toLocaleString('en-US') : ''}</b></td></tr>`; }).join('');
+  const D = BQ.filter(b => b.done), auto = D.filter(b => b.cands[b.pick].conf >= .85).length, val = sum(D.map(b => b.cands[b.pick].s.cost / (1 - mg) * b.q)), cost = sum(D.map(b => b.cands[b.pick].s.cost * b.q));
+  $('bqK').innerHTML = `<div class="ms a"><div class="k">Matched automatically</div><div class="v">${auto}/${BQ.length}</div></div><div class="ms o"><div class="k">For review</div><div class="v">${D.length - auto}</div></div><div class="ms"><div class="k">Quote value</div><div class="v">${aed(val)}</div></div><div class="ms"><div class="k">Gross margin</div><div class="v">${aed(val - cost)}</div></div>`;
+  const w = 360, h = 40; let sv = d3.select('#bqMix').select('svg'); if (sv.empty()) sv = d3.select('#bqMix').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Quote value by line');
+  const tot = val || 1; let a = 0; const segs = D.map(b => { const v = b.cands[b.pick].s.cost / (1 - mg) * b.q, s2 = { b, x0: a, v }; a += v; return s2; });
+  const x = d3.scaleLinear().domain([0, tot]).range([0, w]), col = d3.scaleOrdinal(['#0C1B33','#2B63B0','#5B8BD0','#8FB1E3','#FFB627','#E07A1F','#1F9D63','#7FC8A5','#C9D4E5']);
+  sv.selectAll('rect').data(segs, d => d.b.id).join('rect').attr('y', 6).attr('height', 22).attr('fill', d => col(d.b.id)).on('mousemove', (ev, d) => showTip(`<div class="t">${d.b.id}</div>${aed(d.v)} · ${(d.v / tot * 100).toFixed(0)}% of quote`, ev)).on('mouseleave', hideTip).transition().duration(DUR).attr('x', d => x(d.x0)).attr('width', d => Math.max(0, x(d.v) - 1));
+  sv.selectAll('text').data([0]).join('text').attr('x', 0).attr('y', h - 1).attr('font-size', 9.5).attr('fill','#5E6B7E').text(D.length ? 'quote value by BOQ line' : '');
+}
+let bqTok = 0, noteTok = 0;
+$('bqRun').addEventListener('click', async () => { const t = ++bqTok; BQ.forEach(b => { b.done = false; b.pick = 0; }); for (let i = 0; i < BQ.length; i++){ if (t !== bqTok) return; drawBoq(i); await sleep(420); BQ[i].done = true; } drawBoq(); });
+$('bqReset').addEventListener('click', () => { bqTok++; BQ.forEach(b => { b.done = false; b.pick = 0; }); drawBoq(); $('bqMemo').innerHTML = '<div class="who">✦ Quotation assistant</div><span style="color:var(--muted)">Match the BOQ, then write the cover note.</span>'; });
+$('boq').addEventListener('click', e => { const b = e.target.closest('[data-b]'); if (!b) return; BQ[+b.dataset.b].pick = +b.dataset.p; drawBoq(); });
+$('mg').addEventListener('input', () => drawBoq());
+$('bqNote').addEventListener('click', () => { const D = BQ.filter(b => b.done); if (!D.length){ $('bqMemo').innerHTML = '<div class="who">✦ Quotation assistant</div>Match the BOQ first.'; return; }
+  const mg = +$('mg').value / 100, val = sum(D.map(b => b.cands[b.pick].s.cost / (1 - mg) * b.q)), rv = D.filter(b => b.cands[b.pick].conf < .85);
+  const t = ++noteTok; stream($('bqMemo'), `<div class="who">✦ Quotation assistant · cover note draft</div><p style="margin:0 0 6px">Dear Sir/Madam, thank you for the opportunity to quote for the lighting package. We are pleased to offer ${D.length} line items covering ${sum(D.map(b => b.q)).toLocaleString('en-US')} fittings, for a total of <b>${aed(val)}</b> excluding VAT.</p><p style="margin:0 0 6px">${D.length - rv.length} items fully comply with the specification. ${rv.length ? `For ${rv.map(b => b.id).join(', ')} we propose the closest equivalent; deviations: ${rv.map(b => `${b.id} (${b.cands[b.pick].ck.filter(k => !k[1]).map(k => k[0]).join(', ')})`).join('; ')}. Datasheets attached for approval.` : 'No deviations from the specification.'}</p><p style="margin:0">Validity 30 days; delivery subject to confirmation of quantities.</p>`, () => noteTok, t); });
+drawBoq();
+
+/* ======================================================================
+   IMPACT
+   ====================================================================== */
+function drawFunnel(){
+  const ST = ['Enrolled','Completed workshops','Using GenAI weekly','Proposed a use case','Built a prototype','Own a roadmap item'];
+  const V = { before:[24,6,4,3,0,0], after:[24,23,19,15,11,5] };
+  const w = 560, h = 300, cx = 200, top = 16, rh = 44, s = d3.select('#funnel').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Adoption funnel');
+  const x = d3.scaleLinear().domain([0, 24]).range([0, 330]);
+  const g = s.append('g'), lab = s.append('g'), val = s.append('g');
+  function upd(k){ const D = V[k].map((v, i) => ({ i, v, n: ST[i], nxt: V[k][i + 1] != null ? V[k][i + 1] : v * .7 }));
+    g.selectAll('path').data(D).join(en => en.append('path').attr('fill', (d, i) => d3.interpolateRgb('#0C1B33', '#FFB627')(i / 5)).attr('d', d => `M${cx},${top + d.i * rh}h0l0,${rh - 6}h0z`))
+      .on('mousemove', (ev, d) => showTip(`<div class="t">${d.n}</div><b>${d.v}</b> of ${V[k][0]} leaders (${Math.round(d.v / V[k][0] * 100)}%)`, ev)).on('mouseleave', hideTip)
+      .transition().duration(DUR + 200).attr('d', d => { const a = Math.max(2, x(d.v)) / 2, b = Math.max(2, x(Math.min(d.v, d.nxt) || 0)) / 2, y0 = top + d.i * rh; return `M${cx - a},${y0}L${cx + a},${y0}L${cx + Math.max(b, 2)},${y0 + rh - 6}L${cx - Math.max(b, 2)},${y0 + rh - 6}Z`; });
+    lab.selectAll('text').data(D).join('text').attr('x', 372).attr('y', d => top + d.i * rh + rh / 2).attr('font-size', 12).attr('fill','#15202E').text(d => d.n);
+    val.selectAll('text').data(D).join('text').attr('x', 540).attr('text-anchor','end').attr('y', d => top + d.i * rh + rh / 2).attr('font-family','DM Serif Display, Georgia, serif').attr('font-size', 20).attr('fill','#2B63B0').text(d => d.v); }
+  upd('after'); segBind('fn', upd);
+}
+function drawGantt(){
+  const T = [['Market & competitor scan', 0, 3, 0, 1],['Category plans', 2, 5, 1, 2.5],['Scenarios & sensitivities', 5, 3, 2.5, 1],['Plan narrative & deck', 7, 3, 3, 1],['Leadership review', 9, 2, 4, 1.5]];
+  const w = 560, h = 300, m = { t: 20, r: 20, b: 40, l: 170 }, s = d3.select('#gantt').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Gantt chart of the annual planning cycle');
+  const x = d3.scaleLinear().domain([0, 12]).range([m.l, w - m.r]), y = d3.scaleBand().domain(T.map(t => t[0])).range([m.t, h - m.b]).padding(.35);
+  s.append('g').attr('class','grid').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(6).tickSize(-(h - m.b - m.t)).tickFormat(''));
+  s.append('g').attr('class','axis').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(6).tickFormat(v => 'wk ' + v).tickSize(0).tickPadding(8));
+  s.append('g').selectAll('text').data(T).join('text').attr('x', m.l - 8).attr('y', d => y(d[0]) + y.bandwidth() / 2 + 4).attr('text-anchor','end').attr('font-size', 11.5).attr('fill','#15202E').text(d => d[0]);
+  const b = s.append('g').selectAll('rect').data(T).join('rect').attr('y', d => y(d[0])).attr('height', y.bandwidth()).attr('rx', 5).attr('x', x(0)).attr('width', 0)
+    .on('mousemove', (ev, d) => showTip(`<div class="t">${esc(d[0])}</div>Before <b>${d[2]} wks</b> · after <b>${d[4]} wks</b>`, ev)).on('mouseleave', hideTip);
+  const end = s.append('line').attr('y1', m.t - 6).attr('y2', h - m.b).attr('stroke','#D64545').attr('stroke-dasharray','4 3'), et = s.append('text').attr('y', m.t - 8).attr('font-size', 11).attr('font-weight', 800).attr('fill','#D64545');
+  function upd(k){ const o = k === 'after' ? 3 : 1, d0 = k === 'after' ? 4 : 2; b.transition().duration(DUR + 200).delay((d, i) => reduce ? 0 : i * 80).attr('x', d => x(d[o])).attr('width', d => x(d[o] + d[d0]) - x(d[o])).attr('fill', k === 'after' ? '#2B63B0' : '#8C98AA');
+    const E = d3.max(T, d => d[o] + d[d0]); end.transition().duration(DUR).attr('x1', x(E)).attr('x2', x(E)); et.transition().duration(DUR).attr('x', x(E) - 4).attr('text-anchor','end').text(`${E} weeks`); }
+  upd('after'); segBind('gt', upd);
+}
+
+whenVisible($('plModule'), drawPlan);
+whenVisible($('ltModule'), buildLt);
+whenVisible($('funnel'), drawFunnel); whenVisible($('gantt'), drawGantt);
+window.__bm = { calc, plan, BQ, SPACES };
+})();
+</script>
+</body>
+</html>

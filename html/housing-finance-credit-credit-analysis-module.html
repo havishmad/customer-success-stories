@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Housing Finance · Credit Appraisal Co-pilot | HMC Case Study</title>
+<meta name="description" content="How Havish M Consulting helped the housing finance company's credit team draft credit appraisal memos for affordable home loans with a GenAI co-pilot.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+:root{
+  --pri:#12614F; --deep:#072B24; --acc:#F0883E; --bg:#F4F8F6; --text:#10231E;
+  --muted:#5A6E68; --green:#16A34A; --red:#DC2626; --amber:#D97706; --ind:#3B4BA8; --card:#FFFFFF; --line:#DCE7E2;
+  --pri-10:rgba(18,97,79,.08); --acc-15:rgba(240,136,62,.15);
+  --radius:12px; --shadow:0 1px 2px rgba(7,43,36,.06),0 8px 24px rgba(7,43,36,.08);
+  --serif:"DM Serif Display",Georgia,serif; --sans:"DM Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--serif);font-weight:400;color:var(--deep);margin:0;line-height:1.15}
+h2{font-size:clamp(1.6rem,3.2vw,2.2rem)}
+h3{font-size:1.2rem}
+p{margin:0}
+.wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+section{padding:64px 0}
+.eyebrow{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--pri);margin-bottom:10px}
+.lead{color:var(--muted);max-width:720px;margin-top:12px}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line)}
+.sec-head{margin-bottom:32px}
+
+.topbar{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+.logos{display:flex;align-items:center;gap:16px}
+.logos img{height:44px;width:auto;object-fit:contain}
+.wordmark{font-weight:800;font-size:1.05rem;letter-spacing:.02em;color:var(--deep);line-height:1.1}
+.wordmark small{display:block;font-weight:600;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.vdiv{width:1px;height:36px;background:var(--line)}
+.tagline{font-size:.8rem;color:var(--muted);letter-spacing:.04em}
+.tagline b{color:var(--pri);font-weight:700}
+
+.hero{background:radial-gradient(120% 140% at 85% 10%,#1C7A63 0%,var(--pri) 35%,var(--deep) 80%);color:#fff;padding:80px 0 72px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-40px;top:-40px;width:520px;height:420px;pointer-events:none;opacity:.22;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.9) 0 1px,transparent 1px 26px),repeating-linear-gradient(90deg,rgba(255,255,255,.9) 0 1px,transparent 1px 26px);
+  -webkit-mask:linear-gradient(225deg,#000 10%,transparent 70%);mask:linear-gradient(225deg,#000 10%,transparent 70%)}
+.hero .eyebrow{color:#FFC08F}
+.hero h1{color:#fff;font-size:clamp(2.3rem,5.6vw,3.8rem);max-width:840px;position:relative;z-index:1}
+.hero .sub{font-size:clamp(1.05rem,2vw,1.25rem);color:rgba(255,255,255,.86);max-width:720px;margin-top:18px;position:relative;z-index:1}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px;position:relative;z-index:1}
+.pill{border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:6px 14px;font-size:.85rem;color:#fff;background:rgba(255,255,255,.06)}
+.pill span{color:#FFC08F;font-weight:700;margin-right:6px}
+
+.kpis{margin-top:-40px;position:relative;z-index:2;padding:0}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi{padding:22px 20px;border-top:3px solid var(--acc)}
+.kpi .label{font-size:.82rem;color:var(--muted);font-weight:500}
+.kpi .val{font-family:var(--serif);font-size:clamp(1.9rem,4vw,2.6rem);color:var(--pri);line-height:1.1;margin-top:6px;white-space:nowrap}
+.kpi .val small{font-family:var(--sans);font-size:.9rem;color:var(--muted);margin-left:4px}
+.delta{display:inline-flex;align-items:center;gap:4px;font-size:.8rem;font-weight:700;margin-top:8px;padding:2px 8px;border-radius:999px;background:rgba(22,163,74,.1);color:var(--green)}
+.footnote{font-size:.78rem;color:var(--muted);margin-top:14px}
+
+.ch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.ch{padding:24px}
+.ico{width:44px;height:44px;border-radius:50%;background:var(--acc-15);display:grid;place-items:center;margin-bottom:16px}
+.ico svg{width:22px;height:22px;stroke:#B4561A;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ch h3{margin-bottom:8px}
+.ch p{font-size:.92rem;color:#38504A}
+
+.tl{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.tl::before{content:"";position:absolute;left:10%;right:10%;top:27px;height:2px;background:repeating-linear-gradient(90deg,var(--line) 0 8px,transparent 8px 14px)}
+.tl-step{position:relative;background:none;border:0;cursor:pointer;font:inherit;color:inherit;display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 4px 8px}
+.tl-dot{width:56px;height:56px;border-radius:50%;background:#fff;border:2px solid var(--line);display:grid;place-items:center;font-family:var(--serif);font-size:1.25rem;color:var(--pri);transition:all .25s;position:relative;z-index:1}
+.tl-name{font-weight:700;font-size:.95rem}
+.tl-dur{font-size:.75rem;color:var(--muted);margin-top:-8px}
+.tl-step:hover .tl-dot{border-color:var(--acc)}
+.tl-step[aria-expanded="true"] .tl-dot{background:var(--pri);border-color:var(--pri);color:#fff;box-shadow:0 0 0 6px var(--acc-15)}
+.tl-step:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:8px}
+.tl-panel{display:none;padding:24px 28px;margin-top:20px;border-left:4px solid var(--acc)}
+.tl-panel.open{display:block;animation:fadeUp .35s ease}
+.tl-panel h3{margin-bottom:6px}
+.tl-panel ul{margin:12px 0 0;padding-left:20px;color:#38504A}
+.tl-panel li{margin:6px 0}
+.tl-panel .deliv{margin-top:14px;font-size:.85rem;color:var(--muted)}
+.tl-panel .deliv b{color:var(--pri)}
+.tl-hint{text-align:center;color:var(--muted);font-size:.8rem;margin-top:6px}
+
+.seg{display:inline-flex;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:22px;padding:4px;gap:4px}
+.seg button{border:0;background:none;font:inherit;font-size:.84rem;font-weight:700;padding:7px 14px;border-radius:999px;cursor:pointer;color:var(--muted);transition:all .2s}
+.seg button[aria-pressed="true"]{background:var(--pri);color:#fff}
+.seg button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+
+/* ===== Co-pilot ===== */
+.cop{padding:0;overflow:hidden}
+.cop-top{background:var(--deep);color:#fff;padding:18px 20px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center}
+.personas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.pers{display:flex;gap:10px;align-items:center;text-align:left;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:10px 12px;color:#fff;font:inherit;cursor:pointer;transition:all .2s;min-width:0}
+.pers:hover{background:rgba(255,255,255,.1)}
+.pers[aria-pressed="true"]{background:#fff;color:var(--deep);border-color:#fff;box-shadow:0 0 0 3px rgba(240,136,62,.6)}
+.pers .av{flex:0 0 48px;width:48px;height:48px;border-radius:50%;overflow:hidden;display:block;opacity:1;box-shadow:0 0 0 2px rgba(255,255,255,.35)}
+.pers .av img{width:100%;height:100%;display:block}
+.pers[aria-pressed="true"] .av{box-shadow:0 0 0 2px var(--acc)}
+.pers b{display:block;font-size:.9rem;line-height:1.2}
+.pers .tx span{display:block;font-size:.72rem;opacity:.75;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.run{border:0;background:var(--acc);color:#2B1404;font:inherit;font-weight:800;font-size:.95rem;padding:12px 20px;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;box-shadow:0 6px 18px rgba(240,136,62,.35)}
+.run:hover{filter:brightness(1.05)}
+.run svg{width:16px;height:16px}
+.run:disabled{opacity:.6;cursor:wait}
+.cop-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:0}
+.panel{padding:18px 20px;border-bottom:1px solid var(--line);min-width:0}
+.panel + .panel{border-left:1px solid var(--line)}
+.p4{grid-column:span 4} .p5{grid-column:span 5} .p7{grid-column:span 7} .p8{grid-column:span 8} .p12{grid-column:span 12;border-left:0!important}
+.ph{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.ph h5{margin:0;font-size:.95rem;color:var(--deep)}
+.ph p{font-size:.75rem;color:var(--muted);margin-top:2px;max-width:520px}
+.step{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--pri);color:#fff;font-size:.7rem;font-weight:800;margin-right:6px;vertical-align:1px}
+.docs{display:grid;gap:8px}
+.doc{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center;font-size:.8rem}
+.doc .di{width:30px;height:36px;border-radius:4px;background:#EEF4F1;border:1px solid var(--line);position:relative;overflow:hidden}
+.doc .di::before{content:"";position:absolute;left:5px;right:5px;top:8px;height:16px;background:repeating-linear-gradient(0deg,#C8D6D0 0 2px,transparent 2px 5px)}
+.doc .di i{position:absolute;left:0;right:0;height:2px;background:var(--acc);top:0;opacity:0;box-shadow:0 0 8px var(--acc)}
+.doc.reading .di i{opacity:1;animation:scan .7s linear infinite}
+@keyframes scan{from{top:0}to{top:100%}}
+.doc b{display:block;font-size:.82rem;color:var(--deep)}
+.doc .bar{height:4px;background:#E7EFEB;border-radius:4px;overflow:hidden;margin-top:4px}
+.doc .bar span{display:block;height:100%;width:0;background:var(--pri);border-radius:4px}
+.doc .st{font-size:.72rem;color:var(--muted);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.doc.done .st{color:var(--green);font-weight:700}
+.counters{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}
+.counters div{background:#F4F8F6;border:1px solid var(--line);border-radius:8px;padding:8px}
+.counters b{display:block;font-family:var(--serif);font-weight:400;font-size:1.35rem;color:var(--pri);line-height:1.1;font-variant-numeric:tabular-nums}
+.counters span{font-size:.68rem;color:var(--muted)}
+.lgd{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.lgd button{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px;font:inherit;font-size:.72rem;color:var(--text);cursor:pointer}
+.lgd button i{width:9px;height:9px;border-radius:50%}
+.lgd button[aria-pressed="false"]{opacity:.4}
+.chart svg{width:100%;height:auto;display:block}
+.elig{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr) minmax(0,220px);gap:18px;align-items:start}
+.field label{display:flex;justify-content:space-between;font-size:.82rem;font-weight:600;color:var(--deep);margin-bottom:2px;gap:8px}
+.field label output{font-variant-numeric:tabular-nums;color:var(--pri);font-weight:800}
+.field + .field{margin-top:12px}
+input[type=range]{width:100%;accent-color:var(--pri)}
+.toggle{display:flex;gap:8px;align-items:flex-start;font-size:.78rem;color:var(--deep);margin-top:14px;cursor:pointer;line-height:1.35}
+.toggle input{accent-color:var(--pri);margin-top:2px}
+.emi{margin-top:14px;background:#F4F8F6;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.78rem;color:var(--muted)}
+.emi b{display:block;font-family:var(--serif);font-weight:400;color:var(--deep);font-size:1.5rem;line-height:1.1}
+.verdict{border-radius:12px;padding:14px;color:#fff;margin-top:6px}
+.verdict .k{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;opacity:.8}
+.verdict .v{font-family:var(--serif);font-size:1.45rem;line-height:1.15;margin-top:2px}
+.verdict p{font-size:.78rem;opacity:.9;margin-top:6px}
+.verdict.ok{background:linear-gradient(135deg,#15803D,#12614F)}
+.verdict.warn{background:linear-gradient(135deg,#C2410C,#B45309)}
+.flags{display:grid;gap:8px}
+.flag{display:grid;grid-template-columns:auto 1fr;gap:10px;text-align:left;font:inherit;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;color:var(--text);transition:all .2s;opacity:0;transform:translateX(-8px)}
+.flag.in{opacity:1;transform:none}
+.flag:hover,.flag[aria-pressed="true"]{border-color:var(--pri);box-shadow:0 0 0 2px var(--pri-10)}
+.flag .sv{font-size:.66rem;font-weight:800;letter-spacing:.06em;padding:2px 8px;border-radius:999px;height:fit-content;white-space:nowrap}
+.sv.high{background:#FDECEC;color:#B91C1C} .sv.med{background:#FEF3E2;color:#B45309} .sv.ok{background:#E7F6EC;color:#15803D}
+.flag p{font-size:.8rem;line-height:1.4}
+.flag small{display:block;font-size:.7rem;color:var(--muted);margin-top:3px}
+.memo{background:#FFFDF8;border:1px solid #EADFC9;border-radius:10px;padding:16px 18px;font-size:.8rem;line-height:1.55;min-height:300px;max-height:460px;overflow:auto;position:relative}
+.memo h6{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--pri);margin:12px 0 4px}
+.memo h6:first-child{margin-top:0}
+.memo .mh{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed #E3D6BC;padding-bottom:8px;margin-bottom:8px;font-size:.72rem;color:var(--muted)}
+.memo .mh b{font-family:var(--serif);font-weight:400;font-size:1.05rem;color:var(--deep)}
+.memo table{width:100%;border-collapse:collapse;font-size:.76rem}
+.memo td{padding:2px 0;border-bottom:1px solid #F1E9D8}
+.memo td:last-child{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.caret{display:inline-block;width:7px;height:14px;background:var(--acc);vertical-align:-2px;animation:blink .8s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.mempty{display:grid;place-items:center;height:260px;color:var(--muted);text-align:center;font-size:.85rem}
+.btn{border:1px solid var(--pri);background:#fff;color:var(--pri);font:inherit;font-weight:700;font-size:.78rem;padding:5px 12px;border-radius:999px;cursor:pointer}
+.btn:hover{background:var(--pri);color:#fff}
+
+/* charts */
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.axis text{font-family:var(--sans);font-size:11.5px;fill:var(--muted)}
+.axis line{stroke:var(--line)}
+.axis path{display:none}
+.grid line{stroke:var(--line);stroke-dasharray:2 3}
+.grid path{display:none}
+.ckey{display:flex;gap:16px;font-size:.78rem;color:var(--muted);margin-top:8px;flex-wrap:wrap}
+.ckey span{display:inline-flex;align-items:center;gap:6px}
+.ckey i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.cmp-head{display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+.cmp{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.cmp th,.cmp td{padding:16px 18px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);font-size:.92rem;overflow-wrap:anywhere}
+.cmp thead th{font-family:var(--sans);font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);background:#F7FAF9}
+.cmp tbody tr:last-child td,.cmp tbody tr:last-child th{border-bottom:0}
+.cmp tbody th{font-weight:700;color:var(--pri)}
+.cmp col.c1{width:24%}
+.cmp td{transition:background .3s,opacity .3s,color .3s}
+.cmp.hl-before td.b{background:#FEF5F5;color:#7F1D1D}
+.cmp.hl-before td.a{opacity:.38}
+.cmp.hl-after td.a{background:#EEF8F3;color:#0B4A3C;font-weight:500}
+.cmp.hl-after td.b{opacity:.38}
+.cmp.hl-after thead th.a{color:var(--pri)}
+.cmp.hl-before thead th.b{color:var(--red)}
+
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:.9rem;font-weight:500;display:inline-flex;align-items:center;gap:8px;box-shadow:0 1px 2px rgba(7,43,36,.04)}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--acc)}
+.chip em{font-style:normal;color:var(--muted);font-weight:400;font-size:.82rem}
+
+.tk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.tk{padding:26px}
+.tk .n{font-family:var(--serif);font-size:2.6rem;color:var(--acc);line-height:1}
+.tk h3{margin:12px 0 8px}
+.tk p{font-size:.92rem;color:#38504A}
+
+footer{background:var(--deep);color:rgba(255,255,255,.75);padding:48px 0 32px;margin-top:32px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px}
+.f-brand{display:flex;align-items:center;gap:16px}
+.f-brand img{height:44px;width:auto;border-radius:6px;background:#fff;padding:4px}
+.f-brand b{display:block;color:#fff;font-family:var(--serif);font-weight:400;font-size:1.15rem}
+.copy{width:100%;border-top:1px solid rgba(255,255,255,.12);padding-top:18px;font-size:.8rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+
+#tip{position:fixed;pointer-events:none;z-index:70;background:var(--deep);color:#fff;font-size:.8rem;line-height:1.45;padding:10px 12px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transition:opacity .15s;max-width:270px}
+#tip b{color:#FFC08F;font-weight:700}
+#tip .t{font-weight:700;font-size:.85rem;margin-bottom:2px;color:#fff}
+
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .js .reveal{opacity:1;transform:none;transition:none}
+  .tl-panel.open{animation:none}
+  .doc.reading .di i,.caret{animation:none}
+  .flag{transition:none}
+}
+@media (max-width:1060px){
+  .p4,.p5,.p7,.p8{grid-column:span 12}
+  .panel + .panel{border-left:0}
+  .elig{grid-template-columns:1fr 1fr}
+  .elig .frontier{grid-column:1/-1;grid-row:1}
+  .cop-top{grid-template-columns:1fr}
+}
+@media (max-width:980px){
+  .kpi-grid,.ch-grid{grid-template-columns:repeat(2,1fr)}
+  .dash{grid-template-columns:1fr}
+  .tk-grid{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .wrap{padding:0 16px}
+  section{padding:48px 0}
+  .hero{padding:56px 0 64px}
+  .hero::after{opacity:.12}
+  .logos img{height:34px}
+  .vdiv{height:28px}
+  .kpi-grid{gap:10px}
+  .kpi{padding:16px 14px}
+  .ch-grid{grid-template-columns:1fr}
+  .tl::before{top:19px}
+  .tl-dot{width:40px;height:40px;font-size:1rem}
+  .tl-name{font-size:.75rem}
+  .tl-dur{display:none}
+  .tl-panel{padding:18px}
+  .personas{grid-template-columns:1fr}
+  .panel{padding:14px}
+  .elig{grid-template-columns:1fr}
+  .counters b{font-size:1.1rem}
+  #river,#flow,#front{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  #river svg{min-width:640px}
+  #flow svg{min-width:520px}
+  #front svg{min-width:460px}
+  #gauges{max-width:240px;margin:0 auto}
+  .cmp th,.cmp td{padding:12px 10px;font-size:.82rem}
+  .cmp thead th{font-size:.68rem;letter-spacing:.08em}
+  .chart-card{padding:14px}
+}
+@media print{
+  body{background:#fff;font-size:12px}
+  .topbar{position:static}
+  .hero{background:var(--pri)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:36px 0}
+  .hero::after{display:none}
+  .card{box-shadow:none;break-inside:avoid}
+  section{padding:28px 0}
+  .js .reveal{opacity:1!important;transform:none!important}
+  .seg,.tl-hint,.run,.btn{display:none!important}
+  .tl-panel{display:block!important;margin-top:10px}
+  .flag{opacity:1;transform:none}
+  .memo{max-height:none}
+  #tip{display:none}
+  footer{background:#fff;color:var(--text)}
+  footer .f-brand b{color:var(--deep)}
+  .kpis{margin-top:16px}
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="logos">
+      <img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting">
+    </div>
+    <div class="tagline">Customer Case Study · <b>Credit</b></div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Housing Finance × Havish M Consulting</div>
+    <h1>Credit Appraisal Co-pilot for Affordable Home Loans</h1>
+    <p class="sub">A GenAI co-pilot that reads the whole loan file, from twelve months of bank statements to the legal and technical reports, and drafts the credit appraisal memo. The underwriter still makes the decision, in minutes instead of hours.</p>
+    <div class="pills">
+      <span class="pill"><span>Client</span>Housing Finance</span>
+      <span class="pill"><span>Function</span>Credit</span>
+      <span class="pill"><span>Theme</span>CAM Co-pilot</span>
+    </div>
+  </div>
+</section>
+
+<section class="kpis">
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="card kpi reveal">
+        <div class="label">Time to draft a credit memo</div>
+        <div class="val">~<span class="count" data-to="40" data-dec="0">0</span><small>min</small></div>
+        <div class="delta">▼ from about 3.5 hours</div>
+      </div>
+      <div class="card kpi reveal">
+        <div class="label">Files sent back to branch</div>
+        <div class="val">−<span class="count" data-to="30" data-dec="0">0</span><small>%</small></div>
+        <div class="delta">▼ missing items caught on day one</div>
+      </div>
+      <div class="card kpi reveal">
+        <div class="label">Files per underwriter per day</div>
+        <div class="val"><span class="count" data-to="2" data-dec="0">0</span><small>×</small></div>
+        <div class="delta">▲ same team, double the capacity</div>
+      </div>
+      <div class="card kpi reveal">
+        <div class="label">Bank statements fully analysed</div>
+        <div class="val"><span class="count" data-to="100" data-dec="0">0</span><small>%</small></div>
+        <div class="delta">▲ every transaction, every month</div>
+      </div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="challenge">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Challenge</div>
+      <h2>Informal income, formal paperwork, manual underwriting</h2>
+      <p class="lead">In affordable housing, many applicants are self-employed or paid partly in cash. Proving income means reading the bank statement line by line, and every file was done by hand.</p>
+    </div>
+    <div class="ch-grid">
+      <div class="card ch reveal">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M9 11h8M9 15h8M9 19h5"/></svg></div>
+        <h3>Hours per file</h3>
+        <p>Underwriters read 6 to 12 months of statements, ITRs, payslips and property papers, then typed the memo. About 3.5 hours a file.</p>
+      </div>
+      <div class="card ch reveal">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 8h14M5 16h14"/><circle cx="5" cy="8" r="2"/><circle cx="19" cy="16" r="2"/></svg></div>
+        <h3>Inconsistent income calls</h3>
+        <p>Two underwriters could assess the same kirana owner's income differently. Cash deposits and one-off credits were treated case by case.</p>
+      </div>
+      <div class="card ch reveal">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3L20 9"/><path d="M20 4v5h-5"/><path d="M20 12a8 8 0 0 1-14 5.3L4 15"/><path d="M4 20v-5h5"/></svg></div>
+        <h3>Back-and-forth with branches</h3>
+        <p>Missing documents surfaced only at credit review. Files went back to the branch, sometimes twice, adding days to turnaround.</p>
+      </div>
+      <div class="card ch reveal">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></div>
+        <h3>Red flags hidden in volume</h3>
+        <p>A single bounced EMI or a pattern of round-figure cash deposits was easy to miss among four hundred transactions.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="approach" style="background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">HMC Approach</div>
+      <h2>AI reads and drafts. The underwriter decides.</h2>
+      <p class="lead">The co-pilot works inside the housing finance company's credit policy. Every number in the memo links back to the page it came from.</p>
+    </div>
+    <div class="tl reveal" aria-label="HMC approach steps">
+      <button class="tl-step" aria-expanded="true" aria-controls="tp0"><span class="tl-dot">1</span><span class="tl-name">Discover</span><span class="tl-dur">2 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp1"><span class="tl-dot">2</span><span class="tl-name">Design</span><span class="tl-dur">2 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp2"><span class="tl-dot">3</span><span class="tl-name">Build</span><span class="tl-dur">4 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp3"><span class="tl-dot">4</span><span class="tl-name">Adopt</span><span class="tl-dur">6 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp4"><span class="tl-dot">5</span><span class="tl-name">Scale</span><span class="tl-dur">Ongoing</span></button>
+    </div>
+    <p class="tl-hint">Select a step to see what happened.</p>
+    <div class="card tl-panel open" id="tp0">
+      <h3>Discover · Shadow the underwriters</h3>
+      <p>We sat with credit teams in regional hubs and timed every step of the file.</p>
+      <ul>
+        <li>Mapped the journey from login to sanction for salaried and self-employed files.</li>
+        <li>Found that two-thirds of underwriter time went on reading and re-typing.</li>
+        <li>Collected the most common reasons files went back to branches.</li>
+      </ul>
+      <p class="deliv"><b>Deliverable:</b> Time-and-motion study and file-rework map.</p>
+    </div>
+    <div class="card tl-panel" id="tp1">
+      <h3>Design · Policy first</h3>
+      <p>Credit policy became the rulebook the co-pilot follows.</p>
+      <ul>
+        <li>Income assessment methods by profile: salaried, trader, transport operator.</li>
+        <li>FOIR and LTV limits, obligation-exclusion rules and deviation triggers.</li>
+        <li>The existing CAM format, section by section, so nothing changes for approvers.</li>
+      </ul>
+      <p class="deliv"><b>Deliverable:</b> Policy rule-pack and CAM template signed off by Credit.</p>
+    </div>
+    <div class="card tl-panel" id="tp2">
+      <h3>Build · Read, classify, assess, draft</h3>
+      <p>Claude does the reading and drafting; deterministic rules do the maths.</p>
+      <ul>
+        <li>Document reading for statements, ITRs, payslips, bureau, legal and technical reports.</li>
+        <li>Every transaction classified, with bounces, cash patterns and obligations flagged.</li>
+        <li>Draft CAM with red flags, each linked to its source page.</li>
+      </ul>
+      <p class="deliv"><b>Deliverable:</b> Co-pilot in a controlled environment, with an audit trail.</p>
+    </div>
+    <div class="card tl-panel" id="tp3">
+      <h3>Adopt · Side by side, then in charge of the draft</h3>
+      <p>Underwriters ran the co-pilot in parallel before relying on it.</p>
+      <ul>
+        <li>Four weeks of side-by-side memos; differences reviewed each Friday.</li>
+        <li>Branch checklist generated on day one, so missing papers are asked for early.</li>
+        <li>Credit managers approve from the same memo, with sources one click away.</li>
+      </ul>
+      <p class="deliv"><b>Deliverable:</b> Live in pilot hubs, with underwriter feedback loop.</p>
+    </div>
+    <div class="card tl-panel" id="tp4">
+      <h3>Scale · More profiles, more products</h3>
+      <p>The same engine now supports more of the book.</p>
+      <ul>
+        <li>Rolled out to more affordable and emerging-market hubs.</li>
+        <li>Extending to loan against property and balance transfers.</li>
+        <li>Early-warning signals from the same transaction model for portfolio monitoring.</li>
+      </ul>
+      <p class="deliv"><b>Deliverable:</b> Rollout plan and model-monitoring dashboard.</p>
+    </div>
+  </div>
+</section>
+
+<section id="solution">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Solution</div>
+      <h2>Watch the co-pilot appraise a file</h2>
+      <p class="lead">Choose an applicant and press <b>Run co-pilot</b>. It reads the file, classifies a year of transactions, assesses income, checks eligibility against policy and drafts the memo. Then take over: drag the loan on the eligibility chart, switch the transaction view or click a red flag.</p>
+    </div>
+    <div class="card cop reveal">
+      <div class="cop-top">
+        <div class="personas" id="personas" role="group" aria-label="Choose applicant"></div>
+        <button class="run" id="run" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>Run co-pilot</button>
+      </div>
+      <div class="cop-grid">
+        <div class="panel p4">
+          <div class="ph"><div><h5><span class="step">1</span>Reading the file</h5><p>Every page of every document, OCR'd and parsed</p></div></div>
+          <div class="docs" id="docs"></div>
+          <div class="counters"><div><b id="cTx">0</b><span>transactions classified</span></div><div><b id="cFd">0</b><span>fields extracted</span></div><div><b id="cFl">0</b><span>items to check</span></div></div>
+        </div>
+        <div class="panel p8">
+          <div class="ph"><div><h5><span class="step">2</span>Twelve months of transactions</h5><p>Each dot is one transaction; size is the amount. Switch to the AI view to sort them into what they are.</p></div>
+            <div class="seg" role="group" aria-label="Transaction view"><button type="button" data-rv="raw" aria-pressed="true">Raw statement</button><button type="button" data-rv="ai" aria-pressed="false">AI classified</button></div></div>
+          <div class="chart" id="river"></div>
+          <div class="lgd" id="lgd"></div>
+        </div>
+        <div class="panel p7">
+          <div class="ph"><div><h5><span class="step">3</span>Monthly cash flow and assessed income</h5><p>Inflows above the line, outflows below. The orange line is income as assessed under policy for this profile.</p></div></div>
+          <div class="chart" id="flow"></div>
+        </div>
+        <div class="panel p5">
+          <div class="ph"><div><h5>Income consistency</h5><p>Each petal is a month of assessed income; the dashed ring is the median. Green is within 15% of it.</p></div></div>
+          <div class="chart" id="clock"></div>
+        </div>
+        <div class="panel p12">
+          <div class="ph"><div><h5><span class="step">4</span>Eligibility against policy</h5><p>The shaded area is every loan and tenure the applicant qualifies for. Drag the dot, or use the sliders.</p></div></div>
+          <div class="elig">
+            <div>
+              <div class="field"><label for="sLoan">Loan amount <output id="oLoan"></output></label><input type="range" id="sLoan" min="3" max="40" step="0.5"></div>
+              <div class="field"><label for="sTen">Tenure <output id="oTen"></output></label><input type="range" id="sTen" min="5" max="30" step="1"></div>
+              <div class="field"><label for="sRate">Interest rate <output id="oRate"></output></label><input type="range" id="sRate" min="8" max="13" step="0.05"></div>
+              <label class="toggle" id="exWrap"><input type="checkbox" id="sEx"> <span>Exclude loans closing within 6 EMIs (with closure proof)</span></label>
+              <div class="emi" id="emi"></div>
+            </div>
+            <div class="frontier"><div class="chart" id="front"></div></div>
+            <div><div class="chart" id="gauges"></div><div class="verdict" id="verdict"></div></div>
+          </div>
+        </div>
+        <div class="panel p5">
+          <div class="ph"><div><h5><span class="step">5</span>Red flags and checks</h5><p>Click one to see the transactions behind it.</p></div></div>
+          <div class="flags" id="flags"><div class="mempty" style="height:120px">Run the co-pilot to see checks.</div></div>
+        </div>
+        <div class="panel p7">
+          <div class="ph"><div><h5><span class="step">6</span>Draft credit appraisal memo</h5><p>Updates live as you change the loan. Underwriter reviews and signs.</p></div><button class="btn" id="copy" type="button">Copy memo</button></div>
+          <div class="memo" id="memo"><div class="mempty">The memo appears here after the co-pilot runs.</div></div>
+        </div>
+      </div>
+    </div>
+    <p class="footnote">Applicants, transactions and policy limits are illustrative and do not represent any real customer. In production the co-pilot runs inside the housing finance company's environment on the actual loan file; figures indicative.</p>
+  </div>
+</section>
+
+<section id="impact" style="background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Impact Dashboard</div>
+      <h2>Faster sanctions, fewer round trips</h2>
+      <p class="lead">With the memo drafted and the missing-documents list raised on day one, files moved through credit faster and came back to branches less often.</p>
+    </div>
+    <div class="dash">
+      <div class="card chart-card reveal">
+        <div class="chart-head">
+          <div><h3>Login to sanction</h3><p class="sub">Distribution of turnaround, affordable home-loan files, working days</p></div>
+          <div class="seg" role="group" aria-label="Period">
+            <button type="button" data-td="before" aria-pressed="false">Before</button>
+            <button type="button" data-td="after" aria-pressed="true">After</button>
+          </div>
+        </div>
+        <div class="chart" id="tat"></div>
+        <div class="ckey"><span><i style="background:#B8C7C1"></i>Before co-pilot</span><span><i style="background:#12614F"></i>With co-pilot</span></div>
+      </div>
+      <div class="card chart-card reveal">
+        <h3>What happens to every 100 files</h3>
+        <p class="sub">First-time right vs sent back to branch, pilot hubs</p>
+        <div class="chart" id="waffle"></div>
+        <div class="ckey"><span><i style="background:#12614F"></i>First-time right</span><span><i style="background:#F0883E"></i>Sent back once</span><span><i style="background:#B91C1C"></i>Sent back twice or more</span></div>
+      </div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <div class="cmp-head reveal">
+      <div><div class="eyebrow">Before vs After</div><h2>How a file gets appraised</h2></div>
+      <div class="seg" role="group" aria-label="Highlight column">
+        <button type="button" data-hl="before" aria-pressed="false">Before</button>
+        <button type="button" data-hl="after" aria-pressed="true">After</button>
+      </div>
+    </div>
+    <div class="card reveal" style="overflow:hidden">
+      <table class="cmp hl-after" id="cmp">
+        <colgroup><col class="c1"><col><col></colgroup>
+        <thead><tr><th scope="col">Dimension</th><th scope="col" class="b">Before</th><th scope="col" class="a">After</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Bank statement review</th><td class="b">Sampled by eye, a few months in detail</td><td class="a">Every transaction classified across 12 months</td></tr>
+          <tr><th scope="row">Income assessment</th><td class="b">Varied by underwriter</td><td class="a">Policy method per profile, shown step by step</td></tr>
+          <tr><th scope="row">Eligibility</th><td class="b">Separate spreadsheet, recalculated by hand</td><td class="a">Live FOIR and LTV against policy, with the maximum eligible loan</td></tr>
+          <tr><th scope="row">Red flags</th><td class="b">Depended on who read the file</td><td class="a">Standard checks, each linked to its source page</td></tr>
+          <tr><th scope="row">Missing documents</th><td class="b">Found at credit review, file sent back</td><td class="a">Branch checklist raised on day one</td></tr>
+          <tr><th scope="row">Credit memo</th><td class="b">Typed from scratch, about 3.5 hours</td><td class="a">Drafted in minutes, reviewed and signed in about 40</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="tools" style="padding-top:16px">
+  <div class="wrap">
+    <div class="sec-head reveal" style="margin-bottom:20px"><div class="eyebrow">Tools &amp; Tech Used</div><h2>Inside the credit workflow</h2></div>
+    <div class="chips reveal">
+      <span class="chip"><i></i>Claude <em>document reading, classification &amp; memo drafting</em></span>
+      <span class="chip"><i></i>OCR <em>scanned statements and reports</em></span>
+      <span class="chip"><i></i>Policy rule engine <em>FOIR, LTV, exclusions</em></span>
+      <span class="chip"><i></i>Bureau data <em>obligations and enquiries</em></span>
+      <span class="chip"><i></i>Loan origination system <em>file intake and CAM upload</em></span>
+      <span class="chip"><i></i>D3.js <em>underwriter views</em></span>
+    </div>
+  </div>
+</section>
+
+<section id="takeaways">
+  <div class="wrap">
+    <div class="sec-head reveal"><div class="eyebrow">Key Takeaways</div><h2>What transfers to any credit team</h2></div>
+    <div class="tk-grid">
+      <div class="card tk reveal"><div class="n">01</div><h3>Let AI read, let people judge</h3><p>The biggest time sink was reading and typing, not deciding. Take that away and underwriters spend their time on the judgement calls.</p></div>
+      <div class="card tk reveal"><div class="n">02</div><h3>Policy is the prompt</h3><p>Encoding the credit policy as rules made the co-pilot consistent, explainable and easy for risk to sign off.</p></div>
+      <div class="card tk reveal"><div class="n">03</div><h3>Every number needs a source</h3><p>Linking each figure and flag to its page is what earned the trust of approvers and auditors.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="f-brand"><img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting"><div><b>Havish M Consulting</b></div></div>
+    <div class="copy"><span>© <span id="yr">2026</span> Havish M Consulting. All rights reserved.</span><span>Figures indicative; validated metrics available on request.</span></div>
+  </div>
+</footer>
+<div id="tip" role="tooltip"></div>
+
+<script>
+(function(){
+"use strict";
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DUR = reduce ? 0 : 800;
+document.getElementById('yr').textContent = new Date().getFullYear();
+
+/* ---------- page scaffolding ---------- */
+const tip = document.getElementById('tip');
+function showTip(html, ev){ tip.innerHTML = html; tip.style.opacity = 1; const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = ev.clientX + pad, y = ev.clientY + pad; if (x + w > innerWidth - 8) x = ev.clientX - w - pad; if (y + h > innerHeight - 8) y = ev.clientY - h - pad;
+  tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; }
+function hideTip(){ tip.style.opacity = 0; }
+window.addEventListener('scroll', hideTip, {passive:true});
+const onView = new Map();
+const io = ('IntersectionObserver' in window) ? new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; e.target.classList.add('in');
+  const fn = onView.get(e.target); if (fn){ fn(); onView.delete(e.target); } io.unobserve(e.target); }), {threshold:.15}) : null;
+function whenVisible(el, fn){ onView.set(el, fn); if (io) io.observe(el); else fn(); }
+document.querySelectorAll('.reveal').forEach(el => io ? io.observe(el) : el.classList.add('in'));
+function countUp(el){ const to = +el.dataset.to, dec = +el.dataset.dec || 0; if (reduce){ el.textContent = to.toFixed(dec); return; }
+  const t0 = performance.now(); (function s(t){ const p = Math.min(1,(t-t0)/1400), e = 1 - Math.pow(1-p,3); el.textContent = (to*e).toFixed(dec); if (p < 1) requestAnimationFrame(s); })(t0); }
+document.querySelectorAll('.count').forEach(el => whenVisible(el.closest('.kpi'), () => countUp(el)));
+const steps = document.querySelectorAll('.tl-step');
+steps.forEach(btn => btn.addEventListener('click', () => { const open = btn.getAttribute('aria-expanded') === 'true';
+  steps.forEach(b => { b.setAttribute('aria-expanded','false'); document.getElementById(b.getAttribute('aria-controls')).classList.remove('open'); });
+  if (!open){ btn.setAttribute('aria-expanded','true'); document.getElementById(btn.getAttribute('aria-controls')).classList.add('open'); } }));
+const cmp = document.getElementById('cmp');
+document.querySelectorAll('[data-hl]').forEach(b => b.addEventListener('click', () => { document.querySelectorAll('[data-hl]').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+  cmp.classList.toggle('hl-before', b.dataset.hl === 'before'); cmp.classList.toggle('hl-after', b.dataset.hl === 'after'); }));
+
+if (typeof d3 === 'undefined') return;
+const $ = id => document.getElementById(id);
+
+/* ======================================================================
+   DATA (synthetic, illustrative)
+   ====================================================================== */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const MON = d3.range(12).map(i => new Date(2025, 9 + i, 1));
+const mLab = d3.timeFormat('%b %y'), mShort = d3.timeFormat('%b');
+const CATS = [
+  {k:'Salary', c:'#12614F', dir:1}, {k:'Business receipts', c:'#2F9E7E', dir:1}, {k:'Cash deposit', c:'#E0A21A', dir:1}, {k:'Other inflow', c:'#8FB8AA', dir:1},
+  {k:'Loan EMI', c:'#3B4BA8', dir:-1}, {k:'Bounce / penalty', c:'#DC2626', dir:-1}, {k:'Spends & transfers', c:'#B8C2C9', dir:-1}];
+const CC = Object.fromEntries(CATS.map(c => [c.k, c]));
+const L = v => v * 1e5;
+const P = [
+  {id:'priya', name:'Priya S.', init:'PS', col:'#3B4BA8', prof:'Salaried', role:'IT support executive · Pune', fcap:.55, prop:L(30), ask:{loan:22, ten:20, rate:9.5}, method:'Net salary, average of last 6 months', closeMonths:null,
+   docs:[['Bank statements','12 months · 14 pages'],['Payslips & Form 16','6 payslips · 1 Form 16'],['Bureau report','2 live accounts'],['Legal report','Title and chain · 9 pages'],['Technical valuation','Site visit · 4 pages'],['KYC','Aadhaar, PAN']]},
+  {id:'ramesh', name:'Ramesh K.', init:'RK', col:'#B45309', prof:'Self-employed', role:'Kirana store owner · Indore', fcap:.50, prop:L(25), ask:{loan:18, ten:20, rate:10.25}, method:'Banking turnover × 15% trade margin, 12-month average', closeMonths:null,
+   docs:[['Bank statements','12 months · 22 pages'],['ITR & computation','2 years'],['Bureau report','1 live account (gold loan)'],['Legal report','Title and chain · 11 pages'],['Technical valuation','Site visit · 4 pages'],['KYC & shop licence','Aadhaar, PAN, Udyam']]},
+  {id:'imran', name:'Imran A.', init:'IA', col:'#0E7490', prof:'Self-employed', role:'Cab driver-owner · Lucknow', fcap:.50, prop:L(19), ask:{loan:12, ten:20, rate:10.75}, method:'Aggregator payouts × 55% after fuel and running costs, 12-month average', closeMonths:5,
+   docs:[['Bank statements','12 months · 18 pages'],['ITR & payout summary','1 year · platform statement'],['Bureau report','1 live account (vehicle loan)'],['Legal report','Title and chain · 8 pages'],['Technical valuation','Site visit · 3 pages'],['KYC & vehicle RC','Aadhaar, PAN, RC']]}
+];
+function gen(p, seed){
+  const r = mulberry32(seed), R = (a,b) => a + r()*(b-a), tx = [];
+  const add = (m, day, amt, cat, desc) => tx.push({d:new Date(2025, 9 + m, Math.max(1, Math.min(28, Math.round(day)))), m, amt:Math.round(amt), cat, desc});
+  for (let m = 0; m < 12; m++){
+    if (p.id === 'priya'){
+      add(m, 1, m < 6 ? 52000 : 56000, 'Salary', 'NEFT SAL TECHSERV PVT LTD');
+      add(m, 5, 3200, 'Loan EMI', 'ACH TWO-WHEELER LOAN');
+      add(m, 7, 3000, 'Spends & transfers', 'SIP MUTUAL FUND');
+      for (let i = 0; i < 10; i++) add(m, R(2, 28), R(150, 4500), 'Spends & transfers', 'UPI SPEND');
+      if (m % 3 === 1) add(m, R(10, 20), R(2000, 5000), 'Other inflow', 'UPI FROM FAMILY');
+    } else if (p.id === 'ramesh'){
+      const fest = (m === 0 || m === 1) ? 1.25 : 1;
+      for (let i = 0; i < 10; i++) add(m, 1 + i*2.7 + R(0,1.5), R(9000, 19000) * fest, 'Business receipts', 'UPI MERCHANT SETTLEMENT');
+      for (let i = 0; i < 4; i++) add(m, 4 + i*7 + R(-1,1), R(13000, 21000) * fest, 'Cash deposit', 'CASH DEP BRANCH');
+      for (let i = 0; i < 5; i++) add(m, 3 + i*5 + R(0,2), R(18000, 34000) * fest, 'Spends & transfers', 'RTGS SUPPLIER PAYMENT');
+      for (let i = 0; i < 6; i++) add(m, R(2, 28), R(200, 3500), 'Spends & transfers', 'UPI SPEND');
+      if (m === 6){ add(m, 10, 590, 'Bounce / penalty', 'ECS RETURN CHARGES'); add(m, 13, 2500, 'Loan EMI', 'GOLD LOAN EMI RE-PRESENTED'); }
+      else add(m, 10, 2500, 'Loan EMI', 'GOLD LOAN EMI');
+    } else {
+      const mon = m >= 9 ? .8 : 1, n = m % 2 ? 5 : 4;
+      for (let i = 0; i < n; i++) add(m, 2 + i*(26/n) + R(0,2), R(12500, 16500) * mon * (n === 5 ? .85 : 1), 'Business receipts', 'AGGREGATOR WEEKLY PAYOUT');
+      for (let i = 0; i < 2; i++) add(m, R(5, 25), R(3000, 6000), 'Cash deposit', 'CASH DEP CDM');
+      for (let i = 0; i < 8; i++) add(m, R(1, 28), R(1200, 2500), 'Spends & transfers', 'FUEL STATION');
+      for (let i = 0; i < 6; i++) add(m, R(1, 28), R(150, 2500), 'Spends & transfers', 'UPI SPEND');
+      if (m === 2 || m === 8){ add(m, 3, 750, 'Bounce / penalty', 'ACH RETURN CHARGES'); add(m, 9, 14500, 'Loan EMI', 'VEHICLE LOAN EMI (REPAID)'); }
+      else add(m, 3, 14500, 'Loan EMI', 'VEHICLE LOAN EMI');
+    }
+  }
+  tx.forEach((t,i) => { t.i = i; t.dir = CC[t.cat].dir; t.jit = r(); });
+  return tx.sort((a,b) => a.d - b.d);
+}
+P.forEach((p,i) => {
+  p.tx = gen(p, 777 + i*101);
+  p.monthly = MON.map((d,m) => { const t = p.tx.filter(x => x.m === m), s = c => d3.sum(t.filter(x => x.cat === c), x => x.amt);
+    let inc; if (p.id === 'priya') inc = s('Salary'); else if (p.id === 'ramesh') inc = (s('Business receipts') + s('Cash deposit')) * .15; else inc = s('Business receipts') * .55;
+    return {m, d, inc, cats:Object.fromEntries(CATS.map(c => [c.k, s(c.k)]))}; });
+  p.income = p.id === 'priya' ? d3.mean(p.monthly.slice(6), x => x.inc) : d3.mean(p.monthly, x => x.inc);
+  const inc = p.monthly.map(x => x.inc); p.consistency = Math.max(0, 1 - d3.deviation(inc) / d3.mean(inc));
+  p.oblig = p.id === 'priya' ? 3200 : p.id === 'ramesh' ? 2500 : 14500;
+  const cr = d3.sum(p.tx.filter(t => t.dir > 0), t => t.amt); p.cashShare = d3.sum(p.tx.filter(t => t.cat === 'Cash deposit'), t => t.amt) / cr;
+  p.bounces = p.tx.filter(t => t.cat === 'Bounce / penalty').length;
+  p.fields = 140 + p.tx.length % 60 + i*23;
+});
+P[0].flags = [
+  {sev:'ok', t:'Salary from the same employer on the 1st of every month, matching the payslips. Increment from Apr 2026.', src:'Bank statement pp.1–14 · Payslips', hl:{cat:'Salary'}},
+  {sev:'ok', t:'Two-wheeler EMI of ₹3,200 paid on time for all 12 months.', src:'Bank statement · Bureau p.2', hl:{cat:'Loan EMI'}},
+  {sev:'med', t:'Bureau shows a personal-loan enquiry in Aug 2026 with no account opened. Confirm with the applicant.', src:'Bureau report p.3', hl:null},
+  {sev:'med', t:'Approved building plan not in the file. Added to the branch checklist.', src:'Legal report p.6', hl:null}];
+P[1].flags = [
+  {sev:'high', t:`Cash deposits are ${Math.round(P[1].cashShare*100)}% of credits, above the 30% comfort level. Verify with stock register and supplier bills.`, src:'Bank statement pp.2–22', hl:{cat:'Cash deposit'}},
+  {sev:'med', t:'One gold-loan EMI bounced in Apr 2026; re-presented and cleared in 3 days.', src:'Bank statement p.13 · Bureau p.2', hl:{cat:'Bounce / penalty', also:'Loan EMI', months:[6]}},
+  {sev:'ok', t:'UPI settlements every few days for 12 months: steady trading, festive peak in Oct–Nov.', src:'Bank statement', hl:{cat:'Business receipts'}},
+  {sev:'ok', t:'ITR income of ₹4.1 L is in line with banking-assessed income.', src:'ITR AY 2026-27 p.1', hl:null}];
+P[2].flags = [
+  {sev:'high', t:'Two vehicle-loan EMIs bounced, in Dec 2025 and Jun 2026. Both repaid within a week.', src:'Bank statement pp.4, 13 · Bureau p.2', hl:{cat:'Bounce / penalty', also:'Loan EMI', months:[2,8]}},
+  {sev:'med', t:'Vehicle loan has 5 EMIs left. Policy allows it to be excluded from FOIR with a closure plan.', src:'Bureau report p.2', hl:{cat:'Loan EMI'}},
+  {sev:'med', t:'Payouts dip about 20% in the monsoon months; income assessed on the 12-month average.', src:'Bank statement pp.15–18', hl:{cat:'Business receipts', months:[9,10,11]}},
+  {sev:'ok', t:'Technical value of ₹19 L comfortably supports the requested loan.', src:'Technical valuation p.2', hl:null}];
+
+/* ======================================================================
+   FINANCE
+   ====================================================================== */
+const fac = (rate, yrs) => { const r = rate/1200, n = yrs*12; return r / (1 - Math.pow(1 + r, -n)); };
+const emiOf = (loan, rate, yrs) => loan * fac(rate, yrs);
+const ltvCap = loan => loan <= L(30) ? .9 : loan <= L(75) ? .8 : .75;
+const ltvMax = prop => { if (.9*prop <= L(30)) return .9*prop; if (.8*prop <= L(75)) return Math.max(L(30), .8*prop); return Math.max(L(75), .75*prop); };
+const S = {p:0, loan:L(22), ten:20, rate:9.5, ex:false, view:'raw', ran:false, hide:new Set(), flag:-1};
+const pr = () => P[S.p];
+const obl = () => (pr().closeMonths && S.ex) ? 0 : pr().oblig;
+const maxByFoir = (ten) => Math.max(0, pr().fcap * pr().income - obl()) / fac(S.rate, ten);
+const maxLoan = ten => Math.min(maxByFoir(ten), ltvMax(pr().prop));
+function calc(){ const p = pr(), e = emiOf(S.loan, S.rate, S.ten), foir = (e + obl()) / p.income, ltv = S.loan / p.prop;
+  return {e, foir, ltv, fcap:p.fcap, lcap:ltvCap(S.loan), okF:foir <= p.fcap + 1e-9, okL:ltv <= ltvCap(S.loan) + 1e-9, max:maxLoan(S.ten)}; }
+const inr = v => '₹' + Math.round(v).toLocaleString('en-IN');
+const lk = v => '₹' + (v/1e5).toFixed(v >= L(10) ? 1 : 2).replace(/\.0$/, '') + ' L';
+const pc = v => Math.round(v*100) + '%';
+
+/* ======================================================================
+   PERSONAS + DOCS
+   ====================================================================== */
+/* illustrated dummy avatars (inline SVG, no real people) */
+function avatar(p){
+  const A = {
+    priya:{bg:'#C9D3F5', skin:'#C98E6A', shirt:'#1F8A84', hair:'#1B1210'},
+    ramesh:{bg:'#F7DDBF', skin:'#A86F4B', shirt:'#E08A2E', hair:'#3A3632'},
+    imran:{bg:'#CBE7EE', skin:'#B47A55', shirt:'#3B6EA8', hair:'#2A1C14'}}[p.id];
+  const face = `<ellipse cx="32" cy="28" rx="11" ry="13" fill="${A.skin}"/><circle cx="27.8" cy="27.5" r="1.3" fill="#24160F"/><circle cx="36.2" cy="27.5" r="1.3" fill="#24160F"/><path d="M29 33.6 Q32 36 35 33.6" stroke="#6B3A24" stroke-width="1.3" fill="none" stroke-linecap="round"/><ellipse cx="20.6" cy="29" rx="1.8" ry="2.6" fill="${A.skin}"/><ellipse cx="43.4" cy="29" rx="1.8" ry="2.6" fill="${A.skin}"/>`;
+  const body = `<path d="M8 66 C10 50 21 45 32 45 C43 45 54 50 56 66 Z" fill="${A.shirt}"/><rect x="28" y="37" width="8" height="10" rx="3" fill="${A.skin}" opacity=".92"/>`;
+  let back = '', front = '', extra = '';
+  if (p.id === 'priya'){
+    back = `<path d="M17 30 C16 15 24 10 32 10 C41 10 48 16 47 30 L48 48 C44 46 43 42 43 36 L21 36 C21 42 20 46 16 48 Z" fill="${A.hair}"/>`;
+    front = `<path d="M20.5 26 C21 15 29 12.5 32 16.5 C35 12.5 43 15 43.5 26 C41 19 36 17.5 32 19 C28 17.5 23 19 20.5 26 Z" fill="${A.hair}"/><circle cx="32" cy="22.2" r="1.05" fill="#C0262D"/><circle cx="20.6" cy="32.4" r="1.3" fill="#E9B949"/><circle cx="43.4" cy="32.4" r="1.3" fill="#E9B949"/>`;
+    extra = `<path d="M26 45 L32 58 L38 45" stroke="#F4F1E8" stroke-width="2" fill="none"/><rect x="29.5" y="56" width="5" height="6" rx="1" fill="#F4F1E8"/>`;
+  } else if (p.id === 'ramesh'){
+    front = `<path d="M20.6 24 C20.5 13 43.5 13 43.4 24 C41 18.5 23 18.5 20.6 24 Z" fill="${A.hair}"/><path d="M21 23 C21.5 20 23 18.5 24.5 18" stroke="#8C877F" stroke-width="1.2" fill="none"/><path d="M27 32 Q32 29.6 37 32 Q32 33.6 27 32 Z" fill="#2B2724"/><circle cx="27.8" cy="27.5" r="3.3" fill="none" stroke="#3A3632" stroke-width="1.1"/><circle cx="36.2" cy="27.5" r="3.3" fill="none" stroke="#3A3632" stroke-width="1.1"/><path d="M31.1 27.5 L32.9 27.5" stroke="#3A3632" stroke-width="1.1"/>`;
+    extra = `<path d="M32 45 L32 60" stroke="#B8661C" stroke-width="1.4"/><circle cx="32" cy="51" r="1" fill="#B8661C"/><circle cx="32" cy="56" r="1" fill="#B8661C"/>`;
+  } else {
+    front = `<path d="M21 31 C22 41 28 43.5 32 43.5 C36 43.5 42 41 43 31 C41 37 37 38.5 32 38.5 C27 38.5 23 37 21 31 Z" fill="${A.hair}"/><path d="M28 35.2 Q32 33.6 36 35.2" stroke="${A.hair}" stroke-width="1.6" fill="none"/><path d="M19.8 23 C19.8 11.5 44.2 11.5 44.2 23 Z" fill="#1F4F6B"/><ellipse cx="38.5" cy="23" rx="10" ry="2.3" fill="#173E54"/><circle cx="32" cy="13.4" r="1.2" fill="#173E54"/>`;
+    extra = `<path d="M25 45 L32 52 L39 45" fill="#2E5A8E"/>`;
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="${A.bg}"/>${back}${body}${extra}${face}${front}</svg>`;
+  return 'data:image/svg+xml,' + encodeURIComponent(svg);
+}
+const pers = $('personas');
+P.forEach((p,i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'pers'; b.setAttribute('aria-pressed', i === 0);
+  b.innerHTML = `<span class="av"><img src="${avatar(p)}" alt="Illustrated avatar of ${p.name}"></span><span class="tx" style="min-width:0"><b>${p.name} · ${p.prof}</b><span>${p.role}</span><span>Asks ${lk(L(p.ask.loan))} · ${p.ask.ten} yrs</span></span>`;
+  b.addEventListener('click', () => { if (busy) return; pers.querySelectorAll('.pers').forEach(x => x.setAttribute('aria-pressed', x === b)); loadPersona(i); }); pers.appendChild(b); });
+function renderDocs(state){ const d = $('docs'); d.innerHTML = '';
+  pr().docs.forEach(([n, s], i) => { const el = document.createElement('div'); el.className = 'doc' + (state === 'done' ? ' done' : ''); el.innerHTML = `<div class="di"><i></i></div><div><b>${n}</b><span style="font-size:.72rem;color:var(--muted)">${s}</span><div class="bar"><span style="width:${state === 'done' ? 100 : 0}%"></span></div></div><div class="st">${state === 'done' ? '✓ read' : 'queued'}</div>`; d.appendChild(el); }); }
+
+/* ======================================================================
+   TRANSACTION RIVER
+   ====================================================================== */
+const RV = {w:820, h:380, m:{t:14, r:14, b:30, l:118}};
+const rv = d3.select('#river').append('svg').attr('viewBox', `0 0 ${RV.w} ${RV.h}`).attr('role','img').attr('aria-label','Transactions over twelve months');
+const rx = d3.scaleTime().domain([new Date(2025, 9, 1), new Date(2026, 9, 1)]).range([RV.m.l, RV.w - RV.m.r]);
+const lane = d3.scaleBand().domain(CATS.map(c => c.k)).range([RV.m.t, RV.h - RV.m.b]).paddingInner(.12);
+const mid = (RV.m.t + RV.h - RV.m.b) / 2;
+const ry = d3.scaleLog().domain([100, 70000]).range([0, mid - RV.m.t - 6]).clamp(true);
+const rr = d3.scaleSqrt().domain([0, 60000]).range([1.6, 9]);
+rv.append('g').attr('class','axis').attr('transform', `translate(0,${RV.h - RV.m.b})`).call(d3.axisBottom(rx).ticks(d3.timeMonth.every(1)).tickFormat(mShort).tickSize(0).tickPadding(8));
+const monthGrid = rv.append('g').attr('class','grid').attr('transform', `translate(0,${RV.h - RV.m.b})`).call(d3.axisBottom(rx).ticks(d3.timeMonth.every(1)).tickSize(-(RV.h - RV.m.t - RV.m.b)).tickFormat(''));
+const rawG = rv.append('g'), aiG = rv.append('g').attr('opacity', 0);
+rawG.append('line').attr('x1', RV.m.l).attr('x2', RV.w - RV.m.r).attr('y1', mid).attr('y2', mid).attr('stroke','#9DB2AA');
+rawG.append('text').attr('x', RV.m.l - 10).attr('y', mid - 40).attr('text-anchor','end').attr('font-size', 12).attr('font-weight', 700).attr('fill','#12614F').text('Money in ↑');
+rawG.append('text').attr('x', RV.m.l - 10).attr('y', mid + 46).attr('text-anchor','end').attr('font-size', 12).attr('font-weight', 700).attr('fill','#3B4BA8').text('Money out ↓');
+rawG.append('text').attr('x', RV.m.l - 10).attr('y', mid - 22).attr('text-anchor','end').attr('font-size', 10.5).attr('fill','#8AA197').text('larger = higher');
+CATS.forEach(c => { const y = lane(c.k);
+  aiG.append('rect').attr('x', RV.m.l).attr('y', y).attr('width', RV.w - RV.m.l - RV.m.r).attr('height', lane.bandwidth()).attr('rx', 6).attr('fill', c.c).attr('opacity', .07);
+  aiG.append('text').attr('x', RV.m.l - 10).attr('y', y + lane.bandwidth()/2).attr('dy','.35em').attr('text-anchor','end').attr('font-size', 11.5).attr('font-weight', 700).attr('fill', c.c === '#B8C2C9' ? '#6B7A80' : c.c).text(c.k);
+  aiG.append('text').attr('class','lsum').attr('data-k', c.k).attr('x', RV.w - RV.m.r - 6).attr('y', y + 11).attr('text-anchor','end').attr('font-size', 10).attr('font-weight', 700).attr('fill','#4B5B60').attr('stroke','#fff').attr('stroke-width',3).attr('paint-order','stroke'); });
+const scanLine = rv.append('line').attr('y1', RV.m.t).attr('y2', RV.h - RV.m.b).attr('stroke', '#F0883E').attr('stroke-width', 2).attr('opacity', 0);
+const dotsG = rv.append('g');
+const sumTop = () => aiG.raise();
+const lgd = $('lgd');
+CATS.forEach(c => { const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-pressed','true'); b.innerHTML = `<i style="background:${c.c}"></i>${c.k}`;
+  b.addEventListener('click', () => { if (S.hide.has(c.k)) S.hide.delete(c.k); else S.hide.add(c.k); b.setAttribute('aria-pressed', !S.hide.has(c.k)); S.flag = -1; markFlags(); styleDots(); }); lgd.appendChild(b); });
+const rawY = t => mid - t.dir * (6 + ry(Math.max(100, t.amt)) * (.75 + .25*t.jit));
+const aiY = t => lane(t.cat) + 8 + t.jit * (lane.bandwidth() - 16);
+function placeDots(animate){
+  const sel = dotsG.selectAll('circle').data(pr().tx, d => d.i);
+  const tr = d3.transition().duration(animate && !reduce ? 1100 : 0);
+  sel.transition(tr).delay(d => animate && !reduce ? (S.view === 'ai' ? (rx(d.d) - RV.m.l) * .9 : (lane(d.cat) - RV.m.t) * 1.2) : 0)
+    .attr('cx', d => rx(d.d)).attr('cy', d => S.view === 'ai' ? aiY(d) : rawY(d))
+    .attr('fill', d => S.view === 'ai' || !S.ran ? (S.ran ? CC[d.cat].c : '#9DB2AA') : (d.dir > 0 ? '#3E8E77' : '#6C7BC4'));
+  rawG.transition(tr).attr('opacity', S.view === 'raw' ? 1 : 0); aiG.transition(tr).attr('opacity', S.view === 'ai' ? 1 : 0);
+  aiG.selectAll('.lsum').raise().text(function(){ const k = this.dataset.k, t = pr().tx.filter(x => x.cat === k); return t.length ? `${t.length} txns · ${lk(d3.sum(t, x => x.amt))}` : ''; });
+}
+function styleDots(){
+  const f = S.flag >= 0 ? pr().flags[S.flag].hl : null;
+  dotsG.selectAll('circle').attr('opacity', d => { if (S.hide.has(d.cat)) return .05; if (!f) return .82; const hit = (d.cat === f.cat || d.cat === f.also) && (!f.months || f.months.includes(d.m)); return hit ? 1 : .08; })
+    .attr('stroke', d => f && (d.cat === f.cat || d.cat === f.also) && (!f.months || f.months.includes(d.m)) ? '#072B24' : '#fff').attr('stroke-width', d => f && d.cat === f.cat ? 1.4 : .6)
+    .attr('r', d => { const hit = f && (d.cat === f.cat || d.cat === f.also) && (!f.months || f.months.includes(d.m)); return hit ? Math.max(6, rr(d.amt)) : rr(d.amt); });
+}
+function drawDots(){
+  dotsG.selectAll('circle').data(pr().tx, d => d.i).join(
+    en => en.append('circle').attr('cx', d => rx(d.d)).attr('cy', d => rawY(d)).attr('r', 0),
+    up => up, ex => ex.remove())
+    .attr('r', d => rr(d.amt)).attr('fill', '#9DB2AA')
+    .on('mousemove', (ev, d) => showTip(`<div class="t">${d3.timeFormat('%d %b %Y')(d.d)}</div>${d.desc}<br><b>${d.dir > 0 ? '+' : '−'}${inr(d.amt)}</b>${S.ran ? '<br>AI category: <b>' + d.cat + '</b>' : ''}`, ev)).on('mouseleave', hideTip);
+  placeDots(false); styleDots();
+}
+document.querySelectorAll('[data-rv]').forEach(b => b.addEventListener('click', () => { if (!S.ran && b.dataset.rv === 'ai'){ runCopilot(); return; } S.view = b.dataset.rv; document.querySelectorAll('[data-rv]').forEach(x => x.setAttribute('aria-pressed', x === b)); placeDots(true); }));
+function setView(v){ S.view = v; document.querySelectorAll('[data-rv]').forEach(x => x.setAttribute('aria-pressed', x.dataset.rv === v)); }
+
+/* ======================================================================
+   MONTHLY FLOW (diverging stacked bars + income line)
+   ====================================================================== */
+const FL = {w:640, h:300, m:{t:14, r:14, b:28, l:52}};
+const fl = d3.select('#flow').append('svg').attr('viewBox', `0 0 ${FL.w} ${FL.h}`).attr('role','img').attr('aria-label','Monthly inflows and outflows');
+const fx = d3.scaleBand().domain(d3.range(12)).range([FL.m.l, FL.w - FL.m.r]).padding(.28);
+const fy = d3.scaleLinear().range([FL.h - FL.m.b, FL.m.t]);
+const flGrid = fl.append('g').attr('class','grid').attr('transform', `translate(${FL.m.l},0)`);
+const flY = fl.append('g').attr('class','axis').attr('transform', `translate(${FL.m.l},0)`);
+const flX = fl.append('g').attr('class','axis').attr('transform', `translate(0,${FL.h - FL.m.b})`);
+const flBars = fl.append('g'), flZero = fl.append('line').attr('stroke','#7C918A');
+const incPath = fl.append('path').attr('fill','none').attr('stroke','#F0883E').attr('stroke-width', 3);
+const incDots = fl.append('g'), incLbl = fl.append('text').attr('font-size', 11).attr('font-weight', 800).attr('fill', '#C2621F').attr('text-anchor','end');
+function drawFlow(animate){
+  const p = pr(), ms = p.monthly;
+  const up = m => d3.sum(CATS.filter(c => c.dir > 0), c => m.cats[c.k]), dn = m => d3.sum(CATS.filter(c => c.dir < 0), c => m.cats[c.k]);
+  fy.domain([-d3.max(ms, dn) * 1.08, d3.max(ms, up) * 1.08]).nice();
+  flX.call(d3.axisBottom(fx).tickFormat(i => mShort(MON[i])).tickSize(0).tickPadding(8)).attr('transform', `translate(0,${FL.h - FL.m.b})`);
+  flY.call(d3.axisLeft(fy).ticks(6).tickFormat(v => (v < 0 ? '−' : '') + d3.format('~s')(Math.abs(v)).replace('k','K')).tickSize(0).tickPadding(6));
+  flGrid.call(d3.axisLeft(fy).ticks(6).tickSize(-(FL.w - FL.m.l - FL.m.r)).tickFormat(''));
+  flZero.attr('x1', FL.m.l).attr('x2', FL.w - FL.m.r).attr('y1', fy(0)).attr('y2', fy(0));
+  const segs = [];
+  ms.forEach(m => { let a = 0, b = 0; CATS.forEach(c => { const v = m.cats[c.k]; if (!v) return; if (c.dir > 0){ segs.push({m:m.m, c, y0:a, y1:a + v, v}); a += v; } else { segs.push({m:m.m, c, y0:-b - v, y1:-b, v}); b += v; } }); });
+  const t = d3.transition().duration(animate && !reduce ? 700 : 0);
+  flBars.selectAll('rect').data(segs, d => d.m + d.c.k).join(en => en.append('rect').attr('x', d => fx(d.m)).attr('width', fx.bandwidth()).attr('y', fy(0)).attr('height', 0), u => u, ex => ex.remove())
+    .attr('fill', d => S.ran ? d.c.c : (d.c.dir > 0 ? '#BFD3CB' : '#C9CFE6')).attr('rx', 1.5)
+    .on('mousemove', (ev, d) => showTip(`<div class="t">${mLab(MON[d.m])} · ${S.ran ? d.c.k : (d.c.dir > 0 ? 'Inflow' : 'Outflow')}</div><b>${inr(d.v)}</b>`, ev)).on('mouseleave', hideTip)
+    .transition(t).delay(d => animate && !reduce ? d.m * 45 : 0).attr('x', d => fx(d.m)).attr('width', fx.bandwidth()).attr('y', d => fy(d.y1)).attr('height', d => Math.max(0, fy(d.y0) - fy(d.y1)));
+  const line = d3.line().x(m => fx(m.m) + fx.bandwidth()/2).y(m => fy(m.inc)).curve(d3.curveMonotoneX);
+  incPath.attr('d', line(ms)).attr('opacity', S.ran ? 1 : 0);
+  if (S.ran && animate && !reduce){ const n = incPath.node(), len = n.getTotalLength(); incPath.attr('stroke-dasharray', `${len} ${len}`).attr('stroke-dashoffset', len).transition().delay(600).duration(900).attr('stroke-dashoffset', 0).on('end', () => incPath.attr('stroke-dasharray', null)); }
+  incDots.selectAll('circle').data(S.ran ? ms : []).join('circle').attr('r', 4).attr('fill','#fff').attr('stroke','#F0883E').attr('stroke-width', 2).attr('cx', m => fx(m.m) + fx.bandwidth()/2).attr('cy', m => fy(m.inc))
+    .on('mousemove', (ev, m) => showTip(`<div class="t">${mLab(m.d)}</div>Assessed income <b>${inr(m.inc)}</b><br><span style="opacity:.8">${p.method}</span>`, ev)).on('mouseleave', hideTip);
+  incLbl.attr('x', FL.w - FL.m.r).attr('y', FL.m.t + 4).text(S.ran ? `— Assessed income ${inr(p.income)}/mo` : '');
+}
+
+/* ======================================================================
+   INCOME CLOCK (radial petals)
+   ====================================================================== */
+const CK = {w:380, h:300}; const ck = d3.select('#clock').append('svg').attr('viewBox', `0 0 ${CK.w} ${CK.h}`).attr('role','img').attr('aria-label','Income consistency by month');
+const ckG = ck.append('g').attr('transform', `translate(${CK.w/2},${CK.h/2})`);
+const ang = d3.scaleBand().domain(d3.range(12)).range([0, 2*Math.PI]).padding(.08);
+const rad = d3.scaleRadial().range([46, 132]);
+const petals = ckG.append('g'), labs = ckG.append('g');
+const ring = ckG.append('circle').attr('fill','none').attr('stroke','#072B24').attr('stroke-opacity',.55).attr('stroke-dasharray','3 3').attr('pointer-events','none');
+const cNum = ckG.append('text').attr('text-anchor','middle').attr('dy', 2).attr('font-family','DM Serif Display, Georgia, serif').attr('font-size', 30).attr('fill','#072B24');
+const cTxt = ckG.append('text').attr('text-anchor','middle').attr('dy', 20).attr('font-size', 10).attr('fill','#6B7A80');
+function drawClock(animate){
+  const p = pr(), ms = p.monthly, med = d3.median(ms, m => m.inc);
+  rad.domain([0, d3.max(ms, m => m.inc) * 1.05]);
+  const arc = d3.arc().innerRadius(40).outerRadius(m => S.ran ? rad(m.inc) : 44).startAngle(m => ang(m.m)).endAngle(m => ang(m.m) + ang.bandwidth()).cornerRadius(3);
+  const col = m => { const dv = Math.abs(m.inc / med - 1); return !S.ran ? '#D7E3DE' : dv <= .15 ? '#2F9E7E' : dv <= .3 ? '#E0A21A' : '#DC2626'; };
+  petals.selectAll('path').data(ms).join('path').on('mousemove', (ev, m) => showTip(`<div class="t">${mLab(m.d)}</div>Assessed income <b>${inr(m.inc)}</b><br>${((m.inc/med - 1)*100).toFixed(0)}% vs median`, ev)).on('mouseleave', hideTip)
+    .transition().duration(animate && !reduce ? 700 : 0).delay(m => animate && !reduce ? m.m * 60 : 0).attr('d', arc).attr('fill', col);
+  labs.selectAll('text').data(ms).join('text').attr('font-size', 9.5).attr('fill','#6B7A80').attr('text-anchor','middle').attr('dy','.35em')
+    .attr('x', m => Math.sin(ang(m.m) + ang.bandwidth()/2) * 144).attr('y', m => -Math.cos(ang(m.m) + ang.bandwidth()/2) * 144).text(m => mShort(m.d)[0] + mShort(m.d).slice(1,3));
+  ring.attr('r', S.ran ? rad(med) : 0);
+  cNum.text(S.ran ? pc(p.consistency) : '—'); cTxt.text(S.ran ? 'consistency' : 'not run');
+}
+
+/* ======================================================================
+   ELIGIBILITY FRONTIER + GAUGES
+   ====================================================================== */
+const FR = {w:520, h:300, m:{t:16, r:16, b:36, l:48}};
+const fr = d3.select('#front').append('svg').attr('viewBox', `0 0 ${FR.w} ${FR.h}`).attr('role','img').attr('aria-label','Eligible loan by tenure');
+const ex_ = d3.scaleLinear().domain([5, 30]).range([FR.m.l, FR.w - FR.m.r]);
+const ey = d3.scaleLinear().domain([0, L(40)]).range([FR.h - FR.m.b, FR.m.t]);
+fr.append('g').attr('class','grid').attr('transform', `translate(${FR.m.l},0)`).call(d3.axisLeft(ey).ticks(8).tickSize(-(FR.w - FR.m.l - FR.m.r)).tickFormat(''));
+fr.append('g').attr('class','axis').attr('transform', `translate(${FR.m.l},0)`).call(d3.axisLeft(ey).ticks(8).tickFormat(v => (v/1e5) + 'L').tickSize(0).tickPadding(6));
+fr.append('g').attr('class','axis').attr('transform', `translate(0,${FR.h - FR.m.b})`).call(d3.axisBottom(ex_).ticks(6).tickFormat(v => v + ' yrs').tickSize(0).tickPadding(8));
+const frArea = fr.append('path').attr('fill','rgba(18,97,79,.14)');
+const frFoir = fr.append('path').attr('fill','none').attr('stroke','#12614F').attr('stroke-width', 2.5);
+const frLtv = fr.append('line').attr('stroke','#3B4BA8').attr('stroke-width', 2).attr('stroke-dasharray','6 4');
+const frFoirT = fr.append('text').attr('font-size', 10.5).attr('font-weight', 700).attr('fill','#12614F');
+const frLtvT = fr.append('text').attr('font-size', 10.5).attr('font-weight', 700).attr('fill','#3B4BA8').attr('text-anchor','end');
+const askMark = fr.append('g'); askMark.append('circle').attr('r', 6).attr('fill','none').attr('stroke','#6B7A80').attr('stroke-dasharray','2 2').attr('stroke-width', 1.5);
+askMark.append('text').attr('x', -10).attr('text-anchor','end').attr('dy','.35em').attr('font-size', 10).attr('fill','#6B7A80').text('asked');
+const guide = fr.append('g').attr('pointer-events','none'); guide.append('line').attr('class','gv').attr('stroke','#9DB2AA').attr('stroke-dasharray','2 3'); guide.append('line').attr('class','gh').attr('stroke','#9DB2AA').attr('stroke-dasharray','2 3');
+const dot = fr.append('g').style('cursor','grab');
+dot.append('circle').attr('class','halo').attr('r', 18).attr('opacity', .18);
+dot.append('circle').attr('class','core').attr('r', 9).attr('stroke','#fff').attr('stroke-width', 2.5);
+const dotT = dot.append('text').attr('font-size', 11.5).attr('font-weight', 800).attr('dy', 32).attr('text-anchor','middle').attr('stroke','#fff').attr('stroke-width',3).attr('paint-order','stroke');
+const maxPt = fr.append('g'); maxPt.append('path').attr('d', d3.symbol(d3.symbolDiamond, 90)()).attr('fill','#F0883E').attr('stroke','#fff').attr('stroke-width', 1.5);
+const maxT = maxPt.append('text').attr('x', 10).attr('dy','.35em').attr('font-size', 10.5).attr('font-weight', 800).attr('fill','#C2621F').attr('stroke','#fff').attr('stroke-width',3).attr('paint-order','stroke');
+dot.call(d3.drag().on('start', () => dot.style('cursor','grabbing')).on('drag', ev => {
+  S.ten = Math.max(5, Math.min(30, Math.round(ex_.invert(ev.x)))); S.loan = Math.max(L(3), Math.min(L(40), Math.round(ey.invert(ev.y) / L(.5)) * L(.5))); syncSliders(); update(false); }).on('end', () => dot.style('cursor','grab')));
+fr.on('click', ev => { if (ev.target.closest && ev.target.closest('g') === dot.node()) return; const [x, y] = d3.pointer(ev); if (x < FR.m.l || x > FR.w - FR.m.r || y < FR.m.t || y > FR.h - FR.m.b) return;
+  S.ten = Math.round(ex_.invert(x)); S.loan = Math.round(ey.invert(y) / L(.5)) * L(.5); syncSliders(); update(false); });
+
+const GA = {w:240, h:250}; const ga = d3.select('#gauges').append('svg').attr('viewBox', `0 0 ${GA.w} ${GA.h}`).attr('role','img').attr('aria-label','FOIR and LTV gauges');
+function gauge(cy, label){
+  const g = ga.append('g').attr('transform', `translate(${GA.w/2},${cy})`), a = d3.arc().innerRadius(58).outerRadius(74);
+  const sc = d3.scaleLinear().domain([0, 1]).range([-Math.PI/2, Math.PI/2]).clamp(true);
+  g.append('path').attr('d', a({startAngle:-Math.PI/2, endAngle:Math.PI/2})).attr('fill','#E7EFEB');
+  const okA = g.append('path').attr('fill','rgba(22,163,74,.22)');
+  const val = g.append('path');
+  const cap = g.append('line').attr('stroke','#072B24').attr('stroke-width', 2);
+  const capT = g.append('text').attr('font-size', 9.5).attr('fill','#072B24').attr('text-anchor','middle').attr('font-weight', 700);
+  const num = g.append('text').attr('text-anchor','middle').attr('y', -8).attr('font-family','DM Serif Display, Georgia, serif').attr('font-size', 26);
+  g.append('text').attr('text-anchor','middle').attr('y', 10).attr('font-size', 10.5).attr('fill','#5A6E68').attr('font-weight', 700).text(label);
+  let cur = 0;
+  return (v, capV) => { const okc = v <= capV + 1e-9 ? '#16A34A' : '#DC2626';
+    okA.attr('d', a({startAngle:-Math.PI/2, endAngle:sc(capV)}));
+    const ang2 = sc(capV); cap.attr('x1', Math.sin(ang2)*54).attr('y1', -Math.cos(ang2)*54).attr('x2', Math.sin(ang2)*80).attr('y2', -Math.cos(ang2)*80);
+    capT.attr('x', Math.sin(ang2)*92).attr('y', -Math.cos(ang2)*92 + 3).text('cap ' + pc(capV));
+    const from = cur; cur = v; val.attr('fill', okc).transition().duration(reduce ? 0 : 350).attrTween('d', () => { const i = d3.interpolate(from, v); return t => a({startAngle:-Math.PI/2, endAngle:sc(i(t))}); });
+    num.attr('fill', okc).text(pc(v)); };
+}
+const gF = gauge(100, 'FOIR'), gL = gauge(220, 'LTV');
+
+const sLoan = $('sLoan'), sTen = $('sTen'), sRate = $('sRate'), sEx = $('sEx');
+function syncSliders(){ sLoan.value = S.loan / 1e5; sTen.value = S.ten; sRate.value = S.rate; sEx.checked = S.ex; }
+sLoan.addEventListener('input', () => { S.loan = L(+sLoan.value); update(false); });
+sTen.addEventListener('input', () => { S.ten = +sTen.value; update(false); });
+sRate.addEventListener('input', () => { S.rate = +sRate.value; update(false); });
+sEx.addEventListener('change', () => { S.ex = sEx.checked; update(false); });
+
+function drawElig(){
+  const p = pr(), c = calc(), tens = d3.range(5, 30.01, .5);
+  frArea.attr('d', d3.area().x(t => ex_(t)).y0(ey(0)).y1(t => ey(Math.min(L(40), maxLoan(t)))).curve(d3.curveMonotoneX)(tens));
+  frFoir.attr('d', d3.line().x(t => ex_(t)).y(t => ey(Math.min(L(40), maxByFoir(t)))).curve(d3.curveMonotoneX)(tens));
+  const lm = ltvMax(p.prop); frLtv.attr('x1', FR.m.l).attr('x2', FR.w - FR.m.r).attr('y1', ey(lm)).attr('y2', ey(lm));
+  frLtvT.attr('x', FR.w - FR.m.r - 4).attr('y', ey(lm) - 6).text(`LTV limit ${lk(lm)} (${pc(lm / p.prop)} of ${lk(p.prop)})`);
+  const fy30 = Math.min(L(40), maxByFoir(30)); frFoirT.attr('x', ex_(6)).attr('y', Math.max(FR.m.t + 12, ey(Math.min(L(40), maxByFoir(6))) - 8)).text(`FOIR limit ${pc(p.fcap)} of income`);
+  askMark.attr('transform', `translate(${ex_(p.ask.ten)},${ey(L(p.ask.loan))})`);
+  const ok = c.okF && c.okL, col = ok ? '#16A34A' : '#DC2626';
+  const x = ex_(S.ten), y = ey(Math.min(L(40), S.loan));
+  guide.select('.gv').attr('x1', x).attr('x2', x).attr('y1', y).attr('y2', FR.h - FR.m.b); guide.select('.gh').attr('x1', FR.m.l).attr('x2', x).attr('y1', y).attr('y2', y);
+  dot.attr('transform', `translate(${x},${y})`); dot.select('.halo').attr('fill', col); dot.select('.core').attr('fill', col); dotT.attr('fill', col).text(`${lk(S.loan)} · ${S.ten}y`);
+  const mx = c.max; maxPt.attr('transform', `translate(${x},${ey(Math.min(L(40), mx))})`).attr('opacity', Math.abs(mx - S.loan) < L(.3) ? 0 : 1); maxT.text(`max ${lk(mx)}`);
+  gF(c.foir, c.fcap); gL(c.ltv, c.lcap);
+  $('oLoan').textContent = lk(S.loan); $('oTen').textContent = S.ten + ' yrs'; $('oRate').textContent = S.rate.toFixed(2) + '%';
+  $('exWrap').hidden = !p.closeMonths;
+  $('emi').innerHTML = `Proposed EMI<b>${inr(c.e)}</b>Existing obligations ${inr(obl())}/mo${p.closeMonths && S.ex ? ' (vehicle loan excluded)' : ''} · income ${inr(p.income)}/mo`;
+  const v = $('verdict'); v.className = 'verdict ' + (ok ? 'ok' : 'warn');
+  const reasons = []; if (!c.okF) reasons.push(`FOIR ${pc(c.foir)} is above the ${pc(c.fcap)} cap`); if (!c.okL) reasons.push(`LTV ${pc(c.ltv)} is above the ${pc(c.lcap)} cap`);
+  let alt = ''; if (!ok){ const t30 = d3.range(S.ten, 31).find(t => maxLoan(t) >= S.loan); alt = t30 ? ` Or keep ${lk(S.loan)} with a ${t30}-year tenure.` : ''; if (!t30 && p.closeMonths && !S.ex && maxLoan(S.ten) < S.loan) alt = ' Excluding the closing vehicle loan may help.'; }
+  v.innerHTML = ok ? `<div class="k">Co-pilot view</div><div class="v">Within policy</div><p>FOIR ${pc(c.foir)} and LTV ${pc(c.ltv)} are inside the limits. Headroom up to ${lk(c.max)} at ${S.ten} years.</p>`
+    : `<div class="k">Co-pilot view</div><div class="v">${c.max >= L(3) ? 'Reduce to ' + lk(Math.floor(c.max / L(.5)) * L(.5)) : 'Not eligible as filed'}</div><p>${reasons.join('; ')}.${alt}</p>`;
+}
+
+/* ======================================================================
+   FLAGS + MEMO
+   ====================================================================== */
+function renderFlags(animate){
+  const f = $('flags'); f.innerHTML = '';
+  if (!S.ran){ f.innerHTML = '<div class="mempty" style="height:120px">Run the co-pilot to see checks.</div>'; return; }
+  pr().flags.forEach((fl, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'flag'; b.setAttribute('aria-pressed', 'false');
+    b.innerHTML = `<span class="sv ${fl.sev}">${fl.sev === 'high' ? 'HIGH' : fl.sev === 'med' ? 'CHECK' : 'OK'}</span><span><p>${fl.t}</p><small>Source: ${fl.src}</small></span>`;
+    b.addEventListener('click', () => { S.flag = S.flag === i ? -1 : i; if (S.flag >= 0 && pr().flags[i].hl && S.view !== 'ai'){ setView('ai'); placeDots(true); } markFlags(); styleDots(); if (S.flag >= 0 && pr().flags[i].hl) $('river').scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block:'center'}); });
+    f.appendChild(b); setTimeout(() => b.classList.add('in'), animate && !reduce ? i * 260 : 0); });
+}
+function markFlags(){ document.querySelectorAll('.flag').forEach((b,i) => b.setAttribute('aria-pressed', i === S.flag)); }
+function memoHTML(){
+  const p = pr(), c = calc(), ok = c.okF && c.okL, today = d3.timeFormat('%d %b %Y')(new Date());
+  const high = p.flags.filter(f => f.sev === 'high').length, med = p.flags.filter(f => f.sev === 'med').length;
+  const rec = ok ? `Recommend sanction of ${lk(S.loan)} for ${S.ten} years at ${S.rate.toFixed(2)}%, EMI ${inr(c.e)}.` : c.max >= L(3) ? `Requested terms are outside policy. Recommend sanction of up to ${lk(Math.floor(c.max / L(.5)) * L(.5))} for ${S.ten} years, or refer for deviation approval.` : `Not eligible on current obligations. ${p.closeMonths ? 'Re-assess with the closing vehicle loan excluded, subject to closure proof.' : 'Decline or refer.'}`;
+  const cond = [];
+  p.flags.forEach(f => { if (f.sev !== 'ok') cond.push(f.t.split('. ')[0].replace(/\.$/, '') + '.'); });
+  if (p.closeMonths && S.ex) cond.push('Vehicle loan closure proof before final disbursement.');
+  return `<div class="mh"><div><b>Credit Appraisal Memo</b><br>Affordable Housing · ${p.prof}</div><div style="text-align:right">Draft · ${today}<br>File ref: AH/${p.id.toUpperCase()}/0${S.p + 1}</div></div>
+<h6>1 · Applicant</h6><p>${p.name}, ${p.role.replace(' · ', ', ')}. Profile: ${p.prof.toLowerCase()}. Property technical value ${lk(p.prop)}.</p>
+<h6>2 · Income assessment</h6><p>Method: ${p.method}. Assessed monthly income <b>${inr(p.income)}</b>. Income consistency ${pc(p.consistency)} across 12 months${p.cashShare > .3 ? `; cash deposits ${pc(p.cashShare)} of credits` : ''}.</p>
+<h6>3 · Obligations and eligibility</h6><table><tr><td>Existing obligations</td><td>${inr(obl())}/mo</td></tr><tr><td>Proposed EMI (${lk(S.loan)}, ${S.ten} yrs, ${S.rate.toFixed(2)}%)</td><td>${inr(c.e)}</td></tr><tr><td>FOIR (cap ${pc(c.fcap)})</td><td style="color:${c.okF ? '#15803D' : '#B91C1C'}">${pc(c.foir)}</td></tr><tr><td>LTV (cap ${pc(c.lcap)})</td><td style="color:${c.okL ? '#15803D' : '#B91C1C'}">${pc(c.ltv)}</td></tr><tr><td>Maximum eligible at ${S.ten} yrs</td><td>${lk(c.max)}</td></tr></table>
+<h6>4 · Banking conduct</h6><p>${p.tx.length} transactions classified. ${p.bounces ? p.bounces + ' bounce' + (p.bounces > 1 ? 's' : '') + ' in 12 months.' : 'No bounces in 12 months.'} ${high} high and ${med} medium items raised for review.</p>
+<h6>5 · Recommendation</h6><p><b>${rec}</b></p>${cond.length ? `<h6>6 · Conditions and checks</h6><ul style="margin:0;padding-left:18px">${cond.map(x => `<li>${x}</li>`).join('')}</ul>` : ''}
+<p style="margin-top:10px;font-size:.7rem;color:#8A8270">Drafted by the co-pilot from the loan file. Final decision and sign-off by the underwriter.</p>`;
+}
+let typing = null;
+function renderMemo(animate){
+  const m = $('memo'); if (typing){ clearInterval(typing); typing = null; }
+  if (!S.ran){ m.innerHTML = '<div class="mempty">The memo appears here after the co-pilot runs.</div>'; return; }
+  const html = memoHTML(); if (!animate || reduce){ m.innerHTML = html; return; }
+  const tmp = document.createElement('div'); tmp.innerHTML = html; m.innerHTML = ''; const nodes = [];
+  (function walk(src, dst){ src.childNodes.forEach(n => { if (n.nodeType === 3){ const t = document.createTextNode(''); dst.appendChild(t); nodes.push([t, n.textContent]); } else { const c = n.cloneNode(false); dst.appendChild(c); walk(n, c); } }); })(tmp, m);
+  const caret = document.createElement('span'); caret.className = 'caret'; let ni = 0, ci = 0;
+  typing = setInterval(() => { for (let k = 0; k < 9 && ni < nodes.length; k++){ const [t, s] = nodes[ni]; t.textContent = s.slice(0, ++ci); if (ci >= s.length){ ni++; ci = 0; } }
+    if (ni < nodes.length){ const t = nodes[ni][0]; t.parentNode.insertBefore(caret, t.nextSibling); } else { caret.remove(); clearInterval(typing); typing = null; } }, 16);
+}
+$('copy').addEventListener('click', () => { const t = $('memo').innerText; try { navigator.clipboard.writeText(t).then(() => { $('copy').textContent = 'Copied'; setTimeout(() => $('copy').textContent = 'Copy memo', 1500); }, () => {}); } catch(e){} });
+
+/* ======================================================================
+   RUN + LOAD
+   ====================================================================== */
+let busy = false;
+function update(animate){ drawElig(); if (S.ran) renderMemo(false); }
+function loadPersona(i){
+  S.p = i; const p = pr(); S.loan = L(p.ask.loan); S.ten = p.ask.ten; S.rate = p.ask.rate; S.ex = false; S.ran = false; S.flag = -1; S.hide.clear();
+  lgd.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed','true'));
+  setView('raw'); syncSliders(); renderDocs('queued'); ['cTx','cFd','cFl'].forEach(id => $(id).textContent = '0');
+  drawDots(); drawFlow(false); drawClock(false); drawElig(); renderFlags(false); renderMemo(false);
+  $('run').innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>Run co-pilot';
+}
+function tween(el, to, ms){ if (reduce){ el.textContent = to; return; } const t0 = performance.now(); (function s(t){ const k = Math.min(1, (t - t0) / ms); el.textContent = Math.round(to * k); if (k < 1) requestAnimationFrame(s); })(t0); }
+function runCopilot(){
+  if (busy) return; busy = true; const run = $('run'); run.disabled = true; run.textContent = 'Reading the file…';
+  const p = pr(), docs = [...document.querySelectorAll('#docs .doc')], per = reduce ? 0 : 420;
+  S.ran = false; renderFlags(false); renderMemo(false);
+  docs.forEach((d, i) => setTimeout(() => { d.classList.add('reading'); d.querySelector('.st').textContent = 'reading'; d3.select(d.querySelector('.bar span')).transition().duration(per).style('width','100%');
+    setTimeout(() => { d.classList.remove('reading'); d.classList.add('done'); d.querySelector('.st').textContent = '✓ read'; }, per); }, i * per));
+  tween($('cFd'), p.fields, docs.length * per);
+  if (!reduce){ scanLine.attr('opacity', 1).attr('x1', RV.m.l).attr('x2', RV.m.l).transition().duration(docs.length * per).ease(d3.easeLinear).attr('x1', RV.w - RV.m.r).attr('x2', RV.w - RV.m.r).on('end', () => scanLine.attr('opacity', 0)); }
+  setTimeout(() => {
+    S.ran = true; run.textContent = 'Classifying…'; tween($('cTx'), p.tx.length, 1100);
+    setView('ai'); placeDots(true); drawFlow(true); drawClock(true);
+    setTimeout(() => { run.textContent = 'Drafting memo…'; tween($('cFl'), p.flags.filter(f => f.sev !== 'ok').length, 600); renderFlags(true); drawElig(); renderMemo(true);
+      setTimeout(() => { busy = false; run.disabled = false; run.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg>Run again'; }, reduce ? 0 : 1200);
+    }, reduce ? 0 : 1300);
+  }, docs.length * per + (reduce ? 0 : 150));
+}
+$('run').addEventListener('click', runCopilot);
+loadPersona(0);
+
+/* ======================================================================
+   IMPACT CHARTS
+   ====================================================================== */
+const rI = mulberry32(42);
+const logn = (mu, sg) => { let u = 0, v = 0; while (!u) u = rI(); while (!v) v = rI(); return Math.exp(mu + sg * Math.sqrt(-2*Math.log(u)) * Math.cos(2*Math.PI*v)); };
+const TB = d3.range(600).map(() => Math.min(18, logn(Math.log(6), .42))), TA = d3.range(600).map(() => Math.min(18, logn(Math.log(3.1), .38)));
+let tdMode = 'after', tdUpd = null;
+function drawTat(){
+  const w = 560, h = 320, m = {t:30, r:16, b:36, l:40};
+  const s = d3.select('#tat').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Turnaround distribution');
+  const x = d3.scaleLinear().domain([0, 16]).range([m.l, w - m.r]);
+  const kde = (data) => { const bw = .6, xs = d3.range(0, 16.01, .2); return xs.map(v => [v, d3.mean(data, d => Math.exp(-.5 * ((v - d)/bw)**2) / (bw * Math.sqrt(2*Math.PI)))]); };
+  const dB = kde(TB), dA = kde(TA);
+  const y = d3.scaleLinear().domain([0, d3.max([...dB, ...dA], d => d[1]) * 1.12]).range([h - m.b, m.t]);
+  s.append('g').attr('class','grid').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(8).tickSize(-(h - m.t - m.b)).tickFormat(''));
+  s.append('g').attr('class','axis').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(8).tickFormat(d => d + 'd').tickSize(0).tickPadding(8));
+  s.append('text').attr('x', w - m.r).attr('y', h - 4).attr('text-anchor','end').attr('font-size', 11).attr('fill','#5A6E68').text('Working days from login to sanction');
+  const area = d3.area().x(d => x(d[0])).y0(y(0)).y1(d => y(d[1])).curve(d3.curveBasis), flat = d3.area().x(d => x(d[0])).y0(y(0)).y1(y(0)).curve(d3.curveBasis);
+  const pB = s.append('path').datum(dB).attr('fill','rgba(184,199,193,.55)').attr('stroke','#9DB2AA').attr('stroke-width', 1.5).attr('d', flat);
+  const pA = s.append('path').datum(dA).attr('fill','rgba(18,97,79,.28)').attr('stroke','#12614F').attr('stroke-width', 2).attr('d', flat);
+  const mdB = d3.median(TB), mdA = d3.median(TA), p90B = d3.quantile(TB.slice().sort(d3.ascending), .9), p90A = d3.quantile(TA.slice().sort(d3.ascending), .9);
+  const mline = (v, c) => { const g = s.append('g').attr('opacity', 0); g.append('line').attr('x1', x(v)).attr('x2', x(v)).attr('y1', m.t - 6).attr('y2', h - m.b).attr('stroke', c).attr('stroke-width', 1.5).attr('stroke-dasharray','4 3'); g.append('text').attr('x', x(v)).attr('y', m.t - 10).attr('text-anchor','middle').attr('font-size', 11.5).attr('font-weight', 800).attr('fill', c).text(`median ${v.toFixed(1)}d`); return g; };
+  const mB = mline(mdB, '#6B7A80'), mA = mline(mdA, '#12614F');
+  const arrow = s.append('g').attr('opacity', 0);
+  arrow.append('path').attr('d', `M${x(mdB) - 8},${m.t + 26} L${x(mdA) + 10},${m.t + 26}`).attr('stroke','#F0883E').attr('stroke-width', 2.5).attr('marker-end','url(#ah)').attr('fill','none');
+  s.append('defs').append('marker').attr('id','ah').attr('viewBox','0 0 10 10').attr('refX', 6).attr('refY', 5).attr('markerWidth', 6).attr('markerHeight', 6).attr('orient','auto').append('path').attr('d','M0,0L10,5L0,10z').attr('fill','#F0883E');
+  arrow.append('text').attr('x', (x(mdB) + x(mdA))/2).attr('y', m.t + 20).attr('text-anchor','middle').attr('font-size', 11).attr('font-weight', 800).attr('fill','#C2621F').text(`−${Math.round((1 - mdA/mdB)*100)}%`);
+  const info = s.append('text').attr('x', w - m.r - 4).attr('y', m.t + 40).attr('text-anchor','end').attr('font-size', 11.5).attr('fill','#38504A');
+  s.append('rect').attr('x', m.l).attr('y', m.t).attr('width', w - m.l - m.r).attr('height', h - m.t - m.b).attr('fill','transparent')
+    .on('mousemove', ev => { const v = x.invert(d3.pointer(ev)[0]); const sh = a => Math.round(a.filter(d => d <= v).length / a.length * 100); showTip(`<div class="t">Sanctioned within ${v.toFixed(1)} days</div>Before: <b>${sh(TB)}%</b> of files<br>After: <b>${sh(TA)}%</b> of files`, ev); }).on('mouseleave', hideTip);
+  tdUpd = () => { const t = d3.transition().duration(DUR);
+    pB.transition(t).attr('d', area); mB.transition(t).attr('opacity', 1);
+    if (tdMode === 'after'){ pA.transition(t).delay(reduce ? 0 : 200).attr('d', area); mA.transition(t).attr('opacity', 1); arrow.transition(t).delay(reduce ? 0 : 500).attr('opacity', 1); info.text(`90% sanctioned within ${p90A.toFixed(1)}d (was ${p90B.toFixed(1)}d)`); }
+    else { pA.transition(t).attr('d', flat); mA.transition(t).attr('opacity', 0); arrow.transition(t).attr('opacity', 0); info.text(`90% sanctioned within ${p90B.toFixed(1)}d`); } };
+  tdUpd();
+}
+document.querySelectorAll('[data-td]').forEach(b => b.addEventListener('click', () => { tdMode = b.dataset.td; document.querySelectorAll('[data-td]').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); if (tdUpd) tdUpd(); }));
+
+function drawWaffle(){
+  const w = 560, h = 320, s = d3.select('#waffle').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Outcome of every 100 files, before and after');
+  const sets = [{k:'Before', v:[58, 30, 12], x:30}, {k:'With co-pilot', v:[71, 23, 6], x:300}];
+  const cols = ['#12614F', '#F0883E', '#B91C1C'], names = ['First-time right','Sent back once','Sent back twice or more'], cs = 22, gap = 3;
+  sets.forEach((st, si) => { const g = s.append('g').attr('transform', `translate(${st.x},44)`);
+    g.append('text').attr('y', -16).attr('font-size', 13).attr('font-weight', 800).attr('fill', si ? '#12614F' : '#5A6E68').text(st.k);
+    const cells = []; st.v.forEach((n, ci) => { for (let i = 0; i < n; i++) cells.push(ci); });
+    g.selectAll('rect').data(cells).join('rect').attr('x', (d,i) => (i % 10) * (cs + gap)).attr('y', (d,i) => Math.floor(i / 10) * (cs + gap)).attr('width', cs).attr('height', cs).attr('rx', 5)
+      .attr('fill', '#E7EFEB').on('mousemove', (ev, d) => showTip(`<div class="t">${st.k}</div>${names[d]}: <b>${st.v[d]} of 100</b>`, ev)).on('mouseleave', hideTip)
+      .transition().duration(reduce ? 0 : 300).delay((d,i) => reduce ? 0 : si * 900 + i * 14).attr('fill', d => cols[d]);
+    g.append('text').attr('x', 0).attr('y', 10 * (cs + gap) + 18).attr('font-size', 12).attr('fill', '#38504A').html(`<tspan font-weight="800" fill="${cols[0]}">${st.v[0]}</tspan> right first time · <tspan font-weight="800" fill="${cols[1]}">${st.v[1] + st.v[2]}</tspan> sent back`);
+  });
+}
+whenVisible(document.getElementById('tat'), drawTat);
+whenVisible(document.getElementById('waffle'), drawWaffle);
+})();
+</script>
+</body>
+</html>
