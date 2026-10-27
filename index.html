@@ -95,7 +95,9 @@ select:focus{outline:none;border-color:var(--navy-2);box-shadow:0 0 0 3px rgba(3
 .ib:hover{background:var(--soft);border-color:var(--line);color:var(--ink)}
 .vb{flex:1;position:relative;background:#eef1f5}
 .vb iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
-.vb video{position:absolute;inset:0;margin:auto;max-width:100%;max-height:100%;height:100%;background:#000}
+.vb video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#0d1322}
+#vis{position:fixed;inset:0;pointer-events:none;visibility:hidden}
+.ov.framed{align-items:flex-start;padding-top:0;padding-bottom:0}
 .vb .vidwrap{position:absolute;inset:0;background:#0d1322;display:flex;align-items:center;justify-content:center}
 .load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px}
 
@@ -142,6 +144,7 @@ select:focus{outline:none;border-color:var(--navy-2);box-shadow:0 0 0 3px rgba(3
   <div id="out"></div>
 </div>
 
+<div id="vis" aria-hidden="true"></div>
 <div class="ov" id="ov" aria-hidden="true">
   <div class="vw" role="dialog" aria-modal="true" aria-labelledby="vTitle">
     <div class="vh">
@@ -238,12 +241,31 @@ function render(){
 
 // viewer
 let cur = null, lastFocus = null;
+// When embedded (e.g. Wix), the iframe can be taller than the screen. Track the part of
+// the embed that is actually visible on screen and fit the viewer inside it.
+let visRect = null;
+const embedded = (()=>{ try{ return window.self !== window.top; }catch(e){ return true; } })();
+function fitViewer(){
+  const ov = $("ov"), vw = ov.querySelector(".vw");
+  if(!embedded || !visRect || visRect.height < 120){ ov.classList.remove("framed"); vw.style.marginTop=""; vw.style.height=""; return; }
+  const gap = window.innerWidth < 600 ? 0 : 16;
+  const h = Math.max(320, Math.min(visRect.height - gap*2, 900));
+  ov.classList.add("framed");
+  vw.style.marginTop = Math.max(0, visRect.top + (visRect.height - h)/2) + "px";
+  vw.style.height = h + "px";
+}
+if(embedded && "IntersectionObserver" in window){
+  const th = []; for(let i=0;i<=100;i++) th.push(i/100);
+  new IntersectionObserver(es=>{ es.forEach(e=>{ visRect = e.intersectionRect; }); if(cur) fitViewer(); }, {threshold: th}).observe($("vis"));
+}
+window.addEventListener("resize", ()=>{ if(cur) fitViewer(); });
 function openStory(slug, f){
   const s = STORIES.find(x=>x.slug===slug); if(!s) return;
   if(f==="pdf" && isMobile){ window.open(s.pdf, "_blank", "noopener"); return; }
   cur = s; lastFocus = document.activeElement;
   $("vTitle").textContent = s.title; $("vMeta").textContent = s.org+" · "+s.function;
   show(f);
+  fitViewer();
   $("ov").classList.add("open"); $("ov").setAttribute("aria-hidden","false"); document.body.classList.add("lock");
   try{ history.replaceState(null,"","#"+s.slug+"/"+f); }catch(e){}
   $("vClose").focus();
