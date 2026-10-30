@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Highway EPC · Project Control Room | HMC Case Study</title>
+<meta name="description" content="How Havish M Consulting built a project control room for a highway EPC contractor: highway progress by chainage from daily reports, fleet and fuel analytics, an NHAI tender reader and site safety checks from photos.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root{
+  --pri:#E8590C; --deep:#1E2328; --acc:#1B7F4C; --vio:#2F6690; --bad:#D64545; --good:#2F9E5B; --amb:#E9A23B;
+  --pri-15:rgba(232,89,12,.15); --acc-15:rgba(27,127,76,.15);
+  --bg:#F4F3EF; --text:#1C1F23; --muted:#5E6268; --card:#FFFFFF; --line:#E4E2DC;
+  --radius:12px; --shadow:0 1px 2px rgba(30,35,40,.06),0 8px 24px rgba(30,35,40,.08);
+  --serif:"DM Serif Display",Georgia,serif; --sans:"DM Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif; --mono:ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--serif);font-weight:400;color:var(--deep);margin:0;line-height:1.15}
+h2{font-size:clamp(1.6rem,3.2vw,2.2rem)}
+h3{font-size:1.2rem}
+p{margin:0}
+.wrap{max-width:1260px;margin:0 auto;padding:0 24px}
+section{padding:64px 0}
+.eyebrow{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--pri);margin-bottom:10px}
+.lead{color:var(--muted);max-width:800px;margin-top:12px}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line)}
+.sec-head{margin-bottom:28px}
+.alt{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.topbar{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+.logos{display:flex;align-items:center;gap:16px}
+.logos img{height:44px;width:auto;object-fit:contain}
+.logos img.cl{height:30px}
+.vdiv{width:1px;height:36px;background:var(--line)}
+.tagline{font-size:.8rem;color:var(--muted);letter-spacing:.04em}
+.tagline b{color:var(--pri);font-weight:700}
+.hero{background:radial-gradient(120% 140% at 88% 0%,#4A2470 0%,#2A1446 45%,#120821 100%);color:#fff;padding:76px 0 70px;position:relative;overflow:hidden}
+.hero canvas{position:absolute;right:0;top:0;width:58%;height:100%;pointer-events:none}
+.hero .eyebrow{color:#FFC94A}
+.hero h1{color:#fff;font-size:clamp(2.3rem,5.4vw,3.8rem);max-width:720px;position:relative;z-index:1}
+.hero h1 em{font-style:normal;color:#FFC94A}
+.hero .sub{font-size:clamp(1.05rem,2vw,1.2rem);color:rgba(255,255,255,.86);max-width:640px;margin-top:18px;position:relative;z-index:1}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px;position:relative;z-index:1}
+.pill{border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:6px 14px;font-size:.85rem;color:#fff;background:rgba(255,255,255,.06)}
+.pill span{color:#FFC94A;font-weight:700;margin-right:6px}
+.kpis{margin-top:-30px;position:relative;z-index:2;padding:0}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi{padding:22px 20px;border-top:3px solid var(--acc)}
+.kpi .label{font-size:.82rem;color:var(--muted);font-weight:500}
+.kpi .val{font-family:var(--serif);font-size:clamp(1.9rem,4vw,2.6rem);color:var(--pri);line-height:1.1;margin-top:6px;white-space:nowrap}
+.kpi .val small{font-family:var(--sans);font-size:.9rem;color:var(--muted);margin-left:4px}
+.delta{display:inline-flex;align-items:center;gap:4px;font-size:.8rem;font-weight:700;margin-top:8px;padding:2px 8px;border-radius:999px;background:rgba(31,166,122,.1);color:var(--good)}
+.footnote{font-size:.78rem;color:var(--muted);margin-top:14px}
+.ch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.chc{padding:24px}
+.ico{width:44px;height:44px;border-radius:10px;background:var(--pri-15);display:grid;place-items:center;margin-bottom:16px}
+.ico svg{width:22px;height:22px;stroke:var(--pri);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.chc h3{margin-bottom:8px}
+.chc p{font-size:.92rem;color:#433A52}
+.tl{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.tl::before{content:"";position:absolute;left:10%;right:10%;top:27px;height:3px;background:linear-gradient(90deg,var(--pri),var(--acc));border-radius:2px;opacity:.55}
+.tl-step{position:relative;background:none;border:0;cursor:pointer;font:inherit;color:inherit;display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 4px 8px}
+.tl-dot{width:56px;height:56px;border-radius:50%;background:#fff;border:2px solid var(--line);display:grid;place-items:center;font-family:var(--serif);font-size:1.25rem;color:var(--pri);transition:all .25s;position:relative;z-index:1}
+.tl-name{font-weight:700;font-size:.95rem}
+.tl-dur{font-size:.75rem;color:var(--muted);margin-top:-8px}
+.tl-step:hover .tl-dot{border-color:var(--pri)}
+.tl-step[aria-expanded="true"] .tl-dot{background:var(--pri);border-color:var(--pri);color:#fff;box-shadow:0 0 0 6px var(--pri-15)}
+.tl-step:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:8px}
+.tl-panel{display:none;padding:24px 28px;margin-top:20px;border-left:4px solid var(--acc)}
+.tl-panel.open{display:block;animation:fadeUp .35s ease}
+.tl-panel h3{margin-bottom:6px}
+.tl-panel ul{margin:12px 0 0;padding-left:20px;color:#433A52}
+.tl-panel li{margin:6px 0}
+.tl-panel .deliv{margin-top:14px;font-size:.85rem;color:var(--muted)}
+.tl-panel .deliv b{color:var(--pri)}
+.tl-hint{text-align:center;color:var(--muted);font-size:.8rem;margin-top:6px}
+.seg{display:inline-flex;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:22px;padding:4px;gap:4px}
+.seg button{border:0;background:none;font:inherit;font-size:.82rem;font-weight:700;padding:6px 13px;border-radius:999px;cursor:pointer;color:var(--muted);transition:all .2s}
+.seg button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.seg button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.seg.sm button{font-size:.76rem;padding:5px 10px}
+.mod-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.mod-head h3{font-size:1.5rem}
+.mod-head p{font-size:.88rem;color:var(--muted);max-width:720px;margin-top:4px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--deep);color:#FFC94A;font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:8px}
+.module{margin-bottom:54px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 12px;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer;color:var(--deep);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:border-color .15s,color .15s,background .15s}
+.btn:hover{border-color:var(--pri);color:var(--pri)}
+.btn.go{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.go:hover{background:#178A65;color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+
+
+.logos img.cl{height:40px;width:auto}
+.clw{font:800 1.05rem var(--sans);letter-spacing:.02em;color:#1E2328;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.clw i{width:26px;height:26px;border-radius:6px;background:linear-gradient(135deg,#E8590C,#F5B700);display:inline-block;position:relative}
+.clw i::after{content:"";position:absolute;left:5px;right:5px;top:11px;height:4px;background:#fff;border-radius:2px;box-shadow:0 -6px 0 -1px rgba(255,255,255,.6),0 6px 0 -1px rgba(255,255,255,.6)}
+.clw b{color:#E8590C}
+.hero{background:radial-gradient(110% 140% at 85% 10%,#3A3F46 0%,#1E2328 50%,#111316 100%)}
+.hero .eyebrow,.hero .pill span{color:#FFC94A}
+.hero h1 em{color:#FFC94A;font-style:italic}
+.badge{color:#FFC94A}
+.kpi{border-top:3px solid var(--pri)}
+.chc p,.tl-panel ul,.tk p{color:#454A50}
+.tl::before{background:linear-gradient(90deg,var(--pri),var(--amb),var(--acc),var(--vio))}
+.module .btn.go,.btn.go{background:var(--deep);border-color:var(--deep);color:#fff}
+.module .btn.go:hover,.btn.go:hover{background:#000;color:#fff}
+.btn.sm{padding:6px 10px;font-size:.74rem}
+.btn.ai{background:linear-gradient(110deg,#1E2328 0%,#8A3A0C 38%,#FFC94A 50%,#8A3A0C 62%,#1E2328 100%);background-size:260% 100%;color:#fff;border-color:transparent;animation:shim 3.2s linear infinite}
+.btn.ai:hover{color:#fff;filter:brightness(1.1)} .btn.ai[disabled]{opacity:.7;cursor:progress}
+@keyframes shim{from{background-position:130% 0}to{background-position:-130% 0}}
+.chart svg{width:100%;height:auto;display:block}
+.axis text{font-family:var(--sans);font-size:11px;fill:var(--muted)}
+.axis line{stroke:var(--line)} .axis path{display:none}
+.grid line{stroke:var(--line);stroke-dasharray:2 3} .grid path{display:none}
+.ckey{display:flex;gap:12px;font-size:.74rem;color:var(--muted);margin-top:6px;flex-wrap:wrap}
+.ckey span{display:inline-flex;align-items:center;gap:6px}
+.ckey i{width:14px;height:3px;border-radius:2px;display:inline-block}
+h4.lbl{margin:0 0 8px;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.chipb{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;font:700 .74rem var(--sans);color:var(--deep);cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.chipb:hover{border-color:var(--pri)} .chipb.on{background:var(--deep);border-color:var(--deep);color:#fff}
+.sigs{display:flex;gap:5px;flex-wrap:wrap}
+.ms{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.ms .k{font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.ms .v{font-family:var(--serif);font-size:1.3rem;color:var(--deep);line-height:1.15;font-variant-numeric:tabular-nums}
+.ms .s{font-size:.68rem;color:var(--muted)}
+.mgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+select.sel,input.inp,textarea.ta{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:600 .78rem var(--sans);background:#fff;color:var(--deep);width:100%;min-width:0}
+textarea.ta{font:500 .76rem/1.45 var(--sans);resize:vertical;min-height:96px}
+.note{font-size:.72rem;color:var(--muted);line-height:1.45;margin:0}
+.pill2{display:inline-flex;align-items:center;gap:6px;font:800 .62rem var(--sans);letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.pill2.off{background:#ECEAE4;color:#5E6268} .pill2.on{background:#FDE6D7;color:#9A3A06}
+.pill2 i{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block}
+.pill2.on i{animation:blink 1.4s infinite}
+@keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
+.tag{font:800 .6rem var(--sans);letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 8px;white-space:nowrap;display:inline-block}
+.tag.r{background:#FBE2E2;color:#9E2A2A} .tag.a{background:#FFF0D6;color:#8A5A00} .tag.g{background:#DDF1E5;color:#1D6B40} .tag.b{background:#DCE8F3;color:#1F4E79} .tag.n{background:#ECEAE4;color:#5E6268}
+.spark{color:#FFC94A;display:inline-block;animation:tw 2.4s ease-in-out infinite}
+@keyframes tw{50%{opacity:.4;transform:scale(.8) rotate(20deg)}}
+.aikey{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:18px;padding:16px 18px;margin:0 0 32px;align-items:center;border:2px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(120deg,#E8590C,#F5B700,#1B7F4C,#2F6690,#E8590C) border-box;background-size:100% 100%,300% 100%;animation:bord 9s linear infinite}
+@keyframes bord{to{background-position:0 0,300% 0}}
+.aikey h3{margin:0;font:400 1.35rem var(--serif);color:var(--deep)}
+.krow{display:grid;grid-template-columns:minmax(0,1.4fr) 150px auto auto;gap:8px;align-items:center;margin-bottom:8px}
+.krow input{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:500 .78rem var(--mono);color:var(--deep);background:#fff;min-width:0;width:100%}
+.kfoot{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.74rem}
+.drop{border:1.5px dashed #C9C5BC;border-radius:10px;padding:9px;text-align:center;font-size:.72rem;color:var(--muted);background:#fff;cursor:pointer;transition:all .2s;display:block}
+.drop:hover,.drop.over{border-color:var(--pri);background:#FDF1E8;color:var(--deep)}
+.drop b{display:block;color:var(--deep);font-size:.78rem;margin-bottom:2px}
+.rng{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;font-size:.72rem;align-items:center}
+.rng input{grid-column:1/-1;width:100%;accent-color:var(--pri)}
+.rng b{font-variant-numeric:tabular-nums;color:var(--deep)}
+.chk{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:.72rem}
+.chk label{display:inline-flex;gap:4px;align-items:center;cursor:pointer}
+.chk input{accent-color:var(--pri)}
+.out{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:.8rem;line-height:1.55;color:#2B2F34}
+.out ul{margin:4px 0 8px;padding-left:18px} .out p{margin:0 0 6px}
+.dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--pri);margin-right:3px;animation:blink 1s infinite}
+.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+.tab{width:100%;border-collapse:collapse;font-size:.74rem}
+.tab th{text-align:left;font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);padding:6px;white-space:nowrap}
+.tab td{padding:6px;border-bottom:1px solid #F0EEE9;vertical-align:middle}
+.tab td.r,.tab th.r{text-align:right;font-variant-numeric:tabular-nums}
+.tab tr.on td{background:#FDF1E8}
+.tab tbody tr[data-i]{cursor:pointer}
+.tab input.rt{width:96px;border:1px solid var(--line);border-radius:6px;padding:3px 6px;font:600 .72rem var(--mono);text-align:right}
+.scroll{max-height:360px;overflow:auto}
+.split{display:grid;overflow:hidden}
+.split>div{min-width:0;padding:14px}
+.side{background:#FAF9F6;display:flex;flex-direction:column;gap:12px}
+.pt{grid-template-columns:270px minmax(0,1fr)} .pt>div:first-child{border-right:1px solid var(--line)}
+.fl{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)} .fl>div+div{border-left:1px solid var(--line)}
+.tn{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr)} .tn>div+div{border-left:1px solid var(--line)}
+.sf{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)} .sf>div+div{border-left:1px solid var(--line)}
+.stack{display:flex;flex-direction:column;gap:12px}
+.parsed{font-size:.72rem}
+#map{height:430px;border-radius:12px;z-index:1}
+.leaflet-popup-content{font-family:var(--sans);font-size:12px;line-height:1.45;margin:10px 12px}
+.leaflet-popup-content b{color:var(--deep)}
+.mdot{border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);display:grid;place-items:center;color:#fff;font:800 11px var(--sans)}
+.sugg{display:flex;flex-direction:column;gap:6px}
+.sg{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;font-size:.72rem;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:center}
+.sg b{color:var(--deep)} .sg .dir{color:var(--muted)}
+.doc{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;font:500 .74rem/1.6 var(--mono);color:#33373C;white-space:pre-wrap;max-height:560px;overflow:auto}
+.doc mark{border-radius:3px;padding:0 2px;cursor:pointer}
+.doc mark.g{background:#DDF1E5} .doc mark.a{background:#FFE7B8} .doc mark.r{background:#F9CACA} .doc mark.flash{outline:2px solid var(--pri)}
+.crit{display:grid;grid-template-columns:150px minmax(0,1fr) 40px;gap:8px;align-items:center;font-size:.72rem}
+.crit .bar{height:10px;background:#ECEAE4;border-radius:999px;overflow:hidden}
+.crit .bar i{display:block;height:100%;border-radius:999px;transition:width .5s}
+.verdict{border-radius:12px;padding:12px 14px;display:flex;gap:14px;align-items:center}
+.verdict .sc{font:400 2.4rem var(--serif);line-height:1}
+.verdict.g{background:#DDF1E5;color:#1D6B40} .verdict.a{background:#FFF0D6;color:#7A5000} .verdict.r{background:#FBE2E2;color:#9E2A2A}
+.verdict b{display:block;font-size:.95rem}
+.thumbs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.thumbs button{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff;padding:0;cursor:pointer;text-align:left;font:inherit}
+.thumbs button.on{border-color:var(--pri);box-shadow:0 0 0 3px var(--pri-15)}
+.thumbs canvas{width:100%;aspect-ratio:4/3;display:block}
+.thumbs span{display:block;font:700 .58rem var(--sans);padding:3px 5px;color:var(--deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.photo{position:relative;border-radius:12px;overflow:hidden;background:#222;cursor:crosshair;touch-action:none}
+.photo canvas{width:100%;height:auto;display:block}
+.photo svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.fd{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:8px;align-items:start;border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 9px;font-size:.72rem}
+.fd .n{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;color:#fff;font:800 .68rem var(--sans)}
+.fd b{color:var(--deep)}
+.bars2{display:flex;flex-direction:column;gap:4px}
+.b2{display:grid;grid-template-columns:130px minmax(0,1fr) 30px;gap:8px;align-items:center;font-size:.7rem}
+.b2 .bar{height:9px;background:#ECEAE4;border-radius:999px;overflow:hidden}
+.b2 .bar i{display:block;height:100%;border-radius:999px}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--deep);color:#fff;padding:10px 16px;border-radius:999px;font-size:.82rem;font-weight:700;opacity:0;transition:all .3s;z-index:1200;pointer-events:none;max-width:calc(100vw - 32px);text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.rec.on{background:var(--bad);border-color:var(--bad);color:#fff}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.cmp-head{display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+.cmp{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.cmp th,.cmp td{padding:16px 18px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);font-size:.92rem;overflow-wrap:anywhere}
+.cmp thead th{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);background:#F4F3EF}
+.cmp tbody tr:last-child td,.cmp tbody tr:last-child th{border-bottom:0}
+.cmp tbody th{font-weight:700;color:var(--pri)}
+.cmp col.c1{width:22%}
+.cmp td{transition:background .3s,opacity .3s,color .3s}
+.cmp.hl-before td.b{background:#FCEEF3;color:#7A1236}
+.cmp.hl-before td.a{opacity:.38}
+.cmp.hl-after td.a{background:#ECF8F3;color:#0E4F39;font-weight:500}
+.cmp.hl-after td.b{opacity:.38}
+.cmp.hl-after thead th.a{color:var(--acc)}
+.cmp.hl-before thead th.b{color:var(--bad)}
+.tchips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:.9rem;font-weight:500;display:inline-flex;align-items:center;gap:8px}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 3px var(--acc-15)}
+.chip em{font-style:normal;color:var(--muted);font-weight:400;font-size:.82rem}
+.tk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.tk{padding:26px}
+.tk .n{font-family:var(--serif);font-size:2.6rem;color:var(--acc);line-height:1}
+.tk h3{margin:12px 0 8px}
+.tk p{font-size:.92rem;color:#433A52}
+footer{background:var(--deep);color:rgba(255,255,255,.75);padding:48px 0 32px;margin-top:32px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px}
+.f-brand{display:flex;align-items:center;gap:16px}
+.f-brand img{height:44px;width:auto;border-radius:6px;background:#fff;padding:4px}
+.f-brand b{display:block;color:#fff;font-family:var(--serif);font-weight:400;font-size:1.15rem}
+.copy{width:100%;border-top:1px solid rgba(255,255,255,.12);padding-top:18px;font-size:.8rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+#tip{position:fixed;pointer-events:none;z-index:95;background:var(--deep);color:#fff;font-size:.8rem;line-height:1.45;padding:10px 12px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transition:opacity .15s;max-width:300px}
+#tip b{color:#7DE3BE;font-weight:700}
+#tip .t{font-weight:700;font-size:.85rem;margin-bottom:2px;color:#fff}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.cmp.hl-after td.a{background:#FDF1E8;color:#1E2328}
+.chip i{background:var(--pri);box-shadow:0 0 0 3px rgba(232,89,12,.22)}
+.tk .n{color:var(--pri)}
+#tip{z-index:1300} #tip b{color:#FFC94A}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.js .reveal{opacity:1;transform:none;transition:none}.aikey,.btn.ai,.spark,.pill2.on i{animation:none!important}.crit .bar i{transition:none}}
+@media (max-width:1100px){.mgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:980px){.kpi-grid,.ch-grid{grid-template-columns:repeat(2,1fr)}.dash{grid-template-columns:1fr}.tk-grid{grid-template-columns:1fr}.hero canvas{width:100%;opacity:.28}
+  .pt,.fl,.tn,.sf,.aikey{grid-template-columns:minmax(0,1fr)}.pt>div:first-child{border-right:0;border-bottom:1px solid var(--line)}.fl>div+div,.tn>div+div,.sf>div+div{border-left:0;border-top:1px solid var(--line)}
+  .krow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.krow input[type=password]{grid-column:1/-1}}
+@media (max-width:640px){
+  .wrap{padding:0 16px} section{padding:48px 0} .hero{padding:52px 0 56px} .logos img{height:34px} .logos img.cl{height:30px} .clw{font-size:.86rem} .clw i{width:20px;height:20px} .vdiv{height:28px}
+  .kpi-grid{gap:10px} .kpi{padding:16px 14px} .ch-grid{grid-template-columns:1fr}
+  .tl::before{top:19px} .tl-dot{width:40px;height:40px;font-size:1rem} .tl-name{font-size:.75rem} .tl-dur{display:none} .tl-panel{padding:18px}
+  .sx{overflow-x:auto;-webkit-overflow-scrolling:touch} .sx svg{min-width:520px} .sx table{min-width:580px}
+  .mgrid{grid-template-columns:repeat(2,minmax(0,1fr))} .thumbs{grid-template-columns:repeat(3,minmax(0,1fr))} #map{height:320px}
+  .crit{grid-template-columns:110px minmax(0,1fr) 34px} .sg{grid-template-columns:minmax(0,1fr)} .sg>span:last-child{text-align:left!important} .b2{grid-template-columns:100px minmax(0,1fr) 26px}
+  .cmp th,.cmp td{padding:12px 10px;font-size:.82rem} .cmp thead th{font-size:.68rem;letter-spacing:.08em} .chart-card{padding:14px}
+}
+@media print{
+  body{background:#fff;font-size:12px} .topbar{position:static}
+  .hero{background:#1E2328!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:36px 0} .hero canvas{display:none}
+  .card{box-shadow:none;break-inside:avoid} section{padding:28px 0} .js .reveal{opacity:1!important;transform:none!important}
+  .seg,.tl-hint,.btn,#tip,.toast,.aikey,.drop{display:none!important} .tl-panel{display:block!important;margin-top:10px}
+  footer{background:#fff;color:var(--text)} footer .f-brand b{color:var(--deep)} .kpis{margin-top:16px} .scroll,.doc{max-height:none}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="logos">
+      <img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting">
+    </div>
+    <div class="tagline">Customer Case Study · <b>Project Control Room</b></div>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas id="heroCv" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="eyebrow">Highway Infrastructure (EPC) × Havish M Consulting</div>
+    <h1>From site report to boardroom, <em>every kilometre in view</em></h1>
+    <p class="sub">A leading Indian EPC contractor builds highways, expressways and rail works across India. HMC built a project control room for leadership and site teams: GenAI reads daily progress reports, voice notes and site photos; progress is tracked by chainage against plan; fleet and fuel are watched machine by machine; tenders are read in hours, not days; and site safety is checked from photos.</p>
+    <div class="pills">
+      <span class="pill"><span>Sector</span>Highway Infrastructure (EPC)</span>
+      <span class="pill"><span>Function</span>Projects &amp; Operations</span>
+      <span class="pill"><span>Theme</span>Project Control Room · GenAI</span>
+    </div>
+  </div>
+</section>
+
+<section class="kpis">
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="card kpi reveal"><div class="label">Schedule slippage flagged earlier</div><div class="val"><span class="count" data-to="6">0</span><small>weeks</small></div><div class="delta">▲ from the daily report, not the monthly review</div></div>
+      <div class="card kpi reveal"><div class="label">Fleet utilisation</div><div class="val"><span class="count" data-to="71">0</span><small>%</small></div><div class="delta">▲ from about 52%</div></div>
+      <div class="card kpi reveal"><div class="label">Fuel variance against norms</div><div class="val"><span class="count" data-to="4">0</span><small>%</small></div><div class="delta">▼ from about 14%</div></div>
+      <div class="card kpi reveal"><div class="label">First read of a tender document</div><div class="val"><span class="count" data-to="2">0</span><small>hours</small></div><div class="delta">▼ from about 3 days</div></div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="challenge">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Challenge</div>
+      <h2>Many sites, one view that came too late</h2>
+      <p class="lead">Leadership saw progress, machines, bids and safety in separate reports, weeks after the fact.</p>
+    </div>
+    <div class="ch-grid">
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M3 20h18M6 20V9l6-5 6 5v11"/></svg></div><h3>Progress in WhatsApp</h3><p>Daily reports arrived as texts, voice notes and photos; the monthly review was the first consolidated view.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="10" width="13" height="7" rx="1"/><path d="M16 13h3l2 3v1h-5M7 20a2 2 0 100-4 2 2 0 000 4z"/></svg></div><h3>Idle machines, missing diesel</h3><p>Telematics existed but nobody compared hours, idle time and fuel issued across sites.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7"/></svg></div><h3>Three days per tender</h3><p>Each RFP ran to hundreds of pages; risky clauses surfaced late in the bid cycle.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg></div><h3>Safety after the incident</h3><p>Observations were logged on paper; patterns across sites were invisible.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="approach" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">HMC Approach</div>
+      <h2>Built with site, plant, tendering and HSE teams</h2>
+      <p class="lead">One control room, four lenses, starting from data the teams already produced.</p>
+    </div>
+    <div class="tl reveal" aria-label="HMC approach steps">
+      <button class="tl-step" aria-expanded="true" aria-controls="tp0"><span class="tl-dot">1</span><span class="tl-name">Discover</span><span class="tl-dur">3 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp1"><span class="tl-dot">2</span><span class="tl-name">Design</span><span class="tl-dur">2 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp2"><span class="tl-dot">3</span><span class="tl-name">Build</span><span class="tl-dur">8 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp3"><span class="tl-dot">4</span><span class="tl-name">Adopt</span><span class="tl-dur">3 pilot projects</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp4"><span class="tl-dot">5</span><span class="tl-name">Scale</span><span class="tl-dur">All projects</span></button>
+    </div>
+    <p class="tl-hint">Select a step to see what happened.</p>
+    <div class="card tl-panel open" id="tp0"><h3>Discover · What the CMD needs every Monday</h3><p>Interviews from site engineers to the CMD's office.</p><ul><li>How daily progress reports are written and sent.</li><li>Telematics, fuel issue registers and hire costs.</li><li>The tender review checklist and recent bid post-mortems.</li></ul><p class="deliv"><b>Deliverable:</b> Decision map and data inventory.</p></div>
+    <div class="card tl-panel" id="tp1"><h3>Design · Chainage as the common key</h3><p>Every record tied to a project, a chainage and a date.</p><ul><li>Activity sequence and weights per pavement layer.</li><li>Fuel norms by machine type; utilisation on available hours.</li><li>Clause risk rules agreed with the tendering head.</li></ul><p class="deliv"><b>Deliverable:</b> Data model and rule book.</p></div>
+    <div class="card tl-panel" id="tp2"><h3>Build · Four modules, one control room</h3><p>GenAI where reading is the bottleneck, rules where the numbers decide.</p><ul><li>Report, voice and photo reading into structured progress.</li><li>Fleet, fuel and redeployment analytics on a map.</li><li>Tender reader, estimate and bid score; photo safety checks.</li></ul><p class="deliv"><b>Deliverable:</b> Control room prototype.</p></div>
+    <div class="card tl-panel" id="tp3"><h3>Adopt · Three pilot projects</h3><p>Site teams kept sending reports the way they always had.</p><ul><li>Weekly CMD summary generated from the control room.</li><li>Plant head reviews fuel flags every morning.</li><li>Bid committee starts from the tender reader output.</li></ul><p class="deliv"><b>Deliverable:</b> Pilot and playbook.</p></div>
+    <div class="card tl-panel" id="tp4"><h3>Scale · Every project, every machine</h3><p>Rolled out across road, rail and new verticals.</p><ul><li>All projects on the same chainage model.</li><li>Telematics feeds for the full fleet.</li><li>Safety scorecard in the monthly board pack.</li></ul><p class="deliv"><b>Deliverable:</b> Roll-out plan.</p></div>
+  </div>
+</section>
+
+<section id="solution">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Solution</div>
+      <h2>Open the control room</h2>
+      <p class="lead">Four working modules on synthetic projects, machines, tenders and sites. Try the presets or bring your own report, telematics file, RFP or site photo.</p>
+    </div>
+
+    <div class="card aikey reveal" id="aiKey">
+      <div><h3><span class="spark">✦</span> Connect GenAI</h3>
+        <p class="note">Optional. Without a key every module runs on presets and built-in rules, and you can type or tag things yourself. Add your OpenAI key to read site photos and voice notes, extract any RFP, check your own safety photos and write the summaries.</p></div>
+      <div>
+        <div class="krow"><input type="password" id="apiKey" placeholder="OpenAI API key (sk-…)" autocomplete="off" spellcheck="false" aria-label="OpenAI API key"><input type="text" class="inp" id="oaModel" value="gpt-4o-mini" list="models" spellcheck="false" aria-label="OpenAI model" style="font-family:var(--mono)"><datalist id="models"><option value="gpt-4o-mini"><option value="gpt-4.1-mini"><option value="gpt-4o"><option value="gpt-4.1"></datalist><button class="btn sm go" id="keySave" type="button">Connect</button><span class="pill2 off" id="keyPill"><i></i>Rules</span></div>
+        <div class="kfoot"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="remember"> Remember on this device</label><button class="btn sm" id="keyClr" type="button">Disconnect</button><span class="note" id="keyMsg">Your key goes only from this browser to OpenAI.</span></div>
+      </div>
+    </div>
+
+    <!-- 01 PROGRESS -->
+    <div class="module reveal" id="m1">
+      <div class="mod-head"><div><div class="badge">01 · Highway progress tower</div><h3>Planned versus actual, kilometre by kilometre</h3><p>A time-chainage chart shows where each crew is: every line is one pavement layer moving along the road. Move the status date, read a daily progress report, and see the forecast finish and the weekly summary for the CMD.</p></div><span class="pill2 off aipill"><i></i>Rules</span></div>
+      <div class="card split pt">
+        <div class="side">
+          <div><h4 class="lbl">Project</h4><select class="sel" id="proj" aria-label="Project"></select></div>
+          <label class="rng"><span>Status date</span><b id="todayV"></b><input type="range" id="today" min="4" max="70" value="34" aria-label="Status date in weeks"></label>
+          <div class="chk"><label><input type="checkbox" id="shPlan" checked> Planned</label><label><input type="checkbox" id="shAct" checked> Actual</label><label><input type="checkbox" id="shFc" checked> Forecast</label></div>
+          <div><h4 class="lbl">Daily progress report</h4><div class="sigs" id="dprPre" style="margin-bottom:6px"></div><textarea class="ta" id="dprTxt" aria-label="Daily progress report text"></textarea>
+            <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><button class="btn sm go" id="dprGo" type="button">Read report</button><button class="btn sm rec" id="recBtn" type="button">🎙 Record</button></div></div>
+          <label class="drop" for="dprFile"><b>⬆ Site photo or voice note</b>Photo of a register or work front, or an audio file · needs a key<input type="file" id="dprFile" accept="image/*,audio/*" hidden></label>
+        </div>
+        <div class="stack">
+          <div class="mgrid" id="pKpi"></div>
+          <div class="sx"><div class="chart" id="tc"></div></div>
+          <div class="ckey" id="tcKey"></div>
+          <div><h4 class="lbl">What the report says</h4><div class="sx"><table class="tab parsed" id="dprTab"><thead><tr><th>Activity</th><th>From</th><th>To</th><th class="r">Length</th><th>Against plan</th><th>Note</th></tr></thead><tbody><tr><td colspan="6" class="note">Pick a report and select Read report.</td></tr></tbody></table></div><div class="sigs" id="dprIss" style="margin-top:6px"></div></div>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><button class="btn sm ai" id="cmdGo" type="button">✦ Weekly summary for the CMD</button></div>
+          <div class="out" id="cmdOut"><p class="note">The summary combines status, forecast and the latest report.</p></div>
+        </div>
+      </div>
+      <p class="footnote">Synthetic projects, chainages and schedules. Activity weights and rates are illustrative.</p>
+    </div>
+
+    <!-- 02 FLEET -->
+    <div class="module reveal" id="m2">
+      <div class="mod-head"><div><div class="badge">02 · Equipment fleet &amp; fuel</div><h3>Every machine: working, idle or leaking diesel</h3><p>Last seven days of telematics for 48 machines across seven locations. Fuel issued is compared with the norm for the hours worked; under-used machines are matched to sites that are short of them.</p></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" id="tmplDl" type="button">⬇ CSV template</button><label class="btn sm" for="fleetCsv" style="cursor:pointer">⬆ Upload telematics<input type="file" id="fleetCsv" accept=".csv,text/csv" hidden></label></div></div>
+      <div class="card split fl">
+        <div class="stack"><div class="mgrid" id="fKpi"></div><div id="map" role="region" aria-label="Map of sites and machines"></div><div class="sigs" id="fFilt"></div><div><h4 class="lbl" id="fuelT">Fuel by day</h4><div class="chart" id="fuelCh"></div></div></div>
+        <div class="side">
+          <div><h4 class="lbl">Redeploy before you hire</h4><div class="sugg" id="sugg"></div></div>
+          <div><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h4 class="lbl" style="margin:0">Machines · <span id="mCount"></span></h4><select class="sel" id="mSort" style="width:auto" aria-label="Sort machines"><option value="var">Fuel variance</option><option value="idle">Idle share</option><option value="util">Utilisation (low first)</option><option value="id">Machine ID</option></select></div>
+            <div class="scroll sx" style="margin-top:6px"><table class="tab" id="mTab"><thead><tr><th>Machine</th><th>Site</th><th class="r">Util.</th><th class="r">Idle</th><th class="r">Fuel var.</th><th>Flags</th></tr></thead><tbody></tbody></table></div></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm ai" id="plantGo" type="button">✦ Note for the plant head</button></div>
+          <div class="out" id="plantOut"><p class="note">Draft the morning note on fuel, idling, breakdowns and moves.</p></div>
+        </div>
+      </div>
+      <p class="footnote">Synthetic fleet. Fuel norms in litres per working hour by machine type; idle burn at 35% of the norm; diesel at ₹92 a litre.</p>
+    </div>
+
+    <!-- 03 TENDER -->
+    <div class="module reveal" id="m3">
+      <div class="mod-head"><div><div class="badge">03 · NHAI tender reader</div><h3>Clauses, risks, quantities and a bid score</h3><p>Pick a sample RFP or upload one. Key clauses are pulled out and rated; the bill of quantities is priced from the rate library, and a bid / no-bid score combines risk, margin, fit and capacity. Click a clause to find it in the document.</p></div><span class="pill2 off aipill"><i></i>Rules</span></div>
+      <div class="card split tn">
+        <div class="stack">
+          <div class="sigs" id="rfpPre"></div>
+          <label class="drop" for="rfpFile"><b>⬆ Upload an RFP</b>PDF or text · read in this browser<input type="file" id="rfpFile" accept=".pdf,.txt,application/pdf,text/plain" hidden></label>
+          <div class="doc" id="doc" tabindex="0" aria-label="Tender document"></div>
+        </div>
+        <div class="side">
+          <div><h4 class="lbl">Key clauses · <span id="clCount"></span></h4><div class="scroll sx"><table class="tab" id="clTab"><thead><tr><th>Clause</th><th>Found</th><th>Risk</th><th>Why</th></tr></thead><tbody></tbody></table></div></div>
+          <div><h4 class="lbl">Estimate from the bill of quantities · rates editable</h4><div class="sx"><table class="tab" id="boqTab"><thead><tr><th>Item</th><th class="r">Qty</th><th class="r">Rate ₹</th><th class="r">₹ crore</th></tr></thead><tbody></tbody></table></div></div>
+          <div class="mgrid" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+            <label class="rng"><span>Overheads</span><b id="ohV"></b><input type="range" id="oh" min="6" max="18" value="11"></label>
+            <label class="rng"><span>Contingency</span><b id="ctV"></b><input type="range" id="ct" min="0" max="8" value="3"></label>
+            <label class="rng"><span>Escalation cover</span><b id="esV"></b><input type="range" id="es" min="0" max="8" value="0"></label>
+            <label class="rng"><span>Margin</span><b id="mgV"></b><input type="range" id="mg" min="4" max="18" value="9"></label>
+          </div>
+          <div class="mgrid" id="estK" style="grid-template-columns:repeat(3,minmax(0,1fr))"></div>
+          <div id="verdict"></div>
+          <div class="stack" id="crit" style="gap:6px"></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm ai" id="bidGo" type="button">✦ Note for the bid committee</button></div>
+          <div class="out" id="bidOut"><p class="note">The note summarises clauses, estimate and score.</p></div>
+        </div>
+      </div>
+      <p class="footnote">Sample RFPs are synthetic extracts, not real NHAI documents. Rate library, net worth and order book are illustrative.</p>
+    </div>
+
+    <!-- 04 SAFETY -->
+    <div class="module reveal" id="m4" style="margin-bottom:0">
+      <div class="mod-head"><div><div class="badge">04 · Site safety from photos</div><h3>Hazards marked on the photo, incidents sorted, sites scored</h3><p>Pick a site photo to see the hazards found, or upload your own. Without a key you can drag a box on the photo and tag the hazard yourself. Incident notes are sorted by type and potential severity, and every site gets a safety score.</p></div><span class="pill2 off aipill"><i></i>Rules</span></div>
+      <div class="card split sf">
+        <div class="stack">
+          <div class="thumbs" id="thumbs"></div>
+          <div class="photo" id="photo"><canvas id="pcv" width="640" height="480" aria-label="Site photo; drag to mark a hazard"></canvas><svg id="psvg" viewBox="0 0 640 480" preserveAspectRatio="none"></svg></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><select class="sel" id="tagLbl" style="width:auto" aria-label="Hazard to tag"></select><select class="sel" id="tagSev" style="width:auto" aria-label="Severity"><option>High</option><option selected>Medium</option><option>Low</option></select><span class="note">Drag on the photo to tag.</span></div>
+          <label class="drop" for="safeFile"><b>⬆ Upload a site photo</b>Checked by GenAI with a key; tag it yourself without one<input type="file" id="safeFile" accept="image/*" hidden></label>
+        </div>
+        <div class="side">
+          <div><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><h4 class="lbl" style="margin:0" id="fdT">Findings</h4><button class="btn sm" id="obsGo" type="button">Raise observations</button></div><div class="stack" id="fds" style="gap:6px;margin-top:8px"></div></div>
+          <div><h4 class="lbl">Incident and near-miss notes</h4><div class="sigs" id="incPre" style="margin-bottom:6px"></div><textarea class="ta" id="incTxt" style="min-height:64px" aria-label="Incident note"></textarea>
+            <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;align-items:center"><select class="sel" id="incSite" style="width:auto" aria-label="Site"></select><button class="btn sm go" id="incGo" type="button">Classify and log</button></div></div>
+          <div class="out" id="incOut" style="display:none"></div>
+          <div><h4 class="lbl">By type · last 90 days</h4><div class="bars2" id="incBars"></div></div>
+          <div><h4 class="lbl">Site safety scorecard</h4><div class="sx"><table class="tab" id="scTab"><thead><tr><th>Site</th><th class="r">Open obs.</th><th class="r">High-pot.</th><th class="r">Trained</th><th class="r">Score</th></tr></thead><tbody></tbody></table></div></div>
+        </div>
+      </div>
+      <p class="footnote">Preset photos are drawn illustrations with pre-marked findings to show the output. Incident notes are synthetic.</p>
+    </div>
+  </div>
+</section>
+
+<section id="impact" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Impact Dashboard</div>
+      <h2>Closer to plan, less diesel lost</h2>
+      <p class="lead">With slippage visible from the daily report and fuel compared every morning, projects tracked closer to plan and fuel variance fell at every site.</p>
+    </div>
+    <div class="dash">
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>Eight projects, planned and actual progress</h3><p class="sub">S-curve small multiples: cumulative % complete by month</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-sc="before" aria-pressed="false">Before</button><button type="button" data-sc="after" aria-pressed="true">After</button></div></div>
+        <div class="sx"><div class="chart" id="scurve"></div></div>
+        <div class="ckey"><span><i style="background:#9AA0A6"></i>Planned</span><span><i style="background:#E8590C"></i>Actual</span></div>
+      </div>
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>Fuel variance by site and month</h3><p class="sub">Heat map: % of diesel issued above the norm</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-hm="before" aria-pressed="false">Before</button><button type="button" data-hm="after" aria-pressed="true">After</button></div></div>
+        <div class="sx"><div class="chart" id="heat"></div></div>
+      </div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <div class="cmp-head reveal"><div><div class="eyebrow">Before vs After</div><h2>How the week runs now</h2></div>
+      <div class="seg" role="group" aria-label="Highlight column"><button type="button" data-hl="before" aria-pressed="false">Before</button><button type="button" data-hl="after" aria-pressed="true">After</button></div></div>
+    <div class="card reveal" style="overflow:hidden">
+      <table class="cmp hl-after" id="cmp"><colgroup><col class="c1"><col><col></colgroup>
+        <thead><tr><th scope="col">Dimension</th><th scope="col" class="b">Before</th><th scope="col" class="a">After</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Daily progress</th><td class="b">Texts, voice notes and photos in group chats</td><td class="a">Read into activity, chainage and length the same day</td></tr>
+          <tr><th scope="row">Schedule view</th><td class="b">Monthly review, % complete per project</td><td class="a">Time-chainage chart with forecast finish</td></tr>
+          <tr><th scope="row">Fleet</th><td class="b">Hire first, check idle machines later</td><td class="a">Redeploy under-used machines before hiring</td></tr>
+          <tr><th scope="row">Fuel</th><td class="b">Issue registers reconciled at month end</td><td class="a">Variance against norm flagged every morning</td></tr>
+          <tr><th scope="row">Tenders</th><td class="b">Three days to a first read</td><td class="a">Clauses, risks, estimate and score in hours</td></tr>
+          <tr><th scope="row">Safety</th><td class="b">Paper observations, counted monthly</td><td class="a">Photo checks, sorted incidents, site scorecard</td></tr>
+        </tbody></table>
+    </div>
+  </div>
+</section>
+
+<section id="tools" style="padding-top:16px">
+  <div class="wrap">
+    <div class="sec-head reveal" style="margin-bottom:20px"><div class="eyebrow">Tools &amp; Tech Used</div><h2>The control room stack</h2></div>
+    <div class="tchips reveal">
+      <span class="chip"><i></i>OpenAI GPT (vision) <em>reports, photos, RFPs</em></span>
+      <span class="chip"><i></i>Whisper <em>site voice notes</em></span>
+      <span class="chip"><i></i>Equipment telematics <em>hours, idle, location</em></span>
+      <span class="chip"><i></i>Leaflet maps <em>sites and machines</em></span>
+      <span class="chip"><i></i>D3 <em>time-chainage and S-curves</em></span>
+      <span class="chip"><i></i>Power BI <em>board pack</em></span>
+    </div>
+  </div>
+</section>
+
+<section id="takeaways">
+  <div class="wrap">
+    <div class="sec-head reveal"><div class="eyebrow">Key Takeaways</div><h2>What any EPC contractor can borrow</h2></div>
+    <div class="tk-grid">
+      <div class="card tk reveal"><div class="n">01</div><h3>Let sites report their way</h3><p>Reading texts, voice notes and photos beats asking engineers to fill another form.</p></div>
+      <div class="card tk reveal"><div class="n">02</div><h3>Chainage is the common key</h3><p>Progress, machines, quantities and incidents all line up once tied to a kilometre.</p></div>
+      <div class="card tk reveal"><div class="n">03</div><h3>Redeploy before you hire</h3><p>The cheapest machine is the one already idle on another site.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="f-brand"><img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting"><div><b>Havish M Consulting</b></div></div>
+    <div class="copy"><span>© <span id="yr">2026</span> Havish M Consulting. All rights reserved.</span><span>Figures indicative; validated metrics available on request.</span></div>
+  </div>
+</footer>
+<div id="tip" role="tooltip"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(function(){
+"use strict";
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = id => document.getElementById(id);
+$('yr').textContent = new Date().getFullYear();
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hasD3 = typeof d3 !== 'undefined';
+const sleep = ms => new Promise(r => setTimeout(r, reduce ? Math.min(ms, 30) : ms));
+const sum = a => a.reduce((x, y) => x + (+y || 0), 0);
+const range = n => Array.from({ length: n }, (_, i) => i);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const tip = $('tip');
+function showTip(html, ev){ tip.innerHTML = html; tip.style.opacity = 1; const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight; let x = ev.clientX + pad, y = ev.clientY + pad; if (x + w > innerWidth - 8) x = ev.clientX - w - pad; if (y + h > innerHeight - 8) y = ev.clientY - h - pad; tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; }
+function hideTip(){ tip.style.opacity = 0; }
+window.addEventListener('scroll', hideTip, { passive: true });
+function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => el.classList.remove('on'), 3200); }
+const onView = new Map();
+const io = ('IntersectionObserver' in window) ? new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; e.target.classList.add('in'); const fn = onView.get(e.target); if (fn){ fn(); onView.delete(e.target); } io.unobserve(e.target); }), { threshold: .08 }) : null;
+function whenVisible(el, fn){ onView.set(el, fn); if (io) io.observe(el); else fn(); }
+document.querySelectorAll('.reveal').forEach(el => io ? io.observe(el) : el.classList.add('in'));
+function countUp(el){ const to = +el.dataset.to, dp = +(el.dataset.dp || 0); if (reduce || !to){ el.textContent = to.toFixed(dp); return; } const t0 = performance.now(); (function s(t){ const p = Math.min(1, (t - t0) / 1400), e = 1 - Math.pow(1 - p, 3); el.textContent = (to * e).toFixed(dp); if (p < 1) requestAnimationFrame(s); })(t0); }
+document.querySelectorAll('.count').forEach(el => whenVisible(el.closest('.kpi'), () => countUp(el)));
+const tlSteps = document.querySelectorAll('.tl-step');
+tlSteps.forEach(btn => btn.addEventListener('click', () => { const open = btn.getAttribute('aria-expanded') === 'true'; tlSteps.forEach(b => { b.setAttribute('aria-expanded','false'); $(b.getAttribute('aria-controls')).classList.remove('open'); }); if (!open){ btn.setAttribute('aria-expanded','true'); $(btn.getAttribute('aria-controls')).classList.add('open'); } }));
+function segBind(attr, fn){ const bs = document.querySelectorAll(`[data-${attr}]`); bs.forEach(b => b.addEventListener('click', () => { bs.forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); fn(b.dataset[attr]); })); }
+const cmpT = $('cmp');
+segBind('hl', v => { cmpT.classList.toggle('hl-before', v === 'before'); cmpT.classList.toggle('hl-after', v === 'after'); });
+function md(s){ const lines = esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').split(/\n/); let out = '', inL = false;
+  lines.forEach(l => { const m = l.match(/^\s*(?:[-*•]|\d+[.)])\s+(.*)/); if (m){ if (!inL){ out += '<ul>'; inL = true; } out += '<li>' + m[1] + '</li>'; } else { if (inL){ out += '</ul>'; inL = false; } if (l.trim()) out += '<p>' + l.replace(/^#+\s*/, '') + '</p>'; } });
+  if (inL) out += '</ul>'; return out; }
+const csvCell = v => { const s = v == null ? '' : String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+function download(name, text, type){ const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); toast('Downloaded ' + name); }
+function parseCSV(t){ const rows = []; let r = [], f = '', q = false; for (let i = 0; i < t.length; i++){ const c = t[i]; if (q){ if (c === '"'){ if (t[i + 1] === '"'){ f += '"'; i++; } else q = false; } else f += c; } else if (c === '"') q = true; else if (c === ','){ r.push(f); f = ''; } else if (c === '\n' || c === '\r'){ if (c === '\r' && t[i + 1] === '\n') i++; r.push(f); rows.push(r); r = []; f = ''; } else f += c; } if (f || r.length){ r.push(f); rows.push(r); } return rows.filter(x => x.some(v => v.trim())); }
+const dots = '<span class="dots"><span></span><span></span><span></span></span>';
+const inr = v => '₹' + Math.round(v).toLocaleString('en-IN');
+const cr = v => '₹' + (v / 1e7).toLocaleString('en-IN', { maximumFractionDigits: v >= 1e9 ? 0 : 1 }) + ' cr';
+const lakh = v => '₹' + (v / 1e5).toLocaleString('en-IN', { maximumFractionDigits: 1 }) + ' lakh';
+const dropBind = (el, fn) => { el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('over'); }); el.addEventListener('dragleave', () => el.classList.remove('over')); el.addEventListener('drop', e => { e.preventDefault(); el.classList.remove('over'); if (e.dataTransfer.files[0]) fn(e.dataTransfer.files[0]); }); };
+function readURL(file){ return new Promise((res, rej) => { const fr = new FileReader(); fr.onerror = rej; fr.onload = () => res(fr.result); fr.readAsDataURL(file); }); }
+function shrink(file, max = 1400){ return readURL(file).then(u => new Promise((res, rej) => { const im = new Image(); im.onload = () => { const s = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * s); c.height = Math.round(im.height * s); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); res({ url: c.toDataURL('image/jpeg', .85), img: im }); }; im.onerror = () => rej(new Error('Not an image')); im.src = u; })); }
+
+/* ======================================================================
+   KEY
+   ====================================================================== */
+let KEY = '', OAM = 'gpt-4o-mini';
+try { const k = localStorage.getItem('hmc_hgi_key'); if (k){ $('apiKey').value = k; $('remember').checked = true; } } catch (e){}
+function setMode(){ const on = !!KEY, h = `<i></i>${on ? 'Live · ' + esc(OAM) : 'Rules'}`; $('keyPill').className = 'pill2 ' + (on ? 'on' : 'off'); $('keyPill').innerHTML = h; document.querySelectorAll('.aipill').forEach(el => { el.className = 'pill2 aipill ' + (on ? 'on' : 'off'); el.innerHTML = h; }); }
+async function connect(silent){ const k = $('apiKey').value.trim(), m = $('oaModel').value.trim() || 'gpt-4o-mini'; if (!/^sk-/.test(k)){ if (!silent) $('keyMsg').innerHTML = '<span style="color:var(--bad)">That does not look like an OpenAI key.</span>'; return; }
+  $('keyMsg').textContent = 'Checking key…';
+  try { const r = await fetch('https://api.openai.com/v1/models', { headers: { Authorization: 'Bearer ' + k } }); if (r.status === 401) throw new Error('OpenAI rejected this key (401).'); if (!r.ok) throw new Error('OpenAI returned ' + r.status + '.');
+    KEY = k; OAM = m; try { if ($('remember').checked) localStorage.setItem('hmc_hgi_key', k); else localStorage.removeItem('hmc_hgi_key'); } catch (e){}
+    setMode(); $('keyMsg').innerHTML = `<b style="color:var(--good)">Connected.</b> Reports, photos, voice notes, RFPs and summaries now use ${esc(m)} (voice notes use Whisper).`; if (!silent) toast('OpenAI connected'); }
+  catch (err){ $('keyMsg').innerHTML = `<span style="color:var(--bad)">${esc(err.message || 'Could not reach OpenAI from this browser.')}</span>`; } }
+$('keySave').addEventListener('click', () => connect(false));
+$('oaModel').addEventListener('change', () => { OAM = $('oaModel').value.trim() || 'gpt-4o-mini'; setMode(); });
+$('keyClr').addEventListener('click', () => { KEY = ''; $('apiKey').value = ''; try { localStorage.removeItem('hmc_hgi_key'); } catch (e){} setMode(); $('keyMsg').textContent = 'Disconnected. Presets and rules still work.'; });
+async function openai(messages, { json = false, onDelta, temp = .2 } = {}){
+  const body = { model: OAM, messages, temperature: temp }; if (json) body.response_format = { type:'json_object' }; if (onDelta) body.stream = true;
+  const r = await fetch('https://api.openai.com/v1/chat/completions', { method:'POST', headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + KEY }, body: JSON.stringify(body) });
+  if (!r.ok){ let msg = 'OpenAI error ' + r.status; try { const j = await r.json(); if (j.error && j.error.message) msg += ': ' + j.error.message; } catch (e){} throw new Error(msg); }
+  if (!onDelta){ const j = await r.json(); return { text: j.choices[0].message.content }; }
+  const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '', full = '';
+  for (;;){ const { value, done } = await rd.read(); if (done) break; buf += dec.decode(value, { stream: true }); const parts = buf.split('\n'); buf = parts.pop();
+    for (const ln of parts){ const s2 = ln.trim(); if (!s2.startsWith('data:')) continue; const dd = s2.slice(5).trim(); if (dd === '[DONE]') continue; try { const j = JSON.parse(dd), t = j.choices && j.choices[0].delta && j.choices[0].delta.content; if (t){ full += t; onDelta(full); } } catch (e){} } }
+  return { text: full }; }
+async function transcribe(blob, name){ const fd = new FormData(); fd.append('file', blob, name || 'voice.webm'); fd.append('model', 'whisper-1');
+  const r = await fetch('https://api.openai.com/v1/audio/transcriptions', { method:'POST', headers:{ Authorization:'Bearer ' + KEY }, body: fd }); if (!r.ok) throw new Error('Transcription error ' + r.status); const j = await r.json(); return j.text || ''; }
+const jparse = t => { try { return JSON.parse(t); } catch (e){ const m = String(t).match(/\{[\s\S]*\}/); if (m) return JSON.parse(m[0]); throw e; } };
+function fail(what, err){ toast(what + ' unavailable (' + String(err && err.message || err).slice(0, 70) + '); used built-in rules'); }
+async function streamOrRules(outEl, btn, sys, user, rulesText){ btn.disabled = true;
+  if (KEY){ outEl.innerHTML = dots; try { await openai([{ role:'system', content: sys }, { role:'user', content: user }], { onDelta: t => outEl.innerHTML = md(t), temp: .3 }); } catch (e){ fail('GenAI', e); outEl.innerHTML = md(rulesText); } }
+  else outEl.innerHTML = md(rulesText);
+  btn.disabled = false; }
+
+/* ======================================================================
+   01 · HIGHWAY PROGRESS TOWER
+   ====================================================================== */
+const ACT = [
+  { id:'CG', n:'Clearing & grubbing', c:'#A1887F', rate:1.6, start:0, lag:0, w:3 },
+  { id:'EMB', n:'Embankment', c:'#C0803F', rate:.92, start:2, lag:1, w:22 },
+  { id:'SG', n:'Subgrade', c:'#D4A72C', rate:1.05, start:5, lag:1, w:10 },
+  { id:'GSB', n:'GSB', c:'#7A9A5B', rate:1.15, start:8, lag:1, w:10 },
+  { id:'WMM', n:'WMM', c:'#2F6690', rate:1.15, start:11, lag:1, w:12 },
+  { id:'DBM', n:'DBM', c:'#E8590C', rate:1.25, start:15, lag:1.5, w:20 },
+  { id:'BC', n:'BC (wearing course)', c:'#1E2328', rate:1.45, start:19, lag:1.5, w:13 } ];
+const actBy = id => ACT.find(a => a.id === id);
+const PROJ = [
+  { id:'P1', site:'RJ', n:'Expressway Pkg R-07 · Rajasthan', L:30, start:'2025-11-03', hold:[12, 15], hand:22, holdWhy:'Land not handed over', mon:[34, 44], mult:{ EMB:.95, DBM:.86 }, late:{ DBM:1 }, seed:3,
+    st:[['Box culvert Ch 4+600', 4.6, 10, 16, 11, 18], ['Minor bridge Ch 9+200', 9.2, 12, 30, 14, 33], ['ROB Ch 21+400', 21.4, 14, 40, 16, 58], ['VUP Ch 26+800', 26.8, 18, 38, 18, 41]] },
+  { id:'P2', site:'HR', n:'NH widening Pkg H-02 · Haryana', L:24, start:'2025-12-01', hold:[18, 20], hand:18, holdWhy:'HT line shifting pending', mon:[30, 40], mult:{ GSB:.85 }, late:{}, seed:7,
+    st:[['Minor bridge Ch 6+100', 6.1, 8, 26, 8, 27], ['Flyover Ch 14+500', 14.5, 10, 42, 12, 47]] },
+  { id:'P3', site:'MH', n:'Greenfield corridor M-11 · Maharashtra', L:36, start:'2025-10-06', hold:[0, 3], hand:26, holdWhy:'Forest clearance awaited', mon:[36, 46], mult:{ EMB:.82, WMM:.9 }, late:{ EMB:2 }, seed:11,
+    st:[['Major bridge Ch 11+700', 11.7, 6, 50, 8, 60], ['Box culvert Ch 19+300', 19.3, 14, 20, 16, 23], ['VUP Ch 30+250', 30.25, 20, 40, 22, 46]] } ];
+let PR = PROJ[0], PLAN = null, ACTL = null, T = 34, DPRROWS = [], DPRISS = [];
+const wkDate = (P, w) => { const d = new Date(P.start + 'T00:00:00'); d.setDate(d.getDate() + Math.round(w * 7)); return d; };
+const fmtD = d => d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+const inHold = (P, k) => k >= P.hold[0] && k < P.hold[1];
+function sim(P, act){ const R = mulberry32(P.seed), L = P.L, res = {};
+  ACT.forEach((a, ai) => { const pre = ai ? res[ACT[ai - 1].id] : null, s = new Array(L), d = new Array(L), mult = act ? (P.mult[a.id] || 1) : 1;
+    let t = a.start + (act ? (P.late[a.id] || 0) : 0); const order = act ? range(L).filter(k => !inHold(P, k)).concat(range(L).filter(k => inHold(P, k))) : range(L);
+    order.forEach(k => { let av = t; if (pre) av = Math.max(av, pre.d[k] + a.lag); if (act && inHold(P, k)) av = Math.max(av, P.hand + (ai ? a.lag * ai * .5 : 0));
+      const mon = av >= P.mon[0] && av < P.mon[1] ? (act ? .55 : .8) : 1, jit = act ? .88 + .24 * R() : 1, dur = 1 / (a.rate * mult * mon * jit); s[k] = av; d[k] = av + dur; t = d[k]; });
+    res[a.id] = { s, d }; });
+  res.ST = P.st.map(x => act ? { n: x[0], km: x[1], s: x[4], d: x[5] } : { n: x[0], km: x[1], s: x[2], d: x[3] }); return res; }
+const frac = (s, d, t) => clamp((t - s) / (d - s), 0, 1);
+function pct(S, P, t){ let v = 0; ACT.forEach(a => { const r = S[a.id]; for (let k = 0; k < P.L; k++) v += a.w / P.L * frac(r.s[k], r.d[k], t); }); S.ST.forEach(x => v += 10 / S.ST.length * frac(x.s, x.d, t)); return v; }
+function actPct(S, P, a, t){ const r = S[a.id]; let v = 0; for (let k = 0; k < P.L; k++) v += frac(r.s[k], r.d[k], t); return v / P.L * 100; }
+const finish = S => Math.max(...ACT.map(a => Math.max(...S[a.id].d)), ...S.ST.map(x => x.d));
+$('proj').innerHTML = PROJ.map(p => `<option value="${p.id}">${esc(p.n)}</option>`).join('');
+function loadProj(id){ PR = PROJ.find(p => p.id === id); PLAN = sim(PR, false); ACTL = sim(PR, true); const mx = Math.ceil(finish(ACTL)) + 2; $('today').max = mx; T = clamp(T, 4, mx); $('today').value = T; renderTower(); }
+$('proj').addEventListener('change', () => { DPRROWS = []; loadProj($('proj').value); });
+$('today').addEventListener('input', () => { T = +$('today').value; renderTower(); });
+['shPlan','shAct','shFc'].forEach(id => $(id).addEventListener('change', drawTC));
+$('tcKey').innerHTML = ACT.map(a => `<span><i style="background:${a.c}"></i>${esc(a.n)}</span>`).join('') + '<span><svg width="22" height="6"><line x1="0" x2="22" y1="3" y2="3" stroke="#555" stroke-dasharray="4 3"/></svg>Planned</span><span><svg width="22" height="6"><line x1="0" x2="22" y1="3" y2="3" stroke="#555" stroke-width="2.5"/></svg>Actual</span><span><svg width="22" height="6"><line x1="0" x2="22" y1="3" y2="3" stroke="#555" stroke-width="2" stroke-dasharray="1 3"/></svg>Forecast</span>';
+function status(){ const pp = pct(PLAN, PR, T), ap = pct(ACTL, PR, T), fP = finish(PLAN), fA = finish(ACTL); const gaps = ACT.map(a => ({ a, g: actPct(PLAN, PR, a, T) - actPct(ACTL, PR, a, T) })).sort((x, y) => y.g - x.g);
+  return { pp, ap, spi: pp ? ap / pp : 1, fP, fA, delay: Math.round((fA - fP) * 7), worst: gaps[0], gaps }; }
+function renderTower(){ const s = status(); $('todayV').textContent = `week ${T} · ${fmtD(wkDate(PR, T))}`;
+  $('pKpi').innerHTML = [['Planned', s.pp.toFixed(1) + '%', 'by status date'], ['Actual', s.ap.toFixed(1) + '%', 'weighted by cost'], ['SPI', s.spi.toFixed(2), s.spi >= .95 ? 'on track' : s.spi >= .85 ? 'slipping' : 'behind'], ['Forecast finish', fmtD(wkDate(PR, s.fA)).slice(3), 'plan ' + fmtD(wkDate(PR, s.fP)).slice(3)], ['Delay', (s.delay > 0 ? '+' : '') + s.delay + ' d', s.worst.g > 1 ? 'most behind: ' + s.worst.a.id : 'no layer behind']]
+    .map(m => `<div class="ms"><div class="k">${m[0]}</div><div class="v">${m[1]}</div><div class="s">${esc(m[2])}</div></div>`).join(''); drawTC(); if (DPRROWS.length) renderDPR(); }
+function drawTC(){ const P = PR, w = 760, h = 430, ml = 46, mr = 12, mt = 16, mb = 38, Y = Math.ceil(Math.max(finish(ACTL), finish(PLAN), T) / 5) * 5 + 2, x = k => ml + k / P.L * (w - ml - mr), y = t => h - mb - t / Y * (h - mt - mb), sp = $('shPlan').checked, sa = $('shAct').checked, sf = $('shFc').checked;
+  let g = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Time-chainage chart for ${esc(P.n)}">`;
+  g += `<rect x="${x(0)}" y="${y(P.mon[1])}" width="${x(P.L) - x(0)}" height="${y(P.mon[0]) - y(P.mon[1])}" fill="#DCE8F3" opacity=".7"/><text x="${x(P.L) - 4}" y="${y(P.mon[1]) + 12}" text-anchor="end" font-size="10" fill="#1F4E79" font-weight="700">Monsoon</text>`;
+  g += `<defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#D64545" stroke-width="2" opacity=".35"/></pattern></defs><rect x="${x(P.hold[0])}" y="${y(P.hand)}" width="${x(P.hold[1]) - x(P.hold[0])}" height="${y(0) - y(P.hand)}" fill="url(#hatch)" stroke="#D64545" stroke-opacity=".5"/><text x="${(x(P.hold[0]) + x(P.hold[1])) / 2}" y="${y(P.hand / 2)}" text-anchor="middle" font-size="9.5" font-weight="800" fill="#9E2A2A" transform="rotate(-90 ${(x(P.hold[0]) + x(P.hold[1])) / 2} ${y(P.hand / 2)})">${esc(P.holdWhy)}</text>`;
+  for (let t = 0; t <= Y; t += 5) g += `<line x1="${ml}" x2="${w - mr}" y1="${y(t)}" y2="${y(t)}" stroke="#E4E2DC" stroke-dasharray="2 3"/><text x="${ml - 6}" y="${y(t) + 3}" text-anchor="end" font-size="10" fill="#5E6268">${t ? 'W' + t : '0'}</text>`;
+  for (let k = 0; k <= P.L; k += P.L > 30 ? 6 : 5) g += `<line x1="${x(k)}" x2="${x(k)}" y1="${mt}" y2="${h - mb}" stroke="#EFEDE7"/><text x="${x(k)}" y="${h - mb + 14}" text-anchor="middle" font-size="10" fill="#5E6268">${k}+000</text>`;
+  g += `<text x="${(ml + w - mr) / 2}" y="${h - 6}" text-anchor="middle" font-size="10.5" fill="#5E6268">Chainage (km)  ·  time runs upward in weeks from start</text>`;
+  ACT.forEach(a => { const p = PLAN[a.id], r = ACTL[a.id];
+    if (sp) for (let k = 0; k < P.L; k++) g += `<line x1="${x(k).toFixed(1)}" y1="${y(p.s[k]).toFixed(1)}" x2="${x(k + 1).toFixed(1)}" y2="${y(p.d[k]).toFixed(1)}" stroke="${a.c}" stroke-width="1.2" stroke-dasharray="4 3" opacity=".55"/>`;
+    for (let k = 0; k < P.L; k++){ const s = r.s[k], d = r.d[k]; if (d <= T){ if (sa) g += seg(k, s, k + 1, d, a.c, 2.6, ''); } else if (s >= T){ if (sf) g += seg(k, s, k + 1, d, a.c, 2, '1 3'); } else { const km = k + (T - s) / (d - s); if (sa) g += seg(k, s, km, T, a.c, 2.6, ''); if (sf) g += seg(km, T, k + 1, d, a.c, 2, '1 3'); }
+      g += `<line class="hit" data-a="${a.id}" data-k="${k}" x1="${x(k)}" y1="${y(s)}" x2="${x(k + 1)}" y2="${y(d)}" stroke="transparent" stroke-width="8"/>`; } });
+  function seg(k1, t1, k2, t2, c, sw, da){ return `<line x1="${x(k1).toFixed(1)}" y1="${y(t1).toFixed(1)}" x2="${x(k2).toFixed(1)}" y2="${y(t2).toFixed(1)}" stroke="${c}" stroke-width="${sw}" stroke-linecap="round"${da ? ` stroke-dasharray="${da}"` : ''}/>`; }
+  ACTL.ST.forEach((st, i) => { const pl = PLAN.ST[i], done = st.d <= T, late = st.d - pl.d; g += `<g class="sth" data-i="${i}"><line x1="${x(st.km)}" x2="${x(st.km)}" y1="${y(st.s)}" y2="${y(st.d)}" stroke="#6B5B95" stroke-width="5" opacity=".25"/><path d="M${x(st.km)} ${y(st.d) - 7}l7 7-7 7-7-7z" fill="${done ? '#2F9E5B' : late > 4 ? '#D64545' : '#E9A23B'}" stroke="#fff" stroke-width="1.5"/></g>`; });
+  g += `<line x1="${ml}" x2="${w - mr}" y1="${y(T)}" y2="${y(T)}" stroke="#D64545" stroke-width="1.5"/><rect x="${ml + 4}" y="${y(T) - 17}" width="122" height="14" rx="3" fill="#D64545"/><text x="${ml + 9}" y="${y(T) - 7}" font-size="9.5" font-weight="800" fill="#fff">STATUS · ${fmtD(wkDate(P, T))}</text>`;
+  DPRROWS.filter(r => r.act && r.mid != null && r.mid <= P.L).forEach(r => { g += `<circle cx="${x(r.mid)}" cy="${y(T)}" r="7" fill="${actBy(r.act).c}" stroke="#fff" stroke-width="2"/><circle cx="${x(r.mid)}" cy="${y(T)}" r="11" fill="none" stroke="${actBy(r.act).c}" stroke-width="1.5" opacity=".6"/>`; });
+  $('tc').innerHTML = g + '</svg>';
+  $('tc').querySelectorAll('.hit').forEach(el => { el.addEventListener('mousemove', ev => { const a = actBy(el.dataset.a), k = +el.dataset.k, p = PLAN[a.id], r = ACTL[a.id], late = (r.d[k] - p.d[k]) * 7; showTip(`<b>${esc(a.n)} · km ${k}–${k + 1}</b><br>Planned finish: week ${p.d[k].toFixed(1)}<br>${r.d[k] <= T ? 'Finished' : 'Forecast'}: week ${r.d[k].toFixed(1)} (${late > 0 ? '+' : ''}${Math.round(late)} days)${inHold(PR, k) ? '<br>' + esc(PR.holdWhy) + ' until week ' + PR.hand : ''}`, ev); }); el.addEventListener('mouseleave', hideTip); });
+  $('tc').querySelectorAll('.sth').forEach(el => { el.addEventListener('mousemove', ev => { const i = +el.dataset.i, a = ACTL.ST[i], p = PLAN.ST[i]; showTip(`<b>${esc(a.n)}</b><br>Planned: week ${p.s}–${p.d}<br>${a.d <= T ? 'Completed' : 'Forecast'}: week ${a.s}–${a.d} · ${Math.round(frac(a.s, a.d, T) * 100)}% done`, ev); }); el.addEventListener('mouseleave', hideTip); }); }
+
+/* DPR reading */
+const DPRS = [
+  ['Site engineer text', 'DPR · Pkg R-07\nCh 17+400 to 18+150 DBM laid 750 m with 2 pavers.\nCh 21+000 to 21+800 WMM 800 m completed.\nCh 6+200 to 7+000 BC 800 m.\nROB at Ch 21+400: girder launching waiting for railway block.\nRain stopped work 3 hrs in the afternoon. 1 paver breakdown (hydraulic leak).\nBitumen tanker late by one day.'],
+  ['Voice note (Hinglish)', 'Aaj Ch 12+000 se 12+600 tak embankment 600 m hua, land wale stretch 12 se 15 km par kaam chalu hai.\nCh 25+300 to 26+000 GSB 700 m.\nGrader idle tha, diesel nahi aaya subah.\nLabour shortage, 20 log kam the.'],
+  ['Night shift', 'Night shift report\nCh 2+000 to 3+500 BC 1.5 km done, 1 paver.\nCh 28+100 to 28+900 subgrade 800 m.\nNear miss: tipper reversing without banksman at Ch 28+500.\nBox culvert Ch 4+600 wing wall shuttering in progress.'] ];
+$('dprPre').innerHTML = DPRS.map((d, i) => `<button type="button" class="chipb" data-d="${i}">${esc(d[0])}</button>`).join('');
+$('dprPre').addEventListener('click', e => { const b = e.target.closest('[data-d]'); if (!b) return; document.querySelectorAll('#dprPre .chipb').forEach(x => x.classList.toggle('on', x === b)); $('dprTxt').value = DPRS[+b.dataset.d][1]; readDPR(); });
+const AKW = [['CG', /clearing|grubbing/i], ['EMB', /embankment|earth ?work|filling/i], ['SG', /sub-?grade/i], ['GSB', /\bgsb\b|granular sub|sub-?base/i], ['WMM', /\bwmm\b|wet mix/i], ['DBM', /\bdbm\b|dense bitum/i], ['BC', /\bbc\b|bituminous concrete|wearing course/i]];
+const actOf = s => { let best = null, bi = 1e9; AKW.forEach(([id, re]) => { const m = String(s).match(re); if (m && m.index < bi){ bi = m.index; best = id; } }); return best; };
+const ISS = [['Weather', /rain|barish|storm|waterlog/i], ['Equipment', /breakdown|repair|leak|idle/i], ['Fuel', /diesel|fuel/i], ['Land', /\bland\b|right of way|\brow\b|forest/i], ['Material', /tanker|supply|bitumen|aggregate|cement|material/i], ['Labour', /labour|manpower|\blog kam/i], ['Approvals', /railway|block|approval|permission/i], ['Safety', /near miss|accident|injur|banksman/i], ['Utilities', /utility|ht line|pipeline|cable/i]];
+const chOf = (a, b) => +a + +b / 1000;
+function rulesDPR(text){ const rows = [], iss = [], re = /(?:ch\.?\s*)?(\d{1,3})\+(\d{3})\s*(?:to|–|—|-|se)\s*(?:ch\.?\s*)?(\d{1,3})\+(\d{3})(?:\s*tak)?/gi, ms = [...text.matchAll(re)];
+  ms.forEach((m, i) => { const ls = text.lastIndexOf('\n', m.index) + 1, le0 = text.indexOf('\n', m.index), le = le0 < 0 ? text.length : le0, nx = ms[i + 1] && ms[i + 1].index < le ? ms[i + 1].index : le, after = text.slice(m.index + m[0].length, nx), before = text.slice(ls, m.index);
+    const f = chOf(m[1], m[2]), t = chOf(m[3], m[4]), act = actOf(after) || actOf(before), q = after.match(/(\d+(?:\.\d+)?)\s*(km|m)\b/i);
+    rows.push({ act, from: f, to: t, len: q ? +q[1] * (q[2].toLowerCase() === 'km' ? 1000 : 1) : Math.round(Math.abs(t - f) * 1000), note: text.slice(ls, le).trim().slice(0, 90) }); });
+  [...text.matchAll(/(box culvert|culvert|minor bridge|major bridge|\brob\b|\bvup\b|underpass|flyover|bridge)[^\n]*?(\d{1,3})\+(\d{3})/gi)].forEach(m => { const ls = text.lastIndexOf('\n', m.index) + 1, le0 = text.indexOf('\n', m.index); rows.push({ act: null, st: m[1], from: chOf(m[2], m[3]), to: null, len: null, note: text.slice(ls, le0 < 0 ? text.length : le0).trim().slice(0, 90) }); });
+  text.split('\n').forEach(l => ISS.forEach(([c, re2]) => { if (re2.test(l) && !iss.some(x => x.c === c)) iss.push({ c, t: l.trim().slice(0, 80) }); }));
+  return { rows, iss }; }
+function againstPlan(r){ if (!r.act) return ['—', 'n']; const mid = (r.from + (r.to == null ? r.from : r.to)) / 2; if (mid > PR.L) return ['outside this project', 'n']; const k = clamp(Math.floor(mid), 0, PR.L - 1), pw = PLAN[r.act].d[k], d = T - pw;
+  return d > .5 ? [`${d.toFixed(1)} wk behind (plan: week ${pw.toFixed(0)})`, d > 3 ? 'r' : 'a'] : d < -.5 ? [`${(-d).toFixed(1)} wk ahead`, 'g'] : ['on plan', 'g']; }
+function renderDPR(){ $('dprTab').querySelector('tbody').innerHTML = DPRROWS.length ? DPRROWS.map(r => { const [ap, cl] = againstPlan(r), ch = v => v == null ? '—' : `${Math.floor(v)}+${String(Math.round((v % 1) * 1000)).padStart(3, '0')}`;
+    return `<tr><td><b>${r.act ? esc(actBy(r.act).n) : esc(r.st ? 'Structure · ' + r.st : 'Unclassified')}</b></td><td>${ch(r.from)}</td><td>${ch(r.to)}</td><td class="r">${r.len ? r.len.toLocaleString('en-IN') + ' m' : '—'}</td><td><span class="tag ${cl}">${esc(ap)}</span></td><td class="note">${esc(r.note)}</td></tr>`; }).join('') : '<tr><td colspan="6" class="note">No chainage found in the report.</td></tr>';
+  $('dprIss').innerHTML = DPRISS.map(i => `<span class="tag ${/Safety|Land|Approvals/.test(i.c) ? 'r' : 'a'}" title="${esc(i.t)}">${esc(i.c)}</span>`).join(' ') + (DPRISS.length ? `<span class="note" style="margin-left:4px">${DPRISS.length} issue${DPRISS.length > 1 ? 's' : ''} raised</span>` : ''); }
+function setRows(rows){ DPRROWS = rows.map(r => Object.assign(r, { mid: r.act ? (r.from + (r.to == null ? r.from : r.to)) / 2 : null })); renderDPR(); drawTC(); }
+const DPRSYS = 'You read daily progress reports (DPR) from Indian highway construction sites. They may be in English, Hindi or Hinglish, typed, spoken or handwritten. Return only JSON: {"transcript": the full text you read (for images), "rows":[{"activity":"one of Clearing, Embankment, Subgrade, GSB, WMM, DBM, BC, Structure","from":"km+metres e.g. 17+400","to":"17+900 or null","length_m":number or null,"note":"short"}],"issues":[{"type":"Weather|Equipment|Fuel|Land|Material|Labour|Approvals|Safety|Utilities","text":"short"}]}. Use chainage exactly as written.';
+const chParse = s => { const m = String(s == null ? '' : s).match(/(\d{1,3})\s*\+\s*(\d{1,3})/); return m ? chOf(m[1], m[2].padEnd(3, '0')) : (isFinite(parseFloat(s)) ? parseFloat(s) : null); };
+function fromAI(j){ const rows = (j.rows || []).map(r => { const act = actOf(r.activity) || ({ clearing:'CG', embankment:'EMB', subgrade:'SG', gsb:'GSB', wmm:'WMM', dbm:'DBM', bc:'BC' })[String(r.activity || '').toLowerCase()] || null; return { act, st: act ? null : (r.activity || 'Structure'), from: chParse(r.from), to: chParse(r.to), len: r.length_m || null, note: '✦ ' + String(r.note || '').slice(0, 90) }; }).filter(r => r.from != null);
+  DPRISS = (j.issues || []).map(i => ({ c: String(i.type || 'Other'), t: String(i.text || '') })); setRows(rows); }
+async function readDPR(){ const text = $('dprTxt').value.trim(); if (!text){ toast('Type or pick a report first'); return; } const btn = $('dprGo'); btn.disabled = true;
+  if (KEY){ try { const r = await openai([{ role:'system', content: DPRSYS }, { role:'user', content: text }], { json: true }); fromAI(jparse(r.text)); toast('Report read by ' + OAM); btn.disabled = false; return; } catch (e){ fail('GenAI reading', e); } }
+  const p = rulesDPR(text); DPRISS = p.iss; setRows(p.rows); btn.disabled = false; }
+$('dprGo').addEventListener('click', readDPR);
+async function dprFile(file){ if (!file) return; if (!KEY){ toast('Add your OpenAI key to read photos and voice notes; you can type the report meanwhile'); return; }
+  try { if (/^audio|webm|m4a|mp3|wav|ogg/i.test(file.type || file.name)){ toast('Transcribing voice note…'); $('dprTxt').value = await transcribe(file, file.name); await readDPR(); return; }
+    toast('Reading the photo…'); const { url } = await shrink(file, 1600); const r = await openai([{ role:'system', content: DPRSYS }, { role:'user', content: [{ type:'text', text:'Read this site photo or handwritten register as a DPR.' }, { type:'image_url', image_url:{ url } }] }], { json: true }); const j = jparse(r.text); if (j.transcript) $('dprTxt').value = j.transcript; fromAI(j); toast('Photo read by ' + OAM); }
+  catch (e){ fail('Reading the file', e); } }
+$('dprFile').addEventListener('change', e => { dprFile(e.target.files[0]); e.target.value = ''; }); dropBind(document.querySelector('label[for=dprFile]'), dprFile);
+let REC = null, MIC = null, CHUNKS = [];
+$('recBtn').addEventListener('click', async () => { const b = $('recBtn');
+  if (REC && REC.state === 'recording'){ REC.stop(); return; }
+  if (!KEY){ toast('Recording needs your OpenAI key for transcription; type the report meanwhile'); return; }
+  if (!window.MediaRecorder || !navigator.mediaDevices){ toast('Recording is not supported in this browser'); return; }
+  try { if (!MIC || !MIC.active) MIC = await navigator.mediaDevices.getUserMedia({ audio: true }); CHUNKS = []; REC = new MediaRecorder(MIC); REC.ondataavailable = e => CHUNKS.push(e.data);
+    REC.onstop = async () => { b.classList.remove('on'); b.textContent = '🎙 Record'; try { toast('Transcribing…'); $('dprTxt').value = await transcribe(new Blob(CHUNKS, { type: REC.mimeType || 'audio/webm' }), 'voice.webm'); await readDPR(); } catch (e){ fail('Transcription', e); } };
+    REC.start(); b.classList.add('on'); b.textContent = '■ Stop'; } catch (e){ toast('Microphone not available'); } });
+function cmdRules(){ const s = status(), hb = T < PR.hand, st = ACTL.ST.map((x, i) => ({ x, late: Math.round((x.d - PLAN.ST[i].d) * 7) })).sort((a, b) => b.late - a.late)[0];
+  let o = `**${PR.n} · status ${fmtD(wkDate(PR, T))}**\n`;
+  o += `- Progress: **${s.ap.toFixed(1)}%** against a plan of ${s.pp.toFixed(1)}% (SPI ${s.spi.toFixed(2)}).\n- Forecast finish: **${fmtD(wkDate(PR, s.fA))}**, ${s.delay > 0 ? s.delay + ' days later than' : 'in line with'} the plan (${fmtD(wkDate(PR, s.fP))}).\n`;
+  o += `- Most behind: ${s.worst.a.n}, ${s.worst.g.toFixed(0)} points below plan; then ${s.gaps[1].a.n} (${s.gaps[1].g.toFixed(0)} points).\n`;
+  o += `- km ${PR.hold[0]}–${PR.hold[1]}: ${PR.holdWhy.toLowerCase()} ${hb ? '(still pending; expected week ' + PR.hand + ')' : '(resolved in week ' + PR.hand + '; crews returning)'}.\n`;
+  if (st) o += `- ${st.x.n}: ${st.late > 0 ? st.late + ' days behind plan' : 'on plan'}, ${Math.round(frac(st.x.s, st.x.d, T) * 100)}% done.\n`;
+  if (DPRISS.length) o += `- Latest report: ${DPRISS.map(i => i.c.toLowerCase()).join(', ')} issues raised.\n`;
+  o += `**Asks for this week**\n`; if (s.worst.a.id === 'DBM' || s.worst.a.id === 'BC') o += `- Move an under-used paver from another site (see Equipment fleet) rather than hire.\n`; if (s.worst.a.id === 'EMB') o += `- Add a second embankment crew; two excavators are under-used elsewhere.\n`;
+  if (hb) o += `- Escalate ${PR.holdWhy.toLowerCase()} for km ${PR.hold[0]}–${PR.hold[1]} with the authority.\n`; if (st && st.late > 7) o += `- Unblock ${st.x.n}: approval or block dates needed this week.\n`; o += `- Review the forecast next Monday against the same plan.`; return o; }
+$('cmdGo').addEventListener('click', () => { const s = status(); streamOrRules($('cmdOut'), $('cmdGo'), 'You are the projects chief of staff at an Indian highway EPC company writing the weekly one-page summary for the Chairman and MD. Plain, direct English. Start with a one-line headline, then 4-6 bullets on progress, forecast, the biggest constraint and structures, then "Asks for this week" with 2-4 specific decisions. Use **bold** for the headline numbers. Do not invent numbers.',
+  JSON.stringify({ project: PR.n, status_date: fmtD(wkDate(PR, T)), planned_pct: +s.pp.toFixed(1), actual_pct: +s.ap.toFixed(1), spi: +s.spi.toFixed(2), forecast_finish: fmtD(wkDate(PR, s.fA)), planned_finish: fmtD(wkDate(PR, s.fP)), delay_days: s.delay, layers_behind: s.gaps.slice(0, 3).map(g => ({ layer: g.a.n, points_behind: +g.g.toFixed(1) })), hold: { km: PR.hold, reason: PR.holdWhy, handover_week: PR.hand, pending: T < PR.hand }, structures: ACTL.ST.map((x, i) => ({ name: x.n, pct_done: Math.round(frac(x.s, x.d, T) * 100), days_late: Math.round((x.d - PLAN.ST[i].d) * 7) })), latest_report: { rows: DPRROWS.map(r => ({ activity: r.act ? actBy(r.act).n : r.st, from: r.from, to: r.to, vs_plan: againstPlan(r)[0] })), issues: DPRISS } }), cmdRules()); });
+
+/* ======================================================================
+   02 · FLEET & FUEL
+   ====================================================================== */
+const SITES = [
+  { id:'RJ', n:'Expressway Pkg R-07', st:'Rajasthan', ll:[26.45, 74.64], u:7.6 }, { id:'HR', n:'NH widening Pkg H-02', st:'Haryana', ll:[28.19, 76.62], u:6.6 },
+  { id:'MH', n:'Greenfield corridor M-11', st:'Maharashtra', ll:[20.74, 78.60], u:8.0 }, { id:'UP', n:'Ring road Pkg U-04', st:'Uttar Pradesh', ll:[26.85, 80.95], u:4.4 },
+  { id:'GJ', n:'Rail feeder G-01', st:'Gujarat', ll:[22.31, 73.18], u:3.6 }, { id:'MP', n:'State highway HAM P-03', st:'Madhya Pradesh', ll:[23.26, 77.41], u:5.8 },
+  { id:'YD', n:'Central plant yard', st:'Jaipur', ll:[26.91, 75.79], u:1.0 } ];
+const siteBy = id => SITES.find(s => s.id === id);
+const TYPES = { EX:{ n:'Excavator', norm:14, hire:320000 }, GR:{ n:'Motor grader', norm:12, hire:450000 }, RL:{ n:'Vibratory roller', norm:9, hire:260000 }, PV:{ n:'Paver', norm:18, hire:900000 }, TP:{ n:'Tipper', norm:8, hire:180000 }, TM:{ n:'Transit mixer', norm:7, hire:170000 }, DZ:{ n:'Dozer', norm:20, hire:520000 }, CR:{ n:'Hydra crane', norm:6, hire:210000 } };
+const DIESEL = 92, AVAIL = 10;
+const MIX = { RJ:'EX3 GR2 RL2 PV2 TP3 DZ1', HR:'EX2 GR1 RL2 PV1 TP2', MH:'EX2 GR1 RL1 TP3 DZ1 CR1', UP:'EX2 GR1 RL1 PV1 TP1', GJ:'EX2 CR1 TM2', MP:'EX1 GR1 RL1 PV1', YD:'PV1 GR1 EX1' };
+const ANOM = { theft:{ 'RJ-TP-2':1.29, 'MH-EX-1':1.24, 'UP-EX-2':1.31 }, idle:['HR-EX-1','RJ-RL-2','MP-GR-1','MH-TP-3'], down:['RJ-PV-2'], low:['UP-PV-1','GJ-EX-1','GJ-EX-2','YD-PV-1','YD-GR-1','YD-EX-1'] };
+let FLEET = [], FSITE = 'all', FFLAG = 'all', MSEL = null, MAP = null, MLG = null;
+function genFleet(){ const R = mulberry32(42), out = []; let no = 201;
+  SITES.forEach(s => MIX[s.id].split(' ').forEach(tk => { const ty = tk.slice(0, 2), n = +tk.slice(2); for (let i = 1; i <= n; i++){ const key = `${s.id}-${ty}-${i}`, days = [];
+      for (let d = 0; d < 7; d++){ let work = s.u * (.8 + .4 * R()); if (ANOM.low.includes(key)) work = .6 + R() * 1.8; if (ANOM.down.includes(key) && d >= 3) work = 0; let idle = work * (.14 + .1 * R()); if (ANOM.idle.includes(key)) idle = work * (.75 + .3 * R()); if (!work) idle = 0;
+        const exp = TYPES[ty].norm * work + .35 * TYPES[ty].norm * idle, iss = exp * (1 + (R() - .45) * .06) * (ANOM.theft[key] || 1); days.push({ d, work: +work.toFixed(1), idle: +idle.toFixed(1), fuel: Math.round(iss) }); }
+      out.push({ id: ty + '-' + (no++), key, ty, site: s.id, days }); } }));
+  return out; }
+function calc(m){ const w = sum(m.days.map(x => x.work)), i = sum(m.days.map(x => x.idle)), f = sum(m.days.map(x => x.fuel)), ty = TYPES[m.ty] || { norm: 10, hire: 250000, n: m.ty }, exp = sum(m.days.map(x => ty.norm * x.work + .35 * ty.norm * x.idle)), last = m.days.slice(-4);
+  m.work = w; m.idle = i; m.fuelT = f; m.exp = exp; m.util = w / (AVAIL * m.days.length); m.idleSh = (w + i) ? i / (w + i) : 0; m.var = exp ? f / exp - 1 : 0; m.excess = Math.max(0, f - exp);
+  m.flags = []; if (last.filter(x => !x.work).length >= 3) m.flags.push(['Breakdown','r']); if (m.var > .12) m.flags.push(['Fuel variance','r']); if (m.idleSh > .35) m.flags.push(['High idle','a']); if (m.util < .35 && !m.flags.some(f2 => f2[0] === 'Breakdown')) m.flags.push(['Under-used','b']); return m; }
+const DEMAND = [{ site:'RJ', ty:'PV', n:1, why:'DBM behind plan and a paver down on R-07' }, { site:'MH', ty:'EX', n:2, why:'Embankment at about 80% of planned rate on M-11' }, { site:'RJ', ty:'GR', n:1, why:'Subgrade crew short of a grader on R-07' }];
+const hav = (a, b) => { const R = 6371, t = Math.PI / 180, dl = (b[0] - a[0]) * t, dn = (b[1] - a[1]) * t, x = Math.sin(dl / 2) ** 2 + Math.cos(a[0] * t) * Math.cos(b[0] * t) * Math.sin(dn / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(x)) * 1.25; };
+function suggestions(){ const used = new Set(), out = [];
+  DEMAND.forEach(dm => { const tgt = siteBy(dm.site); if (!tgt) return; const c = FLEET.filter(m => m.ty === dm.ty && m.site !== dm.site && m.flags.some(f => f[0] === 'Under-used') && !used.has(m.id) && siteBy(m.site)).map(m => ({ m, d: hav(siteBy(m.site).ll, tgt.ll) })).sort((a, b) => a.d - b.d).slice(0, dm.n);
+    c.forEach(x => { used.add(x.m.id); const cost = 20000 + x.d * 220, hire = (TYPES[dm.ty] || {}).hire || 250000; out.push({ dm, m: x.m, d: x.d, cost, hire, pay: cost / (hire / 30) }); });
+    if (c.length < dm.n) out.push({ dm, m: null, short: dm.n - c.length }); }); return out; }
+function fleetKpi(){ const ms = FLEET, w = sum(ms.map(m => m.work)), av = sum(ms.map(m => AVAIL * m.days.length)), id = sum(ms.map(m => m.idle)), f = sum(ms.map(m => m.fuelT)), e = sum(ms.map(m => m.exp)), ex = sum(ms.map(m => m.excess)), days = ms.length ? ms[0].days.length : 7;
+  $('fKpi').innerHTML = [['Machines', ms.length, SITES.filter(s => ms.some(m => m.site === s.id)).length + ' locations'], ['Utilisation', Math.round(w / av * 100) + '%', 'of ' + AVAIL + ' h a day'], ['Idle share', Math.round(id / (w + id) * 100) + '%', 'of engine hours'], ['Fuel variance', (f / e * 100 - 100).toFixed(1) + '%', 'issued vs norm'], ['Excess diesel', lakh(ex * DIESEL * 30 / days), 'a month at this rate']]
+    .map(m => `<div class="ms"><div class="k">${m[0]}</div><div class="v">${m[1]}</div><div class="s">${esc(m[2])}</div></div>`).join(''); }
+function visM(){ return FLEET.filter(m => (FSITE === 'all' || m.site === FSITE) && (FFLAG === 'all' || m.flags.some(f => f[0] === FFLAG))); }
+function renderFleet(){ fleetKpi(); const FL = ['all', 'Fuel variance', 'High idle', 'Under-used', 'Breakdown'];
+  $('fFilt').innerHTML = (FSITE !== 'all' ? `<button type="button" class="chipb on" data-fs="all">✕ ${esc((siteBy(FSITE) || { n: FSITE }).n)}</button>` : '') + FL.map(f => `<button type="button" class="chipb${FFLAG === f ? ' on' : ''}" data-ff="${f}">${f === 'all' ? 'All machines' : f} · ${f === 'all' ? FLEET.length : FLEET.filter(m => m.flags.some(x => x[0] === f)).length}</button>`).join('');
+  const so = $('mSort').value, ms = visM().sort((a, b) => so === 'var' ? b.var - a.var : so === 'idle' ? b.idleSh - a.idleSh : so === 'util' ? a.util - b.util : a.id.localeCompare(b.id));
+  $('mCount').textContent = ms.length + ' shown';
+  $('mTab').querySelector('tbody').innerHTML = ms.map(m => `<tr data-i="${esc(m.id)}" class="${m.id === MSEL ? 'on' : ''}"><td><b>${esc(m.id)}</b><div class="note">${esc((TYPES[m.ty] || { n: m.ty }).n)}</div></td><td>${esc(m.site)}</td><td class="r">${Math.round(m.util * 100)}%</td><td class="r">${Math.round(m.idleSh * 100)}%</td><td class="r" style="color:${m.var > .12 ? 'var(--bad)' : 'inherit'};font-weight:${m.var > .12 ? 800 : 400}">${m.var >= 0 ? '+' : ''}${(m.var * 100).toFixed(1)}%</td><td>${m.flags.map(f => `<span class="tag ${f[1]}">${f[0]}</span>`).join(' ') || '<span class="tag g">OK</span>'}</td></tr>`).join('') || '<tr><td colspan="6" class="note">No machines match.</td></tr>';
+  $('mTab').querySelectorAll('tbody tr[data-i]').forEach(tr => tr.addEventListener('click', () => { MSEL = tr.dataset.i; renderFleet(); }));
+  const sg = suggestions(); $('sugg').innerHTML = sg.map(x => x.m ? `<div class="sg"><span><b>${esc(x.m.id)} ${esc(TYPES[x.dm.ty].n.toLowerCase())}</b>: ${esc(siteBy(x.m.site).n)} → ${esc(siteBy(x.dm.site).n)}<br><span class="dir">${esc(x.dm.why)} · ${Math.round(x.d)} km by road · used ${Math.round(x.m.util * 100)}% now</span></span><span style="text-align:right"><b>${lakh(x.hire)}</b>/month hire avoided<br><span class="dir">move ${lakh(x.cost)} · pays back in ${Math.max(1, Math.round(x.pay))} days</span></span></div>`
+    : `<div class="sg"><span><b>${esc(TYPES[x.dm.ty].n)} × ${x.short} for ${esc(siteBy(x.dm.site).n)}</b><br><span class="dir">No under-used machine of this type; hire or shift a shift pattern.</span></span><span class="tag a">Hire</span></div>`).join('');
+  renderFuel(); renderMap(); }
+$('fFilt').addEventListener('click', e => { const b = e.target.closest('[data-ff],[data-fs]'); if (!b) return; if (b.dataset.ff) FFLAG = b.dataset.ff; if (b.dataset.fs) FSITE = 'all'; renderFleet(); });
+$('mSort').addEventListener('change', renderFleet);
+function renderFuel(){ const m = FLEET.find(x => x.id === MSEL); if (!m){ $('fuelT').textContent = 'Fuel by day'; $('fuelCh').innerHTML = '<p class="note">Select a machine in the table.</p>'; return; }
+  const ty = TYPES[m.ty] || { norm: 10, n: m.ty }, w = 380, h = 150, ml = 34, mb = 22, mt = 10, n = m.days.length, bw = (w - ml - 8) / n, mx = Math.max(...m.days.map(d => Math.max(d.fuel, ty.norm * d.work + .35 * ty.norm * d.idle)), 10) * 1.1, Y = v => h - mb - v / mx * (h - mt - mb);
+  $('fuelT').textContent = `Fuel by day · ${m.id} · ${ty.n} · ${siteBy(m.site) ? siteBy(m.site).n : m.site}`;
+  let g = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Fuel issued versus norm by day">`; [0, .5, 1].forEach(f => g += `<line x1="${ml}" x2="${w - 8}" y1="${Y(mx * f)}" y2="${Y(mx * f)}" stroke="#E4E2DC" stroke-dasharray="2 3"/><text x="${ml - 4}" y="${Y(mx * f) + 3}" text-anchor="end" font-size="9" fill="#5E6268">${Math.round(mx * f)}</text>`);
+  m.days.forEach((d, i) => { const e = ty.norm * d.work + .35 * ty.norm * d.idle, x0 = ml + i * bw + bw * .15; g += `<rect x="${x0}" y="${Y(e)}" width="${bw * .32}" height="${Y(0) - Y(e)}" fill="#B9BDC2" rx="2"/><rect x="${x0 + bw * .36}" y="${Y(d.fuel)}" width="${bw * .32}" height="${Y(0) - Y(d.fuel)}" fill="${d.fuel > e * 1.12 ? '#D64545' : '#E8590C'}" rx="2"><title>Day ${i + 1}: issued ${d.fuel} L, norm ${Math.round(e)} L, ${d.work} h work, ${d.idle} h idle</title></rect><text x="${x0 + bw * .34}" y="${h - 8}" text-anchor="middle" font-size="9" fill="#5E6268">D${i + 1}</text>`; });
+  $('fuelCh').innerHTML = g + `</svg><div class="ckey"><span><i style="background:#B9BDC2;height:8px"></i>Norm for hours run</span><span><i style="background:#E8590C;height:8px"></i>Issued</span><span><i style="background:#D64545;height:8px"></i>Issued over norm by 12%+</span><span>Week: ${Math.round(m.fuelT)} L issued, ${Math.round(m.exp)} L norm (${m.var >= 0 ? '+' : ''}${(m.var * 100).toFixed(1)}%)</span></div>`; }
+const FCOL = { r:'#D64545', a:'#E9A23B', b:'#2F6690', g:'#2F9E5B' };
+function initMap(){ if (MAP) return; if (!window.L){ $('map').innerHTML = '<p class="note" style="padding:20px">The map needs an internet connection to load.</p>'; return; }
+  MAP = L.map('map', { scrollWheelZoom: false, zoomSnap: .5 }).setView([24.6, 77.4], 5);
+  const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services/', street = L.tileLayer(ESRI + 'World_Street_Map/MapServer/tile/{z}/{y}/{x}', { attribution:'Tiles © Esri, HERE, Garmin, © OpenStreetMap contributors', maxZoom: 18 }), topo = L.tileLayer(ESRI + 'World_Topo_Map/MapServer/tile/{z}/{y}/{x}', { attribution:'Tiles © Esri, © OpenStreetMap contributors', maxZoom: 18 }), osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap contributors', maxZoom: 18 }), sat = L.tileLayer(ESRI + 'World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution:'Imagery © Esri, Maxar', maxZoom: 18 });
+  const chain = [street, topo, osm]; let cur = 0, errs = 0, oks = 0; chain.forEach(l => { l.on('tileerror', () => { if (l !== chain[cur] || oks > 3) return; if (++errs >= 4 && cur < chain.length - 1){ MAP.removeLayer(l); cur++; errs = 0; chain[cur].addTo(MAP); } }); l.on('tileload', () => { if (l === chain[cur]) oks++; }); });
+  street.addTo(MAP); L.control.layers({ 'Street': street, 'Topographic': topo, 'OpenStreetMap': osm, 'Satellite': sat }, null, { position:'topright' }).addTo(MAP); L.control.scale({ imperial: false }).addTo(MAP); MLG = L.layerGroup().addTo(MAP); renderMap(); setTimeout(() => MAP.invalidateSize(), 300); }
+function renderMap(){ if (!MAP) return; MLG.clearLayers();
+  suggestions().filter(x => x.m).forEach(x => { const a = siteBy(x.m.site).ll, b = siteBy(x.dm.site).ll; L.polyline([a, b], { color:'#E8590C', weight: 3, dashArray:'6 6', opacity: .9 }).bindTooltip(`Move ${x.m.id} (${TYPES[x.dm.ty].n}) · ${Math.round(x.d)} km`).addTo(MLG); });
+  SITES.forEach(s => { const ms = FLEET.filter(m => m.site === s.id); if (!ms.length) return; const fl = ms.flatMap(m => m.flags.map(f => f[1])), worst = fl.includes('r') ? 'r' : fl.includes('a') ? 'a' : fl.includes('b') ? 'b' : 'g', sz = 24 + Math.min(16, ms.length * 1.4);
+    const u = Math.round(sum(ms.map(m => m.work)) / sum(ms.map(m => AVAIL * m.days.length)) * 100), cnt = k => ms.filter(m => m.flags.some(f => f[0] === k)).length;
+    L.marker(s.ll, { icon: L.divIcon({ className:'', html:`<div class="mdot" style="width:${sz}px;height:${sz}px;background:${FCOL[worst]};${FSITE === s.id ? 'outline:3px solid #1E2328;' : ''}">${ms.length}</div>`, iconSize:[sz, sz], iconAnchor:[sz / 2, sz / 2] }) })
+      .bindPopup(`<b>${esc(s.n)}</b> · ${esc(s.st)}<br>${ms.length} machines · utilisation ${u}%<br>Fuel variance: ${cnt('Fuel variance')} · high idle: ${cnt('High idle')} · under-used: ${cnt('Under-used')} · breakdown: ${cnt('Breakdown')}`)
+      .on('click', () => { FSITE = s.id; renderFleet(); }).addTo(MLG); }); }
+function fleetCSV(){ const rows = [['machine_id','type','site','day','work_hours','idle_hours','fuel_issued_l']]; FLEET.forEach(m => m.days.forEach(d => rows.push([m.id, m.ty, m.site, d.d + 1, d.work, d.idle, d.fuel]))); return rows.map(r => r.map(csvCell).join(',')).join('\n'); }
+$('tmplDl').addEventListener('click', () => download('telematics-template.csv', fleetCSV(), 'text/csv'));
+async function fleetUp(file){ if (!file) return; try { const rows = parseCSV(await file.text()), hd = rows[0].map(h => h.trim().toLowerCase()), ix = k => hd.findIndex(h => h.includes(k));
+    const c = { id: ix('machine'), ty: ix('type'), site: ix('site'), day: ix('day'), w: ix('work'), i: ix('idle'), f: ix('fuel') }; if (c.id < 0 || c.w < 0 || c.f < 0) throw new Error('need machine_id, work_hours and fuel_issued_l columns');
+    const tyOf = v => { const s = String(v || '').trim(), u = s.toUpperCase().slice(0, 2); if (TYPES[u]) return u; const k = Object.keys(TYPES).find(k2 => TYPES[k2].n.toLowerCase() === s.toLowerCase() || s.toLowerCase().includes(TYPES[k2].n.toLowerCase().split(' ').pop())); return k || u || 'EX'; };
+    const siteOf = v => { const s = String(v || '').trim(); const f = SITES.find(x => x.id.toLowerCase() === s.toLowerCase() || x.n.toLowerCase() === s.toLowerCase() || x.st.toLowerCase() === s.toLowerCase()); return f ? f.id : s || 'Unknown'; };
+    const by = new Map(); rows.slice(1).forEach(r => { const id = String(r[c.id] || '').trim(); if (!id) return; if (!by.has(id)) by.set(id, { id, key: id, ty: tyOf(r[c.ty]), site: siteOf(r[c.site]), days: [] }); by.get(id).days.push({ d: +r[c.day] || by.get(id).days.length, work: +r[c.w] || 0, idle: c.i >= 0 ? +r[c.i] || 0 : 0, fuel: +r[c.f] || 0 }); });
+    if (!by.size) throw new Error('no rows'); FLEET = [...by.values()].map(calc); MSEL = null; FSITE = 'all'; FFLAG = 'all'; renderFleet(); toast(`${FLEET.length} machines loaded from your file`); }
+  catch (e){ toast('Could not read that file: ' + e.message); } }
+$('fleetCsv').addEventListener('change', e => { fleetUp(e.target.files[0]); e.target.value = ''; });
+function plantRules(){ const fv = FLEET.filter(m => m.var > .12).sort((a, b) => b.excess - a.excess), hi = FLEET.filter(m => m.idleSh > .35), bd = FLEET.filter(m => m.flags.some(f => f[0] === 'Breakdown')), sg = suggestions().filter(x => x.m), d = FLEET.length ? FLEET[0].days.length : 7;
+  let o = `**Fleet and fuel · last ${d} days · ${FLEET.length} machines**\n`;
+  o += fv.length ? `**Fuel above norm (check issue registers and tank seals)**\n` + fv.slice(0, 5).map(m => `- ${m.id} ${(TYPES[m.ty] || { n: m.ty }).n} at ${m.site}: ${Math.round(m.excess)} L above norm (+${(m.var * 100).toFixed(0)}%), about ${lakh(m.excess * DIESEL * 30 / d)} a month.`).join('\n') + '\n' : '- No machine above the 12% fuel threshold.\n';
+  if (hi.length) o += `**High idling**\n` + hi.slice(0, 4).map(m => `- ${m.id} at ${m.site}: ${Math.round(m.idleSh * 100)}% of engine hours idle; brief operator and set auto shut-off.`).join('\n') + '\n';
+  if (bd.length) o += `**Breakdowns**\n` + bd.map(m => `- ${m.id} at ${m.site}: no running hours for 3+ days; confirm spares and expected return.`).join('\n') + '\n';
+  if (sg.length) o += `**Redeploy before hiring**\n` + sg.map(x => `- Move ${x.m.id} from ${x.m.site} to ${x.dm.site}: ${lakh(x.hire)} a month of hire avoided for ${lakh(x.cost)} moving cost.`).join('\n'); return o; }
+$('plantGo').addEventListener('click', () => streamOrRules($('plantOut'), $('plantGo'), 'You are the plant and machinery head at an Indian highway EPC company. Write a short morning note for site plant in-charges: fuel anomalies to investigate (be careful: say "check", not "theft"), idling, breakdowns and redeployment moves, each with machine IDs and numbers. Use **bold** section labels and bullets. Do not invent numbers.',
+  JSON.stringify({ machines: FLEET.filter(m => m.flags.length).map(m => ({ id: m.id, type: (TYPES[m.ty] || { n: m.ty }).n, site: m.site, utilisation_pct: Math.round(m.util * 100), idle_pct: Math.round(m.idleSh * 100), fuel_issued_l: Math.round(m.fuelT), fuel_norm_l: Math.round(m.exp), variance_pct: +(m.var * 100).toFixed(1), flags: m.flags.map(f => f[0]) })), redeploy: suggestions().filter(x => x.m).map(x => ({ machine: x.m.id, from: x.m.site, to: x.dm.site, km: Math.round(x.d), hire_avoided_month: x.hire, move_cost: Math.round(x.cost), reason: x.dm.why })), diesel_rs_per_l: DIESEL }), plantRules()));
+FLEET = genFleet().map(calc);
+
+/* ======================================================================
+   03 · NHAI TENDER READER
+   ====================================================================== */
+const RFPS = [
+  ['HAM · 4-lane NH, Rajasthan', `REQUEST FOR PROPOSAL (RFP) · SYNTHETIC EXTRACT FOR DEMONSTRATION
+National Highways Authority (illustrative)
+
+Four-laning of NH-148X from km 0.000 to km 30.000 (Pkg R-07) in the State of Rajasthan on Hybrid Annuity Mode (HAM)
+
+1. Key Information
+1.1 Bid Project Cost (BPC): ₹ 712 crore (Rupees Seven Hundred Twelve Crore).
+1.2 Bid Due Date: 15 December 2026, 11:00 hrs IST.
+1.3 Bid Security: ₹ 7.12 crore in the form of a Bank Guarantee valid for 180 days.
+1.4 Construction Period: 730 days from the Appointed Date.
+1.5 Operation and Maintenance Period: 15 years from COD.
+
+2. Eligibility
+2.1 Technical Capacity: the Bidder shall have completed similar works of value not less than ₹ 1,424 crore in the last five financial years.
+2.2 Financial Capacity: minimum Net Worth of ₹ 142 crore at the close of the preceding financial year.
+2.3 Joint Venture: a Joint Venture of not more than two members is permitted.
+
+3. Commercial Terms
+3.1 Performance Security: 3% of the Bid Project Cost, to be furnished within 30 days of the Letter of Award.
+3.2 Payment during construction: 40% of the Bid Project Cost shall be paid during the construction period in five equal instalments linked to physical progress.
+3.3 Mobilisation Advance: up to 10% of the BPC at bank rate, in two tranches.
+3.4 Price Adjustment: applicable on the payments during construction as per Clause 23.4, indexed to WPI and CPI.
+3.5 Liquidated Damages: 0.05% of the BPC per day of delay, subject to a maximum of 10% of the BPC.
+3.6 Change of Scope: the Authority may order changes up to 5% of the BPC without revision of the annuity schedule.
+
+4. Site and Utilities
+4.1 The Authority shall hand over at least 90% of the land (Right of Way) on the Appointed Date; the balance within 150 days.
+4.2 Utility shifting shall be carried out by the Contractor and reimbursed by the Authority at actuals.
+4.3 Defects Liability Period: covered within the Operation and Maintenance Period.
+
+5. Dispute Resolution
+5.1 Disputes shall be referred to the Conciliation Committee, failing which to arbitration under the Arbitration and Conciliation Act, 1996, seated at New Delhi.
+
+Schedule B · BOQ Abstract (indicative quantities)
+1. Earthwork in embankment — 18,40,000 cum
+2. Granular sub-base (GSB) — 2,95,000 cum
+3. Wet mix macadam (WMM) — 2,10,000 cum
+4. Dense bituminous macadam (DBM) — 1,15,000 cum
+5. Bituminous concrete (BC) — 48,000 cum
+6. RCC box culverts — 46 nos
+7. Minor bridges — 6 nos
+8. Road over bridge (ROB) — 2 nos
+9. Interchange at Ch 21+400 — 1 LS
+10. Road furniture, signage and markings — 1 LS`],
+  ['EPC · 2-lane SH, Odisha', `REQUEST FOR PROPOSAL · SYNTHETIC EXTRACT FOR DEMONSTRATION
+State Road Development Corporation (illustrative)
+
+Two-laning with paved shoulders from km 0.000 to km 22.000 of SH-71 in the State of Odisha on Engineering, Procurement and Construction (EPC) mode
+
+1. Key Information
+1.1 Estimated Project Cost: ₹ 236 crore.
+1.2 Bid Due Date: 18 November 2026, 15:00 hrs.
+1.3 Bid Security: ₹ 2.36 crore.
+1.4 Construction Period: 15 months from the Appointed Date.
+1.5 Defects Liability Period: 5 years after completion.
+
+2. Eligibility
+2.1 Technical Capacity: similar works of value not less than ₹ 472 crore in the last five years.
+2.2 Financial Capacity: Net Worth of ₹ 59 crore.
+2.3 Joint Venture: not permitted.
+
+3. Commercial Terms
+3.1 Performance Security: 10% of the Contract Price.
+3.2 Mobilisation Advance: not provided.
+3.3 Price Adjustment: not applicable; the Contract Price is fixed for the entire Contract Period.
+3.4 Liquidated Damages: 0.1% of the Contract Price per day of delay, subject to a maximum of 15% of the Contract Price.
+
+4. Site and Utilities
+4.1 The Authority shall hand over 60% of the right of way on the Appointed Date; the balance progressively.
+4.2 Utility shifting shall be carried out by the Contractor at the cost of the Contractor.
+
+5. Dispute Resolution
+5.1 Disputes shall be settled by the Managing Director of the Corporation, whose decision shall be final.
+
+Schedule · BOQ Abstract
+1. Earthwork in embankment — 9,60,000 cum
+2. Granular sub-base — 1,30,000 cum
+3. Wet mix macadam — 98,000 cum
+4. Dense bituminous macadam — 52,000 cum
+5. Bituminous concrete — 21,000 cum
+6. Pipe and box culverts — 38 nos
+7. Minor bridges — 4 nos
+8. Lined drains — 18,000 m
+9. Road furniture and markings — 1 LS`] ];
+const HG = { tech: 3800, nw: 2350, ob: 13500, core: /rajasthan|haryana|uttar pradesh|madhya pradesh|maharashtra|gujarat|telangana|delhi|punjab|karnataka/i };
+const num = s => parseFloat(String(s).replace(/,/g, ''));
+const CL = [
+  { n:'Project length', re:/from km\s*([\d.]+)\s*to km\s*([\d.]+)/i, v: m => (num(m[2]) - num(m[1])).toFixed(1) + ' km', r: () => ['n', 'Used to check the required pace'] },
+  { n:'Authority cost estimate', re:/(?:bid project cost|estimated project cost|engineer'?s estimate)[^₹\n]*₹\s*([\d,.]+)\s*crore/i, v: m => '₹' + m[1] + ' cr', r: () => ['n', 'Benchmark for our price'] },
+  { n:'Mode', re:/hybrid annuity|\bham\b|engineering,? procurement and construction|\bepc\b|\bbot\b|\btoll\b/i, v: m => /hybrid|ham/i.test(m[0]) ? 'HAM' : /bot|toll/i.test(m[0]) ? 'BOT' : 'EPC', r: () => ['n', 'Sets funding and risk profile'] },
+  { n:'Bid due date', re:/bid due date[^:\n]*:\s*([^\n]+)/i, v: m => m[1].replace(/\.$/, ''), r: () => ['n', 'Plan site visit and pre-bid queries'] },
+  { n:'Bid security', re:/bid security[^₹\n]*₹\s*([\d,.]+)\s*crore/i, v: m => '₹' + m[1] + ' cr', r: () => ['n', 'Bank guarantee limit needed'] },
+  { n:'Construction period', re:/construction period[^\d\n]*(\d+)\s*(days|months)/i, v: m => m[1] + ' ' + m[2], r: (m, c) => { const mo = /day/i.test(m[2]) ? num(m[1]) / 30.4 : num(m[1]), p = c.L ? c.L / mo : 0; c.months = mo; return p > 1.4 ? ['R', `${p.toFixed(2)} km a month needed; our best is about 1.3`] : p > 1 ? ['A', `${p.toFixed(2)} km a month; tight but done before`] : ['G', `${p.toFixed(2)} km a month; comfortable`]; } },
+  { n:'Land at appointed date', re:/(\d+)\s*%\s*of (?:the )?(?:land|right of way|row)\b/i, v: m => m[1] + '%', r: m => +m[1] >= 90 ? ['G', 'Meets the usual 80–90% threshold'] : +m[1] >= 80 ? ['A', 'Some fronts will wait for land'] : ['R', 'Large part of the road not available at start'] },
+  { n:'Performance security', re:/performance security[^%\n]*?(\d+(?:\.\d+)?)\s*%/i, v: m => m[1] + '%', r: m => +m[1] <= 3 ? ['G', 'Standard'] : +m[1] <= 5 ? ['A', 'Above standard; blocks limits'] : ['R', 'High; ties up bank limits'] },
+  { n:'Liquidated damages', re:/liquidated damages[^\n]*?(\d+(?:\.\d+)?)\s*%[^\n]*?per day[^\n]*?maximum of\s*(\d+(?:\.\d+)?)\s*%/i, v: m => `${m[1]}% a day, cap ${m[2]}%`, r: m => +m[2] <= 10 ? ['G', 'Cap at the usual 10%'] : ['R', `Cap at ${m[2]}% is above the usual 10%`] },
+  { n:'Price adjustment', re:/price adjustment[^\n]*/i, v: m => /not applicable|shall not|fixed/i.test(m[0]) ? 'Not applicable' : 'Applicable', r: m => /not applicable|shall not|fixed/i.test(m[0]) ? ['R', 'Fixed price; bitumen and steel risk is ours'] : ['G', 'Indexed to inflation'], miss: ['R', 'No price adjustment clause found'] },
+  { n:'Mobilisation advance', re:/mobili[sz]ation advance[^\n]*/i, v: m => { const p = m[0].match(/(\d+)\s*%/); return p ? p[1] + '%' : 'Not provided'; }, r: m => { const p = m[0].match(/(\d+)\s*%/); return p && +p[1] >= 10 ? ['G', 'Eases early cash flow'] : p ? ['A', 'Small advance'] : ['A', 'No advance; fund mobilisation ourselves']; } },
+  { n:'Payment during construction', re:/(\d+)\s*%\s*of (?:the )?(?:bid project cost|bpc)[^\n]*construction/i, v: m => m[1] + '% of BPC', r: m => +m[1] >= 40 ? ['A', `${100 - +m[1]}% to be funded by equity and debt until annuities`] : ['R', 'Large funding need'] },
+  { n:'O&M period', re:/operation and maintenance period[^\d\n]*(\d+)\s*years/i, v: m => m[1] + ' years', r: m => +m[1] >= 15 ? ['A', 'Long maintenance obligation; price it in'] : ['G', 'Short'] },
+  { n:'Defects liability', re:/defects? liability period[^\d\n]*(\d+)\s*(years?|months)/i, v: m => m[1] + ' ' + m[2], r: m => (/month/i.test(m[2]) ? +m[1] / 12 : +m[1]) > 4 ? ['A', 'Longer than the usual 4 years'] : ['G', 'Usual'] },
+  { n:'Utility shifting', re:/utility shifting[^\n]*/i, v: m => /cost of the contractor/i.test(m[0]) ? 'Contractor at own cost' : /reimburs/i.test(m[0]) ? 'Contractor, reimbursed' : 'Authority', r: m => /cost of the contractor/i.test(m[0]) ? ['R', 'Unpriced cost and delay risk'] : /reimburs/i.test(m[0]) ? ['A', 'Our scope; time risk, cost reimbursed'] : ['G', 'Authority scope'] },
+  { n:'Technical capacity', re:/similar works?[^₹\n]*₹\s*([\d,.]+)\s*crore/i, v: m => '₹' + m[1] + ' cr', r: m => num(m[1]) <= HG.tech ? ['G', `We qualify (₹${HG.tech.toLocaleString('en-IN')} cr of similar works)`] : ['R', 'We do not qualify alone'] },
+  { n:'Net worth', re:/net worth[^₹\n]*₹\s*([\d,.]+)\s*crore/i, v: m => '₹' + m[1] + ' cr', r: m => num(m[1]) <= HG.nw ? ['G', 'We qualify'] : ['R', 'Below requirement'] },
+  { n:'Joint venture', re:/joint venture[^\n]*/i, v: m => /not permitted|not allowed/i.test(m[0]) ? 'Not permitted' : 'Permitted', r: m => /not permitted|not allowed/i.test(m[0]) ? ['A', 'Must bid alone'] : ['G', 'Partner option open'] },
+  { n:'Dispute resolution', re:/arbitration[^\n]*|decision shall be final[^\n]*/i, v: m => /arbitration/i.test(m[0]) ? 'Arbitration' : 'Authority decides', r: m => /arbitration/i.test(m[0]) ? ['G', 'Independent arbitration'] : ['R', 'No independent arbitration'], miss: ['A', 'No dispute clause found'] } ];
+const RATES = [[/embankment|earth ?work/i, 420], [/sub-?base|\bgsb\b/i, 1650], [/wet mix|\bwmm\b/i, 1900], [/dense bitum|\bdbm\b/i, 8600], [/bituminous concrete|\bbc\b/i, 9800], [/culvert/i, 2800000], [/minor bridge/i, 42000000], [/major bridge/i, 180000000], [/over ?bridge|\brob\b/i, 380000000], [/interchange|flyover/i, 600000000], [/toll plaza/i, 250000000], [/drain/i, 4200], [/furniture|signage|marking/i, 180000000]];
+let RFP = { text:'', name:'', rows:[], boq:[], ctx:{} };
+function readRFP(text, name){ const ctx = {}, rows = [];
+  const lm = text.match(/from km\s*([\d.]+)\s*to km\s*([\d.]+)/i); ctx.L = lm ? num(lm[2]) - num(lm[1]) : (text.match(/length of ([\d.]+)\s*km/i) || [])[1] * 1 || 0;
+  const bp = text.match(CL[1].re); ctx.bpc = bp ? num(bp[1]) : 0; const sm = text.match(/in the [Ss]tate of ([A-Z][a-z]+(?: [A-Z][a-z]+)?)/); ctx.state = sm ? sm[1] : '';
+  CL.forEach((c, i) => { const m = text.match(c.re); if (m){ const [rk, why] = c.r(m, ctx); rows.push({ i, n: c.n, v: c.v(m), rk, why, at: m.index, len: m[0].length }); } else rows.push({ i, n: c.n, v: 'Not found', rk: c.miss ? c.miss[0] : 'n', why: c.miss ? c.miss[1] : 'Check manually', at: -1 }); });
+  const boq = []; [...text.matchAll(/^\s*\d+[.)]\s*(.+?)\s+[—–-]\s*([\d,]+(?:\.\d+)?)\s*(cum|sqm|nos?|ls|km|m|mt)\b/gim)].forEach(m => { const d = m[1].trim(), r = RATES.find(x => x[0].test(d)); boq.push({ item: d, qty: num(m[2]), unit: m[3], rate: r ? r[1] : 0 }); });
+  RFP = { text, name, rows, boq, ctx }; const pa = rows.find(r => r.n === 'Price adjustment'); setRange('es', pa && pa.rk === 'R' ? 4 : 0); renderRFP(); }
+const RK = { G:['g','Low'], A:['a','Watch'], R:['r','High'], n:['n','Info'] };
+function renderRFP(){ const t = RFP.text, marks = RFP.rows.filter(r => r.at >= 0).sort((a, b) => a.at - b.at); let h = '', p = 0;
+  marks.forEach(r => { if (r.at < p) return; h += esc(t.slice(p, r.at)) + `<mark class="${RK[r.rk][0] === 'n' ? 'g' : RK[r.rk][0]}" data-c="${r.i}" id="mk${r.i}">${esc(t.slice(r.at, r.at + r.len))}</mark>`; p = r.at + r.len; });
+  $('doc').innerHTML = h + esc(t.slice(p)); const f = RFP.rows.filter(r => r.at >= 0 || r.ai).length;
+  $('clCount').textContent = `${f} of ${RFP.rows.length} found · ${RFP.rows.filter(r => r.rk === 'R').length} high risk · ${RFP.rows.filter(r => r.rk === 'A').length} to watch`;
+  $('clTab').querySelector('tbody').innerHTML = RFP.rows.map(r => `<tr data-i="${r.i}"><td><b>${r.ai ? '✦ ' : ''}${esc(r.n)}</b></td><td>${esc(r.v)}</td><td><span class="tag ${RK[r.rk][0]}">${RK[r.rk][1]}</span></td><td class="note">${esc(r.why)}</td></tr>`).join('');
+  $('clTab').querySelectorAll('tbody tr').forEach(tr => tr.addEventListener('click', () => { const mk = $('mk' + tr.dataset.i); if (!mk){ toast('Not marked in the document'); return; } const d = $('doc'); d.scrollTop = mk.offsetTop - d.offsetTop - 60; mk.classList.add('flash'); setTimeout(() => mk.classList.remove('flash'), 1400); }));
+  $('doc').querySelectorAll('mark').forEach(mk => mk.addEventListener('click', () => { const tr = $('clTab').querySelector(`tr[data-i="${mk.dataset.c}"]`); if (tr){ tr.classList.add('on'); tr.scrollIntoView({ block:'nearest' }); setTimeout(() => tr.classList.remove('on'), 1400); } }));
+  renderBOQ(); }
+function setRange(id, v){ $(id).value = v; $(id + 'V').textContent = v + '%'; }
+['oh','ct','es','mg'].forEach(id => { $(id + 'V').textContent = $(id).value + '%'; $(id).addEventListener('input', () => { $(id + 'V').textContent = $(id).value + '%'; renderEst(); }); });
+function renderBOQ(){ $('boqTab').querySelector('tbody').innerHTML = RFP.boq.length ? RFP.boq.map((b, i) => `<tr><td>${esc(b.item)}</td><td class="r">${b.qty.toLocaleString('en-IN')} ${esc(b.unit)}</td><td class="r"><input class="rt" type="number" min="0" step="any" data-b="${i}" value="${b.rate}" aria-label="Rate for ${esc(b.item)}"></td><td class="r" id="bq${i}"></td></tr>`).join('') + '<tr><td colspan="3"><b>Direct cost</b></td><td class="r"><b id="bqT"></b></td></tr>' : '<tr><td colspan="4" class="note">No bill of quantities found. Add a key to extract it, or check the schedule pages.</td></tr>';
+  $('boqTab').querySelectorAll('input.rt').forEach(inp => inp.addEventListener('input', () => { RFP.boq[+inp.dataset.b].rate = +inp.value || 0; renderEst(); })); renderEst(); }
+function est(){ const dir = sum(RFP.boq.map(b => b.qty * b.rate)), f = (1 + $('oh').value / 100) * (1 + $('ct').value / 100) * (1 + $('es').value / 100) * (1 + $('mg').value / 100); return { dir, bid: dir * f, bpc: RFP.ctx.bpc * 1e7 }; }
+function scoreBid(){ const e = est(), rows = RFP.rows, R = rows.filter(r => r.rk === 'R').length, A = rows.filter(r => r.rk === 'A').length, rk = n => (rows.find(r => r.n === n) || {}).rk, elig = rk('Technical capacity') !== 'R' && rk('Net worth') !== 'R';
+  const diff = e.bpc ? e.bid / e.bpc - 1 : 0, price = diff <= -.05 ? 90 : diff >= .10 ? 10 : 90 - (diff + .05) / .15 * 80;
+  const spare = FLEET.filter(m => ['EX','GR','PV','RL'].includes(m.ty) && m.flags.some(f => f[0] === 'Under-used')).length;
+  const C = [['Contract risk', 25, clamp(100 - 16 * R - 6 * A, 0, 100), `${R} high, ${A} to watch`], ['Price vs authority estimate', 20, price, e.bpc ? `${diff >= 0 ? '+' : ''}${(diff * 100).toFixed(1)}% against ₹${RFP.ctx.bpc.toLocaleString('en-IN')} cr` : 'No estimate found'],
+    ['Eligibility', 15, elig ? 100 : 0, elig ? 'Technical and financial met' : 'Not eligible alone'], ['Geography fit', 15, HG.core.test(RFP.ctx.state || '') ? 90 : 45, RFP.ctx.state ? RFP.ctx.state + (HG.core.test(RFP.ctx.state) ? ' · core state' : ' · new state') : 'State not found'],
+    ['Equipment readiness', 15, clamp(40 + spare * 10, 0, 100), `${spare} under-used machines (module 02)`], ['Order book headroom', 10, clamp(90 - e.bid / 1e7 / HG.ob * 300, 20, 95), `order book ₹${HG.ob.toLocaleString('en-IN')} cr`]];
+  const s = sum(C.map(c => c[1] * c[2])) / 100; return { C, s, elig, e, diff }; }
+function renderEst(){ const e = est(); RFP.boq.forEach((b, i) => { const el = $('bq' + i); if (el) el.textContent = (b.qty * b.rate / 1e7).toFixed(1); }); if ($('bqT')) $('bqT').textContent = (e.dir / 1e7).toFixed(1);
+  const sc = scoreBid(); $('estK').innerHTML = [['Direct cost', cr(e.dir), RFP.boq.length + ' BOQ items'], ['Our bid price', cr(e.bid), 'after mark-ups'], ['Vs estimate', e.bpc ? (sc.diff >= 0 ? '+' : '') + (sc.diff * 100).toFixed(1) + '%' : '—', e.bpc ? 'estimate ' + cr(e.bpc) : 'no estimate found']].map(m => `<div class="ms"><div class="k">${m[0]}</div><div class="v">${m[1]}</div><div class="s">${esc(m[2])}</div></div>`).join('');
+  const v = !sc.elig ? ['r', 'Do not bid alone', 'Eligibility not met; consider a partner.'] : sc.s >= 65 ? ['g', 'Bid', 'Risks are priced and manageable.'] : sc.s >= 50 ? ['a', 'Bid with conditions', 'Raise pre-bid queries on the high-risk clauses first.'] : ['r', 'Do not bid', 'Risk and price outweigh fit.'];
+  $('verdict').innerHTML = `<div class="verdict ${v[0]}"><span class="sc">${Math.round(sc.s)}</span><span><b>${v[1]}</b>${v[2]}</span></div>`;
+  $('crit').innerHTML = sc.C.map(c => `<div class="crit"><span>${c[0]} <span class="note">· ${c[1]}%</span></span><span class="bar"><i style="width:${c[2]}%;background:${c[2] >= 70 ? '#2F9E5B' : c[2] >= 45 ? '#E9A23B' : '#D64545'}"></i></span><b style="text-align:right">${Math.round(c[2])}</b></div><div class="note" style="margin:-4px 0 2px">${esc(c[3])}</div>`).join(''); }
+$('rfpPre').innerHTML = RFPS.map((r, i) => `<button type="button" class="chipb" data-r="${i}">${esc(r[0])}</button>`).join('');
+$('rfpPre').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (!b) return; document.querySelectorAll('#rfpPre .chipb').forEach(x => x.classList.toggle('on', x === b)); readRFP(RFPS[+b.dataset.r][1], RFPS[+b.dataset.r][0]); });
+let PDFJS = null;
+function loadPdfJs(){ if (PDFJS) return PDFJS; PDFJS = new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'; s.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; res(window.pdfjsLib); }; s.onerror = () => { PDFJS = null; rej(new Error('PDF reader could not load')); }; document.head.appendChild(s); }); return PDFJS; }
+async function pdfText(file){ const lib = await loadPdfJs(), doc = await lib.getDocument({ data: await file.arrayBuffer() }).promise, n = Math.min(doc.numPages, 80); let out = '';
+  for (let i = 1; i <= n; i++){ const pg = await doc.getPage(i), tc = await pg.getTextContent(); let last = null; tc.items.forEach(it => { const y = it.transform[5]; if (last != null && Math.abs(y - last) > 4) out += '\n'; out += it.str + (it.hasEOL ? '\n' : ' '); last = y; }); out += '\n\n'; } return out.replace(/[ \t]+\n/g, '\n'); }
+const CLSYS = `You read Indian road and rail tender documents (RFP, ITB, contract agreement) for a highway EPC contractor. Return only JSON: {"length_km": number|null, "authority_cost_crore": number|null, "state": string|null, "clauses":[{"name": one of ${JSON.stringify(CL.map(c => c.n))}, "value": short, "risk": "G"|"A"|"R"|"n", "why": short reason for the contractor, "quote": exact short quote from the text}], "boq":[{"item": string, "qty": number, "unit": string}]}. Risk rules: performance security >3% is A, >5% R; LD cap >10% R; no price adjustment R; land at appointed date <80% R; pace above 1.4 km a month R. Our similar-works capacity is ₹${HG.tech} crore and net worth ₹${HG.nw} crore.`;
+async function rfpFile(file){ if (!file) return; try { let text = ''; if (/pdf/i.test(file.type) || /\.pdf$/i.test(file.name)){ toast('Reading PDF text…'); text = await pdfText(file); } else text = await file.text();
+    if (text.trim().length < 50){ toast('Little text found; it may be a scanned PDF'); }
+    document.querySelectorAll('#rfpPre .chipb').forEach(x => x.classList.remove('on')); readRFP(text, file.name);
+    if (KEY){ toast('Extracting clauses with ' + OAM + '…'); const r = await openai([{ role:'system', content: CLSYS }, { role:'user', content: text.slice(0, 60000) }], { json: true }); mergeAI(jparse(r.text)); toast('Clauses extracted by ' + OAM); }
+    else toast(`Rules found ${RFP.rows.filter(r => r.at >= 0).length} clauses. Add a key for any wording.`); }
+  catch (e){ fail('Tender reading', e); } }
+function mergeAI(j){ if (j.length_km) RFP.ctx.L = +j.length_km; if (j.authority_cost_crore) RFP.ctx.bpc = +j.authority_cost_crore; if (j.state) RFP.ctx.state = j.state;
+  (j.clauses || []).forEach(c => { const i = CL.findIndex(x => x.n.toLowerCase() === String(c.name || '').toLowerCase()); if (i < 0) return; const at = c.quote ? RFP.text.indexOf(c.quote) : -1, row = RFP.rows.find(r => r.i === i); Object.assign(row, { v: String(c.value || '').slice(0, 60), rk: /^[GARn]$/.test(c.risk) ? c.risk : 'n', why: String(c.why || '').slice(0, 120), ai: true, at: at >= 0 ? at : row.at, len: at >= 0 ? c.quote.length : row.len }); });
+  if ((!RFP.boq.length) && Array.isArray(j.boq)) RFP.boq = j.boq.filter(b => b.item && +b.qty).map(b => { const r = RATES.find(x => x[0].test(b.item)); return { item: String(b.item), qty: +b.qty, unit: String(b.unit || ''), rate: r ? r[1] : 0 }; });
+  renderRFP(); }
+$('rfpFile').addEventListener('change', e => { rfpFile(e.target.files[0]); e.target.value = ''; }); dropBind(document.querySelector('label[for=rfpFile]'), rfpFile);
+function bidRules(){ const sc = scoreBid(), hi = RFP.rows.filter(r => r.rk === 'R'), wa = RFP.rows.filter(r => r.rk === 'A'), v = !sc.elig ? 'Do not bid alone' : sc.s >= 65 ? 'Bid' : sc.s >= 50 ? 'Bid with conditions' : 'Do not bid';
+  return `**${RFP.name} · recommendation: ${v} (score ${Math.round(sc.s)}/100)**\n- Our estimate: direct cost ${cr(sc.e.dir)}, bid price ${cr(sc.e.bid)}${sc.e.bpc ? `, ${(sc.diff * 100).toFixed(1)}% against the authority's ${cr(sc.e.bpc)}` : ''}.\n- Mark-ups: overheads ${$('oh').value}%, contingency ${$('ct').value}%, escalation ${$('es').value}%, margin ${$('mg').value}%.\n` +
+    (hi.length ? `**High-risk clauses**\n` + hi.map(r => `- ${r.n}: ${r.v}. ${r.why}.`).join('\n') + '\n' : '') + (wa.length ? `**To watch**\n` + wa.map(r => `- ${r.n}: ${r.v}. ${r.why}.`).join('\n') + '\n' : '') +
+    `**Pre-bid queries to raise**\n` + (hi.length ? hi.slice(0, 3).map(r => `- Seek relief on ${r.n.toLowerCase()}.`).join('\n') : '- None critical.') + `\n- Confirm land handover plan and utility list with chainages.`; }
+$('bidGo').addEventListener('click', () => { const sc = scoreBid(); streamOrRules($('bidOut'), $('bidGo'), 'You are the head of tendering at an Indian highway EPC company writing a one-page note for the bid committee. Start with the recommendation and score, then price position, the high-risk clauses with what to ask in pre-bid queries, and conditions for bidding. Use **bold** headings and bullets. Do not invent numbers.',
+  JSON.stringify({ tender: RFP.name, state: RFP.ctx.state, length_km: RFP.ctx.L, authority_estimate_crore: RFP.ctx.bpc, our_direct_cost_crore: +(sc.e.dir / 1e7).toFixed(1), our_bid_crore: +(sc.e.bid / 1e7).toFixed(1), vs_estimate_pct: +(sc.diff * 100).toFixed(1), markups_pct: { overheads: +$('oh').value, contingency: +$('ct').value, escalation: +$('es').value, margin: +$('mg').value }, score: Math.round(sc.s), criteria: sc.C.map(c => ({ name: c[0], weight: c[1], score: Math.round(c[2]), basis: c[3] })), clauses: RFP.rows.map(r => ({ clause: r.n, value: r.v, risk: r.rk, why: r.why })) }), bidRules()); });
+
+/* ======================================================================
+   04 · SITE SAFETY
+   ====================================================================== */
+const LBL = { 'No helmet':'Stop work until a helmet is worn; toolbox talk for the crew.', 'No hi-vis vest':'Issue a vest now; check stores stock.', 'Unprotected excavation edge':'Barricade 1 m back from the edge; provide a ladder every 15 m.', 'Unsafe position':'Move the worker out of the danger zone; brief the supervisor.', 'Worker under suspended load':'Clear the zone under the load; banksman and exclusion tape.', 'Lifting practice':'Use tag lines; check the lifting plan and slings.', 'Traffic management':'Add cones at 10 m spacing, lit signs and a second flagman.', 'Trailing cable':'Route the cable overhead or in a cable cover.', 'Housekeeping':'Clear walkways before the next shift.', 'Other':'Review with the site HSE officer.' };
+const SEVC = { High:'#D64545', Medium:'#E9A23B', Low:'#2F6690' };
+$('tagLbl').innerHTML = Object.keys(LBL).map(l => `<option>${l}</option>`).join('');
+function rr(c, x, y, w, h, r){ c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); c.fill(); }
+function ln(c, a, b, x, y){ c.beginPath(); c.moveTo(a, b); c.lineTo(x, y); c.stroke(); }
+function person(c, x, y, s, o){ c.lineCap = 'round'; const sh = o.shirt || '#5D6D7E';
+  c.strokeStyle = '#33363B'; c.lineWidth = 6 * s; ln(c, x - 5 * s, y, x - 3 * s, y - 30 * s); ln(c, x + 5 * s, y, x + 3 * s, y - 30 * s);
+  c.fillStyle = sh; rr(c, x - 11 * s, y - 62 * s, 22 * s, 34 * s, 5 * s);
+  if (o.vest){ c.fillStyle = o.vestCol || '#F5B700'; rr(c, x - 11 * s, y - 60 * s, 22 * s, 28 * s, 4 * s); c.fillStyle = '#EDEDED'; c.fillRect(x - 11 * s, y - 49 * s, 22 * s, 3 * s); c.fillRect(x - 11 * s, y - 42 * s, 22 * s, 3 * s); }
+  c.strokeStyle = sh; c.lineWidth = 5 * s; ln(c, x - 11 * s, y - 58 * s, x - 17 * s, y - 38 * s); ln(c, x + 11 * s, y - 58 * s, x + 17 * s, y - 38 * s - (o.arm || 0) * s);
+  if (o.flag){ c.strokeStyle = '#333'; c.lineWidth = 2 * s; ln(c, x + 17 * s, y - 38 * s - (o.arm || 0) * s, x + 17 * s, y - 70 * s - (o.arm || 0) * s); c.fillStyle = '#D64545'; c.fillRect(x + 17 * s, y - 70 * s - (o.arm || 0) * s, 14 * s, 9 * s); }
+  c.fillStyle = '#8D5A3B'; c.beginPath(); c.arc(x, y - 70 * s, 8 * s, 0, 7); c.fill();
+  if (o.helmet){ c.fillStyle = o.hc || '#FFFFFF'; c.beginPath(); c.arc(x, y - 72 * s, 9.5 * s, Math.PI, 0); c.fill(); c.fillRect(x - 12 * s, y - 73 * s, 24 * s, 3 * s); } else { c.fillStyle = '#1B1B1B'; c.beginPath(); c.arc(x, y - 73 * s, 8 * s, Math.PI, 0); c.fill(); }
+  return [x - 19 * s, y - 84 * s, 38 * s, 88 * s]; }
+function sky(c, top, bot, gy){ const g = c.createLinearGradient(0, 0, 0, gy); g.addColorStop(0, top); g.addColorStop(1, bot); c.fillStyle = g; c.fillRect(0, 0, 640, gy); }
+function excavator(c, x, y, s, f){ c.save(); c.translate(x, y); c.scale(f ? -s : s, s); c.fillStyle = '#2B2B2B'; rr(c, -60, -18, 120, 18, 9); c.fillStyle = '#F5B700'; rr(c, -50, -58, 90, 40, 6); c.fillStyle = '#E0A400'; rr(c, -10, -92, 44, 36, 5); c.fillStyle = '#9CC3D5'; rr(c, -4, -86, 30, 22, 3);
+  c.strokeStyle = '#F5B700'; c.lineWidth = 12; c.lineCap = 'round'; ln(c, 30, -60, 110, -120); ln(c, 110, -120, 160, -40); c.fillStyle = '#555'; c.beginPath(); c.moveTo(150, -46); c.lineTo(178, -40); c.lineTo(170, -16); c.lineTo(148, -22); c.fill(); c.restore(); }
+function tipper(c, x, y, s){ c.save(); c.translate(x, y); c.scale(s, s); c.fillStyle = '#222'; [[-50, 0], [30, 0], [60, 0]].forEach(([a]) => { c.beginPath(); c.arc(a, -2, 13, 0, 7); c.fill(); }); c.fillStyle = '#C0392B'; rr(c, -75, -55, 50, 42, 5); c.fillStyle = '#9CC3D5'; rr(c, -68, -50, 22, 16, 3); c.fillStyle = '#7F8C8D'; c.beginPath(); c.moveTo(-22, -15); c.lineTo(85, -15); c.lineTo(95, -62); c.lineTo(-22, -62); c.fill(); c.restore(); }
+function cone(c, x, y, s){ c.fillStyle = '#E8590C'; c.beginPath(); c.moveTo(x, y - 26 * s); c.lineTo(x + 9 * s, y); c.lineTo(x - 9 * s, y); c.fill(); c.fillStyle = '#fff'; c.fillRect(x - 5 * s, y - 15 * s, 10 * s, 4 * s); c.fillStyle = '#333'; c.fillRect(x - 12 * s, y, 24 * s, 3 * s); }
+function barricade(c, x, y, w){ for (let i = 0; i < w; i += 20){ c.fillStyle = (i / 20) % 2 ? '#fff' : '#D64545'; c.fillRect(x + i, y - 30, 20, 9); } c.fillStyle = '#555'; for (let i = 0; i <= w; i += 60) c.fillRect(x + i, y - 30, 3, 30); }
+const SCENES = [
+  { id:'S1', n:'Paver crew · R-07', site:'RJ', fn(c){ sky(c, '#BFD9EE', '#EAF2F8', 230); c.fillStyle = '#9A9A92'; c.fillRect(0, 230, 640, 250); c.fillStyle = '#3A3D42'; c.beginPath(); c.moveTo(0, 300); c.lineTo(640, 270); c.lineTo(640, 480); c.lineTo(0, 480); c.fill();
+      c.fillStyle = '#F5B700'; rr(c, 90, 230, 210, 80, 8); c.fillStyle = '#E0A400'; rr(c, 60, 250, 50, 50, 4); c.fillStyle = '#333'; rr(c, 280, 290, 60, 26, 4); c.fillStyle = '#222'; [130, 190, 250].forEach(a => { c.beginPath(); c.arc(a, 318, 16, 0, 7); c.fill(); }); c.fillStyle = '#9CC3D5'; rr(c, 200, 200, 50, 34, 4); c.fillStyle = '#E0A400'; c.fillRect(196, 196, 58, 6);
+      const p = [person(c, 380, 420, 1.15, { helmet: true, vest: true }), person(c, 455, 430, 1.2, { helmet: false, vest: true, arm: 10 }), person(c, 530, 415, 1.1, { helmet: true, vest: false, shirt: '#7A5C3C' }), person(c, 600, 425, 1.15, { helmet: true, vest: true, hc: '#F5B700' })];
+      return { people: 4, helmets: 3, vests: 3, f: [{ lbl:'No helmet', sev:'High', box: p[1] }, { lbl:'No hi-vis vest', sev:'Medium', box: p[2] }] }; } },
+  { id:'S2', n:'Culvert excavation · M-11', site:'MH', fn(c){ sky(c, '#C9DDE9', '#F1F4F6', 200); c.fillStyle = '#B08D57'; c.fillRect(0, 200, 640, 280); const g = c.createLinearGradient(0, 290, 0, 420); g.addColorStop(0, '#6E5232'); g.addColorStop(1, '#3B2A17'); c.fillStyle = g; c.beginPath(); c.moveTo(150, 290); c.lineTo(470, 290); c.lineTo(440, 410); c.lineTo(180, 410); c.fill(); c.fillStyle = '#8B6A3E'; c.beginPath(); c.moveTo(150, 290); c.lineTo(180, 410); c.lineTo(160, 410); c.lineTo(130, 290); c.fill();
+      excavator(c, 560, 300, 1.05, true); c.fillStyle = '#9C7A48'; for (let i = 0; i < 9; i++){ c.beginPath(); c.arc(80 + i * 8, 285 - (i % 3) * 6, 18, 0, 7); c.fill(); }
+      const p = person(c, 205, 292, 1.1, { helmet: true, vest: true });
+      return { people: 1, helmets: 1, vests: 1, f: [{ lbl:'Unprotected excavation edge', sev:'High', box:[145, 280, 330, 135] }, { lbl:'Unsafe position', sev:'Medium', box: p }] }; } },
+  { id:'S3', n:'ROB girder lift · R-07', site:'RJ', fn(c){ sky(c, '#AFCBE0', '#E6EEF4', 330); c.fillStyle = '#A39E93'; c.fillRect(0, 330, 640, 150); c.fillStyle = '#C9C5BC'; [[470, 190], [600, 190]].forEach(([x, y]) => c.fillRect(x, y, 34, 145)); c.fillRect(440, 180, 200, 16);
+      c.fillStyle = '#E8590C'; rr(c, 40, 330, 170, 44, 6); c.fillStyle = '#222'; [70, 120, 180].forEach(a => { c.beginPath(); c.arc(a, 378, 15, 0, 7); c.fill(); }); c.strokeStyle = '#F5B700'; c.lineWidth = 14; ln(c, 150, 330, 420, 70); c.lineWidth = 2; c.strokeStyle = '#333'; ln(c, 420, 70, 420, 196);
+      c.fillStyle = '#7F8C8D'; rr(c, 320, 196, 200, 26, 3); c.strokeStyle = '#333'; c.lineWidth = 1.5; ln(c, 420, 170, 330, 196); ln(c, 420, 170, 510, 196);
+      const p = person(c, 420, 420, 1.15, { helmet: true, vest: true }), q = person(c, 260, 425, 1.05, { helmet: true, vest: true, hc: '#F5B700' });
+      return { people: 2, helmets: 2, vests: 2, f: [{ lbl:'Worker under suspended load', sev:'High', box: p }, { lbl:'Lifting practice', sev:'Medium', box:[315, 160, 210, 66] }] }; } },
+  { id:'S4', n:'Night diversion · H-02', site:'HR', fn(c){ sky(c, '#0E121A', '#1D2533', 220); c.fillStyle = '#23272E'; c.fillRect(0, 220, 640, 260); c.fillStyle = '#2E333B'; c.beginPath(); c.moveTo(250, 220); c.lineTo(390, 220); c.lineTo(640, 480); c.lineTo(0, 480); c.fill();
+      c.strokeStyle = '#F5B700'; c.lineWidth = 4; c.setLineDash([24, 22]); ln(c, 320, 222, 320, 480); c.setLineDash([]); [[180, 400], [420, 300]].forEach(([x, y]) => cone(c, x, y, 1.1));
+      const hl = c.createRadialGradient(330, 250, 2, 330, 250, 60); hl.addColorStop(0, 'rgba(255,250,220,.95)'); hl.addColorStop(1, 'rgba(255,250,220,0)'); c.fillStyle = hl; c.fillRect(260, 190, 140, 120); c.fillStyle = '#ddd'; c.beginPath(); c.arc(312, 250, 5, 0, 7); c.arc(348, 250, 5, 0, 7); c.fill();
+      const p = person(c, 520, 440, 1.2, { helmet: false, vest: true, arm: 25, flag: true });
+      return { people: 1, helmets: 0, vests: 1, f: [{ lbl:'Traffic management', sev:'Medium', box:[150, 270, 300, 150] }, { lbl:'No helmet', sev:'Medium', box: p }] }; } },
+  { id:'S5', n:'Batching plant · G-01', site:'GJ', fn(c){ sky(c, '#CFE0EC', '#F2F5F7', 260); c.fillStyle = '#BDBAB2'; c.fillRect(0, 260, 640, 220); c.fillStyle = '#9AA3A8'; [[60, 60], [140, 40]].forEach(([x, y]) => { rr(c, x, y, 60, 170, 6); c.beginPath(); c.moveTo(x, y + 170); c.lineTo(x + 30, y + 220); c.lineTo(x + 60, y + 170); c.fill(); });
+      c.fillStyle = '#5D6D7E'; rr(c, 230, 150, 140, 110, 6); c.strokeStyle = '#5D6D7E'; c.lineWidth = 8; ln(c, 370, 180, 520, 110);
+      c.strokeStyle = '#E8590C'; c.lineWidth = 5; c.beginPath(); c.moveTo(0, 380); c.bezierCurveTo(160, 340, 260, 430, 420, 370); c.bezierCurveTo(520, 335, 600, 400, 640, 380); c.stroke();
+      c.fillStyle = '#E8E2D0'; [[430, 430], [470, 445], [455, 415], [510, 440], [490, 425]].forEach(([x, y]) => { rr(c, x, y, 34, 18, 3); });
+      const p = person(c, 300, 450, 1.1, { helmet: true, vest: true });
+      return { people: 1, helmets: 1, vests: 1, f: [{ lbl:'Trailing cable', sev:'Medium', box:[0, 335, 640, 75] }, { lbl:'Housekeeping', sev:'Low', box:[422, 405, 130, 66] }] }; } },
+  { id:'S6', n:'Embankment works · U-04', site:'UP', fn(c){ sky(c, '#BBD6EA', '#EEF3F7', 220); c.fillStyle = '#A88B5E'; c.fillRect(0, 220, 640, 260); c.fillStyle = '#C2A673'; c.beginPath(); c.moveTo(0, 300); c.lineTo(640, 270); c.lineTo(640, 340); c.lineTo(0, 370); c.fill();
+      excavator(c, 170, 330, 1, false); tipper(c, 430, 330, 1.1); barricade(c, 20, 460, 600);
+      person(c, 540, 440, 1.05, { helmet: true, vest: true }); person(c, 600, 445, 1.05, { helmet: true, vest: true, hc: '#F5B700' }); person(c, 330, 440, 1.05, { helmet: true, vest: true });
+      return { people: 3, helmets: 3, vests: 3, f: [] }; } } ];
+SCENES.forEach(s => { const cv = document.createElement('canvas'); cv.width = 640; cv.height = 480; s.meta = s.fn(cv.getContext('2d')); s.cv = cv; });
+$('thumbs').innerHTML = SCENES.map(s => `<button type="button" data-s="${s.id}"><canvas width="160" height="120"></canvas><span>${esc(s.n)}</span></button>`).join('');
+document.querySelectorAll('#thumbs button').forEach(b => { b.querySelector('canvas').getContext('2d').drawImage(SCENES.find(s => s.id === b.dataset.s).cv, 0, 0, 160, 120); b.addEventListener('click', () => loadScene(b.dataset.s)); });
+let SC = null, FD = [], RAISED = new Set();
+const pcx = $('pcv').getContext('2d');
+function loadScene(id){ const s = SCENES.find(x => x.id === id); SC = { id, n: s.n, site: s.site, meta: s.meta }; pcx.clearRect(0, 0, 640, 480); pcx.drawImage(s.cv, 0, 0); FD = s.meta.f.map(f => Object.assign({ act: LBL[f.lbl], src:'preset' }, f)); $('incSite').value = s.site;
+  document.querySelectorAll('#thumbs button').forEach(b => b.classList.toggle('on', b.dataset.s === id)); renderFD(); }
+function renderFD(tmp){ let g = ''; FD.forEach((f, i) => { const [x, y, w, h] = f.box, c = SEVC[f.sev] || '#E9A23B'; g += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}" fill-opacity=".08" stroke="${c}" stroke-width="3" rx="4"/><circle cx="${x + 12}" cy="${y + 12}" r="11" fill="${c}"/><text x="${x + 12}" y="${y + 16}" text-anchor="middle" font-size="12" font-weight="800" fill="#fff">${i + 1}</text>`; });
+  if (tmp) g += `<rect x="${tmp[0]}" y="${tmp[1]}" width="${tmp[2]}" height="${tmp[3]}" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="6 4"/>`; $('psvg').innerHTML = g;
+  if (tmp) return; const m = SC && SC.meta;
+  $('fdT').textContent = `Findings · ${FD.length}${m && m.people != null ? ` · ${m.people} people, ${m.helmets} helmets, ${m.vests} vests` : ''}`;
+  $('fds').innerHTML = FD.length ? FD.map((f, i) => `<div class="fd"><span class="n" style="background:${SEVC[f.sev] || '#E9A23B'}">${i + 1}</span><span><b>${esc(f.lbl)}</b> · ${esc(f.sev)}${f.src === 'manual' ? ' · tagged by you' : f.src === 'ai' ? ' · ✦ GenAI' : ''}<br><span class="note">${esc(f.act)}</span></span><button type="button" class="chipb" data-x="${i}" aria-label="Remove finding ${i + 1}">✕</button></div>`).join('') : '<p class="note">No hazards found. Good practice: barricading, PPE for every worker, plant and people separated.</p>';
+  $('fds').querySelectorAll('[data-x]').forEach(b => b.addEventListener('click', () => { FD.splice(+b.dataset.x, 1); renderFD(); })); }
+let DRAG = null; const ph = $('photo');
+const pp = ev => { const r = $('pcv').getBoundingClientRect(); return [clamp((ev.clientX - r.left) / r.width * 640, 0, 640), clamp((ev.clientY - r.top) / r.height * 480, 0, 480)]; };
+ph.addEventListener('pointerdown', ev => { DRAG = pp(ev); try { ph.setPointerCapture(ev.pointerId); } catch (e){} });
+ph.addEventListener('pointermove', ev => { if (!DRAG) return; const q = pp(ev); renderFD([Math.min(DRAG[0], q[0]), Math.min(DRAG[1], q[1]), Math.abs(q[0] - DRAG[0]), Math.abs(q[1] - DRAG[1])]); });
+ph.addEventListener('pointerup', ev => { if (!DRAG) return; const q = pp(ev), b = [Math.min(DRAG[0], q[0]), Math.min(DRAG[1], q[1]), Math.abs(q[0] - DRAG[0]), Math.abs(q[1] - DRAG[1])]; DRAG = null;
+  if (b[2] > 10 && b[3] > 10){ const l = $('tagLbl').value; FD.push({ lbl: l, sev: $('tagSev').value, box: b.map(Math.round), act: LBL[l], src:'manual' }); toast('Hazard tagged'); } renderFD(); });
+async function safeFile(file){ if (!file) return; try { const { url, img } = await shrink(file, 1400), s = Math.max(640 / img.width, 480 / img.height); pcx.fillStyle = '#222'; pcx.fillRect(0, 0, 640, 480); pcx.drawImage(img, (640 - img.width * s) / 2, (480 - img.height * s) / 2, img.width * s, img.height * s);
+    SC = { id:'up', n: file.name, site: $('incSite').value, meta: {} }; FD = []; document.querySelectorAll('#thumbs button').forEach(b => b.classList.remove('on')); renderFD();
+    if (!KEY){ toast('Photo loaded. Drag on it to tag hazards, or add a key for a GenAI check'); return; }
+    $('fds').innerHTML = dots; const u2 = $('pcv').toDataURL('image/jpeg', .85);
+    const r = await openai([{ role:'system', content: `You are a construction HSE inspector for Indian highway sites. Inspect the photo and return only JSON: {"people": n, "helmets": n, "vests": n, "findings":[{"label": one of ${JSON.stringify(Object.keys(LBL))}, "severity":"High|Medium|Low", "x":0-1,"y":0-1,"w":0-1,"h":0-1, "action": short corrective action}]}. Boxes are fractions of image width and height. Only report what is visible.` }, { role:'user', content: [{ type:'text', text:'Check this site photo.' }, { type:'image_url', image_url:{ url: u2 } }] }], { json: true });
+    const j = jparse(r.text); SC.meta = { people: j.people, helmets: j.helmets, vests: j.vests }; FD = (j.findings || []).map(f => ({ lbl: LBL[f.label] ? f.label : 'Other', sev: /high/i.test(f.severity) ? 'High' : /low/i.test(f.severity) ? 'Low' : 'Medium', box: [f.x * 640, f.y * 480, f.w * 640, f.h * 480].map(v => Math.round(+v || 0)), act: String(f.action || LBL[f.label] || LBL.Other).slice(0, 140), src:'ai' })); renderFD(); toast('Photo checked by ' + OAM); }
+  catch (e){ fail('Photo check', e); renderFD(); } }
+$('safeFile').addEventListener('change', e => { safeFile(e.target.files[0]); e.target.value = ''; }); dropBind(document.querySelector('label[for=safeFile]'), safeFile);
+const OBS = { RJ:[2, 5, 6], HR:[1, 3, 4], MH:[3, 6, 5], UP:[0, 2, 3], GJ:[1, 4, 6], MP:[0, 1, 2], YD:[0, 1, 1] }, TRN = { RJ: 88, HR: 93, MH: 79, UP: 95, GJ: 84, MP: 97, YD: 90 };
+$('obsGo').addEventListener('click', () => { if (!SC || !FD.length){ toast('No findings to raise'); return; } const key = SC.id + ':' + FD.map(f => f.lbl).join('|'); if (RAISED.has(key)){ toast('Already raised for this photo'); return; } RAISED.add(key); const site = SC.id === 'up' ? $('incSite').value : SC.site;
+  FD.forEach(f => OBS[site][f.sev === 'High' ? 0 : f.sev === 'Medium' ? 1 : 2]++); renderScore(); toast(`${FD.length} observation${FD.length > 1 ? 's' : ''} raised for ${siteBy(site).n}`); });
+const INC = [['RJ','Near miss: tipper reversing without banksman nearly hit a flagman at Ch 28+500.'], ['RJ','Worker slipped on bitumen spill near the hot mix plant, minor sprain.'], ['RJ','Hydra crane sling found frayed during pre-lift check; lift stopped.'], ['RJ','Labour without helmet on DBM paver crew; toolbox talk given.'],
+  ['HR','Motorcycle entered the work zone at night through a gap in the cones.'], ['HR','HT line clearance less than 3 m from excavator boom; work stopped.'], ['HR','Heat exhaustion case in afternoon shift, worker taken to first aid.'], ['MH','Trench side collapse at culvert Ch 19+300, nobody inside; shoring added.'],
+  ['MH','Worker fell 1.5 m from bridge pier shuttering platform, fracture to wrist, taken to hospital.'], ['MH','Snake sighting at labour camp; camp cleared.'], ['MH','Excavator swing area not barricaded; helper walked through.'], ['MH','Dust from haul road reducing visibility; water tanker added.'],
+  ['UP','Diesel bowser leak at yard; spill kit used.'], ['UP','Welding without fire extinguisher at ROB girder yard.'], ['UP','Car hit diversion barricade at night; no injury.'], ['GJ','Electric shock from damaged cable at batching plant, worker treated and discharged.'],
+  ['GJ','Cement bags blocking walkway at batching plant.'], ['GJ','Transit mixer reversed without alarm in plant area, near miss.'], ['MP','Roller operator found without seat belt.'], ['MP','Worker cut hand on rebar end; first aid.'],
+  ['MP','Ladder unsecured on culvert wall; replaced.'], ['YD','Grinding without face shield in workshop.'], ['YD','Oil spill on workshop floor, slip risk.'], ['RJ','Bitumen burn on hand at sprayer, first aid.']];
+const CATS = [['Lifting', /crane|lift|sling|hook|girder lift/i], ['Excavation', /trench|excavation|collapse|shoring/i], ['Fall from height', /fell|fall|height|scaffold|ladder|platform|pier/i], ['Electrical', /electric|shock|ht line|live wire|cable/i], ['Vehicle & plant', /tipper|revers|dumper|truck|roller|excavator|transit mixer|bowser|swing|seat belt/i], ['Public traffic', /motorcycle|\bcar\b|traffic|diversion|public|cones/i], ['Housekeeping & slips', /slip|spill|walkway|housekeeping|debris|blocking/i], ['Fire & hot work', /fire|weld|burn|grinding/i], ['PPE', /helmet|ppe|vest|glove|face shield/i], ['Health', /heat|snake|dust|dehydrat|faint/i]];
+function classify(t){ const c = (CATS.find(x => x[1].test(t)) || ['Other'])[0], pot = /fell|fracture|hospital|collapse|shock|nearly hit|ht line|electro|crush|run over|without banksman|under (?:the )?load/i.test(t) ? 'High' : /near miss|injur|cut|burn|sprain|spill|leak|entered the work zone|swing|hit/i.test(t) ? 'Medium' : 'Low', type = /near miss|nearly|nobody inside|found|not barricaded|without/i.test(t) && !/fell|fracture|treated|first aid|sprain|burn on/i.test(t) ? 'Near miss / unsafe condition' : 'Incident';
+  const root = c === 'Vehicle & plant' ? 'No banksman or plant–people separation' : c === 'Fall from height' ? 'Edge protection or fall arrest missing' : c === 'PPE' ? 'PPE not enforced at the work front' : c === 'Electrical' ? 'Cable inspection or clearance not maintained' : c === 'Excavation' ? 'No shoring or battering for depth' : c === 'Public traffic' ? 'Diversion layout not to the traffic plan' : c === 'Lifting' ? 'Pre-lift checks or exclusion zone' : c === 'Housekeeping & slips' ? 'Housekeeping not part of shift handover' : c === 'Fire & hot work' ? 'Hot work permit not followed' : 'Site welfare or other';
+  return { cat: c, pot, type, root }; }
+let INCL = INC.map(([site, text]) => Object.assign({ site, text, src:'log' }, classify(text)));
+$('incSite').innerHTML = SITES.map(s => `<option value="${s.id}">${esc(s.n)}</option>`).join('');
+const INCP = ['Labourer fell into an unbarricaded culvert pit at night, leg injury.', 'Grader reversed close to two labourers; no reversing alarm.', 'Flagman without helmet at the diversion, trucks passing within 1 m.'];
+$('incPre').innerHTML = INCP.map((t, i) => `<button type="button" class="chipb" data-i="${i}">Example ${i + 1}</button>`).join('');
+$('incPre').addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (b) $('incTxt').value = INCP[+b.dataset.i]; });
+$('incGo').addEventListener('click', async () => { const t = $('incTxt').value.trim(); if (!t){ toast('Type or pick an incident note'); return; } const btn = $('incGo'); btn.disabled = true; let r = classify(t), ai = false;
+  if (KEY){ try { const q = await openai([{ role:'system', content: `Classify a construction incident or near-miss note from an Indian highway site. Return only JSON: {"category": one of ${JSON.stringify(CATS.map(c => c[0]).concat('Other'))}, "type":"Incident"|"Near miss / unsafe condition", "potential":"High|Medium|Low" (worst credible outcome), "root_cause": short, "action": short corrective action}.` }, { role:'user', content: t }], { json: true }); const j = jparse(q.text); r = { cat: j.category || r.cat, type: j.type || r.type, pot: /high/i.test(j.potential) ? 'High' : /low/i.test(j.potential) ? 'Low' : 'Medium', root: j.root_cause || r.root, action: j.action }; ai = true; } catch (e){ fail('GenAI classification', e); } }
+  INCL.unshift(Object.assign({ site: $('incSite').value, text: t, src: ai ? 'ai' : 'new' }, r)); $('incOut').style.display = 'block';
+  $('incOut').innerHTML = `<p><b>${ai ? '✦ ' : ''}${esc(r.cat)}</b> · ${esc(r.type)} · potential <span class="tag ${r.pot === 'High' ? 'r' : r.pot === 'Medium' ? 'a' : 'g'}">${r.pot}</span></p><p class="note">Likely cause: ${esc(r.root)}${r.action ? ' · Action: ' + esc(r.action) : ''}. Logged for ${esc(siteBy($('incSite').value).n)}.</p>`; renderInc(); renderScore(); btn.disabled = false; });
+function renderInc(){ const cnt = {}; INCL.forEach(x => cnt[x.cat] = (cnt[x.cat] || 0) + 1); const ks = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a]), mx = Math.max(...Object.values(cnt));
+  $('incBars').innerHTML = ks.map(k => { const hp = INCL.filter(x => x.cat === k && x.pot === 'High').length; return `<div class="b2"><span>${esc(k)}</span><span class="bar"><i style="width:${cnt[k] / mx * 100}%;background:${hp ? '#D64545' : '#E9A23B'}"></i></span><b style="text-align:right">${cnt[k]}</b></div>`; }).join('') + `<p class="note" style="margin-top:4px">${INCL.length} notes · ${INCL.filter(x => x.pot === 'High').length} with high potential (red bars contain at least one).</p>`; }
+function renderScore(){ const rows = SITES.map(s => { const o = OBS[s.id], hp = INCL.filter(x => x.site === s.id && x.pot === 'High').length, sc = clamp(100 - 5 * o[0] - 2 * o[1] - .5 * o[2] - 7 * hp + (TRN[s.id] - 85) * .6, 0, 100); return { s, o, hp, sc }; }).sort((a, b) => a.sc - b.sc);
+  $('scTab').querySelector('tbody').innerHTML = rows.map(r => `<tr><td><b>${esc(r.s.n)}</b></td><td class="r">${r.o[0]} H · ${r.o[1]} M · ${r.o[2]} L</td><td class="r">${r.hp}</td><td class="r">${TRN[r.s.id]}%</td><td class="r"><span class="tag ${r.sc >= 80 ? 'g' : r.sc >= 65 ? 'a' : 'r'}">${Math.round(r.sc)}</span></td></tr>`).join(''); }
+
+/* ======================================================================
+   IMPACT · S-curve small multiples + fuel variance heat map
+   ====================================================================== */
+const SCP = [['R-07 · RJ', .80, .95], ['H-02 · HR', .86, .97], ['M-11 · MH', .72, .91], ['U-04 · UP', .88, .98], ['G-01 · GJ', .79, .94], ['P-03 · MP', .9, .99], ['K-05 · KA', .76, .93], ['T-02 · TG', .83, .96]];
+const lg = t => 1 / (1 + Math.exp(-(t - 12) / 3.4)), S0 = lg(0), S1 = lg(24), pl = t => clamp((lg(t) - S0) / (S1 - S0) * 100, 0, 100);
+let SCMODE = 'after';
+function drawSC(){ const w = 640, h = 330, cols = 4, pw = w / cols, phh = h / 2, svg = d3.select('#scurve').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'S-curves for eight projects');
+  SCP.forEach((p, i) => { const g = svg.append('g').attr('transform', `translate(${(i % cols) * pw},${Math.floor(i / cols) * phh})`), x = d3.scaleLinear().domain([0, 24]).range([26, pw - 10]), y = d3.scaleLinear().domain([0, 100]).range([phh - 26, 22]);
+    g.append('rect').attr('x', 26).attr('y', 22).attr('width', pw - 36).attr('height', phh - 48).attr('fill', '#FAF9F6').attr('stroke', '#EEECE6');
+    g.append('text').attr('x', 26).attr('y', 14).attr('font-size', 11).attr('font-weight', 800).attr('fill', '#1E2328').text(p[0]);
+    [0, 50, 100].forEach(v => g.append('text').attr('x', 22).attr('y', y(v) + 3).attr('text-anchor', 'end').attr('font-size', 8).attr('fill', '#5E6268').text(v));
+    g.append('line').attr('x1', x(18)).attr('x2', x(18)).attr('y1', 22).attr('y2', phh - 26).attr('stroke', '#D64545').attr('stroke-dasharray', '2 2');
+    g.append('text').attr('x', x(18)).attr('y', phh - 14).attr('text-anchor', 'middle').attr('font-size', 8).attr('fill', '#5E6268').text('month 18');
+    const line = d3.line().x(d => x(d[0])).y(d => y(d[1]));
+    g.append('path').attr('d', line(d3.range(0, 24.5, .5).map(t => [t, pl(t)]))).attr('fill', 'none').attr('stroke', '#9AA0A6').attr('stroke-width', 1.6).attr('stroke-dasharray', '4 3');
+    g.append('path').attr('class', 'act').attr('data-i', i).attr('fill', 'none').attr('stroke', '#E8590C').attr('stroke-width', 2.4);
+    g.append('text').attr('class', 'gap').attr('data-i', i).attr('x', pw - 14).attr('y', phh - 32).attr('text-anchor', 'end').attr('font-size', 10).attr('font-weight', 800);
+    g.append('rect').attr('x', 26).attr('y', 22).attr('width', pw - 36).attr('height', phh - 48).attr('fill', 'transparent').on('mousemove', ev => { const f = SCMODE === 'before' ? p[1] : p[2]; showTip(`<b>${esc(p[0])}</b><br>Month 18: planned ${pl(18).toFixed(0)}%, actual ${pl(18 * f).toFixed(0)}%<br>${SCMODE === 'before' ? 'Before the control room' : 'After the control room'}`, ev); }).on('mouseleave', hideTip); });
+  updSC(false); }
+function updSC(anim){ const svg = d3.select('#scurve svg'), pw = 160, phh = 165, x = d3.scaleLinear().domain([0, 24]).range([26, pw - 10]), y = d3.scaleLinear().domain([0, 100]).range([phh - 26, 22]), line = d3.line().x(d => x(d[0])).y(d => y(d[1])), t = anim && !reduce ? 700 : 0;
+  svg.selectAll('.act').transition().duration(t).attr('d', function(){ const p = SCP[+this.dataset.i], f = SCMODE === 'before' ? p[1] : p[2]; return line(d3.range(0, 18.5, .5).map(m => [m, pl(m * f)])); });
+  svg.selectAll('.gap').text(function(){ const p = SCP[+this.dataset.i], f = SCMODE === 'before' ? p[1] : p[2], g = pl(18) - pl(18 * f); return '−' + g.toFixed(0) + ' pts'; }).attr('fill', function(){ const p = SCP[+this.dataset.i], f = SCMODE === 'before' ? p[1] : p[2]; return pl(18) - pl(18 * f) > 10 ? '#D64545' : '#1B7F4C'; }); }
+segBind('sc', v => { SCMODE = v; if (hasD3) updSC(true); });
+const MON = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+const HMD = (() => { const R = mulberry32(77), base = { RJ: 13, HR: 10, MH: 17, UP: 19, GJ: 12, MP: 9, YD: 7 }, o = { before: {}, after: {} }; SITES.forEach(s => { o.before[s.id] = MON.map(() => +(base[s.id] + (R() - .5) * 6).toFixed(1)); o.after[s.id] = MON.map((m, i) => +(Math.max(1.5, base[s.id] * Math.exp(-i / 2.2) * .5 + 2.5 + (R() - .5) * 1.6)).toFixed(1)); }); return o; })();
+let HMMODE = 'after';
+function drawHM(){ const w = 640, lm = 150, top = 22, ch = 42, cw = (w - lm - 6) / 12, h = top + SITES.length * ch + 30, svg = d3.select('#heat').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'Fuel variance by site and month');
+  MON.forEach((m, j) => svg.append('text').attr('x', lm + j * cw + cw / 2).attr('y', top - 8).attr('text-anchor', 'middle').attr('font-size', 10).attr('fill', '#5E6268').text(m));
+  SITES.forEach((s, i) => svg.append('text').attr('x', lm - 8).attr('y', top + i * ch + ch / 2 + 4).attr('text-anchor', 'end').attr('font-size', 10.5).attr('fill', '#1E2328').text(s.n));
+  const cells = []; SITES.forEach((s, i) => MON.forEach((m, j) => cells.push({ s, i, j, m })));
+  const g = svg.append('g').selectAll('g').data(cells).join('g').attr('transform', d => `translate(${lm + d.j * cw},${top + d.i * ch})`);
+  g.append('rect').attr('class', 'hc').attr('width', cw - 2).attr('height', ch - 3).attr('rx', 3).on('mousemove', (ev, d) => showTip(`<b>${esc(d.s.n)} · ${d.m}</b><br>Before: ${HMD.before[d.s.id][d.j]}% · After: ${HMD.after[d.s.id][d.j]}%`, ev)).on('mouseleave', hideTip);
+  g.append('text').attr('class', 'ht').attr('x', (cw - 2) / 2).attr('y', ch / 2 + 2).attr('text-anchor', 'middle').attr('font-size', 9.5).attr('font-weight', 700).style('pointer-events', 'none');
+  const lgx = lm, lgy = h - 14; d3.range(0, 22, 2).forEach((v, k) => svg.append('rect').attr('x', lgx + k * 22).attr('y', lgy - 8).attr('width', 22).attr('height', 8).attr('fill', d3.interpolateYlOrRd(v / 22)));
+  svg.append('text').attr('x', lgx - 6).attr('y', lgy).attr('text-anchor', 'end').attr('font-size', 9).attr('fill', '#5E6268').text('0%'); svg.append('text').attr('x', lgx + 11 * 22 + 6).attr('y', lgy).attr('font-size', 9).attr('fill', '#5E6268').text('20%+ above norm');
+  svg.append('text').attr('class', 'hsum').attr('x', w - 6).attr('y', lgy).attr('text-anchor', 'end').attr('font-size', 10).attr('font-weight', 700).attr('fill', '#1E2328'); updHM(false); }
+function updHM(anim){ const svg = d3.select('#heat svg'), D = HMD[HMMODE], t = anim && !reduce ? 650 : 0;
+  svg.selectAll('.hc').transition().duration(t).attr('fill', d => d3.interpolateYlOrRd(Math.min(1, D[d.s.id][d.j] / 22)));
+  svg.selectAll('.ht').text(d => D[d.s.id][d.j].toFixed(0)).attr('fill', d => D[d.s.id][d.j] > 12 ? '#fff' : '#1E2328');
+  svg.select('.hsum').text(`Average ${(d3.mean(SITES.flatMap(s => D[s.id]))).toFixed(1)}%`); }
+segBind('hm', v => { HMMODE = v; if (hasD3) updHM(true); });
+
+/* ======================================================================
+   HERO · pavement layers advancing along the chainage
+   ====================================================================== */
+(function hero(){ const cvh = $('heroCv'); if (!cvh) return; const c = cvh.getContext('2d'); let Wd = 0, Hd = 0, run = false;
+  const LY = [['BC', '#1E2328', .55], ['DBM', '#E8590C', .62], ['WMM', '#2F6690', .7], ['GSB', '#7A9A5B', .78], ['Subgrade', '#D4A72C', .85], ['Embankment', '#C0803F', .92]];
+  function size(){ const dpr = Math.min(2, devicePixelRatio || 1); Wd = cvh.clientWidth; Hd = cvh.clientHeight; cvh.width = Wd * dpr; cvh.height = Hd * dpr; c.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function draw(t){ c.clearRect(0, 0, Wd, Hd); const nar = Wd < 700, x0 = nar ? Wd * .06 : Wd * .3, x1 = Wd * .96, lh = nar ? 9 : 18, gap = nar ? 4 : 7, y0 = nar ? 14 : Hd * .5 - LY.length * (lh + gap) / 2, len = x1 - x0, cyc = (t / 9) % 1;
+    if (!nar){ c.font = '800 10px DM Sans, sans-serif'; c.fillStyle = 'rgba(255,255,255,.45)'; for (let k = 0; k <= 6; k++){ const x = x0 + k / 6 * len; c.fillText(k * 5 + '+000', x - 14, y0 - 12); c.fillStyle = 'rgba(255,255,255,.12)'; c.fillRect(x, y0 - 6, 1, LY.length * (lh + gap) + 6); c.fillStyle = 'rgba(255,255,255,.45)'; } }
+    LY.forEach(([n, col, f], i) => { const y = y0 + i * (lh + gap), prog = clamp(cyc * 1.35 * f + (LY.length - i) * .0, 0, 1) * f, pl = clamp(cyc * 1.35, 0, 1) * Math.min(1, f + .12);
+      c.fillStyle = 'rgba(255,255,255,.07)'; c.fillRect(x0, y, len, lh); c.fillStyle = col; c.fillRect(x0, y, len * prog, lh); if (col === '#1E2328'){ c.strokeStyle = 'rgba(255,255,255,.4)'; c.strokeRect(x0 + .5, y + .5, len * prog, lh - 1); }
+      c.strokeStyle = '#FFC94A'; c.lineWidth = 2; c.setLineDash([3, 3]); c.beginPath(); c.moveTo(x0 + len * pl, y - 2); c.lineTo(x0 + len * pl, y + lh + 2); c.stroke(); c.setLineDash([]);
+      if (!nar){ c.fillStyle = 'rgba(255,255,255,.75)'; c.font = '700 10px DM Sans, sans-serif'; c.fillText(n, x0 - 66, y + lh - 5); } });
+    const by = y0 + LY.length * (lh + gap) + (nar ? 8 : 18); if (!nar){ c.fillStyle = 'rgba(255,255,255,.6)'; c.font = '700 10px DM Sans, sans-serif'; c.fillText('▮ actual   ┆ plan', x0, by); }
+    for (let k = 0; k < 7; k++){ const px = x0 + ((k * .147 + t * .02) % 1) * len, on = Math.sin(t * 3 + k) > 0; c.fillStyle = on ? '#2F9E5B' : '#E9A23B'; c.beginPath(); c.arc(px, by + (nar ? 0 : 16), nar ? 2.5 : 4, 0, 7); c.fill(); } }
+  size(); draw(6); window.addEventListener('resize', () => { size(); draw(6); }); if (reduce) return; const t0 = performance.now(); function loop(now){ if (!run) return; draw((now - t0) / 1000); requestAnimationFrame(loop); }
+  if (io) new IntersectionObserver(es => { const on = es[0].isIntersecting; if (on && !run){ run = true; requestAnimationFrame(loop); } else if (!on) run = false; }).observe(cvh); })();
+
+/* ======================================================================
+   BOOT
+   ====================================================================== */
+setMode(); loadProj('P1'); $('dprTxt').value = DPRS[0][1]; document.querySelector('#dprPre .chipb').classList.add('on'); { const p = rulesDPR(DPRS[0][1]); DPRISS = p.iss; setRows(p.rows); }
+MSEL = FLEET.slice().sort((x, y) => y.var - x.var)[0].id; renderFleet(); whenVisible($('m2'), () => setTimeout(initMap, 100));
+document.querySelector('#rfpPre .chipb').classList.add('on'); readRFP(RFPS[0][1], RFPS[0][0]);
+loadScene('S1'); renderInc(); renderScore();
+if (hasD3){ whenVisible($('scurve'), drawSC); whenVisible($('heat'), drawHM); }
+else ['scurve','heat'].forEach(id => $(id).innerHTML = '<p style="padding:20px;color:var(--muted)">Charts need an internet connection to load their library.</p>');
+if ($('apiKey').value) connect(true);
+window.__hg = { status, FLEET: () => FLEET, suggestions, RFP: () => RFP, scoreBid, INCL: () => INCL, classify, rulesDPR, PLAN: () => PLAN, ACTL: () => ACTL };
+})();
+
+</script>
+</body>
+</html>

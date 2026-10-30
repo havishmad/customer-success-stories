@@ -1,6 +1,6 @@
 # HMC Customer Stories
 
-Showcase page for Havish M Consulting's 42 client case studies. Client names are anonymised; stories are labelled by industry. Each one is available as an interactive HTML case study, a PDF and a short video.
+Showcase page for Havish M Consulting's 47 client case studies. Client names are anonymised; stories are labelled by industry. Each one is available as an interactive HTML case study, a PDF and a short video.
 
 ## Structure
 - `index.html`: the showcase page (search, function filters, industry filter, thumbnail/list view, in-page viewer)

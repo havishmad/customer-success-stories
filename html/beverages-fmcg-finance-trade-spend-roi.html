@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beverages · Trade Spend ROI | HMC Case Study</title>
+<meta name="description" content="How Havish M Consulting helped a beverage major's finance team trace trade spend to the cases it bought: scheme ROI, a scheme simulator, claims validation and month-end accruals.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+:root{
+  --pri:#E61D2B; --deep:#1C1C1C; --acc:#1F9D6B; --bad:#C8102E; --good:#1F9D6B; --amb:#F2A900; --blu:#2F6CB3;
+  --pri-15:rgba(230,29,43,.15); --acc-15:rgba(31,157,107,.15);
+  --bg:#F7F6F4; --text:#1C1C1C; --muted:#625E5A; --card:#FFFFFF; --line:#E7E3DE;
+  --radius:12px; --shadow:0 1px 2px rgba(28,28,28,.06),0 8px 24px rgba(28,28,28,.08);
+  --serif:"DM Serif Display",Georgia,serif; --sans:"DM Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif; --mono:ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--serif);font-weight:400;color:var(--deep);margin:0;line-height:1.15}
+h2{font-size:clamp(1.6rem,3.2vw,2.2rem)}
+h3{font-size:1.2rem}
+p{margin:0}
+.wrap{max-width:1260px;margin:0 auto;padding:0 24px}
+section{padding:64px 0}
+.eyebrow{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--pri);margin-bottom:10px}
+.lead{color:var(--muted);max-width:800px;margin-top:12px}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line)}
+.sec-head{margin-bottom:28px}
+.alt{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.topbar{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+.logos{display:flex;align-items:center;gap:16px}
+.logos img{height:44px;width:auto;object-fit:contain}
+.logos img.cl{height:30px}
+.vdiv{width:1px;height:36px;background:var(--line)}
+.tagline{font-size:.8rem;color:var(--muted);letter-spacing:.04em}
+.tagline b{color:var(--pri);font-weight:700}
+.hero{background:radial-gradient(120% 140% at 88% 0%,#4A2470 0%,#2A1446 45%,#120821 100%);color:#fff;padding:76px 0 70px;position:relative;overflow:hidden}
+.hero canvas{position:absolute;right:0;top:0;width:58%;height:100%;pointer-events:none}
+.hero .eyebrow{color:#FFC2C7}
+.hero h1{color:#fff;font-size:clamp(2.3rem,5.4vw,3.8rem);max-width:720px;position:relative;z-index:1}
+.hero h1 em{font-style:normal;color:#FFC2C7}
+.hero .sub{font-size:clamp(1.05rem,2vw,1.2rem);color:rgba(255,255,255,.86);max-width:640px;margin-top:18px;position:relative;z-index:1}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px;position:relative;z-index:1}
+.pill{border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:6px 14px;font-size:.85rem;color:#fff;background:rgba(255,255,255,.06)}
+.pill span{color:#FFC2C7;font-weight:700;margin-right:6px}
+.kpis{margin-top:-30px;position:relative;z-index:2;padding:0}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi{padding:22px 20px;border-top:3px solid var(--acc)}
+.kpi .label{font-size:.82rem;color:var(--muted);font-weight:500}
+.kpi .val{font-family:var(--serif);font-size:clamp(1.9rem,4vw,2.6rem);color:var(--pri);line-height:1.1;margin-top:6px;white-space:nowrap}
+.kpi .val small{font-family:var(--sans);font-size:.9rem;color:var(--muted);margin-left:4px}
+.delta{display:inline-flex;align-items:center;gap:4px;font-size:.8rem;font-weight:700;margin-top:8px;padding:2px 8px;border-radius:999px;background:rgba(31,166,122,.1);color:var(--good)}
+.footnote{font-size:.78rem;color:var(--muted);margin-top:14px}
+.ch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.chc{padding:24px}
+.ico{width:44px;height:44px;border-radius:10px;background:var(--pri-15);display:grid;place-items:center;margin-bottom:16px}
+.ico svg{width:22px;height:22px;stroke:var(--pri);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.chc h3{margin-bottom:8px}
+.chc p{font-size:.92rem;color:#433A52}
+.tl{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.tl::before{content:"";position:absolute;left:10%;right:10%;top:27px;height:3px;background:linear-gradient(90deg,var(--pri),var(--acc));border-radius:2px;opacity:.55}
+.tl-step{position:relative;background:none;border:0;cursor:pointer;font:inherit;color:inherit;display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 4px 8px}
+.tl-dot{width:56px;height:56px;border-radius:50%;background:#fff;border:2px solid var(--line);display:grid;place-items:center;font-family:var(--serif);font-size:1.25rem;color:var(--pri);transition:all .25s;position:relative;z-index:1}
+.tl-name{font-weight:700;font-size:.95rem}
+.tl-dur{font-size:.75rem;color:var(--muted);margin-top:-8px}
+.tl-step:hover .tl-dot{border-color:var(--pri)}
+.tl-step[aria-expanded="true"] .tl-dot{background:var(--pri);border-color:var(--pri);color:#fff;box-shadow:0 0 0 6px var(--pri-15)}
+.tl-step:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:8px}
+.tl-panel{display:none;padding:24px 28px;margin-top:20px;border-left:4px solid var(--acc)}
+.tl-panel.open{display:block;animation:fadeUp .35s ease}
+.tl-panel h3{margin-bottom:6px}
+.tl-panel ul{margin:12px 0 0;padding-left:20px;color:#433A52}
+.tl-panel li{margin:6px 0}
+.tl-panel .deliv{margin-top:14px;font-size:.85rem;color:var(--muted)}
+.tl-panel .deliv b{color:var(--pri)}
+.tl-hint{text-align:center;color:var(--muted);font-size:.8rem;margin-top:6px}
+.seg{display:inline-flex;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:22px;padding:4px;gap:4px}
+.seg button{border:0;background:none;font:inherit;font-size:.82rem;font-weight:700;padding:6px 13px;border-radius:999px;cursor:pointer;color:var(--muted);transition:all .2s}
+.seg button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.seg button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.seg.sm button{font-size:.76rem;padding:5px 10px}
+.mod-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.mod-head h3{font-size:1.5rem}
+.mod-head p{font-size:.88rem;color:var(--muted);max-width:720px;margin-top:4px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--deep);color:#FFC2C7;font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:8px}
+.module{margin-bottom:54px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 12px;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer;color:var(--deep);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:border-color .15s,color .15s,background .15s}
+.btn:hover{border-color:var(--pri);color:var(--pri)}
+.btn.go{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.go:hover{background:#178A65;color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+
+
+.logos img.cl{height:40px}
+.hero{background:radial-gradient(110% 140% at 85% 10%,#8E0B16 0%,#3A0A0E 50%,#120405 100%)}
+.hero .eyebrow,.hero .pill span{color:#FFC2C7}
+.hero h1 em{color:#FFC2C7;font-style:italic}
+.badge{color:#FFC2C7}
+.kpi{border-top:3px solid var(--pri)}
+.chc p,.tl-panel ul,.tk p{color:#4A4643}
+.tl::before{background:linear-gradient(90deg,var(--pri),var(--amb),var(--acc))}
+.module .btn.go,.btn.go{background:var(--deep);border-color:var(--deep);color:#fff}
+.module .btn.go:hover,.btn.go:hover{background:#000;color:#fff}
+.btn.sm{padding:6px 10px;font-size:.74rem}
+.btn.ai{background:linear-gradient(110deg,#1C1C1C 0%,#8E0B16 38%,#FFC2C7 50%,#8E0B16 62%,#1C1C1C 100%);background-size:260% 100%;color:#fff;border-color:transparent;animation:shim 3.2s linear infinite}
+.btn.ai:hover{color:#fff;filter:brightness(1.1)} .btn.ai[disabled]{opacity:.7;cursor:progress}
+@keyframes shim{from{background-position:130% 0}to{background-position:-130% 0}}
+.chart svg{width:100%;height:auto;display:block}
+.axis text{font-family:var(--sans);font-size:10.5px;fill:var(--muted)}
+.axis line{stroke:var(--line)} .axis path{stroke:var(--line)}
+.grid line{stroke:var(--line);stroke-dasharray:2 3} .grid path{display:none}
+.ckey{display:flex;gap:12px;font-size:.72rem;color:var(--muted);margin-top:6px;flex-wrap:wrap}
+.ckey span{display:inline-flex;align-items:center;gap:6px}
+.ckey i{width:11px;height:11px;border-radius:3px;display:inline-block}
+h4.lbl{margin:0 0 8px;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.chipb{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;font:700 .74rem var(--sans);color:var(--deep);cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.chipb:hover{border-color:var(--pri)} .chipb.on{background:var(--deep);border-color:var(--deep);color:#fff}
+.sigs{display:flex;gap:5px;flex-wrap:wrap}
+.ms{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.ms .k{font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.ms .v{font-family:var(--serif);font-size:1.35rem;color:var(--deep);line-height:1.15;font-variant-numeric:tabular-nums}
+.ms .s{font-size:.68rem;color:var(--muted)}
+.mgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+select.sel,input.inp{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:600 .78rem var(--sans);background:#fff;color:var(--deep);width:100%;min-width:0}
+.note{font-size:.72rem;color:var(--muted);line-height:1.45;margin:0}
+.pill2{display:inline-flex;align-items:center;gap:6px;font:800 .62rem var(--sans);letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.pill2.off{background:#EEEBE6;color:#625E5A} .pill2.on{background:#FDE1E3;color:#9E0A16}
+.pill2 i{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block}
+.pill2.on i{animation:blink 1.4s infinite}
+@keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
+.tag{font:800 .6rem var(--sans);letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 8px;white-space:nowrap;display:inline-block}
+.tag.r{background:#FDE1E3;color:#9E0A16} .tag.a{background:#FFF0CC;color:#7A5600} .tag.g{background:#DDF1E7;color:#146B48} .tag.n{background:#EEEBE6;color:#625E5A}
+.spark{color:#FFC2C7;display:inline-block;animation:tw 2.4s ease-in-out infinite}
+@keyframes tw{50%{opacity:.4;transform:scale(.8) rotate(20deg)}}
+.aikey{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:18px;padding:16px 18px;margin:0 0 32px;align-items:center;border:2px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(120deg,#E61D2B,#F2A900,#1F9D6B,#2F6CB3,#E61D2B) border-box;background-size:100% 100%,300% 100%;animation:bord 9s linear infinite}
+@keyframes bord{to{background-position:0 0,300% 0}}
+.aikey h3{margin:0;font:400 1.35rem var(--serif);color:var(--deep)}
+.krow{display:grid;grid-template-columns:minmax(0,1.4fr) 150px auto auto;gap:8px;align-items:center;margin-bottom:8px}
+.krow input{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:500 .78rem var(--mono);color:var(--deep);background:#fff;min-width:0;width:100%}
+.kfoot{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.74rem}
+.rng{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;font-size:.72rem;align-items:center}
+.rng input{grid-column:1/-1;width:100%;accent-color:var(--pri)}
+.rng b{font-variant-numeric:tabular-nums;color:var(--deep)}
+.out{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:.8rem;line-height:1.55;color:#2B2826}
+.out ul{margin:4px 0 8px;padding-left:18px} .out p{margin:0 0 6px}
+.dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--pri);margin-right:3px;animation:blink 1s infinite}
+.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+.split{display:grid;overflow:hidden}
+.split>div{min-width:0;padding:14px}
+.side{background:#FBFAF8;display:flex;flex-direction:column;gap:12px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.tile{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px}
+.tile h5{margin:0 0 2px;font-size:.84rem;color:var(--deep)}
+.tile .sub{font-size:.7rem;color:var(--muted);margin:0 0 6px}
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px} .g2>*{min-width:0}
+.d1{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)} .d1>div+div{border-left:1px solid var(--line)}
+.sm2{grid-template-columns:280px minmax(0,1fr)} .sm2>div:first-child{border-right:1px solid var(--line)}
+.cl2{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)} .cl2>div+div{border-left:1px solid var(--line)}
+.ac2{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)} .ac2>div+div{border-left:1px solid var(--line)}
+/* flow */
+.flow{padding:0;overflow:hidden;background:linear-gradient(180deg,#1C1C1C,#2A0B0F)}
+.flow-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
+.flow-top .t{color:#F2E6E7;font-size:.82rem} .flow-top .t b{color:#FFC2C7}
+.flow .seg{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18)} .flow .seg button{color:#DCCFD0} .flow .seg button[aria-pressed="true"]{background:#E61D2B;color:#fff}
+#flowSvg text{font-family:var(--sans)}
+.fnode{cursor:pointer} .fnode:hover rect{stroke:#FFC2C7}
+.flow-info{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:0;border-top:1px solid rgba(255,255,255,.1)}
+.flow-info>div{padding:12px 16px;color:#E8DCDD;font-size:.8rem;line-height:1.5;min-width:0}
+.flow-info>div+div{border-left:1px solid rgba(255,255,255,.1)}
+.flow-info b{color:#fff} .flow-info .big{font:400 2rem var(--serif);color:#FFC2C7;line-height:1}
+.tab{width:100%;border-collapse:collapse;font-size:.74rem}
+.tab th{text-align:left;font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);padding:6px;white-space:nowrap;position:sticky;top:0;background:#fff;z-index:1}
+.tab td{padding:6px;border-bottom:1px solid #F1EEEA;vertical-align:middle}
+.tab td.r,.tab th.r{text-align:right;font-variant-numeric:tabular-nums}
+.tab tbody tr[data-i]{cursor:pointer} .tab tr.on td{background:#FDF0F1}
+.scroll{max-height:320px;overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff}
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 10px;font-size:.7rem}
+.form label{display:flex;flex-direction:column;gap:2px;color:var(--muted);font-weight:700}
+.drop{border:1.5px dashed #CFC8C0;border-radius:10px;padding:9px;text-align:center;font-size:.72rem;color:var(--muted);background:#fff;cursor:pointer;display:block}
+.drop:hover,.drop.over{border-color:var(--pri);background:#FDF0F1;color:var(--deep)}
+.drop b{display:block;color:var(--deep);font-size:.78rem;margin-bottom:2px}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px} .dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--deep);color:#fff;padding:10px 16px;border-radius:999px;font-size:.82rem;font-weight:700;opacity:0;transition:all .3s;z-index:1200;pointer-events:none;max-width:calc(100vw - 32px);text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.cmp-head{display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+.cmp{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.cmp th,.cmp td{padding:16px 18px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);font-size:.92rem;overflow-wrap:anywhere}
+.cmp thead th{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);background:#F7F6F4}
+.cmp tbody tr:last-child td,.cmp tbody tr:last-child th{border-bottom:0}
+.cmp tbody th{font-weight:700;color:var(--pri)}
+.cmp col.c1{width:22%}
+.cmp td{transition:background .3s,opacity .3s,color .3s}
+.cmp.hl-before td.b{background:#FCEEF3;color:#7A1236}
+.cmp.hl-before td.a{opacity:.38}
+.cmp.hl-after td.a{background:#ECF8F3;color:#0E4F39;font-weight:500}
+.cmp.hl-after td.b{opacity:.38}
+.cmp.hl-after thead th.a{color:var(--acc)}
+.cmp.hl-before thead th.b{color:var(--bad)}
+.tchips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:.9rem;font-weight:500;display:inline-flex;align-items:center;gap:8px}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 3px var(--acc-15)}
+.chip em{font-style:normal;color:var(--muted);font-weight:400;font-size:.82rem}
+.tk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.tk{padding:26px}
+.tk .n{font-family:var(--serif);font-size:2.6rem;color:var(--acc);line-height:1}
+.tk h3{margin:12px 0 8px}
+.tk p{font-size:.92rem;color:#433A52}
+footer{background:var(--deep);color:rgba(255,255,255,.75);padding:48px 0 32px;margin-top:32px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px}
+.f-brand{display:flex;align-items:center;gap:16px}
+.f-brand img{height:44px;width:auto;border-radius:6px;background:#fff;padding:4px}
+.f-brand b{display:block;color:#fff;font-family:var(--serif);font-weight:400;font-size:1.15rem}
+.copy{width:100%;border-top:1px solid rgba(255,255,255,.12);padding-top:18px;font-size:.8rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+#tip{position:fixed;pointer-events:none;z-index:95;background:var(--deep);color:#fff;font-size:.8rem;line-height:1.45;padding:10px 12px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transition:opacity .15s;max-width:300px}
+#tip b{color:#7DE3BE;font-weight:700}
+#tip .t{font-weight:700;font-size:.85rem;margin-bottom:2px;color:#fff}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.cmp.hl-after td.a{background:#FDF0F1;color:#1C1C1C}
+.chip i{background:var(--pri);box-shadow:0 0 0 3px rgba(230,29,43,.2)}
+.tk .n{color:var(--pri)}
+#tip{z-index:1300} #tip b{color:#FFC2C7}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.js .reveal{opacity:1;transform:none;transition:none}.aikey,.btn.ai,.spark,.pill2.on i{animation:none!important}}
+@media (max-width:1100px){.mgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:980px){.kpi-grid,.ch-grid{grid-template-columns:repeat(2,1fr)}.dash{grid-template-columns:1fr}.tk-grid{grid-template-columns:1fr}.hero canvas{width:100%;opacity:.3}
+  .d1,.sm2,.cl2,.ac2,.aikey,.flow-info{grid-template-columns:minmax(0,1fr)}.sm2>div:first-child{border-right:0;border-bottom:1px solid var(--line)}.d1>div+div,.cl2>div+div,.ac2>div+div{border-left:0;border-top:1px solid var(--line)}.flow-info>div+div{border-left:0;border-top:1px solid rgba(255,255,255,.1)}
+  .krow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.krow input[type=password]{grid-column:1/-1}}
+@media (max-width:640px){
+  .wrap{padding:0 16px} section{padding:48px 0} .hero{padding:52px 0 56px} .logos img{height:34px} .logos img.cl{height:28px} .vdiv{height:28px}
+  .kpi-grid{gap:10px} .kpi{padding:16px 14px} .ch-grid{grid-template-columns:1fr} .g2{grid-template-columns:minmax(0,1fr)}
+  .tl::before{top:19px} .tl-dot{width:40px;height:40px;font-size:1rem} .tl-name{font-size:.75rem} .tl-dur{display:none} .tl-panel{padding:18px}
+  .sx{overflow-x:auto;-webkit-overflow-scrolling:touch} .sx svg{min-width:500px} .sx table{min-width:540px} .sx.wide svg{min-width:760px}
+  .mgrid{grid-template-columns:repeat(2,minmax(0,1fr))} .form{grid-template-columns:minmax(0,1fr)}
+  .cmp th,.cmp td{padding:12px 10px;font-size:.82rem} .cmp thead th{font-size:.68rem;letter-spacing:.08em} .chart-card{padding:14px}
+}
+@media print{
+  body{background:#fff;font-size:12px} .topbar{position:static}
+  .hero{background:#3A0A0E!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:36px 0} .hero canvas{display:none}
+  .card{box-shadow:none;break-inside:avoid} section{padding:28px 0} .js .reveal{opacity:1!important;transform:none!important}
+  .seg,.tl-hint,.btn,#tip,.toast,.aikey,.drop{display:none!important} .tl-panel{display:block!important;margin-top:10px}
+  footer{background:#fff;color:var(--text)} footer .f-brand b{color:var(--deep)} .kpis{margin-top:16px} .scroll{max-height:none}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="logos">
+      <img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting">
+    </div>
+    <div class="tagline">Customer Case Study · <b>Trade Spend ROI</b></div>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas id="heroCv" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="eyebrow">Beverages (FMCG) × Havish M Consulting</div>
+    <h1>Every rupee of trade spend, <em>traced to the cases it bought</em></h1>
+    <p class="sub">Distributor and retailer schemes are among the largest lines in the P&amp;L, and the hardest to prove. HMC built a trade-spend control room for a beverage major's finance team: it measures the extra cases each scheme really created, simulates new schemes before launch, checks every claim before payout and forecasts the month-end accrual.</p>
+    <div class="pills">
+      <span class="pill"><span>Sector</span>Beverages (FMCG)</span>
+      <span class="pill"><span>Function</span>Finance · Commercial Finance</span>
+      <span class="pill"><span>Theme</span>Trade Spend ROI · Scheme Simulation</span>
+    </div>
+  </div>
+</section>
+
+<section class="kpis">
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="card kpi reveal"><div class="label">Return on trade spend</div><div class="val"><span class="count" data-to="1.2" data-dp="1">0</span><small>× margin per ₹</small></div><div class="delta">▲ from about 0.9×</div></div>
+      <div class="card kpi reveal"><div class="label">Spend moved to schemes that pay back</div><div class="val">₹<span class="count" data-to="64">0</span><small>crore</small></div><div class="delta">▲ from low- to high-ROI schemes</div></div>
+      <div class="card kpi reveal"><div class="label">Claim leakage</div><div class="val"><span class="count" data-to="1.2" data-dp="1">0</span><small>% of payout</small></div><div class="delta">▼ from about 6%</div></div>
+      <div class="card kpi reveal"><div class="label">Month-end scheme accrual accuracy</div><div class="val">±<span class="count" data-to="3">0</span><small>%</small></div><div class="delta">▼ from about ±18%</div></div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="challenge">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Challenge</div>
+      <h2>Big spend, thin evidence</h2>
+      <p class="lead">Finance could say what was paid. It could not say what the payment bought.</p>
+    </div>
+    <div class="ch-grid">
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div><h3>Volume, not uplift</h3><p>Schemes were judged on total cases sold, including cases that would have sold anyway.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/></svg></div><h3>Paying for the baseline</h3><p>Big outlets crossed slabs on natural growth and collected payouts for doing nothing different.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div><h3>Claims on trust</h3><p>Thousands of distributor claims a month; only a small sample checked by hand.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 8h11a3 3 0 0 1 0 6H8a3 3 0 0 0 0 6h11"/></svg></div><h3>Accrual by guesswork</h3><p>Month-end provisions were trued up a quarter later, swinging margins.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="approach" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">HMC Approach</div>
+      <h2>From payout ledger to profit evidence</h2>
+      <p class="lead">Built with commercial finance, sales operations and the distributor management team.</p>
+    </div>
+    <div class="tl reveal" aria-label="HMC approach steps">
+      <button class="tl-step" aria-expanded="true" aria-controls="tp0"><span class="tl-dot">1</span><span class="tl-name">Discover</span><span class="tl-dur">3 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp1"><span class="tl-dot">2</span><span class="tl-name">Design</span><span class="tl-dur">2 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp2"><span class="tl-dot">3</span><span class="tl-name">Build</span><span class="tl-dur">6 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp3"><span class="tl-dot">4</span><span class="tl-name">Adopt</span><span class="tl-dur">2 regions</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp4"><span class="tl-dot">5</span><span class="tl-name">Scale</span><span class="tl-dur">All India</span></button>
+    </div>
+    <p class="tl-hint">Select a step to see what happened.</p>
+    <div class="card tl-panel open" id="tp0"><h3>Discover · Follow the money</h3><p>Mapped every step from the annual trade budget to the payout.</p><ul><li>Scheme circulars, claims, distributor sales and outlet master.</li><li>Where money leaked: duplicates, ineligible outlets, slab errors.</li><li>How accruals were estimated at month end.</li></ul><p class="deliv"><b>Deliverable:</b> Trade spend flow map and leakage baseline.</p></div>
+    <div class="card tl-panel" id="tp1"><h3>Design · Measure the extra cases</h3><p>Test-and-control outlet matching as the standard for ROI.</p><ul><li>Matched control outlets by size, channel, pack mix and town.</li><li>ROI as incremental margin per rupee of spend.</li><li>Six automated claim checks agreed with sales.</li></ul><p class="deliv"><b>Deliverable:</b> ROI method and claim rule book.</p></div>
+    <div class="card tl-panel" id="tp2"><h3>Build · Control room</h3><p>Dashboard, simulator, claims engine and accrual model.</p><ul><li>Scheme ROI by brand, pack, channel and state.</li><li>Simulator that predicts uplift and payout before launch.</li><li>Accrual forecast with confidence bands for close.</li></ul><p class="deliv"><b>Deliverable:</b> Trade spend control room.</p></div>
+    <div class="card tl-panel" id="tp3"><h3>Adopt · Finance signs off schemes</h3><p>No new scheme without a simulated ROI.</p><ul><li>Claims checked in full before payout.</li><li>Accruals booked from the model on day 2 of close.</li><li>Quarterly ROI review with sales leadership.</li></ul><p class="deliv"><b>Deliverable:</b> Pilot in two regions.</p></div>
+    <div class="card tl-panel" id="tp4"><h3>Scale · All regions, all channels</h3><p>Traditional trade, modern trade and HoReCa.</p><ul><li>Budget reallocated from low- to high-ROI schemes.</li><li>Distributor scorecards on claim quality.</li><li>Annual trade plan built bottom-up from simulated schemes.</li></ul><p class="deliv"><b>Deliverable:</b> Roll-out plan.</p></div>
+  </div>
+</section>
+
+<section id="solution">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Solution</div>
+      <h2>Open the trade spend control room</h2>
+      <p class="lead">Synthetic schemes, outlets and claims for illustration. Follow the money through the flow, see which schemes paid back, design one of your own, check claims and close the month.</p>
+    </div>
+
+    <div class="card aikey reveal" id="aiKey">
+      <div><h3><span class="spark">✦</span> Add GenAI to the control room</h3>
+        <p class="note">Optional. Every module runs on sample data and built-in rules. Add your OpenAI key to read scanned distributor claims and to write the scheme recommendation and the close note for the CFO.</p></div>
+      <div>
+        <div class="krow"><input type="password" id="apiKey" placeholder="OpenAI API key (sk-…)" autocomplete="off" spellcheck="false" aria-label="OpenAI API key"><input type="text" class="inp" id="oaModel" value="gpt-4o-mini" list="models" spellcheck="false" aria-label="OpenAI model" style="font-family:var(--mono)"><datalist id="models"><option value="gpt-4o-mini"><option value="gpt-4.1-mini"><option value="gpt-4o"><option value="gpt-4.1"></datalist><button class="btn sm go" id="keySave" type="button">Connect</button><span class="pill2 off" id="keyPill"><i></i>Rules</span></div>
+        <div class="kfoot"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="remember"> Remember on this device</label><button class="btn sm" id="keyClr" type="button">Disconnect</button><span class="note" id="keyMsg">Your key goes only from this browser to OpenAI.</span></div>
+      </div>
+    </div>
+
+    <!-- 00 FLOW -->
+    <div class="module reveal" id="m0">
+      <div class="mod-head"><div><div class="badge">01 · Follow the money</div><h3>How a rupee of trade spend travels, and where it leaks</h3><p>Each moving dot is money. Grey dots buy cases that would have sold anyway; red dots leak through bad claims. Switch to After to see the claim gate and ROI loop at work. Select any step for detail.</p></div></div>
+      <div class="card flow">
+        <div class="flow-top"><div class="t"><b>Trade spend flow</b> · annual budget ₹850 crore (illustrative)</div><div class="seg" role="group" aria-label="Before or after"><button type="button" data-fl="before" aria-pressed="false">Before</button><button type="button" data-fl="after" aria-pressed="true">After</button></div></div>
+        <div class="sx wide"><svg id="flowSvg" viewBox="0 0 1000 400" role="img" aria-label="Flow diagram of trade spend from budget to ROI"></svg></div>
+        <div class="flow-info"><div id="flowInfo"></div><div id="flowSplit"></div></div>
+      </div>
+    </div>
+
+    <!-- 01 ROI DASHBOARD -->
+    <div class="module reveal" id="m1">
+      <div class="mod-head"><div><div class="badge">02 · Scheme ROI dashboard</div><h3>Which schemes bought extra cases</h3><p>Each bubble is a scheme: spend across, ROI up, size by extra cases. Select a bubble to see its outlets against matched control outlets week by week. The map shows ROI by state.</p></div><div class="sigs" id="chF"></div></div>
+      <div class="card split d1">
+        <div class="stack">
+          <div class="mgrid" id="rKpi"></div>
+          <div class="tile"><h5>Scheme portfolio</h5><p class="sub">Quadrant bubble chart: spend × ROI · bubble size = incremental cases · line = break-even (1×)</p><div class="sx"><div class="chart" id="quad"></div></div></div>
+          <div class="tile"><h5 id="didT">Test vs control</h5><p class="sub">Difference-in-difference: weekly cases per outlet, scheme outlets against matched control outlets</p><div class="sx"><div class="chart" id="did"></div></div></div>
+        </div>
+        <div class="side">
+          <div class="tile"><h5>ROI by state</h5><p class="sub">Choropleth: incremental margin per ₹ of trade spend</p><div class="chart" id="map"></div></div>
+          <div class="tile"><h5>Where the money went</h5><p class="sub">Scheme spend split: extra cases, the baseline paid for, and pull-forward</p><div class="chart" id="split"></div></div>
+        </div>
+      </div>
+      <p class="footnote">Synthetic schemes and sales. Scheme and brand names are generic; figures are illustrative.</p>
+    </div>
+
+    <!-- 02 SIMULATOR -->
+    <div class="module reveal" id="m2">
+      <div class="mod-head"><div><div class="badge">03 · Scheme simulator</div><h3>Design a scheme, watch 1,500 outlets respond</h3><p>Set the slabs and payouts. Every dot is an outlet deciding whether the extra effort for a slab is worth it. Grey outlets get paid while adding less than 4% beyond their normal growth, so most of their payout buys cases they would have sold anyway. Run it to see cost, extra cases and ROI.</p></div><span class="pill2 off aipill"><i></i>Rules</span></div>
+      <div class="card split sm2">
+        <div class="side">
+          <div><h4 class="lbl">Start from</h4><div class="sigs" id="simPre"></div></div>
+          <label class="rng"><span>Slab 1 · growth over last year</span><b id="t1V"></b><input type="range" id="t1" min="2" max="30" step="1" value="8"></label>
+          <label class="rng"><span>Slab 1 · payout per case</span><b id="r1V"></b><input type="range" id="r1" min="0" max="8" step=".5" value="2"></label>
+          <label class="rng"><span>Slab 2 · growth</span><b id="t2V"></b><input type="range" id="t2" min="5" max="45" step="1" value="18"></label>
+          <label class="rng"><span>Slab 2 · payout per case</span><b id="r2V"></b><input type="range" id="r2" min="0" max="10" step=".5" value="3.5"></label>
+          <label class="rng"><span>Slab 3 · growth</span><b id="t3V"></b><input type="range" id="t3" min="10" max="60" step="1" value="30"></label>
+          <label class="rng"><span>Slab 3 · payout per case</span><b id="r3V"></b><input type="range" id="r3" min="0" max="12" step=".5" value="5"></label>
+          <label class="rng"><span>Cooler purity bonus per outlet per month</span><b id="cbV"></b><input type="range" id="cb" min="0" max="1000" step="50" value="0"></label>
+          <div><h4 class="lbl">Outlets in scope</h4><select class="sel" id="seg" aria-label="Outlets in scope"><option value="all">All outlets</option><option value="gs">Gold and silver only</option><option value="b">Bronze (small) only</option></select></div>
+          <label class="rng"><span>Duration</span><b id="muV"></b><input type="range" id="mu" min="1" max="3" step="1" value="2"></label>
+          <button class="btn go" id="simGo" type="button">▶ Run simulation</button>
+        </div>
+        <div class="stack">
+          <div class="mgrid" id="sKpi"></div>
+          <div class="tile"><h5>Outlet response</h5><p class="sub">Unit chart: each dot is an outlet, dropped into the slab it chose · red = grew 4% or more beyond normal · grey = paid but added little · blue = cooler visibility only</p><div class="sx"><div class="chart" id="drop"></div></div></div>
+          <div class="g2">
+            <div class="tile"><h5>Response curve</h5><p class="sub">Scale every payout up or down: spend against extra cases, with the ROI line</p><div class="chart" id="resp"></div></div>
+            <div class="tile"><h5>ROI range</h5><p class="sub">60 simulation runs with different outlet behaviour</p><div class="chart" id="band"></div></div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm ai" id="recGo" type="button">✦ Recommendation for the scheme committee</button></div>
+          <div class="out" id="recOut"><p class="note">Run a simulation, then draft the recommendation.</p></div>
+        </div>
+      </div>
+      <p class="footnote">Outlet behaviour is a simple economic model: each outlet weighs the payout against the effort of extra growth. Gross margin assumed ₹38 per unit case.</p>
+    </div>
+
+    <!-- 03 CLAIMS -->
+    <div class="module reveal" id="m3">
+      <div class="mod-head"><div><div class="badge">04 · Claims check</div><h3>Every distributor claim, checked before payout</h3><p>Six checks run on every claim against distributor sales, the outlet list and scheme rules. The UpSet chart shows which problems occur together; select a bar to filter the claims.</p></div><span class="pill2 off aipill"><i></i>Rules</span></div>
+      <div class="card split cl2">
+        <div class="stack">
+          <div class="mgrid" id="cKpi"></div>
+          <div class="tile"><h5>Which checks fail together</h5><p class="sub">UpSet chart: bars = claims with exactly this set of flags · dots = the flags</p><div class="sx"><div class="chart" id="upset"></div></div></div>
+          <div class="scroll sx"><table class="tab" id="clTab"><thead><tr><th>Claim</th><th>Distributor</th><th>Scheme</th><th class="r">Claimed</th><th class="r">Allowed</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+        </div>
+        <div class="side">
+          <div class="tile" id="clDet"></div>
+          <div class="tile"><h5>Check a new claim</h5><p class="sub">Type it in, or upload a scanned claim (needs a key)</p>
+            <div class="form" id="nf"></div>
+            <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><button class="btn sm go" id="nfGo" type="button">Run the six checks</button></div>
+            <label class="drop" for="clFile" style="margin-top:8px"><b>⬆ Upload a scanned claim</b>Image of the claim form · read by GenAI<input type="file" id="clFile" accept="image/*" hidden></label></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 04 ACCRUAL -->
+    <div class="module reveal" id="m4" style="margin-bottom:0">
+      <div class="mod-head"><div><div class="badge">05 · Month-end accrual</div><h3>Book the scheme provision with confidence</h3><p>Liability builds through the month as outlets sell; claims arrive weeks later. The model forecasts the month's liability with a range, so finance books the provision on day 2 of close instead of truing it up next quarter.</p></div><span class="pill2 off aipill"><i></i>Rules</span></div>
+      <div class="card split ac2">
+        <div class="stack">
+          <label class="rng" style="max-width:420px"><span>Day of the month</span><b id="dayV"></b><input type="range" id="day" min="5" max="30" value="24"></label>
+          <div class="tile"><h5>Scheme liability build-up</h5><p class="sub">Forecast with an 80% range, earned to date and claims received · dashed = provision to book</p><div class="sx"><div class="chart" id="acc"></div></div></div>
+          <div class="sx"><table class="tab" id="je"><thead><tr><th>Journal entry</th><th>Region</th><th class="r">Debit ₹</th><th class="r">Credit ₹</th></tr></thead><tbody></tbody></table></div>
+        </div>
+        <div class="side">
+          <div class="tile"><h5>Budget used by region</h5><p class="sub">Activity rings: month's scheme budget consumed · outer ring North</p><div class="chart" id="rings"></div></div>
+          <div class="mgrid" id="aKpi" style="grid-template-columns:repeat(2,minmax(0,1fr))"></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" id="jeDl" type="button">⬇ Journal CSV</button><button class="btn sm ai" id="cfoGo" type="button">✦ Close note for the CFO</button></div>
+          <div class="out" id="cfoOut"><p class="note">The note explains the provision, the range and what drives it.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="impact" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Impact Dashboard</div>
+      <h2>More cases from every rupee</h2>
+      <p class="lead">Measuring uplift, simulating before launch and checking every claim moved money to schemes that pay back.</p>
+    </div>
+    <div class="dash">
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>Return on trade spend by quarter</h3><p class="sub">Pictorial chart: each bottle filled to its ROI (full = 2×)</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-bt="before" aria-pressed="false">Before</button><button type="button" data-bt="after" aria-pressed="true">After</button></div></div>
+        <div class="sx"><div class="chart" id="bottles"></div></div>
+      </div>
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>How payback builds up</h3><p class="sub">Cumulative payback curve: margin from extra cases against spend, schemes ranked by ROI · dashed = break-even</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-lz="before" aria-pressed="false">Before</button><button type="button" data-lz="after" aria-pressed="true">After</button></div></div>
+        <div class="chart" id="lorenz"></div>
+      </div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <div class="cmp-head reveal"><div><div class="eyebrow">Before vs After</div><h2>How trade spend is managed now</h2></div>
+      <div class="seg" role="group" aria-label="Highlight column"><button type="button" data-hl="before" aria-pressed="false">Before</button><button type="button" data-hl="after" aria-pressed="true">After</button></div></div>
+    <div class="card reveal" style="overflow:hidden">
+      <table class="cmp hl-after" id="cmp"><colgroup><col class="c1"><col><col></colgroup>
+        <thead><tr><th scope="col">Dimension</th><th scope="col" class="b">Before</th><th scope="col" class="a">After</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Scheme success</th><td class="b">Total cases sold</td><td class="a">Extra cases against matched control outlets</td></tr>
+          <tr><th scope="row">New schemes</th><td class="b">Copied from last year</td><td class="a">Simulated for cost, uplift and ROI before launch</td></tr>
+          <tr><th scope="row">Baseline subsidy</th><td class="b">Invisible</td><td class="a">Measured per scheme and designed out</td></tr>
+          <tr><th scope="row">Claims</th><td class="b">5% sample checked by hand</td><td class="a">Every claim through six automated checks</td></tr>
+          <tr><th scope="row">Month-end</th><td class="b">Provision guessed, trued up a quarter later</td><td class="a">Forecast with a range, booked on day 2</td></tr>
+          <tr><th scope="row">Budget</th><td class="b">Spread by last year's pattern</td><td class="a">Moved to schemes and states that pay back</td></tr>
+        </tbody></table>
+    </div>
+  </div>
+</section>
+
+<section id="tools" style="padding-top:16px">
+  <div class="wrap">
+    <div class="sec-head reveal" style="margin-bottom:20px"><div class="eyebrow">Tools &amp; Tech Used</div><h2>The control room stack</h2></div>
+    <div class="tchips reveal">
+      <span class="chip"><i></i>Python · pandas <em>outlet-week sales model</em></span>
+      <span class="chip"><i></i>Matched control groups <em>difference-in-difference ROI</em></span>
+      <span class="chip"><i></i>Simulation <em>outlet response to slabs</em></span>
+      <span class="chip"><i></i>Rules engine <em>six claim checks</em></span>
+      <span class="chip"><i></i>OpenAI GPT (vision) <em>scanned claims and notes</em></span>
+      <span class="chip"><i></i>Power BI <em>finance and sales views</em></span>
+    </div>
+  </div>
+</section>
+
+<section id="takeaways">
+  <div class="wrap">
+    <div class="sec-head reveal"><div class="eyebrow">Key Takeaways</div><h2>What any consumer company can borrow</h2></div>
+    <div class="tk-grid">
+      <div class="card tk reveal"><div class="n">01</div><h3>Pay for the extra case</h3><p>Measure against a matched control; total volume flatters every scheme.</p></div>
+      <div class="card tk reveal"><div class="n">02</div><h3>Simulate before you announce</h3><p>Slab design decides how much of the payout subsidises the baseline.</p></div>
+      <div class="card tk reveal"><div class="n">03</div><h3>Check every claim</h3><p>Automated checks cost less than the leakage a sample misses.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="f-brand"><img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting"><div><b>Havish M Consulting</b></div></div>
+    <div class="copy"><span>© <span id="yr">2026</span> Havish M Consulting. All rights reserved.</span><span>Figures indicative; validated metrics available on request.</span></div>
+  </div>
+</footer>
+<div id="tip" role="tooltip"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(function(){
+"use strict";
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = id => document.getElementById(id);
+$('yr').textContent = new Date().getFullYear();
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hasD3 = typeof d3 !== 'undefined';
+const has3 = typeof THREE !== 'undefined' && !!THREE.OrbitControls && (() => { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl') || c.getContext('experimental-webgl')); } catch (e){ return false; } })();
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const sum = a => a.reduce((x, y) => x + (+y || 0), 0);
+const mean = a => a.length ? sum(a) / a.length : 0;
+const range = n => Array.from({ length: n }, (_, i) => i);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const sig = z => 1 / (1 + Math.exp(-z));
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const tip = $('tip');
+function showTip(html, ev){ tip.innerHTML = html; tip.style.opacity = 1; const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight; let x = ev.clientX + pad, y = ev.clientY + pad; if (x + w > innerWidth - 8) x = ev.clientX - w - pad; if (y + h > innerHeight - 8) y = ev.clientY - h - pad; tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; }
+function hideTip(){ tip.style.opacity = 0; }
+window.addEventListener('scroll', hideTip, { passive: true });
+function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => el.classList.remove('on'), 3000); }
+const onView = new Map();
+const io = ('IntersectionObserver' in window) ? new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; e.target.classList.add('in'); const fn = onView.get(e.target); if (fn){ fn(); onView.delete(e.target); } io.unobserve(e.target); }), { threshold: .06 }) : null;
+function whenVisible(el, fn){ onView.set(el, fn); if (io) io.observe(el); else fn(); }
+document.querySelectorAll('.reveal').forEach(el => io ? io.observe(el) : el.classList.add('in'));
+function countUp(el){ const to = +el.dataset.to, dp = +(el.dataset.dp || 0); if (reduce || !to){ el.textContent = to.toFixed(dp); return; } const t0 = performance.now(); (function s(t){ const p = Math.min(1, (t - t0) / 1400), e = 1 - Math.pow(1 - p, 3); el.textContent = (to * e).toFixed(dp); if (p < 1) requestAnimationFrame(s); })(t0); }
+document.querySelectorAll('.count').forEach(el => whenVisible(el.closest('.kpi'), () => countUp(el)));
+const tlSteps = document.querySelectorAll('.tl-step');
+tlSteps.forEach(btn => btn.addEventListener('click', () => { const open = btn.getAttribute('aria-expanded') === 'true'; tlSteps.forEach(b => { b.setAttribute('aria-expanded','false'); $(b.getAttribute('aria-controls')).classList.remove('open'); }); if (!open){ btn.setAttribute('aria-expanded','true'); $(btn.getAttribute('aria-controls')).classList.add('open'); } }));
+function segBind(attr, fn){ const bs = document.querySelectorAll(`[data-${attr}]`); bs.forEach(b => b.addEventListener('click', () => { bs.forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); fn(b.dataset[attr]); })); }
+const cmpT = $('cmp');
+segBind('hl', v => { cmpT.classList.toggle('hl-before', v === 'before'); cmpT.classList.toggle('hl-after', v === 'after'); });
+function md(s){ const lines = esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').split(/\n/); let out = '', inL = false;
+  lines.forEach(l => { const m = l.match(/^\s*(?:[-*•]|\d+[.)])\s+(.*)/); if (m){ if (!inL){ out += '<ul>'; inL = true; } out += '<li>' + m[1] + '</li>'; } else { if (inL){ out += '</ul>'; inL = false; } if (l.trim()) out += '<p>' + l.replace(/^#+\s*/, '') + '</p>'; } });
+  if (inL) out += '</ul>'; return out; }
+const csvCell = v => { const s = v == null ? '' : String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+function download(name, text, type){ const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); toast('Downloaded ' + name); }
+const dots = '<span class="dots"><span></span><span></span><span></span></span>';
+const pc = v => Math.round(v * 100) + '%';
+
+const cr = v => '₹' + (Math.abs(v) >= 100 ? Math.round(v).toLocaleString('en-IN') : (+v).toFixed(1)) + ' cr';
+const inr = v => '₹' + Math.round(v).toLocaleString('en-IN');
+const lakhs = v => '₹' + (v / 1e5).toLocaleString('en-IN', { maximumFractionDigits: 1 }) + ' lakh';
+const nrmGen = R => () => { let u = 0, v = 0; while (!u) u = R(); while (!v) v = R(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+
+/* ======================================================================
+   KEY
+   ====================================================================== */
+let KEY = '', OAM = 'gpt-4o-mini';
+try { const k = localStorage.getItem('hmc_cc_key'); if (k){ $('apiKey').value = k; $('remember').checked = true; } } catch (e){}
+function setMode(){ const on = !!KEY, h = `<i></i>${on ? 'Live · ' + esc(OAM) : 'Rules'}`; $('keyPill').className = 'pill2 ' + (on ? 'on' : 'off'); $('keyPill').innerHTML = h; document.querySelectorAll('.aipill').forEach(el => { el.className = 'pill2 aipill ' + (on ? 'on' : 'off'); el.innerHTML = h; }); }
+async function connect(silent){ const k = $('apiKey').value.trim(), m = $('oaModel').value.trim() || 'gpt-4o-mini'; if (!/^sk-/.test(k)){ if (!silent) $('keyMsg').innerHTML = '<span style="color:var(--bad)">That does not look like an OpenAI key.</span>'; return; }
+  $('keyMsg').textContent = 'Checking key…';
+  try { const r = await fetch('https://api.openai.com/v1/models', { headers: { Authorization: 'Bearer ' + k } }); if (r.status === 401) throw new Error('OpenAI rejected this key (401).'); if (!r.ok) throw new Error('OpenAI returned ' + r.status + '.');
+    KEY = k; OAM = m; try { if ($('remember').checked) localStorage.setItem('hmc_cc_key', k); else localStorage.removeItem('hmc_cc_key'); } catch (e){}
+    setMode(); $('keyMsg').innerHTML = `<b style="color:var(--good)">Connected.</b> Scanned claims and notes now use ${esc(m)}.`; if (!silent) toast('OpenAI connected'); }
+  catch (err){ $('keyMsg').innerHTML = `<span style="color:var(--bad)">${esc(err.message || 'Could not reach OpenAI from this browser.')}</span>`; } }
+$('keySave').addEventListener('click', () => connect(false));
+$('oaModel').addEventListener('change', () => { OAM = $('oaModel').value.trim() || 'gpt-4o-mini'; setMode(); });
+$('keyClr').addEventListener('click', () => { KEY = ''; $('apiKey').value = ''; try { localStorage.removeItem('hmc_cc_key'); } catch (e){} setMode(); $('keyMsg').textContent = 'Disconnected. Built-in rules still work.'; });
+async function openai(messages, { json = false, onDelta } = {}){
+  const body = { model: OAM, messages, temperature: .3 }; if (json) body.response_format = { type:'json_object' }; if (onDelta) body.stream = true;
+  const r = await fetch('https://api.openai.com/v1/chat/completions', { method:'POST', headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + KEY }, body: JSON.stringify(body) });
+  if (!r.ok){ let msg = 'OpenAI error ' + r.status; try { const j = await r.json(); if (j.error && j.error.message) msg += ': ' + j.error.message; } catch (e){} throw new Error(msg); }
+  if (!onDelta){ const j = await r.json(); return j.choices[0].message.content; }
+  const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '', full = '';
+  for (;;){ const { value, done } = await rd.read(); if (done) break; buf += dec.decode(value, { stream: true }); const parts = buf.split('\n'); buf = parts.pop();
+    for (const ln of parts){ const s2 = ln.trim(); if (!s2.startsWith('data:')) continue; const dd = s2.slice(5).trim(); if (dd === '[DONE]') continue; try { const j = JSON.parse(dd), t = j.choices && j.choices[0].delta && j.choices[0].delta.content; if (t){ full += t; onDelta(full); } } catch (e){} } }
+  return full; }
+async function streamOrRules(outEl, btn, sys, user, rulesText){ btn.disabled = true;
+  if (KEY){ outEl.innerHTML = dots; try { await openai([{ role:'system', content: sys }, { role:'user', content: user }], { onDelta: t => outEl.innerHTML = md(t) }); } catch (e){ toast('GenAI unavailable (' + String(e.message).slice(0, 60) + '); used built-in rules'); outEl.innerHTML = md(rulesText); } }
+  else outEl.innerHTML = md(rulesText);
+  btn.disabled = false; }
+
+/* ======================================================================
+   01 · FLOW DIAGRAM
+   ====================================================================== */
+const FLOWD = { before:{ inc: .44, base: .43, pf: .07, leak: .062, caught: 0 }, after:{ inc: .61, base: .29, pf: .04, leak: .012, caught: .05 } };
+let FLM = 'after';
+const NODES = [
+  { id:'bud', x: 14, y: 160, w: 118, t: 'Trade budget', s: '₹850 cr a year', d: 'The annual trade promotion budget, split by brand, channel and region. Before, it was spread by last year\'s pattern; after, by simulated ROI.' },
+  { id:'des', x: 160, y: 160, w: 118, t: 'Scheme design', s: 'slabs · visibility', d: 'Volume slabs, cooler purity, new-outlet and SKU schemes. After: every scheme is simulated for cost, uplift and ROI before launch (module 03).' },
+  { id:'dis', x: 306, y: 160, w: 118, t: 'Distributors', s: '2,400 partners', d: 'Distributors pass schemes to outlets and claim the payouts back, with their sales in the distributor management system.' },
+  { id:'out', x: 452, y: 160, w: 118, t: 'Retail outlets', s: '6 lakh outlets', d: 'Outlets sell more cases. Some of those cases are extra; many would have sold anyway. Payout on the baseline is the hidden cost of a scheme.' },
+  { id:'clm', x: 598, y: 160, w: 108, t: 'Claims', s: '30,000 a month', d: 'Distributors claim payouts for their outlets: cases, slab, outlet list and invoice.' },
+  { id:'gate', x: 734, y: 160, w: 118, t: 'Validation gate', s: '', d: '' },
+  { id:'pay', x: 880, y: 160, w: 106, t: 'Payout', s: 'credit notes', d: 'Approved claims are paid as credit notes to distributors.' },
+  { id:'acc', x: 734, y: 312, w: 118, t: 'Accrual & close', s: 'day 2 provision', d: 'Liability earned but not yet claimed is provided for at month end from the forecast (module 05).' },
+  { id:'roi', x: 452, y: 312, w: 150, t: 'ROI measurement', s: 'test vs control', d: 'Scheme outlets are compared with matched control outlets to measure the extra cases bought; the result feeds the next scheme design (module 02).' } ];
+const nodeBy = id => NODES.find(n => n.id === id);
+const NH = 62;
+function gateText(){ return FLM === 'after' ? ['6 automated checks', 'Every claim checked against distributor sales, outlet list, scheme rules, invoice numbers, dates and outliers before payout (module 04).'] : ['5% sample check', 'Claims were checked by hand on a small sample; duplicates, slab errors and ineligible outlets mostly went through.']; }
+let FSEL = 'out', FP = [], FTIMER = null;
+function flowPaths(){ const c = n => [n.x + n.w / 2, n.y + NH / 2], L = n => [n.x, n.y + NH / 2], Rr = n => [n.x + n.w, n.y + NH / 2];
+  const main = [Rr(nodeBy('bud')), L(nodeBy('des')), Rr(nodeBy('des')), L(nodeBy('dis')), Rr(nodeBy('dis')), L(nodeBy('out')), Rr(nodeBy('out')), L(nodeBy('clm')), Rr(nodeBy('clm')), L(nodeBy('gate')), Rr(nodeBy('gate')), L(nodeBy('pay'))];
+  const o = nodeBy('out'), g = nodeBy('gate');
+  return { main, base: main.slice(0, 6).concat([[o.x + o.w / 2, o.y], [o.x + o.w / 2, 72]]), leakTo: main.slice(0, 10).concat([[g.x + g.w / 2, g.y], [g.x + g.w / 2, 72]]), pf: main.slice(0, 6).concat([[o.x + o.w - 20, o.y + NH], [o.x + o.w - 20, 312]]) }; }
+function along(pts, t){ const seg = []; let tot = 0; for (let i = 1; i < pts.length; i++){ const d = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); seg.push(d); tot += d; } let r = t * tot; for (let i = 0; i < seg.length; i++){ if (r <= seg[i]) { const f = seg[i] ? r / seg[i] : 0; return [pts[i][0] + (pts[i + 1][0] - pts[i][0]) * f, pts[i][1] + (pts[i + 1][1] - pts[i][1]) * f]; } r -= seg[i]; } return pts[pts.length - 1]; }
+function drawFlow(){ const svg = d3.select('#flowSvg').html(''), P = flowPaths(), D = FLOWD[FLM];
+  const defs = svg.append('defs'); defs.append('marker').attr('id', 'fa').attr('viewBox', '0 0 10 10').attr('refX', 9).attr('refY', 5).attr('markerWidth', 7).attr('markerHeight', 7).attr('orient', 'auto').append('path').attr('d', 'M0 0L10 5L0 10z').attr('fill', '#8B7F80');
+  const ln = d3.line(); for (let i = 0; i < P.main.length; i += 2) svg.append('path').attr('d', ln([P.main[i], P.main[i + 1]])).attr('stroke', '#8B7F80').attr('stroke-width', 2).attr('marker-end', 'url(#fa)');
+  const o = nodeBy('out'), g = nodeBy('gate'), a = nodeBy('acc'), r = nodeBy('roi'), p = nodeBy('pay'), de = nodeBy('des');
+  svg.append('path').attr('d', `M${p.x + p.w / 2},${p.y + NH} V${a.y + NH / 2} H${a.x + a.w}`).attr('fill', 'none').attr('stroke', '#8B7F80').attr('stroke-width', 2).attr('marker-end', 'url(#fa)');
+  svg.append('path').attr('d', `M${a.x},${a.y + NH / 2} H${r.x + r.w}`).attr('stroke', '#8B7F80').attr('stroke-width', 2).attr('marker-end', 'url(#fa)');
+  svg.append('path').attr('d', `M${r.x},${r.y + NH / 2} H${de.x + de.w / 2} V${de.y + NH + 2}`).attr('fill', 'none').attr('stroke', FLM === 'after' ? '#1F9D6B' : '#5A5050').attr('stroke-width', FLM === 'after' ? 3 : 2).attr('stroke-dasharray', FLM === 'after' ? null : '5 5').attr('marker-end', 'url(#fa)');
+  svg.append('text').attr('x', (de.x + r.x) / 2 + 40).attr('y', r.y + NH / 2 - 8).attr('text-anchor', 'middle').attr('font-size', 11).attr('font-weight', 700).attr('fill', FLM === 'after' ? '#7FE0B5' : '#8B7F80').text(FLM === 'after' ? 'ROI feeds the next scheme' : 'No feedback: schemes copied');
+  [[o.x + o.w / 2, 'Baseline paid for', '#9C9393', D.base], [g.x + g.w / 2, FLM === 'after' ? 'Caught at the gate' : 'Leaked to payout', FLM === 'after' ? '#1F9D6B' : '#FF5468', FLM === 'after' ? D.caught : D.leak]].forEach(([x, t, c, v]) => {
+    svg.append('path').attr('d', `M${x},160 V72`).attr('stroke', c).attr('stroke-width', 2).attr('stroke-dasharray', '4 4').attr('marker-end', 'url(#fa)');
+    const gg = svg.append('g').attr('transform', `translate(${x - 80},16)`); gg.append('rect').attr('width', 160).attr('height', 54).attr('rx', 10).attr('fill', 'rgba(255,255,255,.05)').attr('stroke', c).attr('stroke-width', 1.5);
+    gg.append('text').attr('x', 80).attr('y', 22).attr('text-anchor', 'middle').attr('font-size', 11.5).attr('font-weight', 700).attr('fill', c).text(t); gg.append('text').attr('x', 80).attr('y', 42).attr('text-anchor', 'middle').attr('font-size', 15).attr('font-weight', 800).attr('fill', '#fff').text(`${Math.round(v * 100)}% · ₹${Math.round(v * 850)} cr`); });
+  svg.append('path').attr('d', `M${o.x + o.w - 20},${o.y + NH} V${r.y - 2}`).attr('stroke', '#F2A900').attr('stroke-width', 1.6).attr('stroke-dasharray', '3 4');
+  svg.append('text').attr('x', o.x + o.w - 14).attr('y', 268).attr('font-size', 10).attr('fill', '#F2C35A').text(`Pull-forward ${Math.round(D.pf * 100)}%`);
+  NODES.forEach(n => { const gg = svg.append('g').attr('class', 'fnode').attr('transform', `translate(${n.x},${n.y})`).attr('tabindex', 0).attr('role', 'button').attr('aria-label', n.t), gate = n.id === 'gate', on = FSEL === n.id;
+    gg.append('rect').attr('width', n.w).attr('height', NH).attr('rx', 12).attr('fill', gate ? (FLM === 'after' ? '#123F2E' : '#3A1C1F') : n.id === 'roi' ? (FLM === 'after' ? '#123F2E' : '#2A2424') : '#2B2424').attr('stroke', on ? '#FFC2C7' : gate && FLM === 'after' ? '#1F9D6B' : '#5A4A4C').attr('stroke-width', on ? 2.5 : 1.5);
+    gg.append('text').attr('x', n.w / 2).attr('y', 26).attr('text-anchor', 'middle').attr('font-size', 13).attr('font-weight', 800).attr('fill', '#fff').text(n.t);
+    gg.append('text').attr('x', n.w / 2).attr('y', 45).attr('text-anchor', 'middle').attr('font-size', 10.5).attr('fill', '#D7C8C9').text(gate ? gateText()[0] : n.s);
+    gg.on('click', () => { FSEL = n.id; drawFlow(); }).on('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); FSEL = n.id; drawFlow(); } }); });
+  svg.append('g').attr('id', 'parts');
+  const n = nodeBy(FSEL); $('flowInfo').innerHTML = `<b>${esc(n.t)}</b> · ${esc(n.id === 'gate' ? gateText()[0] : n.s)}<br>${esc(n.id === 'gate' ? gateText()[1] : n.d)}`;
+  const split = [['Extra cases bought', D.inc, '#1F9D6B'], ['Baseline paid for', D.base, '#9C9393'], ['Pull-forward', D.pf, '#F2A900'], [FLM === 'after' ? 'Leakage (residual)' : 'Leakage', D.leak, '#FF5468']];
+  $('flowSplit').innerHTML = `<div class="big">${Math.round(D.inc * 100)}%</div><div style="margin-bottom:8px">of each rupee bought extra cases (${FLM})</div><div style="display:flex;height:14px;border-radius:7px;overflow:hidden">${split.map(s => `<i style="flex:${s[1]};background:${s[2]}" title="${esc(s[0])}"></i>`).join('')}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;margin-top:8px;font-size:.72rem">${split.map(s => `<span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${s[2]};margin-right:5px"></i>${esc(s[0])} ${Math.round(s[1] * 100)}%</span>`).join('')}</div>`;
+  startParticles(); }
+function startParticles(){ if (FTIMER) FTIMER.stop(); const P = flowPaths(), D = FLOWD[FLM], R = mulberry32(3), g = d3.select('#parts'); if (reduce) return;
+  const mk = () => { const u = R(), leak = FLM === 'after' ? D.caught + D.leak : D.leak; let kind = 'inc'; if (u < D.base) kind = 'base'; else if (u < D.base + D.pf) kind = 'pf'; else if (u < D.base + D.pf + leak) kind = FLM === 'after' && R() < D.caught / leak ? 'caught' : 'leak'; return { kind, t: R(), sp: .07 + R() * .05 }; };
+  FP = range(70).map(mk); const C = { inc:'#5BE0A5', base:'#B5ABAB', pf:'#F2C35A', leak:'#FF5468', caught:'#FF5468' };
+  const dsel = g.selectAll('circle').data(FP).join('circle').attr('r', d => d.kind === 'inc' ? 4 : 3.4).attr('fill', d => C[d.kind]);
+  let last = performance.now(); FTIMER = d3.timer(now => { const dt = Math.min(.05, (now - last) / 1000); last = now;
+    FP.forEach(p => { p.t += p.sp * dt; if (p.t >= 1){ Object.assign(p, mk(), { t: 0 }); } });
+    dsel.attr('cx', d => along(d.kind === 'base' ? P.base : d.kind === 'pf' ? P.pf : d.kind === 'caught' ? P.leakTo : P.main, d.t)[0]).attr('cy', d => along(d.kind === 'base' ? P.base : d.kind === 'pf' ? P.pf : d.kind === 'caught' ? P.leakTo : P.main, d.t)[1])
+      .attr('fill', d => d.kind === 'caught' && d.t > .85 ? '#5BE0A5' : C[d.kind]); }); }
+segBind('fl', v => { FLM = v; drawFlow(); });
+
+/* ======================================================================
+   02 · SCHEME ROI DASHBOARD
+   ====================================================================== */
+const GM = 38;
+const SCH = [['Cola Summer Slabs', 'TT', 96, 1.62, .28, .06], ['Cooler Purity Reward', 'TT', 58, 1.85, .18, .02], ['Mango Drink Season', 'TT', 72, 1.21, .35, .08], ['Lemon-Lime Outlet Activation', 'TT', 41, 1.48, .22, .04], ['Big Pack 2L Push', 'TT', 88, .62, .55, .16], ['Modern Trade End-cap', 'MT', 34, 1.12, .30, .05],
+  ['Festive Combo Pack', 'MT', 46, .78, .48, .14], ['HoReCa Fountain Partner', 'HoReCa', 29, 1.36, .20, .03], ['Packaged Water Volume Ladder', 'TT', 37, .71, .52, .12], ['Energy Drink Launch Listing', 'TT', 24, .94, .25, .05], ['Lemon Soda Monsoon Retention', 'TT', 31, .55, .58, .10], ['Juice Café Tie-up', 'HoReCa', 19, 1.58, .15, .02]]
+  .map((s, i) => ({ i, n: s[0], ch: s[1], spend: s[2], roi: s[3], base: s[4], pf: s[5], inc: s[3] * s[2] / (GM / 100), lift: .04 + s[3] * .085, wk: 8 }));
+const CHN = { TT:'Traditional trade', MT:'Modern trade', HoReCa:'HoReCa' }, CHC = { TT:'#E61D2B', MT:'#2F6CB3', HoReCa:'#F2A900' };
+let CHF = 'all', SSEL = 0;
+$('chF').innerHTML = [['all', 'All channels']].concat(Object.entries(CHN)).map(c => `<button type="button" class="chipb${c[0] === CHF ? ' on' : ''}" data-ch="${c[0]}">${c[1]}</button>`).join('');
+$('chF').addEventListener('click', e => { const b = e.target.closest('[data-ch]'); if (!b) return; CHF = b.dataset.ch; document.querySelectorAll('#chF .chipb').forEach(x => x.classList.toggle('on', x === b)); const v = visS(); if (!v.includes(SCH[SSEL])) SSEL = v[0].i; renderDash(); });
+const visS = () => SCH.filter(s => CHF === 'all' || s.ch === CHF);
+function renderDash(){ const v = visS(), sp = sum(v.map(s => s.spend)), inc = sum(v.map(s => s.inc)), mg = inc * GM / 100;
+  $('rKpi').innerHTML = [['Trade spend', cr(sp), v.length + ' schemes'], ['Extra cases', (inc / 100).toFixed(1) + ' cr', 'unit cases vs control'], ['ROI', (mg / sp).toFixed(2) + '×', 'margin per ₹ spent'], ['Baseline paid for', cr(sum(v.map(s => s.spend * s.base))), pc(sum(v.map(s => s.spend * s.base)) / sp) + ' of spend'], ['Below break-even', v.filter(s => s.roi < 1).length, cr(sum(v.filter(s => s.roi < 1).map(s => s.spend))) + ' at stake']]
+    .map(m => `<div class="ms"><div class="k">${m[0]}</div><div class="v">${m[1]}</div><div class="s">${esc(m[2])}</div></div>`).join('');
+  if (!hasD3) return; drawQuad(); drawDiD(); drawSplit(); }
+function drawQuad(){ const v = visS(), w = 640, h = 330, m = { l: 46, r: 16, t: 16, b: 34 }, x = d3.scaleLinear().domain([0, 105]).range([m.l, w - m.r]), y = d3.scaleLinear().domain([.3, 2.1]).range([h - m.b, m.t]), rs = d3.scaleSqrt().domain([0, d3.max(SCH, s => s.inc)]).range([4, 30]);
+  const svg = d3.select('#quad').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'Scheme portfolio quadrant');
+  [[m.l, y(2.1), x(52) - m.l, y(1) - y(2.1), '#EAF6F0', 'GROW · high ROI, small'], [x(52), y(2.1), w - m.r - x(52), y(1) - y(2.1), '#DDF1E7', 'PROTECT · high ROI, big'], [m.l, y(1), x(52) - m.l, h - m.b - y(1), '#FBF5EA', 'TEST & LEARN'], [x(52), y(1), w - m.r - x(52), h - m.b - y(1), '#FDE9EA', 'FIX OR CUT · big spend, low ROI']].forEach(([a, b, c, d, f, t], i) => { svg.append('rect').attr('x', a).attr('y', b).attr('width', c).attr('height', d).attr('fill', f); svg.append('text').attr('x', i % 2 ? a + c - 8 : a + 8).attr('y', i < 2 ? b + 16 : b + d - 8).attr('text-anchor', i % 2 ? 'end' : 'start').attr('font-size', 10).attr('font-weight', 800).attr('fill', i < 2 ? '#146B48' : i === 2 ? '#7A5600' : '#9E0A16').attr('letter-spacing', '.06em').text(t); });
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(6).tickFormat(d => '₹' + d + ' cr'));
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(6).tickFormat(d => d.toFixed(1) + '×'));
+  svg.append('line').attr('x1', m.l).attr('x2', w - m.r).attr('y1', y(1)).attr('y2', y(1)).attr('stroke', '#1C1C1C').attr('stroke-dasharray', '5 4'); svg.append('text').attr('x', w - m.r - 4).attr('y', y(1) - 5).attr('text-anchor', 'end').attr('font-size', 10).attr('font-weight', 700).text('break-even 1×');
+  const g = svg.append('g').selectAll('g').data(v.slice().sort((a, b) => b.inc - a.inc)).join('g').attr('transform', s => `translate(${x(s.spend)},${y(s.roi)})`).style('cursor', 'pointer').on('click', (ev, s) => { SSEL = s.i; drawQuad(); drawDiD(); }).on('mousemove', (ev, s) => showTip(`<b>${esc(s.n)}</b> · ${CHN[s.ch]}<br>Spend ${cr(s.spend)} · ROI ${s.roi.toFixed(2)}×<br>Extra cases ${(s.inc / 100).toFixed(2)} cr · lift ${pc(s.lift)}<br>Baseline paid for ${pc(s.base)}`, ev)).on('mouseleave', hideTip);
+  g.append('circle').attr('r', 0).attr('fill', s => CHC[s.ch]).attr('fill-opacity', s => s.i === SSEL ? .9 : .55).attr('stroke', s => s.i === SSEL ? '#1C1C1C' : '#fff').attr('stroke-width', s => s.i === SSEL ? 3 : 1.5).transition().duration(reduce ? 0 : 700).delay((s, i) => i * 40).attr('r', s => rs(s.inc));
+  g.append('text').attr('y', s => -rs(s.inc) - 4).attr('text-anchor', 'middle').attr('font-size', 9.5).attr('font-weight', 700).attr('fill', '#1C1C1C').text(s => s.n.split(' ').slice(0, 2).join(' '));
+  const lg = svg.append('g').attr('transform', `translate(${x(54)},${y(.98) + 14})`); Object.entries(CHN).forEach(([k, n], i) => { lg.append('circle').attr('cx', 6).attr('cy', i * 13).attr('r', 5).attr('fill', CHC[k]); lg.append('text').attr('x', 15).attr('y', i * 13 + 4).attr('font-size', 9.5).attr('fill', '#625E5A').text(n); }); }
+function didSeries(s){ const R = mulberry32(100 + s.i), wk = range(16).map(i => i - 4); return wk.map(w => { const season = 100 * (1 + .12 * Math.sin((w + 6) / 16 * Math.PI)), c = season * (1 + (R() - .5) * .03), inS = w >= 0 && w < 8, post = w >= 8 && w < 10, t = c * (1 + (inS ? s.lift * (1 + (R() - .5) * .2) : post ? -s.pf * 2.2 : (R() - .5) * .02)); return { w, c, t }; }); }
+function drawDiD(){ const s = SCH[SSEL], D = didSeries(s), w = 640, h = 250, m = { l: 40, r: 14, t: 18, b: 30 }, x = d3.scaleLinear().domain([-4, 11]).range([m.l, w - m.r]), y = d3.scaleLinear().domain([d3.min(D, d => Math.min(d.c, d.t)) * .92, d3.max(D, d => Math.max(d.c, d.t)) * 1.04]).range([h - m.b, m.t]);
+  $('didT').textContent = `Test vs control · ${s.n}`;
+  const svg = d3.select('#did').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'Test versus control weekly sales');
+  svg.append('rect').attr('x', x(-.5)).attr('y', m.t).attr('width', x(7.5) - x(-.5)).attr('height', h - m.t - m.b).attr('fill', '#FDF0F1'); svg.append('text').attr('x', x(3.5)).attr('y', m.t + 12).attr('text-anchor', 'middle').attr('font-size', 10).attr('font-weight', 800).attr('fill', '#9E0A16').text('SCHEME LIVE · 8 WEEKS');
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(15).tickFormat(d => d < 0 ? 'W' + d : 'W+' + d)); svg.append('g').attr('class', 'axis').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5));
+  const inS = D.filter(d => d.w >= 0 && d.w < 8), post = D.filter(d => d.w >= 8 && d.w < 10);
+  svg.append('path').attr('d', d3.area().x(d => x(d.w)).y0(d => y(d.c)).y1(d => y(d.t)).curve(d3.curveMonotoneX)(inS)).attr('fill', '#1F9D6B').attr('opacity', .3);
+  svg.append('path').attr('d', d3.area().x(d => x(d.w)).y0(d => y(d.t)).y1(d => y(d.c)).curve(d3.curveMonotoneX)(D.filter(d => d.w >= 7 && d.w < 10))).attr('fill', '#F2A900').attr('opacity', .35);
+  [['c', '#9C9393', 'Matched control outlets'], ['t', '#E61D2B', 'Scheme outlets']].forEach(([k, c, n], i) => { const p = svg.append('path').attr('d', d3.line().x(d => x(d.w)).y(d => y(d[k])).curve(d3.curveMonotoneX)(D)).attr('fill', 'none').attr('stroke', c).attr('stroke-width', 2.4); if (!reduce){ const L = p.node().getTotalLength(); p.attr('stroke-dasharray', L).attr('stroke-dashoffset', L).transition().duration(900).attr('stroke-dashoffset', 0); }
+    svg.append('text').attr('x', m.l + 8).attr('y', h - m.b - 10 - i * 13).attr('font-size', 10).attr('font-weight', 700).attr('fill', c).text(n); });
+  svg.append('text').attr('x', x(3.5)).attr('y', y(d3.mean(inS, d => (d.t + d.c) / 2))).attr('text-anchor', 'middle').attr('font-size', 11).attr('font-weight', 800).attr('fill', '#146B48').text(`+${Math.round(s.lift * 100)}% extra cases`);
+  if (post.length) svg.append('text').attr('x', x(9)).attr('y', y(d3.min(post, d => d.t)) + 14).attr('text-anchor', 'middle').attr('font-size', 9.5).attr('font-weight', 700).attr('fill', '#7A5600').text(`pull-forward −${Math.round(s.pf * 220)}%`); }
+function drawSplit(){ const v = visS().slice().sort((a, b) => b.roi - a.roi), w = 420, rh = 21, lm = 150, h = 26 + v.length * rh, x = d3.scaleLinear().domain([0, d3.max(v, s => s.spend)]).range([lm, w - 40]);
+  const svg = d3.select('#split').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'Spend split by scheme');
+  [['Extra cases', '#1F9D6B'], ['Baseline', '#B5ABAB'], ['Pull-forward', '#F2A900']].forEach(([n, c], i) => { svg.append('rect').attr('x', lm + i * 88).attr('y', 4).attr('width', 10).attr('height', 10).attr('rx', 2).attr('fill', c); svg.append('text').attr('x', lm + i * 88 + 14).attr('y', 13).attr('font-size', 9.5).attr('fill', '#625E5A').text(n); });
+  v.forEach((s, i) => { const y = 22 + i * rh, parts = [[1 - s.base - s.pf, '#1F9D6B'], [s.base, '#B5ABAB'], [s.pf, '#F2A900']]; let x0 = lm;
+    svg.append('text').attr('x', lm - 6).attr('y', y + 12).attr('text-anchor', 'end').attr('font-size', 9.5).attr('fill', s.roi < 1 ? '#9E0A16' : '#1C1C1C').attr('font-weight', s.roi < 1 ? 800 : 500).text(s.n.length > 24 ? s.n.slice(0, 23) + '…' : s.n);
+    parts.forEach(([f, c]) => { const wd = (x(s.spend) - lm) * f; svg.append('rect').attr('x', x0).attr('y', y + 3).attr('height', 13).attr('width', wd).attr('fill', c).on('mousemove', ev => showTip(`<b>${esc(s.n)}</b><br>Spend ${cr(s.spend)} · extra cases ${pc(1 - s.base - s.pf)} · baseline ${pc(s.base)} · pull-forward ${pc(s.pf)}`, ev)).on('mouseleave', hideTip); x0 += wd; });
+    svg.append('text').attr('x', x(s.spend) + 4).attr('y', y + 13).attr('font-size', 9.5).attr('font-weight', 700).attr('fill', '#625E5A').text(s.roi.toFixed(1) + '×'); }); }
+const INDIA = {"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"MultiPolygon","coordinates":[[[[93.85,7.24],[93.69,7.19],[93.66,7.13],[93.68,7.02],[93.75,6.96],[93.84,6.76],[93.89,6.8],[93.93,7.01],[93.85,7.24]]],[[[92.52,10.9],[92.38,10.76],[92.42,10.55],[92.5,10.51],[92.6,10.7],[92.52,10.9]]],[[[92.64,11.51],[92.6,11.35],[92.69,11.37],[92.64,11.51]]],[[[92.7,12.24],[92.64,12.18],[92.61,11.96],[92.51,11.85],[92.65,11.52],[92.73,11.52],[92.79,11.87],[92.74,12.08],[92.76,12.18],[92.7,12.24]]],[[[92.9,12.92],[92.72,12.83],[92.74,12.64],[92.7,12.6],[92.7,12.33],[92.83,12.3],[92.94,12.45],[92.97,12.74],[92.9,12.92]]],[[[93.03,13.57],[92.92,13.54],[92.83,13.33],[92.83,13.21],[92.79,13.02],[92.79,12.92],[92.94,12.97],[93.03,13.08],[93.07,13.35],[93.03,13.43],[93.03,13.57]]]]},"properties":{"n":"Andaman & Nicobar Island"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[84.77,19.08],[84.67,19.13],[84.6,19.03],[84.52,19.05],[84.42,18.95],[84.34,18.8],[84.1,18.75],[83.88,18.83],[83.8,19.02],[83.73,18.98],[83.61,19.1],[83.48,19.01],[83.34,19.01],[83.4,18.88],[83.09,18.66],[83.03,18.57],[83.07,18.4],[82.98,18.36],[82.81,18.45],[82.78,18.34],[82.6,18.27],[82.61,18.37],[82.49,18.52],[82.37,18.42],[82.34,18.22],[82.34,18.06],[82.03,18.07],[81.94,17.99],[81.77,17.9],[81.8,17.85],[81.63,17.77],[81.51,17.6],[81.5,17.46],[81.39,17.36],[81.2,17.34],[81.17,17.24],[80.99,17.19],[80.91,17.21],[80.83,17.05],[80.69,17.08],[80.57,17.15],[80.51,17.11],[80.45,16.95],[80.59,16.93],[80.57,16.77],[80.33,16.88],[80.27,17.02],[80.05,16.97],[80,16.87],[80.06,16.75],[79.95,16.64],[79.78,16.74],[79.43,16.59],[79.27,16.57],[79.24,16.53],[79.23,16.26],[79.18,16.22],[79.03,16.25],[78.92,16.2],[78.93,16.13],[78.75,16.03],[78.64,16.1],[78.57,16.06],[78.41,16.09],[78.27,16.04],[78.25,15.94],[78.11,15.83],[77.89,15.9],[77.8,15.87],[77.51,15.93],[77.25,15.96],[77.08,15.91],[77.03,15.63],[77.04,15.36],[77.15,15.29],[77.17,15.17],[77.11,15.03],[76.88,15.03],[76.8,15.1],[76.77,14.97],[76.87,14.97],[76.84,14.79],[76.77,14.6],[76.87,14.48],[76.94,14.25],[77.06,14.25],[77.16,14.34],[77.29,14.28],[77.4,14.34],[77.51,14.27],[77.52,14.18],[77.4,14.17],[77.39,14.01],[77.14,14],[76.95,14.12],[77.04,13.93],[76.97,13.82],[77.04,13.78],[77.17,13.82],[77.25,13.9],[77.43,13.83],[77.54,13.71],[77.92,13.91],[78.11,13.86],[78.16,13.66],[78.26,13.58],[78.39,13.59],[78.37,13.36],[78.58,13.28],[78.47,12.97],[78.36,12.94],[78.25,12.86],[78.23,12.76],[78.24,12.7],[78.38,12.62],[78.56,12.71],[78.64,12.92],[78.63,12.98],[78.81,13.09],[78.99,13.09],[79.16,13.02],[79.24,13.15],[79.31,13.13],[79.43,13.2],[79.43,13.33],[79.55,13.32],[79.58,13.26],[79.68,13.25],[79.94,13.35],[80.02,13.5],[80.23,13.48],[80.27,13.56],[80.24,13.68],[80.25,13.79],[80.15,14.06],[80.13,14.18],[80.17,14.35],[80.19,14.56],[80.11,14.73],[80.05,15.05],[80.13,15.38],[80.2,15.46],[80.24,15.61],[80.35,15.75],[80.51,15.86],[80.73,15.89],[80.82,15.81],[80.84,15.71],[80.96,15.74],[81.05,15.9],[81.15,15.97],[81.26,16.32],[81.38,16.36],[81.65,16.34],[81.73,16.31],[81.97,16.4],[82.3,16.57],[82.36,16.83],[82.25,16.9],[82.3,17.02],[82.56,17.26],[82.75,17.37],[82.99,17.47],[83.22,17.59],[83.42,17.81],[83.47,17.91],[83.7,18.1],[84.12,18.3],[84.13,18.35],[84.56,18.79],[84.58,18.87],[84.77,19.08]]]},"properties":{"n":"Andhra Pradesh"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[95.24,26.68],[95.3,26.65],[95.42,26.69],[95.55,26.83],[95.75,26.9],[95.81,27.01],[95.96,27.06],[96.04,27.19],[96.23,27.28],[96.53,27.29],[96.62,27.36],[96.8,27.35],[96.88,27.26],[96.87,27.19],[97.06,27.1],[97.17,27.13],[96.91,27.45],[96.9,27.61],[97.02,27.73],[97.26,27.9],[97.38,27.91],[97.4,28.03],[97.33,28.15],[97.38,28.22],[97.13,28.35],[97,28.31],[96.9,28.38],[96.78,28.37],[96.67,28.46],[96.37,28.39],[96.4,28.56],[96.59,28.72],[96.61,28.79],[96.52,28.96],[96.44,29.03],[96.35,29.03],[96.23,28.93],[96.15,29.05],[96.22,29.13],[96.24,29.24],[96.09,29.46],[95.96,29.38],[95.78,29.35],[95.55,29.21],[95.46,29.03],[95.25,29.07],[95.01,29.17],[94.8,29.16],[94.77,29.25],[94.63,29.35],[94.56,29.23],[94.44,29.23],[94.22,29.08],[94.16,28.95],[94,28.84],[93.94,28.68],[93.85,28.71],[93.61,28.66],[93.5,28.68],[93.34,28.63],[93.2,28.32],[93.03,28.3],[92.9,28.2],[92.79,28.18],[92.67,28.06],[92.74,27.99],[92.57,27.82],[92.31,27.78],[92.26,27.86],[92.06,27.76],[91.88,27.72],[91.83,27.81],[91.67,27.86],[91.57,27.58],[91.66,27.48],[92.02,27.46],[92.07,27.28],[92.03,27.08],[92.11,27.01],[92.11,26.89],[92.2,26.89],[92.45,26.96],[92.59,26.96],[92.66,27.04],[92.88,27.01],[93.02,26.91],[93.35,26.96],[93.47,26.94],[93.68,26.97],[93.84,27.08],[93.81,27.15],[94.16,27.47],[94.26,27.52],[94.29,27.59],[94.5,27.57],[94.89,27.74],[95.32,27.87],[95.39,27.84],[95.52,27.88],[95.61,27.95],[95.98,27.96],[95.93,27.88],[95.76,27.73],[95.8,27.6],[95.88,27.55],[95.88,27.44],[95.97,27.43],[95.96,27.31],[95.46,27.2],[95.46,27.13],[95.25,27.02],[95.2,27.04],[95.23,26.88],[95.18,26.86],[95.24,26.68]]]},"properties":{"n":"Arunanchal Pradesh"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[95.2,27.04],[95.25,27.02],[95.46,27.13],[95.46,27.2],[95.96,27.31],[95.97,27.43],[95.88,27.44],[95.88,27.55],[95.8,27.6],[95.76,27.73],[95.93,27.88],[95.98,27.96],[95.61,27.95],[95.52,27.88],[95.39,27.84],[95.32,27.87],[94.89,27.74],[94.5,27.57],[94.29,27.59],[94.26,27.52],[94.16,27.47],[93.81,27.15],[93.84,27.08],[93.68,26.97],[93.47,26.94],[93.35,26.96],[93.02,26.91],[92.88,27.01],[92.66,27.04],[92.59,26.96],[92.45,26.96],[92.2,26.89],[92.11,26.89],[92.06,26.85],[91.9,26.92],[91.73,26.81],[91.34,26.78],[91.09,26.82],[91.06,26.78],[90.65,26.77],[90.41,26.9],[90.23,26.86],[90.19,26.77],[89.86,26.7],[89.88,26.58],[89.86,26.38],[89.72,26.26],[89.72,26.17],[89.87,25.98],[89.83,25.74],[89.88,25.62],[89.86,25.48],[89.89,25.56],[90.01,25.58],[89.9,25.73],[90.12,25.96],[90.33,25.97],[90.48,26.02],[90.54,25.96],[90.74,25.91],[90.96,25.93],[91.07,25.83],[91.16,25.85],[91.23,25.72],[91.34,25.83],[91.47,25.86],[91.48,25.86],[91.57,26.03],[91.63,25.94],[91.72,25.95],[91.73,26.06],[91.82,26.12],[91.89,26.03],[92.14,26.04],[92.17,25.96],[92.15,25.81],[92.24,25.71],[92.42,25.74],[92.59,25.55],[92.65,25.43],[92.79,25.28],[92.75,25.21],[92.62,25.12],[92.53,25.14],[92.44,25.03],[92.5,24.87],[92.27,24.83],[92.23,24.5],[92.3,24.25],[92.42,24.25],[92.44,24.15],[92.53,24.17],[92.69,24.35],[92.76,24.52],[92.83,24.4],[93,24.4],[93.1,24.58],[93.11,24.8],[93.19,24.8],[93.25,24.92],[93.25,25],[93.34,25.09],[93.4,25.26],[93.47,25.31],[93.46,25.44],[93.33,25.55],[93.48,25.64],[93.57,25.75],[93.71,25.85],[93.78,25.84],[93.98,25.92],[93.95,26],[94.01,26.18],[94.19,26.46],[94.4,26.52],[94.41,26.61],[94.55,26.71],[94.69,26.73],[94.8,26.8],[94.89,26.93],[95.09,26.95],[95.2,27.04]]]},"properties":{"n":"Assam"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[88.11,26.54],[88.1,26.43],[88.01,26.36],[87.92,26.43],[87.8,26.47],[87.59,26.39],[87.48,26.44],[87.16,26.41],[87.02,26.53],[86.9,26.46],[86.74,26.42],[86.35,26.62],[86.19,26.61],[86.03,26.67],[85.85,26.61],[85.74,26.64],[85.74,26.79],[85.61,26.86],[85.34,26.74],[85.21,26.76],[85.2,26.87],[85.03,26.87],[84.96,26.96],[84.83,27.02],[84.65,27.05],[84.69,27.22],[84.63,27.34],[84.28,27.4],[84.12,27.52],[84.03,27.44],[83.85,27.44],[83.87,27.34],[84,27.18],[83.95,27.12],[84.03,27.04],[84.06,26.89],[84.24,26.87],[84.33,26.68],[84.28,26.6],[84.16,26.64],[84.06,26.54],[83.92,26.5],[84.07,26.39],[84.18,26.37],[84.17,26.26],[84.01,26.19],[84.06,26.1],[84.3,25.95],[84.54,25.88],[84.63,25.79],[84.52,25.68],[84.4,25.73],[84.39,25.73],[84.33,25.67],[84.08,25.64],[83.93,25.56],[83.79,25.4],[83.42,25.25],[83.36,25.2],[83.33,25.01],[83.39,24.78],[83.47,24.73],[83.54,24.61],[83.53,24.55],[83.51,24.53],[83.76,24.51],[83.79,24.52],[83.87,24.54],[83.88,24.53],[84,24.64],[84.12,24.48],[84.18,24.54],[84.33,24.49],[84.34,24.4],[84.46,24.34],[84.83,24.52],[84.91,24.37],[85.04,24.43],[85.18,24.43],[85.29,24.52],[85.67,24.58],[85.67,24.67],[85.78,24.8],[85.88,24.8],[85.96,24.73],[86.11,24.74],[86.13,24.61],[86.3,24.59],[86.32,24.51],[86.42,24.38],[86.61,24.6],[86.67,24.56],[86.8,24.62],[86.86,24.55],[86.94,24.63],[87.05,24.62],[87.08,24.81],[87.15,24.86],[87.18,25.06],[87.3,25.09],[87.33,25.22],[87.48,25.24],[87.57,25.33],[87.69,25.31],[87.79,25.22],[87.79,25.45],[88.03,25.55],[88.06,25.69],[87.91,25.78],[87.83,25.87],[87.85,26.04],[87.97,26.08],[88.04,26.18],[88.23,26.29],[88.28,26.38],[88.25,26.45],[88.11,26.54]]]},"properties":{"n":"Bihar"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[76.84,30.76],[76.83,30.76],[76.81,30.76],[76.81,30.78],[76.8,30.78],[76.79,30.78],[76.76,30.79],[76.75,30.79],[76.75,30.78],[76.74,30.78],[76.73,30.77],[76.7,30.76],[76.73,30.72],[76.73,30.71],[76.74,30.71],[76.74,30.7],[76.74,30.69],[76.75,30.69],[76.76,30.69],[76.83,30.68],[76.83,30.69],[76.84,30.7],[76.84,30.73],[76.84,30.76]]]},"properties":{"n":"Chandigarh"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[83.95,23.62],[83.78,23.6],[83.74,23.75],[83.59,23.86],[83.52,24.02],[83.33,24.1],[83.14,23.89],[82.96,23.87],[82.82,23.96],[82.66,23.91],[82.55,23.79],[82.21,23.83],[82.05,23.82],[81.97,23.86],[81.96,23.85],[81.82,23.81],[81.71,23.86],[81.61,23.85],[81.69,23.72],[81.62,23.66],[81.61,23.51],[81.74,23.56],[81.83,23.51],[81.92,23.53],[81.98,23.42],[81.98,23.41],[82.11,23.4],[82.2,23.32],[82.12,23.1],[81.95,23.08],[81.95,22.96],[81.78,22.87],[81.77,22.68],[81.69,22.65],[81.62,22.54],[81.49,22.49],[81.48,22.49],[81.33,22.52],[81.2,22.47],[81.19,22.49],[81.12,22.44],[81.12,22.29],[80.92,22.12],[80.84,21.95],[80.82,21.75],[80.71,21.67],[80.74,21.47],[80.66,21.33],[80.65,21.26],[80.46,21.17],[80.43,21.01],[80.54,20.93],[80.55,20.79],[80.62,20.59],[80.62,20.33],[80.39,20.24],[80.46,20.15],[80.53,20.13],[80.55,19.98],[80.5,19.9],[80.55,19.78],[80.67,19.7],[80.73,19.61],[80.89,19.52],[80.8,19.43],[80.85,19.36],[80.76,19.29],[80.61,19.32],[80.57,19.4],[80.4,19.25],[80.39,19.18],[80.27,18.99],[80.35,18.82],[80.27,18.72],[80.35,18.59],[80.5,18.63],[80.64,18.52],[80.73,18.37],[80.79,18.25],[80.74,18.18],[80.87,18.14],[80.98,18.17],[80.98,18.16],[80.96,18.13],[81.01,17.85],[81.08,17.79],[81.17,17.86],[81.39,17.81],[81.4,17.9],[81.49,17.98],[81.54,18.27],[81.77,18.42],[81.96,18.57],[81.96,18.69],[82.15,18.78],[82.18,18.9],[82.25,18.92],[82.16,19.27],[82.19,19.34],[82.05,19.54],[82.06,19.8],[81.87,19.9],[81.87,20.03],[81.94,20.1],[82.19,19.99],[82.27,19.98],[82.35,19.84],[82.48,19.91],[82.71,19.83],[82.72,19.99],[82.59,19.99],[82.4,20.05],[82.42,20.41],[82.34,20.84],[82.56,20.94],[82.63,21.04],[82.64,21.15],[82.99,21.16],[83.13,21.1],[83.2,21.14],[83.28,21.38],[83.4,21.4],[83.35,21.49],[83.39,21.62],[83.45,21.65],[83.5,21.81],[83.61,21.91],[83.54,21.97],[83.56,22.1],[83.65,22.23],[83.75,22.24],[83.87,22.35],[84.01,22.37],[84.01,22.52],[84.09,22.64],[84.24,22.69],[84.38,22.98],[84.22,22.98],[84.04,23.15],[84.08,23.33],[83.97,23.37],[84.03,23.54],[84.01,23.63],[83.96,23.62],[83.95,23.62]]]},"properties":{"n":"Chhattisgarh"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[73.21,20.12],[73.19,20.14],[73.19,20.16],[73.22,20.18],[73.19,20.2],[73.18,20.2],[73.16,20.2],[73.15,20.2],[73.14,20.21],[73.11,20.16],[73.1,20.16],[73.09,20.16],[73.07,20.16],[73.06,20.18],[73.06,20.19],[73.06,20.2],[73.05,20.2],[73.07,20.23],[73.09,20.23],[73.1,20.24],[73.12,20.26],[73.13,20.26],[73.13,20.27],[73.14,20.28],[73.15,20.29],[73.16,20.29],[73.16,20.28],[73.17,20.3],[73.17,20.31],[73.16,20.31],[73.15,20.32],[73.13,20.31],[73.12,20.31],[73.1,20.31],[73.09,20.36],[73.09,20.34],[73.08,20.33],[73.07,20.33],[73.06,20.33],[73.04,20.32],[73.04,20.3],[73.03,20.29],[73.02,20.3],[73.01,20.32],[73.01,20.3],[72.97,20.27],[72.95,20.29],[72.94,20.29],[72.93,20.29],[72.96,20.23],[72.96,20.22],[72.96,20.21],[72.97,20.18],[72.98,20.18],[72.98,20.16],[72.96,20.13],[72.99,20.12],[73,20.12],[73,20.14],[73.01,20.14],[73,20.13],[73.01,20.11],[73.03,20.08],[73.04,20.07],[73.08,20.09],[73.09,20.09],[73.11,20.08],[73.12,20.08],[73.13,20.08],[73.15,20.07],[73.17,20.06],[73.2,20.09],[73.21,20.11],[73.21,20.12]]]},"properties":{"n":"Dadara & Nagar Havelli"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[72.8,20.37],[72.9,20.42],[72.84,20.47],[72.8,20.37]]]},"properties":{"n":"Daman & Diu"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[74.12,15.65],[73.99,15.61],[73.94,15.74],[73.86,15.8],[73.78,15.73],[73.68,15.73],[73.76,15.5],[73.89,15.34],[73.98,15.03],[74.09,14.9],[74.24,14.95],[74.3,15.04],[74.27,15.1],[74.34,15.3],[74.25,15.49],[74.25,15.66],[74.12,15.65]]]},"properties":{"n":"Goa"}},{"type":"Feature","geometry":{"type":"MultiPolygon","coordinates":[[[[68.36,23.81],[68.27,23.65],[68.35,23.6],[68.42,23.72],[68.36,23.81]]],[[[68.36,23.98],[68.21,23.81],[68.34,23.82],[68.36,23.98]]],[[[72.66,21.47],[72.59,21.31],[72.78,20.9],[72.88,20.61],[72.84,20.47],[72.9,20.42],[72.8,20.37],[72.74,20.25],[72.73,20.14],[72.87,20.23],[72.96,20.21],[72.96,20.22],[72.96,20.23],[72.93,20.29],[72.94,20.29],[72.95,20.29],[72.97,20.27],[73.01,20.3],[73.01,20.32],[73.02,20.3],[73.03,20.29],[73.04,20.3],[73.04,20.32],[73.06,20.33],[73.07,20.33],[73.08,20.33],[73.09,20.34],[73.09,20.36],[73.1,20.31],[73.12,20.31],[73.13,20.31],[73.15,20.32],[73.16,20.31],[73.17,20.31],[73.17,20.3],[73.16,20.28],[73.16,20.29],[73.15,20.29],[73.14,20.28],[73.13,20.27],[73.13,20.26],[73.12,20.26],[73.1,20.24],[73.09,20.23],[73.07,20.23],[73.05,20.2],[73.06,20.2],[73.06,20.19],[73.06,20.18],[73.07,20.16],[73.09,20.16],[73.1,20.16],[73.11,20.16],[73.14,20.21],[73.15,20.2],[73.16,20.2],[73.18,20.2],[73.19,20.2],[73.22,20.18],[73.19,20.16],[73.19,20.14],[73.21,20.12],[73.3,20.21],[73.42,20.2],[73.41,20.38],[73.47,20.49],[73.43,20.59],[73.45,20.71],[73.74,20.57],[73.84,20.62],[73.84,20.7],[73.93,20.77],[73.94,20.84],[73.79,21.07],[73.83,21.27],[73.94,21.3],[73.96,21.39],[74.05,21.45],[74.3,21.48],[74.29,21.56],[74.06,21.56],[73.86,21.49],[73.82,21.6],[73.88,21.71],[73.82,21.81],[74.14,21.95],[74.12,22.21],[74.07,22.36],[74.19,22.34],[74.23,22.44],[74.1,22.43],[74.08,22.51],[74.21,22.57],[74.28,22.65],[74.38,22.64],[74.46,22.81],[74.38,22.91],[74.32,23.06],[74.25,23.18],[74.12,23.18],[74.13,23.26],[74.02,23.33],[74,23.33],[73.89,23.34],[73.82,23.45],[73.63,23.45],[73.66,23.62],[73.57,23.65],[73.4,23.78],[73.36,23.85],[73.42,23.92],[73.41,24.05],[73.22,24.1],[73.08,24.18],[73.18,24.33],[72.98,24.45],[72.97,24.36],[72.73,24.36],[72.65,24.46],[72.54,24.51],[72.46,24.41],[72.35,24.55],[72.29,24.54],[72.08,24.66],[71.78,24.67],[71.65,24.64],[71.48,24.68],[71.29,24.61],[71.1,24.69],[70.99,24.61],[70.99,24.37],[70.88,24.25],[70.72,24.22],[70.57,24.26],[70.57,24.42],[70.37,24.35],[70.11,24.29],[70.02,24.17],[69.73,24.17],[69.59,24.29],[69.48,24.27],[69.31,24.28],[69.19,24.24],[69.1,24.27],[69.01,24.22],[68.94,24.3],[68.85,24.22],[68.77,24.27],[68.75,23.97],[68.55,23.97],[68.57,23.88],[68.67,23.86],[68.63,23.76],[68.49,23.64],[68.51,23.46],[68.64,23.34],[68.65,23.16],[69.2,22.84],[69.32,22.83],[69.45,22.78],[69.69,22.74],[69.75,22.82],[69.87,22.87],[70.11,22.91],[70.24,22.98],[70.38,22.9],[70.17,22.56],[69.95,22.53],[69.79,22.4],[69.65,22.36],[69.56,22.37],[69.42,22.32],[69.34,22.33],[69.22,22.26],[69.01,22.44],[68.94,22.31],[68.95,22.25],[69.27,21.91],[69.6,21.64],[70.01,21.2],[70.25,20.98],[70.44,20.85],[70.82,20.69],[70.99,20.73],[71.01,20.74],[71.15,20.76],[71.15,20.77],[71.44,20.87],[71.51,20.94],[71.64,20.97],[71.89,21.1],[72.05,21.16],[72.12,21.32],[72.24,21.46],[72.31,21.63],[72.26,21.72],[72.26,21.89],[72.36,22.2],[72.64,22.28],[72.55,22.15],[72.51,21.99],[72.52,21.88],[72.61,21.86],[72.52,21.71],[72.61,21.68],[72.66,21.47]]]]},"properties":{"n":"Gujarat"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[77.13,30.56],[77.17,30.68],[77.03,30.74],[76.92,30.89],[76.78,30.9],[76.84,30.76],[76.84,30.73],[76.84,30.7],[76.83,30.69],[76.83,30.68],[76.93,30.6],[76.93,30.5],[76.88,30.4],[76.75,30.36],[76.6,30.25],[76.64,30.15],[76.55,30.08],[76.44,30.14],[76.26,30.12],[76.21,30.03],[76.22,29.84],[76.21,29.84],[76.05,29.75],[75.87,29.75],[75.83,29.81],[75.68,29.77],[75.45,29.78],[75.23,29.6],[75.24,29.75],[75,29.85],[74.93,29.94],[74.81,29.99],[74.6,29.91],[74.53,29.94],[74.56,29.87],[74.48,29.74],[74.61,29.75],[74.58,29.41],[74.78,29.36],[74.94,29.36],[74.96,29.28],[75.09,29.23],[75.39,29.26],[75.37,29.14],[75.44,29.01],[75.52,29.01],[75.5,28.86],[75.56,28.61],[75.64,28.54],[75.9,28.39],[76.03,28.28],[76.02,28.25],[76.06,28.22],[75.96,27.98],[75.98,27.86],[76.21,27.84],[76.16,27.99],[76.37,28.14],[76.48,28.14],[76.55,28.03],[76.8,28.15],[76.84,28.22],[76.97,28.14],[76.93,27.99],[76.94,27.83],[76.9,27.71],[76.98,27.65],[77.05,27.81],[77.28,27.8],[77.53,27.93],[77.48,28.1],[77.55,28.19],[77.45,28.43],[77.35,28.5],[77.24,28.46],[77.03,28.53],[76.89,28.52],[76.84,28.58],[76.96,28.68],[76.95,28.82],[77.06,28.87],[77.2,28.86],[77.22,29],[77.14,29.1],[77.17,29.31],[77.1,29.53],[77.19,29.9],[77.28,30.04],[77.41,30.11],[77.58,30.31],[77.59,30.38],[77.45,30.4],[77.21,30.49],[77.21,30.5],[77.12,30.56],[77.13,30.56]]]},"properties":{"n":"Haryana"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[78.4,32.53],[78.41,32.62],[78.31,32.71],[78.11,32.66],[77.99,32.59],[77.94,32.75],[77.78,32.86],[77.73,32.97],[77.6,32.94],[77.34,32.82],[77.18,32.91],[77.15,32.98],[76.94,33.03],[76.82,33.17],[76.64,33.16],[76.57,33.21],[76.4,33.18],[76.25,33.03],[76.11,33],[75.95,32.88],[75.8,32.89],[75.93,32.76],[75.94,32.64],[75.89,32.58],[75.87,32.5],[75.94,32.41],[75.75,32.27],[75.64,32.23],[75.63,32.1],[75.91,31.95],[75.94,31.82],[76.22,31.3],[76.34,31.34],[76.44,31.32],[76.65,31.21],[76.62,31],[76.74,30.94],[76.78,30.9],[76.92,30.89],[77.03,30.74],[77.17,30.68],[77.13,30.56],[77.12,30.56],[77.21,30.5],[77.21,30.49],[77.45,30.4],[77.59,30.38],[77.58,30.4],[77.81,30.51],[77.79,30.64],[77.7,30.76],[77.8,30.87],[77.77,30.97],[77.92,31.15],[78.25,31.23],[78.38,31.28],[78.49,31.2],[78.62,31.23],[78.81,31.2],[78.9,31.1],[79.01,31.11],[78.92,31.25],[78.84,31.33],[78.81,31.45],[78.74,31.54],[78.84,31.62],[78.75,31.69],[78.71,31.79],[78.75,32],[78.59,32.15],[78.61,32.21],[78.48,32.27],[78.54,32.41],[78.4,32.53]]]},"properties":{"n":"Himachal Pradesh"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[78.4,32.53],[78.54,32.61],[78.62,32.6],[78.75,32.68],[78.83,32.44],[78.96,32.37],[79.12,32.38],[79.34,32.59],[79.45,32.53],[79.63,32.74],[79.46,32.92],[79.38,32.97],[79.38,33.08],[79.45,33.26],[78.99,33.33],[78.93,33.43],[78.92,33.63],[79.02,33.71],[79.02,33.78],[78.91,33.98],[79.01,34.05],[79.38,34.03],[79.58,34.24],[79.58,34.49],[79.79,34.49],[79.77,34.62],[79.86,34.69],[80.07,34.71],[80.07,34.83],[80.17,34.99],[80.18,35.17],[80.33,35.47],[80.29,35.6],[80.12,35.68],[80,35.84],[79.87,35.78],[79.75,35.8],[79.43,35.9],[79.39,35.99],[79.24,35.99],[79.12,35.84],[78.94,35.88],[78.66,35.85],[78.52,35.76],[78.27,35.72],[78.14,35.54],[77.97,35.57],[77.91,35.47],[77.52,35.49],[77.44,35.64],[77.36,35.72],[77.22,35.71],[77.12,35.8],[76.94,35.78],[76.8,35.85],[76.72,35.95],[76.8,36.05],[76.7,36.14],[76.48,36.21],[76.35,36.36],[76.25,36.35],[76.07,36.48],[75.92,36.5],[75.75,36.59],[75.62,36.76],[75.48,36.81],[75.35,37],[75.26,37.05],[75.14,36.96],[75.02,36.98],[74.91,36.91],[74.83,37.02],[74.71,37.08],[74.53,36.99],[74.43,36.99],[74.26,36.89],[74.05,36.81],[73.88,36.89],[73.71,36.91],[73.73,36.83],[73.86,36.79],[73.9,36.71],[73.7,36.68],[73.44,36.74],[73.08,36.68],[73.06,36.54],[72.88,36.44],[72.78,36.31],[72.6,36.26],[72.53,36.07],[72.6,36.03],[72.53,35.92],[72.69,35.83],[72.9,35.88],[72.93,35.85],[73.15,35.84],[73.14,35.72],[73.41,35.56],[73.64,35.57],[73.79,35.52],[73.8,35.46],[73.7,35.36],[73.78,35.24],[74.05,35.15],[74.07,34.94],[74.03,34.88],[73.77,34.8],[73.62,34.59],[73.45,34.57],[73.4,34.36],[73.49,34.22],[73.51,34.01],[73.59,33.9],[73.56,33.68],[73.62,33.58],[73.56,33.37],[73.66,33.21],[73.69,33.09],[73.82,33.01],[73.96,32.99],[74.06,32.91],[74.18,32.88],[74.38,32.76],[74.45,32.78],[74.65,32.7],[74.68,32.49],[74.86,32.48],[74.95,32.44],[75.03,32.49],[75.34,32.34],[75.48,32.32],[75.73,32.42],[75.89,32.58],[75.94,32.64],[75.93,32.76],[75.8,32.89],[75.95,32.88],[76.11,33],[76.25,33.03],[76.4,33.18],[76.57,33.21],[76.64,33.16],[76.82,33.17],[76.94,33.03],[77.15,32.98],[77.18,32.91],[77.34,32.82],[77.6,32.94],[77.73,32.97],[77.78,32.86],[77.94,32.75],[77.99,32.59],[78.11,32.66],[78.31,32.71],[78.41,32.62],[78.4,32.53]]]},"properties":{"n":"Jammu & Kashmir"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[87.79,25.22],[87.69,25.31],[87.57,25.33],[87.48,25.24],[87.33,25.22],[87.3,25.09],[87.18,25.06],[87.15,24.86],[87.08,24.81],[87.05,24.62],[86.94,24.63],[86.86,24.55],[86.8,24.62],[86.67,24.56],[86.61,24.6],[86.42,24.38],[86.32,24.51],[86.3,24.59],[86.13,24.61],[86.11,24.74],[85.96,24.73],[85.88,24.8],[85.78,24.8],[85.67,24.67],[85.67,24.58],[85.29,24.52],[85.18,24.43],[85.04,24.43],[84.91,24.37],[84.83,24.52],[84.46,24.34],[84.34,24.4],[84.33,24.49],[84.18,24.54],[84.12,24.48],[84,24.64],[83.88,24.53],[83.87,24.54],[83.79,24.52],[83.76,24.51],[83.51,24.53],[83.4,24.5],[83.44,24.35],[83.33,24.1],[83.52,24.02],[83.59,23.86],[83.74,23.75],[83.78,23.6],[83.95,23.62],[83.96,23.62],[84.01,23.63],[84.03,23.54],[83.97,23.37],[84.08,23.33],[84.04,23.15],[84.22,22.98],[84.38,22.98],[84.24,22.69],[84.09,22.64],[84.01,22.52],[84.14,22.47],[84.2,22.37],[84.3,22.34],[84.43,22.35],[84.51,22.42],[84.89,22.42],[85.06,22.48],[85.11,22.29],[85.03,22.16],[85.22,22.05],[85.37,22.16],[85.6,22.08],[85.78,22.04],[85.9,21.98],[86.03,22.19],[85.98,22.25],[86.03,22.39],[85.96,22.46],[86.11,22.49],[86.29,22.43],[86.43,22.31],[86.51,22.34],[86.73,22.22],[86.83,22.26],[86.85,22.4],[86.76,22.58],[86.66,22.58],[86.64,22.66],[86.42,22.78],[86.44,22.92],[86.4,22.98],[86.22,22.99],[86.04,23.15],[85.92,23.13],[85.84,23.19],[85.87,23.45],[86.05,23.49],[86.14,23.57],[86.23,23.44],[86.36,23.47],[86.36,23.55],[86.45,23.63],[86.53,23.63],[86.72,23.7],[86.8,23.69],[86.9,23.88],[87.15,23.8],[87.3,23.89],[87.34,24.03],[87.44,23.98],[87.5,24.12],[87.58,24.16],[87.69,24.15],[87.69,24.25],[87.8,24.38],[87.8,24.56],[87.89,24.56],[87.91,24.72],[87.84,24.74],[87.97,24.94],[87.78,25.1],[87.79,25.22]]]},"properties":{"n":"Jharkhand"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[77.55,18.29],[77.41,18.3],[77.4,18.4],[77.24,18.41],[77.21,18.28],[77.06,18.15],[76.96,18.19],[76.95,18.04],[76.69,17.71],[76.52,17.76],[76.42,17.61],[76.33,17.6],[76.38,17.31],[76.23,17.37],[76.12,17.37],[75.93,17.33],[75.63,17.48],[75.6,17.3],[75.67,17.12],[75.67,16.99],[75.49,16.95],[75.47,16.99],[75.28,16.96],[75.23,16.84],[75,16.95],[74.91,16.86],[74.91,16.79],[74.77,16.75],[74.57,16.55],[74.49,16.63],[74.27,16.52],[74.33,16.45],[74.34,16.29],[74.5,16.22],[74.43,15.95],[74.36,15.88],[74.34,15.77],[74.16,15.75],[74.12,15.65],[74.25,15.66],[74.25,15.49],[74.34,15.3],[74.27,15.1],[74.3,15.04],[74.24,14.95],[74.09,14.9],[74.11,14.79],[74.26,14.72],[74.28,14.62],[74.4,14.41],[74.52,13.99],[74.61,13.84],[74.67,13.6],[74.71,13.29],[74.81,12.89],[74.86,12.76],[75.01,12.79],[75.05,12.66],[75.2,12.63],[75.38,12.39],[75.58,12.16],[75.72,12.07],[75.8,12.08],[75.88,11.95],[75.98,11.93],[76.11,11.98],[76.19,11.87],[76.43,11.67],[76.51,11.71],[76.56,11.62],[76.86,11.61],[76.84,11.66],[76.91,11.79],[77.01,11.81],[77.11,11.77],[77.25,11.81],[77.44,11.78],[77.5,11.94],[77.67,11.96],[77.78,12.12],[77.74,12.18],[77.48,12.21],[77.61,12.36],[77.64,12.49],[77.61,12.63],[77.76,12.7],[77.84,12.87],[77.99,12.82],[78.08,12.84],[78.23,12.76],[78.25,12.86],[78.36,12.94],[78.47,12.97],[78.58,13.28],[78.37,13.36],[78.39,13.59],[78.26,13.58],[78.16,13.66],[78.11,13.86],[77.92,13.91],[77.54,13.71],[77.43,13.83],[77.25,13.9],[77.17,13.82],[77.04,13.78],[76.97,13.82],[77.04,13.93],[76.95,14.12],[77.14,14],[77.39,14.01],[77.4,14.17],[77.52,14.18],[77.51,14.27],[77.4,14.34],[77.29,14.28],[77.16,14.34],[77.06,14.25],[76.94,14.25],[76.87,14.48],[76.77,14.6],[76.84,14.79],[76.87,14.97],[76.77,14.97],[76.8,15.1],[76.88,15.03],[77.11,15.03],[77.17,15.17],[77.15,15.29],[77.04,15.36],[77.03,15.63],[77.08,15.91],[77.25,15.96],[77.51,15.93],[77.49,16.25],[77.52,16.37],[77.42,16.37],[77.29,16.41],[77.46,16.61],[77.42,16.67],[77.48,16.8],[77.46,16.91],[77.5,17.01],[77.47,17.11],[77.38,17.14],[77.38,17.22],[77.46,17.35],[77.52,17.37],[77.66,17.52],[77.44,17.58],[77.46,17.7],[77.54,17.73],[77.53,17.83],[77.66,17.97],[77.61,18.02],[77.6,18.15],[77.55,18.29]]]},"properties":{"n":"Karnataka"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[76.43,11.67],[76.19,11.87],[76.11,11.98],[75.98,11.93],[75.88,11.95],[75.8,12.08],[75.72,12.07],[75.58,12.16],[75.38,12.39],[75.2,12.63],[75.05,12.66],[75.01,12.79],[74.86,12.76],[74.98,12.49],[75.09,12.29],[75.2,12.02],[75.53,11.71],[75.54,11.69],[75.62,11.48],[75.74,11.36],[75.83,11.11],[75.9,10.8],[76.1,10.36],[76.2,10.05],[76.24,9.97],[76.34,9.42],[76.52,9],[76.61,8.86],[76.89,8.5],[77.1,8.29],[77.28,8.55],[77.19,8.74],[77.27,8.84],[77.15,9.02],[77.27,9.15],[77.28,9.3],[77.4,9.47],[77.36,9.59],[77.24,9.58],[77.18,9.66],[77.22,9.73],[77.28,9.97],[77.26,10.26],[77.18,10.36],[76.99,10.23],[76.83,10.3],[76.84,10.59],[76.91,10.78],[76.83,10.87],[76.66,10.94],[76.75,11.12],[76.52,11.27],[76.55,11.36],[76.37,11.45],[76.27,11.48],[76.31,11.57],[76.43,11.67]],[[75.53,11.73],[75.54,11.75],[75.53,11.75],[75.53,11.76],[75.54,11.76],[75.55,11.75],[75.55,11.74],[75.56,11.73],[75.56,11.72],[75.55,11.72],[75.54,11.71],[75.53,11.72],[75.53,11.73]]]},"properties":{"n":"Kerala"}},{"type":"Feature","geometry":{"type":"MultiPolygon","coordinates":[[[[74.1,11.2],[74.09,11.3],[73.99,11.35],[74.01,11.24],[74.1,11.2]]],[[[71.84,11.84],[71.79,12],[71.73,11.96],[71.78,11.84],[71.84,11.84]]]]},"properties":{"n":"Lakshadweep"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[82.82,23.96],[82.72,24.08],[82.77,24.29],[82.72,24.56],[82.77,24.64],[82.67,24.7],[82.54,24.65],[82.43,24.7],[82.42,24.6],[82.31,24.63],[82.22,24.8],[82.12,24.79],[81.91,24.88],[81.91,24.98],[81.66,25.07],[81.54,25.18],[81.49,25.07],[81.36,25.16],[81.17,24.95],[80.86,24.93],[80.88,25.07],[80.76,25.14],[80.68,25.05],[80.59,25.08],[80.48,24.99],[80.36,25.14],[80.41,25.22],[80.32,25.28],[80.32,25.39],[80.2,25.4],[80.14,25.34],[80.03,25.34],[80.01,25.27],[79.85,25.23],[79.84,25.1],[79.56,25.16],[79.5,25.08],[79.4,25.12],[79.14,25.11],[79.03,25.23],[78.87,25.18],[78.8,25.29],[78.94,25.42],[78.95,25.53],[78.61,25.41],[78.53,25.28],[78.65,25.06],[78.63,24.96],[78.77,24.86],[78.76,24.6],[78.89,24.64],[78.95,24.55],[78.97,24.35],[78.86,24.21],[78.79,24.18],[78.58,24.35],[78.51,24.39],[78.37,24.37],[78.27,24.44],[78.27,24.66],[78.18,24.88],[78.33,24.99],[78.39,25.19],[78.34,25.33],[78.34,25.43],[78.43,25.47],[78.49,25.58],[78.66,25.56],[78.8,25.61],[78.77,25.72],[78.82,25.83],[79.01,26.08],[79.01,26.15],[79.13,26.35],[79.01,26.55],[78.99,26.68],[78.87,26.7],[78.72,26.79],[78.57,26.75],[78.39,26.82],[78.22,26.83],[78.1,26.78],[78.1,26.68],[78,26.7],[77.82,26.55],[77.68,26.5],[77.53,26.41],[77.43,26.4],[77.27,26.27],[77.12,26.23],[77.12,26.22],[76.85,26.04],[76.85,26.03],[76.74,25.9],[76.65,25.9],[76.53,25.79],[76.53,25.53],[76.61,25.38],[76.78,25.31],[76.96,25.29],[77.08,25.33],[77.16,25.31],[77.31,25.43],[77.41,25.22],[77.39,25.12],[77.31,25.08],[77.17,25.11],[77.08,25.05],[76.99,25.07],[76.87,25.01],[76.95,24.87],[76.85,24.77],[77.02,24.71],[77.05,24.52],[76.96,24.46],[76.86,24.46],[76.84,24.36],[76.95,24.19],[76.9,24.13],[76.79,24.12],[76.62,24.26],[76.53,24.16],[76.47,24.22],[76.36,24.24],[76.13,24.2],[76.14,24.09],[75.96,24.02],[75.98,23.93],[75.65,23.8],[75.46,23.92],[75.52,24.05],[75.7,23.97],[75.78,24.06],[75.75,24.14],[75.82,24.3],[75.74,24.4],[75.91,24.44],[75.93,24.53],[75.86,24.61],[75.84,24.73],[75.74,24.76],[75.62,24.68],[75.45,24.69],[75.23,24.73],[75.3,24.81],[75.34,24.96],[75.31,25.04],[75.16,25.03],[75.12,24.89],[75.05,24.86],[74.83,24.9],[74.86,24.81],[75.01,24.79],[75,24.71],[74.87,24.67],[74.82,24.76],[74.71,24.51],[74.72,24.51],[74.86,24.45],[74.76,24.28],[74.77,24.27],[74.88,24.27],[74.9,24.17],[74.99,24.03],[74.91,23.87],[74.94,23.73],[74.85,23.55],[74.61,23.46],[74.53,23.32],[74.67,23.2],[74.53,23.1],[74.39,23.11],[74.32,23.06],[74.38,22.91],[74.46,22.81],[74.38,22.64],[74.28,22.65],[74.21,22.57],[74.08,22.51],[74.1,22.43],[74.23,22.44],[74.19,22.34],[74.07,22.36],[74.12,22.21],[74.14,21.95],[74.29,21.93],[74.38,22.02],[74.52,21.91],[74.51,21.72],[74.59,21.66],[74.82,21.61],[74.86,21.63],[75.06,21.56],[75.1,21.47],[75.22,21.41],[75.55,21.37],[75.62,21.39],[75.97,21.39],[76.1,21.37],[76.16,21.26],[76.18,21.09],[76.38,21.08],[76.49,21.2],[76.62,21.19],[76.63,21.33],[76.79,21.49],[76.8,21.6],[76.89,21.6],[77.07,21.72],[77.21,21.69],[77.28,21.76],[77.5,21.75],[77.56,21.67],[77.57,21.53],[77.44,21.47],[77.56,21.4],[77.67,21.37],[77.9,21.38],[78.17,21.5],[78.19,21.56],[78.43,21.6],[78.63,21.48],[78.94,21.49],[78.98,21.62],[79.11,21.61],[79.24,21.71],[79.49,21.67],[79.58,21.54],[79.74,21.6],[79.86,21.53],[80.07,21.55],[80.19,21.63],[80.27,21.62],[80.38,21.52],[80.46,21.4],[80.6,21.33],[80.66,21.33],[80.74,21.47],[80.71,21.67],[80.82,21.75],[80.84,21.95],[80.92,22.12],[81.12,22.29],[81.12,22.44],[81.19,22.49],[81.2,22.47],[81.33,22.52],[81.48,22.49],[81.49,22.49],[81.62,22.54],[81.69,22.65],[81.77,22.68],[81.78,22.87],[81.95,22.96],[81.95,23.08],[82.12,23.1],[82.2,23.32],[82.11,23.4],[81.98,23.41],[81.98,23.42],[81.92,23.53],[81.83,23.51],[81.74,23.56],[81.61,23.51],[81.62,23.66],[81.69,23.72],[81.61,23.85],[81.71,23.86],[81.82,23.81],[81.96,23.85],[81.97,23.86],[82.05,23.82],[82.21,23.83],[82.55,23.79],[82.66,23.91],[82.82,23.96]]]},"properties":{"n":"Madhya Pradesh"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[80.66,21.33],[80.6,21.33],[80.46,21.4],[80.38,21.52],[80.27,21.62],[80.19,21.63],[80.07,21.55],[79.86,21.53],[79.74,21.6],[79.58,21.54],[79.49,21.67],[79.24,21.71],[79.11,21.61],[78.98,21.62],[78.94,21.49],[78.63,21.48],[78.43,21.6],[78.19,21.56],[78.17,21.5],[77.9,21.38],[77.67,21.37],[77.56,21.4],[77.44,21.47],[77.57,21.53],[77.56,21.67],[77.5,21.75],[77.28,21.76],[77.21,21.69],[77.07,21.72],[76.89,21.6],[76.8,21.6],[76.79,21.49],[76.63,21.33],[76.62,21.19],[76.49,21.2],[76.38,21.08],[76.18,21.09],[76.16,21.26],[76.1,21.37],[75.97,21.39],[75.62,21.39],[75.55,21.37],[75.22,21.41],[75.1,21.47],[75.06,21.56],[74.86,21.63],[74.82,21.61],[74.59,21.66],[74.51,21.72],[74.52,21.91],[74.38,22.02],[74.29,21.93],[74.14,21.95],[73.82,21.81],[73.88,21.71],[73.82,21.6],[73.86,21.49],[74.06,21.56],[74.29,21.56],[74.3,21.48],[74.05,21.45],[73.96,21.39],[73.94,21.3],[73.83,21.27],[73.79,21.07],[73.94,20.84],[73.93,20.77],[73.84,20.7],[73.84,20.62],[73.74,20.57],[73.45,20.71],[73.43,20.59],[73.47,20.49],[73.41,20.38],[73.42,20.2],[73.3,20.21],[73.21,20.12],[73.21,20.11],[73.2,20.09],[73.17,20.06],[73.15,20.07],[73.13,20.08],[73.12,20.08],[73.11,20.08],[73.09,20.09],[73.08,20.09],[73.04,20.07],[73.03,20.08],[73.01,20.11],[73,20.13],[73.01,20.14],[73,20.14],[73,20.12],[72.99,20.12],[72.96,20.13],[72.98,20.16],[72.98,20.18],[72.97,20.18],[72.96,20.21],[72.87,20.23],[72.73,20.14],[72.7,20.08],[72.73,19.91],[72.64,19.84],[72.72,19.62],[72.82,19.12],[72.81,18.89],[72.86,18.8],[72.85,18.69],[72.91,18.58],[72.89,18.46],[72.97,18.13],[73.03,17.94],[73.14,17.72],[73.14,17.55],[73.28,17.11],[73.28,16.89],[73.35,16.62],[73.31,16.54],[73.47,16.1],[73.49,15.97],[73.59,15.91],[73.68,15.73],[73.78,15.73],[73.86,15.8],[73.94,15.74],[73.99,15.61],[74.12,15.65],[74.16,15.75],[74.34,15.77],[74.36,15.88],[74.43,15.95],[74.5,16.22],[74.34,16.29],[74.33,16.45],[74.27,16.52],[74.49,16.63],[74.57,16.55],[74.77,16.75],[74.91,16.79],[74.91,16.86],[75,16.95],[75.23,16.84],[75.28,16.96],[75.47,16.99],[75.49,16.95],[75.67,16.99],[75.67,17.12],[75.6,17.3],[75.63,17.48],[75.93,17.33],[76.12,17.37],[76.23,17.37],[76.38,17.31],[76.33,17.6],[76.42,17.61],[76.52,17.76],[76.69,17.71],[76.95,18.04],[76.96,18.19],[77.06,18.15],[77.21,18.28],[77.24,18.41],[77.4,18.4],[77.41,18.3],[77.55,18.29],[77.59,18.44],[77.75,18.59],[77.84,18.81],[77.9,18.87],[77.86,18.95],[77.77,18.98],[77.77,19.06],[77.85,19.12],[77.86,19.3],[77.95,19.34],[78.05,19.27],[78.19,19.24],[78.19,19.4],[78.31,19.46],[78.32,19.6],[78.4,19.84],[78.85,19.76],[78.86,19.66],[78.97,19.65],[79.02,19.54],[79.19,19.46],[79.26,19.61],[79.48,19.5],[79.55,19.55],[79.78,19.6],[79.92,19.5],[79.98,19.4],[79.86,19.11],[79.93,19.05],[79.94,18.79],[80.02,18.77],[80.11,18.68],[80.27,18.72],[80.35,18.82],[80.27,18.99],[80.39,19.18],[80.4,19.25],[80.57,19.4],[80.61,19.32],[80.76,19.29],[80.85,19.36],[80.8,19.43],[80.89,19.52],[80.73,19.61],[80.67,19.7],[80.55,19.78],[80.5,19.9],[80.55,19.98],[80.53,20.13],[80.46,20.15],[80.39,20.24],[80.62,20.33],[80.62,20.59],[80.55,20.79],[80.54,20.93],[80.43,21.01],[80.46,21.17],[80.65,21.26],[80.66,21.33]]]},"properties":{"n":"Maharashtra"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[94.68,25.45],[94.42,25.55],[94.3,25.49],[94.09,25.53],[94.01,25.57],[93.84,25.56],[93.78,25.42],[93.61,25.2],[93.47,25.31],[93.4,25.26],[93.34,25.09],[93.25,25],[93.25,24.92],[93.19,24.8],[93.11,24.8],[93.1,24.58],[93,24.4],[93.03,24.32],[92.98,24.13],[93.13,24.06],[93.34,24.05],[93.41,24.08],[93.47,23.97],[93.61,24.01],[93.76,24],[93.81,23.93],[94.02,23.93],[94.16,23.85],[94.24,24.04],[94.26,24.16],[94.46,24.57],[94.55,24.71],[94.61,24.72],[94.64,24.84],[94.74,25.02],[94.74,25.13],[94.6,25.19],[94.6,25.28],[94.68,25.45]]]},"properties":{"n":"Manipur"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[92.44,25.03],[92.53,25.14],[92.62,25.12],[92.75,25.21],[92.79,25.28],[92.65,25.43],[92.59,25.55],[92.42,25.74],[92.24,25.71],[92.15,25.81],[92.17,25.96],[92.14,26.04],[91.89,26.03],[91.82,26.12],[91.73,26.06],[91.72,25.95],[91.63,25.94],[91.57,26.03],[91.48,25.86],[91.47,25.86],[91.34,25.83],[91.23,25.72],[91.16,25.85],[91.07,25.83],[90.96,25.93],[90.74,25.91],[90.54,25.96],[90.48,26.02],[90.33,25.97],[90.12,25.96],[89.9,25.73],[90.01,25.58],[89.89,25.56],[89.86,25.48],[89.82,25.37],[90.12,25.22],[90.51,25.17],[90.91,25.16],[91.27,25.21],[91.5,25.13],[91.61,25.17],[92.08,25.19],[92.23,25.1],[92.44,25.03]]]},"properties":{"n":"Meghalaya"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[93,24.4],[92.83,24.4],[92.76,24.52],[92.69,24.35],[92.53,24.17],[92.44,24.15],[92.42,24.25],[92.3,24.25],[92.32,24.2],[92.33,23.91],[92.26,23.81],[92.27,23.72],[92.39,23.26],[92.36,23.23],[92.4,23.05],[92.38,22.93],[92.46,22.87],[92.52,22.7],[92.61,22.13],[92.71,22.15],[92.89,22.01],[93,22.05],[93.05,22.2],[93.16,22.18],[93.2,22.28],[93.19,22.42],[93.13,22.47],[93.14,22.58],[93.1,22.7],[93.1,22.81],[93.16,22.91],[93.13,23.04],[93.3,23],[93.36,23.07],[93.39,23.22],[93.38,23.33],[93.43,23.58],[93.4,23.93],[93.34,24.05],[93.13,24.06],[92.98,24.13],[93.03,24.32],[93,24.4]]]},"properties":{"n":"Mizoram"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[95.24,26.68],[95.18,26.86],[95.23,26.88],[95.2,27.04],[95.09,26.95],[94.89,26.93],[94.8,26.8],[94.69,26.73],[94.55,26.71],[94.41,26.61],[94.4,26.52],[94.19,26.46],[94.01,26.18],[93.95,26],[93.98,25.92],[93.78,25.84],[93.71,25.85],[93.57,25.75],[93.48,25.64],[93.33,25.55],[93.46,25.44],[93.47,25.31],[93.61,25.2],[93.78,25.42],[93.84,25.56],[94.01,25.57],[94.09,25.53],[94.3,25.49],[94.42,25.55],[94.68,25.45],[94.81,25.49],[94.93,25.66],[95.05,25.76],[95.01,25.87],[95.18,26.08],[95.13,26.09],[95.14,26.38],[95.07,26.46],[95.24,26.68]]]},"properties":{"n":"Nagaland"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[77.2,28.86],[77.06,28.87],[76.95,28.82],[76.96,28.68],[76.84,28.58],[76.89,28.52],[77.03,28.53],[77.24,28.46],[77.35,28.5],[77.31,28.56],[77.34,28.68],[77.2,28.8],[77.2,28.86]]]},"properties":{"n":"NCT of Delhi"}},{"type":"Feature","geometry":{"type":"MultiPolygon","coordinates":[[[[79.79,10.99],[79.76,11],[79.75,11],[79.75,10.99],[79.76,10.98],[79.76,10.97],[79.76,10.96],[79.73,10.97],[79.72,10.97],[79.72,10.95],[79.73,10.95],[79.74,10.96],[79.74,10.95],[79.73,10.94],[79.72,10.93],[79.73,10.93],[79.74,10.93],[79.74,10.92],[79.75,10.92],[79.74,10.91],[79.76,10.91],[79.76,10.9],[79.84,10.83],[79.85,10.99],[79.84,10.99],[79.84,11],[79.79,10.98],[79.79,10.99]]],[[[75.56,11.73],[75.55,11.74],[75.55,11.75],[75.54,11.76],[75.53,11.76],[75.53,11.75],[75.54,11.75],[75.53,11.73],[75.53,11.72],[75.54,11.71],[75.55,11.72],[75.56,11.72],[75.56,11.73]]],[[[79.75,11.84],[79.73,11.84],[79.73,11.82],[79.73,11.81],[79.72,11.8],[79.71,11.79],[79.76,11.78],[79.76,11.79],[79.78,11.78],[79.8,11.78],[79.8,11.84],[79.79,11.83],[79.8,11.83],[79.76,11.83],[79.75,11.84]]],[[[79.67,11.81],[79.67,11.82],[79.66,11.83],[79.66,11.84],[79.64,11.82],[79.65,11.82],[79.67,11.81]]],[[[79.64,11.88],[79.63,11.89],[79.6,11.88],[79.6,11.86],[79.62,11.86],[79.63,11.85],[79.66,11.86],[79.66,11.87],[79.65,11.87],[79.65,11.88],[79.64,11.89],[79.64,11.88]]],[[[79.69,11.97],[79.66,11.97],[79.66,11.96],[79.65,11.96],[79.68,11.95],[79.69,11.97]]],[[[79.63,12.03],[79.62,12.01],[79.62,12],[79.62,11.99],[79.62,11.97],[79.63,11.95],[79.63,11.94],[79.62,11.94],[79.62,11.92],[79.63,11.9],[79.66,11.91],[79.67,11.91],[79.67,11.92],[79.67,11.93],[79.66,11.94],[79.66,11.95],[79.64,11.94],[79.65,11.95],[79.65,11.96],[79.64,11.97],[79.64,11.99],[79.65,12.02],[79.63,12.03]]],[[[79.71,12.01],[79.71,12.03],[79.66,12.01],[79.66,12],[79.66,11.99],[79.71,11.98],[79.72,11.97],[79.69,11.95],[79.71,11.93],[79.72,11.93],[79.73,11.9],[79.73,11.89],[79.72,11.89],[79.72,11.92],[79.69,11.91],[79.7,11.9],[79.69,11.89],[79.67,11.89],[79.69,11.88],[79.71,11.89],[79.71,11.87],[79.72,11.85],[79.72,11.86],[79.74,11.85],[79.75,11.85],[79.76,11.87],[79.77,11.87],[79.77,11.86],[79.77,11.85],[79.76,11.85],[79.77,11.84],[79.78,11.85],[79.83,11.95],[79.81,11.97],[79.81,11.96],[79.76,11.94],[79.76,11.92],[79.75,11.92],[79.75,11.94],[79.73,11.97],[79.77,11.99],[79.72,11.99],[79.72,12],[79.71,12.01]],[[79.77,11.89],[79.77,11.9],[79.78,11.9],[79.79,11.9],[79.8,11.9],[79.79,11.88],[79.78,11.87],[79.78,11.88],[79.77,11.89]]],[[[79.84,12.01],[79.88,12.04],[79.85,12.05],[79.84,12.03],[79.84,12.01]]]]},"properties":{"n":"Puducherry"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[76.74,30.94],[76.62,31],[76.65,31.21],[76.44,31.32],[76.34,31.34],[76.22,31.3],[75.94,31.82],[75.91,31.95],[75.63,32.1],[75.64,32.23],[75.75,32.27],[75.94,32.41],[75.87,32.5],[75.89,32.58],[75.73,32.42],[75.48,32.32],[75.34,32.34],[75.28,32.12],[75.01,32.04],[74.94,32.07],[74.82,31.96],[74.67,31.91],[74.49,31.72],[74.59,31.52],[74.65,31.46],[74.55,31.37],[74.52,31.14],[74.57,31.05],[74.33,30.85],[74.07,30.52],[73.97,30.49],[73.91,30.35],[73.98,30.2],[73.9,29.97],[74.29,29.96],[74.3,29.96],[74.33,29.95],[74.53,29.94],[74.6,29.91],[74.81,29.99],[74.93,29.94],[75,29.85],[75.24,29.75],[75.23,29.6],[75.45,29.78],[75.68,29.77],[75.83,29.81],[75.87,29.75],[76.05,29.75],[76.21,29.84],[76.22,29.84],[76.21,30.03],[76.26,30.12],[76.44,30.14],[76.55,30.08],[76.64,30.15],[76.6,30.25],[76.75,30.36],[76.88,30.4],[76.93,30.5],[76.93,30.6],[76.83,30.68],[76.76,30.69],[76.75,30.69],[76.74,30.69],[76.74,30.7],[76.74,30.71],[76.73,30.71],[76.73,30.72],[76.7,30.76],[76.73,30.77],[76.74,30.78],[76.75,30.78],[76.75,30.79],[76.76,30.79],[76.79,30.78],[76.8,30.78],[76.81,30.78],[76.81,30.76],[76.83,30.76],[76.84,30.76],[76.78,30.9],[76.74,30.94]]]},"properties":{"n":"Punjab"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[74.29,29.96],[73.9,29.97],[73.98,30.2],[73.8,30.07],[73.62,30.02],[73.39,29.93],[73.27,29.55],[72.95,29.03],[72.75,28.95],[72.41,28.78],[72.31,28.69],[72.21,28.39],[72,28.21],[71.93,28.13],[71.9,27.96],[71.66,27.88],[71.41,27.87],[71.21,27.83],[70.91,27.71],[70.77,27.72],[70.69,27.83],[70.68,27.92],[70.59,28.01],[70.37,28.01],[70.13,27.81],[70.02,27.56],[69.87,27.41],[69.59,27.18],[69.52,27.01],[69.48,26.81],[69.51,26.74],[69.88,26.58],[70.05,26.6],[70.17,26.55],[70.17,26.23],[70.09,26.09],[70.1,25.94],[70.28,25.71],[70.39,25.67],[70.59,25.71],[70.67,25.67],[70.67,25.4],[70.89,25.15],[70.94,24.94],[71.1,24.69],[71.29,24.61],[71.48,24.68],[71.65,24.64],[71.78,24.67],[72.08,24.66],[72.29,24.54],[72.35,24.55],[72.46,24.41],[72.54,24.51],[72.65,24.46],[72.73,24.36],[72.97,24.36],[72.98,24.45],[73.18,24.33],[73.08,24.18],[73.22,24.1],[73.41,24.05],[73.42,23.92],[73.36,23.85],[73.4,23.78],[73.57,23.65],[73.66,23.62],[73.63,23.45],[73.82,23.45],[73.89,23.34],[74,23.33],[74.02,23.33],[74.13,23.26],[74.12,23.18],[74.25,23.18],[74.32,23.06],[74.39,23.11],[74.53,23.1],[74.67,23.2],[74.53,23.32],[74.61,23.46],[74.85,23.55],[74.94,23.73],[74.91,23.87],[74.99,24.03],[74.9,24.17],[74.88,24.27],[74.77,24.27],[74.76,24.28],[74.86,24.45],[74.72,24.51],[74.71,24.51],[74.82,24.76],[74.87,24.67],[75,24.71],[75.01,24.79],[74.86,24.81],[74.83,24.9],[75.05,24.86],[75.12,24.89],[75.16,25.03],[75.31,25.04],[75.34,24.96],[75.3,24.81],[75.23,24.73],[75.45,24.69],[75.62,24.68],[75.74,24.76],[75.84,24.73],[75.86,24.61],[75.93,24.53],[75.91,24.44],[75.74,24.4],[75.82,24.3],[75.75,24.14],[75.78,24.06],[75.7,23.97],[75.52,24.05],[75.46,23.92],[75.65,23.8],[75.98,23.93],[75.96,24.02],[76.14,24.09],[76.13,24.2],[76.36,24.24],[76.47,24.22],[76.53,24.16],[76.62,24.26],[76.79,24.12],[76.9,24.13],[76.95,24.19],[76.84,24.36],[76.86,24.46],[76.96,24.46],[77.05,24.52],[77.02,24.71],[76.85,24.77],[76.95,24.87],[76.87,25.01],[76.99,25.07],[77.08,25.05],[77.17,25.11],[77.31,25.08],[77.39,25.12],[77.41,25.22],[77.31,25.43],[77.16,25.31],[77.08,25.33],[76.96,25.29],[76.78,25.31],[76.61,25.38],[76.53,25.53],[76.53,25.79],[76.65,25.9],[76.74,25.9],[76.85,26.03],[76.85,26.04],[77.12,26.22],[77.12,26.23],[77.27,26.27],[77.43,26.4],[77.53,26.41],[77.68,26.5],[77.82,26.55],[78,26.7],[78.1,26.68],[78.1,26.78],[78.22,26.83],[78.24,26.93],[78.15,26.95],[78.05,26.91],[77.88,26.9],[77.77,26.93],[77.72,26.88],[77.53,26.82],[77.49,26.9],[77.7,26.97],[77.57,27.04],[77.55,27.11],[77.66,27.17],[77.58,27.32],[77.44,27.39],[77.35,27.52],[77.35,27.65],[77.28,27.8],[77.05,27.81],[76.98,27.65],[76.9,27.71],[76.94,27.83],[76.93,27.99],[76.97,28.14],[76.84,28.22],[76.8,28.15],[76.55,28.03],[76.48,28.14],[76.37,28.14],[76.16,27.99],[76.21,27.84],[75.98,27.86],[75.96,27.98],[76.06,28.22],[76.02,28.25],[76.03,28.28],[75.9,28.39],[75.64,28.54],[75.56,28.61],[75.5,28.86],[75.52,29.01],[75.44,29.01],[75.37,29.14],[75.39,29.26],[75.09,29.23],[74.96,29.28],[74.94,29.36],[74.78,29.36],[74.58,29.41],[74.61,29.75],[74.48,29.74],[74.56,29.87],[74.53,29.94],[74.33,29.95],[74.3,29.96],[74.29,29.96]]]},"properties":{"n":"Rajasthan"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[88.76,27.15],[88.81,27.25],[88.91,27.27],[88.79,27.46],[88.77,27.56],[88.85,27.67],[88.89,27.9],[88.76,28.07],[88.58,28.09],[88.4,27.98],[88.25,27.95],[88.15,27.67],[88.05,27.49],[88.06,27.33],[88.02,27.22],[88.16,27.11],[88.31,27.13],[88.44,27.08],[88.6,27.19],[88.76,27.15]]]},"properties":{"n":"Sikkim"}},{"type":"Feature","geometry":{"type":"MultiPolygon","coordinates":[[[[79.78,11.9],[79.77,11.9],[79.77,11.89],[79.78,11.88],[79.78,11.87],[79.79,11.88],[79.8,11.9],[79.79,11.9],[79.78,11.9]]],[[[79.7,11.88],[79.69,11.88],[79.67,11.89],[79.69,11.89],[79.7,11.9],[79.69,11.91],[79.72,11.92],[79.72,11.89],[79.73,11.89],[79.73,11.9],[79.72,11.93],[79.71,11.93],[79.69,11.95],[79.72,11.97],[79.71,11.98],[79.66,11.99],[79.66,12],[79.66,12.01],[79.71,12.03],[79.71,12.01],[79.72,12],[79.72,11.99],[79.77,11.99],[79.73,11.97],[79.75,11.94],[79.75,11.92],[79.76,11.92],[79.76,11.94],[79.81,11.96],[79.81,11.97],[79.83,11.95],[79.84,12.01],[79.84,12.03],[79.85,12.05],[79.88,12.04],[80.02,12.28],[80.14,12.43],[80.25,12.77],[80.26,12.94],[80.34,13.27],[80.27,13.56],[80.23,13.48],[80.02,13.5],[79.94,13.35],[79.68,13.25],[79.58,13.26],[79.55,13.32],[79.43,13.33],[79.43,13.2],[79.31,13.13],[79.24,13.15],[79.16,13.02],[78.99,13.09],[78.81,13.09],[78.63,12.98],[78.64,12.92],[78.56,12.71],[78.38,12.62],[78.24,12.7],[78.23,12.76],[78.08,12.84],[77.99,12.82],[77.84,12.87],[77.76,12.7],[77.61,12.63],[77.64,12.49],[77.61,12.36],[77.48,12.21],[77.74,12.18],[77.78,12.12],[77.67,11.96],[77.5,11.94],[77.44,11.78],[77.25,11.81],[77.11,11.77],[77.01,11.81],[76.91,11.79],[76.84,11.66],[76.86,11.61],[76.56,11.62],[76.51,11.71],[76.43,11.67],[76.31,11.57],[76.27,11.48],[76.37,11.45],[76.55,11.36],[76.52,11.27],[76.75,11.12],[76.66,10.94],[76.83,10.87],[76.91,10.78],[76.84,10.59],[76.83,10.3],[76.99,10.23],[77.18,10.36],[77.26,10.26],[77.28,9.97],[77.22,9.73],[77.18,9.66],[77.24,9.58],[77.36,9.59],[77.4,9.47],[77.28,9.3],[77.27,9.15],[77.15,9.02],[77.27,8.84],[77.19,8.74],[77.28,8.55],[77.1,8.29],[77.32,8.12],[77.56,8.08],[77.59,8.14],[77.73,8.17],[77.81,8.25],[78.04,8.36],[78.13,8.5],[78.13,8.64],[78.21,8.96],[78.42,9.11],[78.57,9.13],[78.67,9.19],[78.99,9.28],[78.99,9.35],[78.9,9.46],[78.93,9.59],[78.99,9.71],[79.26,10.04],[79.23,10.1],[79.28,10.24],[79.44,10.32],[79.8,10.27],[79.88,10.29],[79.84,10.83],[79.76,10.9],[79.76,10.91],[79.74,10.91],[79.75,10.92],[79.74,10.92],[79.74,10.93],[79.73,10.93],[79.72,10.93],[79.73,10.94],[79.74,10.95],[79.74,10.96],[79.73,10.95],[79.72,10.95],[79.72,10.97],[79.73,10.97],[79.76,10.96],[79.76,10.97],[79.76,10.98],[79.75,10.99],[79.75,11],[79.76,11],[79.79,10.99],[79.79,10.98],[79.84,11],[79.84,10.99],[79.85,10.99],[79.84,11.35],[79.76,11.54],[79.78,11.78],[79.76,11.79],[79.76,11.78],[79.71,11.79],[79.72,11.8],[79.73,11.81],[79.73,11.82],[79.73,11.84],[79.75,11.84],[79.76,11.83],[79.8,11.83],[79.79,11.83],[79.8,11.84],[79.78,11.85],[79.78,11.84],[79.77,11.84],[79.76,11.85],[79.77,11.85],[79.77,11.86],[79.77,11.87],[79.76,11.87],[79.75,11.85],[79.74,11.85],[79.72,11.86],[79.72,11.85],[79.71,11.87],[79.71,11.89],[79.7,11.88]],[[79.64,11.89],[79.65,11.88],[79.65,11.87],[79.66,11.87],[79.66,11.86],[79.63,11.85],[79.62,11.86],[79.6,11.86],[79.6,11.88],[79.63,11.89],[79.64,11.88],[79.64,11.89]],[[79.66,11.91],[79.63,11.9],[79.62,11.92],[79.62,11.94],[79.63,11.94],[79.63,11.95],[79.62,11.97],[79.62,11.99],[79.62,12],[79.62,12.01],[79.63,12.03],[79.65,12.02],[79.64,11.99],[79.64,11.97],[79.65,11.96],[79.65,11.95],[79.64,11.94],[79.66,11.95],[79.66,11.94],[79.67,11.93],[79.67,11.92],[79.67,11.91],[79.66,11.91]],[[79.66,11.97],[79.69,11.97],[79.68,11.95],[79.65,11.96],[79.66,11.96],[79.66,11.97]],[[79.67,11.81],[79.65,11.82],[79.64,11.82],[79.66,11.84],[79.66,11.83],[79.67,11.82],[79.67,11.81]]]]},"properties":{"n":"Tamil Nadu"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[80.27,18.72],[80.11,18.68],[80.02,18.77],[79.94,18.79],[79.93,19.05],[79.86,19.11],[79.98,19.4],[79.92,19.5],[79.78,19.6],[79.55,19.55],[79.48,19.5],[79.26,19.61],[79.19,19.46],[79.02,19.54],[78.97,19.65],[78.86,19.66],[78.85,19.76],[78.4,19.84],[78.32,19.6],[78.31,19.46],[78.19,19.4],[78.19,19.24],[78.05,19.27],[77.95,19.34],[77.86,19.3],[77.85,19.12],[77.77,19.06],[77.77,18.98],[77.86,18.95],[77.9,18.87],[77.84,18.81],[77.75,18.59],[77.59,18.44],[77.55,18.29],[77.6,18.15],[77.61,18.02],[77.66,17.97],[77.53,17.83],[77.54,17.73],[77.46,17.7],[77.44,17.58],[77.66,17.52],[77.52,17.37],[77.46,17.35],[77.38,17.22],[77.38,17.14],[77.47,17.11],[77.5,17.01],[77.46,16.91],[77.48,16.8],[77.42,16.67],[77.46,16.61],[77.29,16.41],[77.42,16.37],[77.52,16.37],[77.49,16.25],[77.51,15.93],[77.8,15.87],[77.89,15.9],[78.11,15.83],[78.25,15.94],[78.27,16.04],[78.41,16.09],[78.57,16.06],[78.64,16.1],[78.75,16.03],[78.93,16.13],[78.92,16.2],[79.03,16.25],[79.18,16.22],[79.23,16.26],[79.24,16.53],[79.27,16.57],[79.43,16.59],[79.78,16.74],[79.95,16.64],[80.06,16.75],[80,16.87],[80.05,16.97],[80.27,17.02],[80.33,16.88],[80.57,16.77],[80.59,16.93],[80.45,16.95],[80.51,17.11],[80.57,17.15],[80.69,17.08],[80.83,17.05],[80.91,17.21],[80.99,17.19],[81.17,17.24],[81.2,17.34],[81.39,17.36],[81.5,17.46],[81.51,17.6],[81.63,17.77],[81.8,17.85],[81.77,17.9],[81.62,17.82],[81.39,17.81],[81.17,17.86],[81.08,17.79],[81.01,17.85],[80.96,18.13],[80.98,18.16],[80.98,18.17],[80.87,18.14],[80.74,18.18],[80.79,18.25],[80.73,18.37],[80.64,18.52],[80.5,18.63],[80.35,18.59],[80.27,18.72]]]},"properties":{"n":"Telangana"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[92.23,24.5],[92.09,24.37],[91.97,24.38],[91.92,24.15],[91.83,24.21],[91.77,24.15],[91.55,24.08],[91.43,24.11],[91.36,23.99],[91.28,23.98],[91.23,23.89],[91.23,23.75],[91.16,23.75],[91.16,23.6],[91.25,23.49],[91.33,23.24],[91.46,23.26],[91.52,23.14],[91.55,23],[91.62,22.94],[91.72,22.99],[91.82,23.1],[91.79,23.31],[91.89,23.43],[91.98,23.48],[91.94,23.66],[92.08,23.65],[92.14,23.71],[92.27,23.72],[92.26,23.81],[92.33,23.91],[92.32,24.2],[92.3,24.25],[92.23,24.5]]]},"properties":{"n":"Tripura"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[80.07,28.83],[80,28.71],[79.85,28.8],[79.79,28.89],[79.68,28.84],[79.29,28.96],[79.08,29.15],[78.92,29.16],[78.88,29.24],[78.74,29.31],[78.87,29.38],[78.91,29.45],[78.71,29.5],[78.52,29.64],[78.5,29.74],[78.34,29.79],[77.99,29.55],[77.96,29.68],[77.85,29.67],[77.77,29.71],[77.72,29.86],[77.77,30.04],[77.91,30.18],[77.93,30.25],[77.58,30.4],[77.59,30.38],[77.58,30.31],[77.41,30.11],[77.28,30.04],[77.19,29.9],[77.1,29.53],[77.17,29.31],[77.14,29.1],[77.22,29],[77.2,28.86],[77.2,28.8],[77.34,28.68],[77.31,28.56],[77.35,28.5],[77.45,28.43],[77.55,28.19],[77.48,28.1],[77.53,27.93],[77.28,27.8],[77.35,27.65],[77.35,27.52],[77.44,27.39],[77.58,27.32],[77.66,27.17],[77.55,27.11],[77.57,27.04],[77.7,26.97],[77.49,26.9],[77.53,26.82],[77.72,26.88],[77.77,26.93],[77.88,26.9],[78.05,26.91],[78.15,26.95],[78.24,26.93],[78.22,26.83],[78.39,26.82],[78.57,26.75],[78.72,26.79],[78.87,26.7],[78.99,26.68],[79.01,26.55],[79.13,26.35],[79.01,26.15],[79.01,26.08],[78.82,25.83],[78.77,25.72],[78.8,25.61],[78.66,25.56],[78.49,25.58],[78.43,25.47],[78.34,25.43],[78.34,25.33],[78.39,25.19],[78.33,24.99],[78.18,24.88],[78.27,24.66],[78.27,24.44],[78.37,24.37],[78.51,24.39],[78.58,24.35],[78.79,24.18],[78.86,24.21],[78.97,24.35],[78.95,24.55],[78.89,24.64],[78.76,24.6],[78.77,24.86],[78.63,24.96],[78.65,25.06],[78.53,25.28],[78.61,25.41],[78.95,25.53],[78.94,25.42],[78.8,25.29],[78.87,25.18],[79.03,25.23],[79.14,25.11],[79.4,25.12],[79.5,25.08],[79.56,25.16],[79.84,25.1],[79.85,25.23],[80.01,25.27],[80.03,25.34],[80.14,25.34],[80.2,25.4],[80.32,25.39],[80.32,25.28],[80.41,25.22],[80.36,25.14],[80.48,24.99],[80.59,25.08],[80.68,25.05],[80.76,25.14],[80.88,25.07],[80.86,24.93],[81.17,24.95],[81.36,25.16],[81.49,25.07],[81.54,25.18],[81.66,25.07],[81.91,24.98],[81.91,24.88],[82.12,24.79],[82.22,24.8],[82.31,24.63],[82.42,24.6],[82.43,24.7],[82.54,24.65],[82.67,24.7],[82.77,24.64],[82.72,24.56],[82.77,24.29],[82.72,24.08],[82.82,23.96],[82.96,23.87],[83.14,23.89],[83.33,24.1],[83.44,24.35],[83.4,24.5],[83.51,24.53],[83.53,24.55],[83.54,24.61],[83.47,24.73],[83.39,24.78],[83.33,25.01],[83.36,25.2],[83.42,25.25],[83.79,25.4],[83.93,25.56],[84.08,25.64],[84.33,25.67],[84.39,25.73],[84.4,25.73],[84.52,25.68],[84.63,25.79],[84.54,25.88],[84.3,25.95],[84.06,26.1],[84.01,26.19],[84.17,26.26],[84.18,26.37],[84.07,26.39],[83.92,26.5],[84.06,26.54],[84.16,26.64],[84.28,26.6],[84.33,26.68],[84.24,26.87],[84.06,26.89],[84.03,27.04],[83.95,27.12],[84,27.18],[83.87,27.34],[83.61,27.47],[83.4,27.48],[83.41,27.4],[83.31,27.33],[83.18,27.45],[83.05,27.45],[82.93,27.5],[82.75,27.5],[82.74,27.63],[82.69,27.72],[82.46,27.68],[82.07,27.92],[81.97,27.93],[81.89,27.86],[81.7,27.99],[81.48,28.08],[81.43,28.17],[81.32,28.2],[81.21,28.36],[81.11,28.38],[81.02,28.45],[80.91,28.46],[80.77,28.56],[80.7,28.58],[80.56,28.69],[80.46,28.62],[80.37,28.63],[80.25,28.76],[80.07,28.83]]]},"properties":{"n":"Uttar Pradesh"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[80.07,28.83],[80.07,28.92],[80.19,29.13],[80.27,29.14],[80.32,29.32],[80.3,29.49],[80.41,29.6],[80.37,29.72],[80.49,29.79],[80.57,29.92],[80.68,29.96],[80.87,30.13],[81.04,30.2],[81.01,30.26],[80.83,30.31],[80.61,30.48],[80.55,30.46],[80.29,30.57],[80.23,30.58],[80.25,30.74],[80.17,30.81],[79.93,30.89],[79.87,30.97],[79.75,31],[79.6,30.94],[79.52,31.03],[79.43,31.03],[79.31,31.14],[79.26,31.29],[79.14,31.43],[79.07,31.47],[78.92,31.25],[79.01,31.11],[78.9,31.1],[78.81,31.2],[78.62,31.23],[78.49,31.2],[78.38,31.28],[78.25,31.23],[77.92,31.15],[77.77,30.97],[77.8,30.87],[77.7,30.76],[77.79,30.64],[77.81,30.51],[77.58,30.4],[77.93,30.25],[77.91,30.18],[77.77,30.04],[77.72,29.86],[77.77,29.71],[77.85,29.67],[77.96,29.68],[77.99,29.55],[78.34,29.79],[78.5,29.74],[78.52,29.64],[78.71,29.5],[78.91,29.45],[78.87,29.38],[78.74,29.31],[78.88,29.24],[78.92,29.16],[79.08,29.15],[79.29,28.96],[79.68,28.84],[79.79,28.89],[79.85,28.8],[80,28.71],[80.07,28.83]]]},"properties":{"n":"Uttarakhand"}},{"type":"Feature","geometry":{"type":"MultiPolygon","coordinates":[[[[88.14,21.88],[88.04,21.72],[88.17,21.75],[88.14,21.88]]],[[[88.76,27.15],[88.6,27.19],[88.44,27.08],[88.31,27.13],[88.16,27.11],[88.02,27.22],[87.99,27.11],[88.14,26.98],[88.19,26.72],[88.11,26.54],[88.25,26.45],[88.28,26.38],[88.23,26.29],[88.04,26.18],[87.97,26.08],[87.85,26.04],[87.83,25.87],[87.91,25.78],[88.06,25.69],[88.03,25.55],[87.79,25.45],[87.79,25.22],[87.78,25.1],[87.97,24.94],[87.84,24.74],[87.91,24.72],[87.89,24.56],[87.8,24.56],[87.8,24.38],[87.69,24.25],[87.69,24.15],[87.58,24.16],[87.5,24.12],[87.44,23.98],[87.34,24.03],[87.3,23.89],[87.15,23.8],[86.9,23.88],[86.8,23.69],[86.72,23.7],[86.53,23.63],[86.45,23.63],[86.36,23.55],[86.36,23.47],[86.23,23.44],[86.14,23.57],[86.05,23.49],[85.87,23.45],[85.84,23.19],[85.92,23.13],[86.04,23.15],[86.22,22.99],[86.4,22.98],[86.44,22.92],[86.42,22.78],[86.64,22.66],[86.66,22.58],[86.76,22.58],[86.85,22.4],[86.83,22.26],[86.73,22.22],[86.72,22.15],[86.96,22.09],[87.1,21.91],[87.24,21.96],[87.29,21.8],[87.45,21.77],[87.49,21.6],[87.67,21.63],[87.84,21.72],[87.96,21.83],[88.05,22.01],[88.15,21.96],[88.22,21.76],[88.31,21.86],[88.42,21.9],[88.53,21.85],[88.6,21.91],[88.62,22.11],[88.67,22.21],[88.9,22.18],[88.94,22.3],[88.86,22.37],[88.87,22.55],[88.94,22.57],[88.97,22.85],[88.87,22.97],[88.87,23.1],[88.92,23.23],[88.79,23.22],[88.7,23.3],[88.77,23.37],[88.75,23.48],[88.65,23.61],[88.57,23.65],[88.58,23.86],[88.74,23.92],[88.73,24.3],[88.34,24.38],[88.19,24.46],[88.01,24.67],[88.16,24.85],[88.4,24.94],[88.45,25.03],[88.44,25.2],[88.57,25.17],[88.69,25.21],[88.92,25.17],[89.01,25.3],[88.85,25.37],[88.84,25.48],[88.65,25.48],[88.45,25.6],[88.3,25.76],[88.12,25.8],[88.09,25.89],[88.18,26.02],[88.16,26.11],[88.36,26.29],[88.52,26.38],[88.49,26.46],[88.36,26.51],[88.4,26.62],[88.57,26.46],[88.69,26.41],[88.71,26.34],[88.93,26.29],[89,26.3],[88.99,26.42],[89.09,26.4],[89.16,26.14],[89.36,26.01],[89.55,26],[89.62,26.06],[89.6,26.16],[89.72,26.17],[89.72,26.26],[89.86,26.38],[89.88,26.58],[89.86,26.7],[89.65,26.75],[89.53,26.82],[89.33,26.85],[89.14,26.81],[89.09,26.9],[88.99,26.92],[88.89,27.04],[88.88,27.11],[88.76,27.15]]]]},"properties":{"n":"West Bengal"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[86.73,22.22],[86.51,22.34],[86.43,22.31],[86.29,22.43],[86.11,22.49],[85.96,22.46],[86.03,22.39],[85.98,22.25],[86.03,22.19],[85.9,21.98],[85.78,22.04],[85.6,22.08],[85.37,22.16],[85.22,22.05],[85.03,22.16],[85.11,22.29],[85.06,22.48],[84.89,22.42],[84.51,22.42],[84.43,22.35],[84.3,22.34],[84.2,22.37],[84.14,22.47],[84.01,22.52],[84.01,22.37],[83.87,22.35],[83.75,22.24],[83.65,22.23],[83.56,22.1],[83.54,21.97],[83.61,21.91],[83.5,21.81],[83.45,21.65],[83.39,21.62],[83.35,21.49],[83.4,21.4],[83.28,21.38],[83.2,21.14],[83.13,21.1],[82.99,21.16],[82.64,21.15],[82.63,21.04],[82.56,20.94],[82.34,20.84],[82.42,20.41],[82.4,20.05],[82.59,19.99],[82.72,19.99],[82.71,19.83],[82.48,19.91],[82.35,19.84],[82.27,19.98],[82.19,19.99],[81.94,20.1],[81.87,20.03],[81.87,19.9],[82.06,19.8],[82.05,19.54],[82.19,19.34],[82.16,19.27],[82.25,18.92],[82.18,18.9],[82.15,18.78],[81.96,18.69],[81.96,18.57],[81.77,18.42],[81.54,18.27],[81.49,17.98],[81.4,17.9],[81.39,17.81],[81.62,17.82],[81.77,17.9],[81.94,17.99],[82.03,18.07],[82.34,18.06],[82.34,18.22],[82.37,18.42],[82.49,18.52],[82.61,18.37],[82.6,18.27],[82.78,18.34],[82.81,18.45],[82.98,18.36],[83.07,18.4],[83.03,18.57],[83.09,18.66],[83.4,18.88],[83.34,19.01],[83.48,19.01],[83.61,19.1],[83.73,18.98],[83.8,19.02],[83.88,18.83],[84.1,18.75],[84.34,18.8],[84.42,18.95],[84.52,19.05],[84.6,19.03],[84.67,19.13],[84.77,19.08],[84.89,19.24],[85.09,19.38],[85.35,19.58],[85.7,19.75],[86.05,19.84],[86.37,19.95],[86.53,20.17],[86.78,20.33],[86.73,20.41],[86.79,20.53],[87.02,20.68],[86.98,20.86],[86.88,21.04],[86.84,21.16],[86.95,21.35],[87.15,21.51],[87.4,21.54],[87.49,21.6],[87.45,21.77],[87.29,21.8],[87.24,21.96],[87.1,21.91],[86.96,22.09],[86.72,22.15],[86.73,22.22]]]},"properties":{"n":"Odisha"}}]};
+const SROI = { 'Uttar Pradesh':[1.18, 92], 'Maharashtra':[1.52, 88], 'Tamil Nadu':[1.46, 61], 'Karnataka':[1.61, 54], 'Gujarat':[1.33, 49], 'Rajasthan':[.98, 44], 'West Bengal':[.84, 47], 'Madhya Pradesh':[1.07, 38], 'Bihar':[.72, 33], 'Andhra Pradesh':[1.38, 36], 'Telangana':[1.55, 34], 'Kerala':[1.22, 26], 'Punjab':[1.11, 22], 'Haryana':[1.27, 21], 'NCT of Delhi':[1.44, 29], 'Odisha':[.79, 18], 'Jharkhand':[.69, 14], 'Assam':[.88, 12], 'Chhattisgarh':[.93, 11], 'Uttarakhand':[1.02, 8], 'Himachal Pradesh':[1.15, 5], 'Goa':[1.71, 4], 'Jammu & Kashmir':[.81, 6] };
+function drawMap(){ const w = 420, h = 440, svg = d3.select('#map').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'ROI by state map'), proj = d3.geoIdentity().reflectY(true).fitSize([w - 10, h - 50], INDIA), path = d3.geoPath(proj), col = d3.scaleDiverging(t => d3.interpolateRdYlGn(t)).domain([.6, 1, 1.7]);
+  svg.append('g').selectAll('path').data(INDIA.features).join('path').attr('d', path).attr('fill', f => SROI[f.properties.n] ? col(SROI[f.properties.n][0]) : '#EEEBE6').attr('stroke', '#fff').attr('stroke-width', .7).attr('opacity', 0)
+    .on('mousemove', (ev, f) => { const v = SROI[f.properties.n]; showTip(`<b>${esc(f.properties.n)}</b><br>${v ? `ROI ${v[0].toFixed(2)}× · spend ${cr(v[1])}` : 'Not in the sample'}`, ev); }).on('mouseleave', hideTip).transition().duration(reduce ? 0 : 600).delay((f, i) => i * 15).attr('opacity', 1);
+  const lg = svg.append('g').attr('transform', `translate(14,${h - 34})`), st = [.6, .8, 1, 1.2, 1.4, 1.7]; st.forEach((v, i) => { lg.append('rect').attr('x', i * 34).attr('width', 34).attr('height', 9).attr('fill', col(v)); lg.append('text').attr('x', i * 34).attr('y', 22).attr('font-size', 9).attr('fill', '#625E5A').text(v.toFixed(1) + '×'); });
+  const best = Object.entries(SROI).sort((a, b) => b[1][0] - a[1][0]), worst = best.slice().reverse(); svg.append('text').attr('x', w - 8).attr('y', 16).attr('text-anchor', 'end').attr('font-size', 10).attr('font-weight', 700).attr('fill', '#146B48').text(`Best: ${best[0][0]} ${best[0][1][0].toFixed(1)}×`); svg.append('text').attr('x', w - 8).attr('y', 30).attr('text-anchor', 'end').attr('font-size', 10).attr('font-weight', 700).attr('fill', '#9E0A16').text(`Weakest: ${worst[0][0]} ${worst[0][1][0].toFixed(1)}×`); }
+
+/* ======================================================================
+   03 · SCHEME SIMULATOR
+   ====================================================================== */
+const SEGB = { G: 380, S: 160, B: 60 }, SCALE = 400;
+function outlets(seed, vary){ const R = mulberry32(seed), n = nrmGen(R), km = vary ? Math.exp(n() * .45) : 1, gs = vary ? n() * .025 : 0; return range(1500).map(() => { const u = R(), seg = u < .15 ? 'G' : u < .5 ? 'S' : 'B'; return { seg, b: SEGB[seg] * Math.exp(n() * .35), g0: .05 + gs + n() * .085, k: km * Math.exp(Math.log(.55) + n() * .8), cool: R() < (seg === 'B' ? .25 : .65) }; }); }
+let OUT = outlets(7);
+const SIMP = { 'Last summer\'s scheme': { t1: 8, r1: 2, t2: 18, r2: 3.5, t3: 30, r3: 5, cb: 0, seg: 'all', mu: 2 }, 'Raise the first slab': { t1: 14, r1: 2, t2: 22, r2: 3.5, t3: 32, r3: 5.5, cb: 0, seg: 'all', mu: 2 }, 'Cooler purity focus': { t1: 12, r1: 1.5, t2: 22, r2: 3, t3: 34, r3: 4.5, cb: 600, seg: 'all', mu: 3 }, 'Small outlets only': { t1: 10, r1: 3, t2: 20, r2: 4.5, t3: 32, r3: 6.5, cb: 0, seg: 'b', mu: 2 } };
+const getP = () => ({ t1: +$('t1').value, r1: +$('r1').value, t2: +$('t2').value, r2: +$('r2').value, t3: +$('t3').value, r3: +$('r3').value, cb: +$('cb').value, seg: $('seg').value, mu: +$('mu').value });
+function setP(P){ ['t1','r1','t2','r2','t3','r3','cb','mu'].forEach(k => $(k).value = P[k]); $('seg').value = P.seg; simLabels(); }
+function simLabels(){ ['t1','t2','t3'].forEach(k => $(k + 'V').textContent = '+' + $(k).value + '%'); ['r1','r2','r3'].forEach(k => $(k + 'V').textContent = '₹' + (+$(k).value).toFixed(1)); $('cbV').textContent = '₹' + $('cb').value; $('muV').textContent = $('mu').value + (+$('mu').value > 1 ? ' months' : ' month'); }
+['t1','r1','t2','r2','t3','r3','cb','mu'].forEach(k => $(k).addEventListener('input', () => { simLabels(); $('simGo').classList.add('ai'); }));
+$('seg').addEventListener('change', () => $('simGo').classList.add('ai'));
+function simulate(P, O, mult){ O = O || OUT; mult = mult || 1; const sl = [[0, 0], [P.t1 / 100, P.r1 * mult], [Math.max(P.t2, P.t1) / 100, P.r2 * mult], [Math.max(P.t3, P.t2, P.t1) / 100, P.r3 * mult]]; let spend = 0, inc = 0, pf = 0, basePaid = 0;
+  const res = O.map(o => { const scope = P.seg === 'all' || (P.seg === 'gs' ? o.seg !== 'B' : o.seg === 'B'); if (!scope) return { k: -1, x: 0 };
+    let best = 0, bu = 0; for (let k = 1; k < 4; k++){ const [t, r] = sl[k], g = Math.max(o.g0, t), x = Math.max(0, t - o.g0), u = r * o.b * (1 + g) * P.mu - o.k * o.b * x * x * 100 * P.mu; if (r > 0 && u > bu){ bu = u; best = k; } }
+    const [t, r] = sl[best], g = best ? Math.max(o.g0, t) : o.g0, x = best ? Math.max(0, t - o.g0) : 0, pay = best ? r * o.b * (1 + g) * P.mu : 0;
+    let bonus = 0, vis = 0; if (P.cb > 0 && o.cool && P.cb * mult / (P.cb * mult + o.k * 260) > .45){ bonus = P.cb * mult * P.mu; vis = .03 * o.b * P.mu; }
+    const ic = o.b * x * P.mu + vis; spend += pay + bonus; inc += ic; pf += ic * (x > .15 ? .2 : .08) / P.mu; basePaid += best ? r * o.b * (1 + Math.max(0, o.g0)) * P.mu : 0;
+    return { k: best, x, wind: best > 0 && x < .04, vis: vis > 0 }; });
+  const net = inc - pf; return { res, spend, inc, pf, net, basePaid, roi: spend ? net * GM / spend : 0, cpi: net ? spend / net : 0, part: res.filter(r => r.k > 0).length, scope: res.filter(r => r.k >= 0).length, wind: res.filter(r => r.wind).length }; }
+let SIM = null, SIMBASE = null, BAND = null;
+async function runSim(anim){ const P = getP(); $('simGo').classList.remove('ai'); SIM = simulate(P); if (!SIMBASE) SIMBASE = simulate(SIMP['Last summer\'s scheme']); BAND = range(60).map(i => simulate(P, outlets(100 + i, true)).roi).sort((a, b) => a - b);
+  const q = p => BAND[Math.floor(p * (BAND.length - 1))], dR = SIM.roi - SIMBASE.roi;
+  $('sKpi').innerHTML = [['Spend · India', cr(SIM.spend * SCALE / 1e7), 'vs ' + cr(SIMBASE.spend * SCALE / 1e7) + ' last summer'], ['Extra cases', (SIM.net * SCALE / 1e5).toFixed(1) + ' lakh', 'net of pull-forward'], ['ROI', SIM.roi.toFixed(2) + '×', (dR >= 0 ? '+' : '') + dR.toFixed(2) + ' vs last summer'], ['Payout on baseline', pc(SIM.basePaid / (SIM.spend || 1)), SIM.wind + ' of ' + SIM.part + ' paid outlets add < 4%'], ['Cost per extra case', '₹' + SIM.cpi.toFixed(1), 'margin ₹' + GM + ' a case']]
+    .map(m => `<div class="ms"><div class="k">${m[0]}</div><div class="v" style="${m[0] === 'ROI' ? `color:${SIM.roi >= 1 ? 'var(--good)' : 'var(--bad)'}` : ''}">${m[1]}</div><div class="s">${esc(m[2])}</div></div>`).join('');
+  if (!hasD3) return; drawDrop(anim); drawResp(P); drawBand(q); }
+$('simPre').innerHTML = Object.keys(SIMP).map((k, i) => `<button type="button" class="chipb${i ? '' : ' on'}" data-sp="${esc(k)}">${esc(k)}</button>`).join('');
+$('simPre').addEventListener('click', e => { const b = e.target.closest('[data-sp]'); if (!b) return; document.querySelectorAll('#simPre .chipb').forEach(x => x.classList.toggle('on', x === b)); setP(SIMP[b.dataset.sp]); runSim(true); });
+$('simGo').addEventListener('click', () => runSim(true));
+const DCOL = { out: '#F1EEEA', none: '#DCD6CF', inc: '#E61D2B', wind: '#9C9393', vis: '#2F6CB3' };
+function drawDrop(anim){ const w = 640, cols = ['Out of scope', 'No slab', 'Slab 1', 'Slab 2', 'Slab 3'], cw = w / 5, per = 24, sp = 5, top = 24, bottom = 250, h = bottom + 40;
+  let svg = d3.select('#drop svg'); if (svg.empty()){ svg = d3.select('#drop').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'Outlets by slab chosen'); svg.append('g').attr('class', 'dots'); svg.append('g').attr('class', 'labs'); }
+  const items = SIM.res.map((r, i) => ({ i, c: r.k < 0 ? 0 : r.k + 1, kind: r.k < 0 ? 'out' : r.k === 0 ? (r.vis ? 'vis' : 'none') : r.wind ? 'wind' : 'inc' })), ord = { inc: 0, vis: 1, wind: 2, none: 3, out: 4 }, cnt = [0, 0, 0, 0, 0];
+  items.sort((a, b) => a.c - b.c || ord[a.kind] - ord[b.kind]).forEach(d => { const n = cnt[d.c]++; d.x = d.c * cw + 8 + (n % per) * sp; d.y = bottom - Math.floor(n / per) * sp; });
+  const t = anim && !reduce ? 900 : 0, sel = svg.select('.dots').selectAll('circle').data(items, d => d.i);
+  sel.join(en => en.append('circle').attr('r', 2).attr('cx', d => d.x).attr('cy', 0)).transition().duration(t).delay(d => anim && !reduce ? (bottom - d.y) * 2.2 + (d.i % 40) * 3 : 0).attr('cx', d => d.x).attr('cy', d => d.y).attr('fill', d => DCOL[d.kind]);
+  const L = svg.select('.labs').html(''); cols.forEach((c, i) => { const inc = items.filter(d => d.c === i && d.kind === 'inc').length, wd = items.filter(d => d.c === i && d.kind === 'wind').length; L.append('text').attr('x', i * cw + 8).attr('y', bottom + 18).attr('font-size', 10.5).attr('font-weight', 800).attr('fill', '#1C1C1C').text(c); L.append('text').attr('x', i * cw + 8).attr('y', bottom + 32).attr('font-size', 9.5).attr('fill', '#625E5A').text(`${cnt[i]} outlets${i >= 2 ? ` · ${wd} grey` : ''}`); });
+  [['Grew 4%+ beyond normal', DCOL.inc], ['Paid, grew < 4% extra', DCOL.wind], ['Visibility uplift only', DCOL.vis], ['No slab', DCOL.none]].forEach(([n, c], i) => { L.append('circle').attr('cx', 8 + i * 150).attr('cy', 10).attr('r', 4).attr('fill', c); L.append('text').attr('x', 16 + i * 150).attr('y', 14).attr('font-size', 10).attr('fill', '#625E5A').text(n); }); }
+function drawResp(P){ const D = range(19).map(i => { const m = .2 + i * .1, s = simulate(P, OUT, m); return { m, sp: s.spend * SCALE / 1e7, inc: s.net * SCALE / 1e5, roi: s.roi }; }), w = 320, h = 230, mm = { l: 40, r: 34, t: 10, b: 30 }, x = d3.scaleLinear().domain([0, d3.max(D, d => d.sp)]).range([mm.l, w - mm.r]), y = d3.scaleLinear().domain([0, d3.max(D, d => d.inc) * 1.1]).range([h - mm.b, mm.t]), y2 = d3.scaleLinear().domain([0, Math.max(2, d3.max(D, d => d.roi))]).range([h - mm.b, mm.t]);
+  const svg = d3.select('#resp').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'Response curve');
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${h - mm.b})`).call(d3.axisBottom(x).ticks(4).tickFormat(d => '₹' + d + 'cr')); svg.append('g').attr('class', 'axis').attr('transform', `translate(${mm.l},0)`).call(d3.axisLeft(y).ticks(4).tickFormat(d => d + 'L')); svg.append('g').attr('class', 'axis').attr('transform', `translate(${w - mm.r},0)`).call(d3.axisRight(y2).ticks(4).tickFormat(d => d.toFixed(1) + '×'));
+  svg.append('line').attr('x1', mm.l).attr('x2', w - mm.r).attr('y1', y2(1)).attr('y2', y2(1)).attr('stroke', '#9C9393').attr('stroke-dasharray', '3 3');
+  svg.append('path').attr('d', d3.area().x(d => x(d.sp)).y0(y(0)).y1(d => y(d.inc)).curve(d3.curveMonotoneX)(D)).attr('fill', '#E61D2B').attr('opacity', .1);
+  svg.append('path').attr('d', d3.line().x(d => x(d.sp)).y(d => y(d.inc)).curve(d3.curveMonotoneX)(D)).attr('fill', 'none').attr('stroke', '#E61D2B').attr('stroke-width', 2.4);
+  svg.append('path').attr('d', d3.line().x(d => x(d.sp)).y(d => y2(d.roi)).curve(d3.curveMonotoneX)(D)).attr('fill', 'none').attr('stroke', '#1F9D6B').attr('stroke-width', 2).attr('stroke-dasharray', '5 3');
+  const c = D.find(d => Math.abs(d.m - 1) < .01); svg.append('circle').attr('cx', x(c.sp)).attr('cy', y(c.inc)).attr('r', 5.5).attr('fill', '#fff').attr('stroke', '#1C1C1C').attr('stroke-width', 2.5); svg.append('text').attr('x', x(c.sp) + 8).attr('y', y(c.inc) + 14).attr('font-size', 9.5).attr('font-weight', 800).text('this scheme');
+  const b = D.reduce((a, d) => d.roi > a.roi ? d : a, D[0]); svg.append('circle').attr('cx', x(b.sp)).attr('cy', y2(b.roi)).attr('r', 4).attr('fill', '#1F9D6B'); svg.append('text').attr('x', x(b.sp) + 6).attr('y', y2(b.roi) + 12).attr('font-size', 9).attr('fill', '#146B48').text(`peak ROI at ×${b.m.toFixed(1)} payout`);
+  svg.append('text').attr('x', mm.l + 6).attr('y', h - mm.b - 6).attr('font-size', 9.5).attr('fill', '#E61D2B').attr('font-weight', 700).text('extra cases'); svg.append('text').attr('x', w - mm.r - 4).attr('y', h - mm.b - 6).attr('text-anchor', 'end').attr('font-size', 9.5).attr('fill', '#1F9D6B').attr('font-weight', 700).text('ROI'); }
+function drawBand(q){ const w = 320, h = 230, m = { l: 14, r: 14, t: 20, b: 30 }, lo = Math.min(.4, BAND[0] - .1), hi = Math.max(2, BAND[BAND.length - 1] + .1), x = d3.scaleLinear().domain([lo, hi]).range([m.l, w - m.r]), bw = .06, kde = d3.range(lo, hi, .01).map(v => [v, d3.mean(BAND, r => Math.exp(-.5 * ((v - r) / bw) ** 2))]), y = d3.scaleLinear().domain([0, d3.max(kde, d => d[1])]).range([h - m.b, m.t + 20]);
+  const svg = d3.select('#band').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'ROI range across runs');
+  svg.append('rect').attr('x', x(lo)).attr('y', m.t).attr('width', x(1) - x(lo)).attr('height', h - m.t - m.b).attr('fill', '#FDE9EA'); svg.append('text').attr('x', x(lo) + 4).attr('y', h - m.b - 8).attr('font-size', 9).attr('fill', '#9E0A16').text('loses money');
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(6).tickFormat(d => d.toFixed(1) + '×'));
+  svg.append('path').attr('d', d3.area().x(d => x(d[0])).y0(y(0)).y1(d => y(d[1])).curve(d3.curveBasis)(kde)).attr('fill', '#E61D2B').attr('opacity', .28).attr('stroke', '#E61D2B').attr('stroke-width', 1.5);
+  [[.1, 'P10', 'end', 0], [.5, 'P50', 'middle', 13], [.9, 'P90', 'start', 0]].forEach(([p, n, an, dy]) => { const v = q(p); svg.append('line').attr('x1', x(v)).attr('x2', x(v)).attr('y1', m.t + 16 + dy).attr('y2', h - m.b).attr('stroke', '#1C1C1C').attr('stroke-width', p === .5 ? 2 : 1).attr('stroke-dasharray', p === .5 ? null : '3 3'); svg.append('text').attr('x', x(v) + (an === 'end' ? -3 : an === 'start' ? 3 : 0)).attr('y', m.t + 8 + dy).attr('text-anchor', an).attr('font-size', 9.5).attr('font-weight', 800).text(`${n} ${v.toFixed(2)}×`); });
+  const pw = BAND.filter(r => r >= 1).length / BAND.length; svg.append('text').attr('x', w - m.r).attr('y', h - m.b - 8).attr('text-anchor', 'end').attr('font-size', 10).attr('font-weight', 800).attr('fill', pw >= .8 ? '#146B48' : '#9E0A16').text(`${Math.round(pw * 100)}% chance it pays back`); }
+function recRules(){ const P = getP(), B = SIMBASE, S = SIM, wf = S.wind / (S.part || 1), q = p => BAND[Math.floor(p * (BAND.length - 1))];
+  let o = `**Scheme recommendation · ${S.roi >= 1.2 ? 'Approve' : S.roi >= 1 ? 'Approve with changes' : 'Do not approve as designed'}**\n- Predicted ROI **${S.roi.toFixed(2)}×** (P10 ${q(.1).toFixed(2)}×, P90 ${q(.9).toFixed(2)}×) against ${B.roi.toFixed(2)}× for last summer's scheme.\n- Spend ${cr(S.spend * SCALE / 1e7)} India-wide for ${(S.net * SCALE / 1e5).toFixed(1)} lakh extra cases; ₹${S.cpi.toFixed(1)} per extra case against ₹${GM} margin.\n`;
+  o += `**What drives it**\n- ${pc(S.basePaid / (S.spend || 1))} of the payout goes on cases outlets would have sold anyway; ${pc(wf)} of paid outlets add less than 4% extra.\n`; if (P.t1 < 10) o += `- Slab 1 at +${P.t1}% is close to natural growth (about +5%); raising it cuts windfall payouts.\n`; if (P.cb > 0) o += `- Cooler purity bonus adds visibility uplift at outlets with coolers.\n`; if (S.pf / (S.inc || 1) > .12) o += `- Pull-forward is high (${pc(S.pf / S.inc)}); a longer scheme or a post-scheme hold slab reduces it.\n`;
+  o += `**Ask**\n- ${S.roi >= 1 ? 'Launch in two regions with matched control outlets, then scale.' : 'Redesign the slabs and re-simulate before launch.'}`; return o; }
+$('recGo').addEventListener('click', () => { if (!SIM) return; const P = getP(), q = p => BAND[Math.floor(p * (BAND.length - 1))]; streamOrRules($('recOut'), $('recGo'), 'You are a commercial finance manager at a beverage company writing a recommendation to the scheme approval committee. Give a clear approve / change / reject call, the predicted ROI with its range, what drives the result (windfall payouts on natural growth, slab design, pull-forward, visibility) and two concrete changes. Use **bold** for the decision and short bullets. Do not invent numbers.',
+  JSON.stringify({ scheme: { slab1_growth_pct: P.t1, slab1_rs_per_case: P.r1, slab2_growth_pct: P.t2, slab2_rs_per_case: P.r2, slab3_growth_pct: P.t3, slab3_rs_per_case: P.r3, cooler_bonus_rs_month: P.cb, outlets: P.seg, months: P.mu }, result: { roi: +SIM.roi.toFixed(2), roi_p10: +q(.1).toFixed(2), roi_p90: +q(.9).toFixed(2), spend_cr_india: +(SIM.spend * SCALE / 1e7).toFixed(1), extra_cases_lakh: +(SIM.net * SCALE / 1e5).toFixed(1), cost_per_extra_case: +SIM.cpi.toFixed(1), windfall_share_of_paid_outlets: +(SIM.wind / (SIM.part || 1)).toFixed(2), pull_forward_share: +(SIM.pf / (SIM.inc || 1)).toFixed(2) }, last_summer_roi: +SIMBASE.roi.toFixed(2), gross_margin_per_case: GM }), recRules()); });
+
+/* ======================================================================
+   04 · CLAIMS CHECK
+   ====================================================================== */
+const DIST = ['Krishna Beverages', 'Sai Distributors', 'Shree Ganesh Agencies', 'Om Traders', 'Balaji Enterprises', 'Laxmi Sales Corp', 'Gupta Distributors', 'Royal Agencies', 'New India Traders', 'Patel Beverages', 'Annapurna Agencies', 'Metro Distributors', 'Sunrise Traders', 'Jai Hind Agencies', 'Mahalaxmi Sales', 'Star Distributors', 'Vijay Agencies', 'Bharat Beverages', 'Ganga Traders', 'Deccan Distributors'];
+const FL = ['Duplicate invoice', 'Above slab', 'Volume above DMS', 'Ineligible outlets', 'Late claim', 'Outlier'], FLS = ['Dup', 'Slab', 'Vol', 'Elig', 'Late', 'Out'];
+const SLAB = g => g >= .30 ? 5 : g >= .18 ? 3.5 : g >= .08 ? 2 : 0;
+const dt = s => new Date(s + 'T00:00:00'), days = (a, b) => Math.round((dt(b) - dt(a)) / 864e5);
+const CLAIMS = (() => { const R = mulberry32(17), C = []; for (let i = 0; i < 60; i++){ const outlets = Math.round(20 + R() * 120), ly = Math.round(outlets * (60 + R() * 140) * 2), g = .05 + R() * .27, dms = Math.round(ly * (1 + g)), cases = Math.round(dms * (1 + (R() - .6) * .02)), sub = new Date(dt('2026-10-04').getTime() + Math.round(R() * 26) * 864e5).toISOString().slice(0, 10);
+    C.push({ id: 'CL-' + (24100 + i * 3), dist: DIST[i % 20], sch: SCH[[0, 2, 3, 4, 8, 10, 1][i % 7]].n, outlets, inel: 0, ly, dms, cases, rate: SLAB(dms / ly - 1) || 2, inv: 'INV-' + (5000 + i * 13), end: '2026-09-30', sub }); }
+  [[7, 3], [23, 15], [48, 31]].forEach(([a, b]) => C[a].inv = C[b].inv);
+  [5, 11, 19, 27, 38, 44].forEach(i => { const r = SLAB(C[i].dms / C[i].ly - 1); C[i].rate = r >= 5 ? 6.5 : r >= 3.5 ? 5 : r >= 2 ? 3.5 : 2; });
+  [9, 14, 21, 33, 41, 52, 58].forEach((i, k) => C[i].cases = Math.round(C[i].dms * (1.12 + k * .03)));
+  [12, 21, 30, 44, 49, 55].forEach((i, k) => C[i].inel = 3 + k * 2);
+  [16, 30, 36, 47, 59].forEach((i, k) => C[i].sub = '2026-11-' + (20 + k));
+  [26, 53].forEach(i => { C[i].cases = C[i].dms = Math.round(C[i].outlets * 1400); C[i].ly = Math.round(C[i].dms / 1.2); });
+  return C; })();
+let UPF = null, CSEL = null;
+function checkAll(){ const seen = {}, cpo = CLAIMS.map(c => c.cases / c.outlets).sort((a, b) => a - b), med = cpo[Math.floor(cpo.length / 2)], mad = d3.median ? d3.median(cpo.map(v => Math.abs(v - med))) : 60;
+  CLAIMS.forEach(c => { const g = c.dms / c.ly - 1, allowedRate = SLAB(g), f = [];
+    if (seen[c.inv] && seen[c.inv] !== c.id) f.push(0); else seen[c.inv] = c.id;
+    if (c.rate > allowedRate + 1e-9) f.push(1); if (c.cases > c.dms * 1.02) f.push(2); if (c.inel > 0) f.push(3); if (days(c.end, c.sub) > 45) f.push(4); if (Math.abs(c.cases / c.outlets - med) / (1.4826 * (mad || 1)) > 4) f.push(5);
+    c.flags = f; c.g = g; c.arate = allowedRate; c.claimed = c.cases * c.rate; c.allowed = f.includes(0) ? 0 : Math.min(c.cases, c.dms * 1.02) * allowedRate * (1 - c.inel / c.outlets);
+    c.status = f.includes(0) || c.allowed < c.claimed * .5 ? 'Reject' : f.length ? 'Query' : 'Pass'; }); }
+function claimsKpi(){ const cl = sum(CLAIMS.map(c => c.claimed)), al = sum(CLAIMS.map(c => c.allowed)), fl = CLAIMS.filter(c => c.flags.length).length;
+  $('cKpi').innerHTML = [['Claims', CLAIMS.length, 'this cycle'], ['Claimed', lakhs(cl), 'by distributors'], ['Allowed', lakhs(al), 'after checks'], ['Leakage stopped', lakhs(cl - al), pc((cl - al) / cl) + ' of claimed'], ['Flagged', fl, CLAIMS.filter(c => c.status === 'Reject').length + ' rejected']]
+    .map(m => `<div class="ms"><div class="k">${m[0]}</div><div class="v">${m[1]}</div><div class="s">${esc(m[2])}</div></div>`).join(''); }
+function drawUpset(){ const combos = {}; CLAIMS.forEach(c => { if (!c.flags.length) return; const k = c.flags.slice().sort().join(','); combos[k] = (combos[k] || 0) + 1; }); const C = Object.entries(combos).map(([k, n]) => ({ k, f: k.split(',').map(Number), n })).sort((a, b) => b.n - a.n || a.f.length - b.f.length);
+  const w = 600, lm = 150, top = 110, rh = 18, cw = Math.min(34, (w - lm - 10) / C.length), h = top + FL.length * rh + 14, y = d3.scaleLinear().domain([0, d3.max(C, c => c.n)]).range([top - 10, 14]), setN = FL.map((_, i) => CLAIMS.filter(c => c.flags.includes(i)).length), sx = d3.scaleLinear().domain([0, d3.max(setN)]).range([0, 70]);
+  const svg = d3.select('#upset').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'UpSet chart of claim flags');
+  FL.forEach((f, i) => { const yy = top + i * rh; if (i % 2 === 0) svg.append('rect').attr('x', 0).attr('y', yy - rh / 2).attr('width', w).attr('height', rh).attr('fill', '#FBFAF8');
+    svg.append('rect').attr('x', lm - 8 - sx(setN[i])).attr('y', yy - 5).attr('width', sx(setN[i])).attr('height', 10).attr('rx', 2).attr('fill', '#9C9393'); svg.append('text').attr('x', lm - 12 - sx(setN[i])).attr('y', yy + 4).attr('text-anchor', 'end').attr('font-size', 10).attr('fill', '#1C1C1C').text(`${f} ${setN[i]}`); });
+  C.forEach((c, j) => { const x = lm + j * cw + cw / 2, on = UPF === c.k, g = svg.append('g').style('cursor', 'pointer').on('click', () => { UPF = UPF === c.k ? null : c.k; drawUpset(); renderClaims(); }).on('mousemove', ev => showTip(`<b>${c.n} claim${c.n > 1 ? 's' : ''}</b><br>${c.f.map(i => FL[i]).join(' + ')}<br>Select to filter`, ev)).on('mouseleave', hideTip);
+    g.append('rect').attr('x', x - cw * .32).attr('width', cw * .64).attr('y', top - 10).attr('height', 0).attr('rx', 2).attr('fill', on ? '#1C1C1C' : '#E61D2B').transition().duration(reduce ? 0 : 600).delay(j * 40).attr('y', y(c.n)).attr('height', top - 10 - y(c.n));
+    g.append('text').attr('x', x).attr('y', y(c.n) - 4).attr('text-anchor', 'middle').attr('font-size', 10).attr('font-weight', 800).text(c.n);
+    FL.forEach((_, i) => g.append('circle').attr('cx', x).attr('cy', top + i * rh).attr('r', 5).attr('fill', c.f.includes(i) ? (on ? '#1C1C1C' : '#E61D2B') : '#E7E3DE'));
+    if (c.f.length > 1) g.append('line').attr('x1', x).attr('x2', x).attr('y1', top + Math.min(...c.f) * rh).attr('y2', top + Math.max(...c.f) * rh).attr('stroke', on ? '#1C1C1C' : '#E61D2B').attr('stroke-width', 2.5);
+    g.append('rect').attr('x', x - cw / 2).attr('width', cw).attr('y', 0).attr('height', h).attr('fill', 'transparent'); });
+  svg.append('text').attr('x', 6).attr('y', 14).attr('font-size', 10).attr('fill', '#625E5A').text(UPF ? 'Filtered · select the bar again to clear' : 'Select a bar to filter the claims'); }
+const STC = { Pass: 'g', Query: 'a', Reject: 'r' };
+function renderClaims(){ const rows = CLAIMS.filter(c => !UPF || c.flags.slice().sort().join(',') === UPF).sort((a, b) => (b.claimed - b.allowed) - (a.claimed - a.allowed));
+  $('clTab').querySelector('tbody').innerHTML = rows.map(c => `<tr data-i="${c.id}" class="${CSEL === c.id ? 'on' : ''}"><td><b>${c.id}</b><div class="note">${c.flags.map(i => FLS[i]).join(' · ') || 'clean'}</div></td><td>${esc(c.dist)}</td><td>${esc(c.sch.split(' ').slice(0, 2).join(' '))}</td><td class="r">${inr(c.claimed)}</td><td class="r">${inr(c.allowed)}</td><td><span class="tag ${STC[c.status]}">${c.status}</span></td></tr>`).join('');
+  $('clTab').querySelectorAll('tbody tr[data-i]').forEach(tr => tr.addEventListener('click', () => { CSEL = tr.dataset.i; renderClaims(); showClaim(CLAIMS.find(c => c.id === CSEL)); })); }
+function showClaim(c){ const why = [c.flags.includes(0) ? `Invoice ${c.inv} already claimed in another claim` : `Invoice ${c.inv} is unique`, c.flags.includes(1) ? `Claimed ₹${c.rate}/case but ${pc(c.g)} growth earns ₹${c.arate}/case` : `Rate ₹${c.rate}/case matches the ${pc(c.g)} growth slab`, c.flags.includes(2) ? `${c.cases.toLocaleString('en-IN')} cases claimed vs ${c.dms.toLocaleString('en-IN')} in distributor sales` : `Cases within 2% of distributor sales`, c.flags.includes(3) ? `${c.inel} of ${c.outlets} outlets not on the scheme list` : `All ${c.outlets} outlets on the scheme list`, c.flags.includes(4) ? `Submitted ${days(c.end, c.sub)} days after the scheme ended (limit 45)` : `Submitted ${days(c.end, c.sub)} days after scheme end`, c.flags.includes(5) ? `${Math.round(c.cases / c.outlets)} cases per outlet is far above other claims` : `Cases per outlet in normal range`];
+  $('clDet').innerHTML = `<div style="display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap"><h5>${c.id} · ${esc(c.dist)}</h5><span class="tag ${STC[c.status]}">${c.status}</span></div><p class="sub">${esc(c.sch)} · ${c.outlets} outlets · claimed ${inr(c.claimed)} · allowed ${inr(c.allowed)}</p>` + FL.map((f, i) => `<div style="display:grid;grid-template-columns:20px minmax(0,1fr);gap:6px;font-size:.74rem;padding:4px 0;border-top:1px solid #F1EEEA"><b style="color:${c.flags.includes(i) ? 'var(--bad)' : 'var(--good)'}">${c.flags.includes(i) ? '✕' : '✓'}</b><span><b>${f}</b> · ${esc(why[i])}</span></div>`).join(''); }
+const NF = [['dist', 'Distributor', 'text', 'Om Traders'], ['sch', 'Scheme', 'sel', SCH[0].n], ['outlets', 'Outlets', 'number', 64], ['inel', 'Outlets not on list', 'number', 4], ['ly', 'Cases last year', 'number', 11800], ['dms', 'Cases in distributor sales', 'number', 13570], ['cases', 'Cases claimed', 'number', 15200], ['rate', 'Rate claimed ₹/case', 'number', 3.5], ['inv', 'Invoice number', 'text', 'INV-5039'], ['end', 'Scheme end date', 'date', '2026-09-30'], ['sub', 'Submitted on', 'date', '2026-10-21']];
+$('nf').innerHTML = NF.map(([k, n, t, v]) => `<label>${esc(n)}${t === 'sel' ? `<select class="sel" id="nf_${k}">${SCH.map(s => `<option${s.n === v ? ' selected' : ''}>${esc(s.n)}</option>`).join('')}</select>` : `<input class="inp" id="nf_${k}" type="${t}" value="${esc(v)}" step="any">`}</label>`).join('');
+function addClaim(src){ const c = { id: 'CL-NEW' + (CLAIMS.filter(x => /NEW/.test(x.id)).length + 1), src }; NF.forEach(([k, , t]) => { const v = $('nf_' + k).value; c[k] = t === 'number' ? +v : v; }); if (!c.ly || !c.outlets){ toast('Fill outlets and last year cases'); return; }
+  CLAIMS.unshift(c); checkAll(); claimsKpi(); if (hasD3) drawUpset(); UPF = null; CSEL = c.id; renderClaims(); showClaim(c); toast(`${c.id}: ${c.status}${c.flags.length ? ' · ' + c.flags.map(i => FL[i]).join(', ') : ''}`); }
+$('nfGo').addEventListener('click', () => addClaim('manual'));
+async function clFile(file){ if (!file) return; if (!KEY){ toast('Add your OpenAI key to read scanned claims; type it in meanwhile'); return; }
+  try { toast('Reading the claim…'); const url = await new Promise((res, rej) => { const fr = new FileReader(); fr.onerror = rej; fr.onload = () => { const im = new Image(); im.onload = () => { const s = Math.min(1, 1600 / Math.max(im.width, im.height)), cv = document.createElement('canvas'); cv.width = im.width * s; cv.height = im.height * s; cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height); res(cv.toDataURL('image/jpeg', .85)); }; im.onerror = rej; im.src = fr.result; }; fr.readAsDataURL(file); });
+    const t = await openai([{ role:'system', content:'You read distributor scheme claim forms for a beverage company. Return only JSON with keys: dist, sch, outlets, inel, ly, dms, cases, rate, inv, end (YYYY-MM-DD), sub (YYYY-MM-DD). Use numbers for counts and rate; null if not on the form.' }, { role:'user', content: [{ type:'text', text:'Extract this claim.' }, { type:'image_url', image_url:{ url } }] }], { json: true });
+    const j = JSON.parse(t); NF.forEach(([k, , ty]) => { if (j[k] == null) return; if (k === 'sch'){ const m = SCH.find(s => s.n.toLowerCase().includes(String(j[k]).toLowerCase().split(' ')[0])); if (m) $('nf_sch').value = m.n; } else $('nf_' + k).value = j[k]; }); addClaim('ai'); }
+  catch (e){ toast('Could not read the claim (' + String(e.message).slice(0, 60) + ')'); } }
+$('clFile').addEventListener('change', e => { clFile(e.target.files[0]); e.target.value = ''; });
+document.querySelector('label[for=clFile]').addEventListener('dragover', e => e.preventDefault()); document.querySelector('label[for=clFile]').addEventListener('drop', e => { e.preventDefault(); clFile(e.dataTransfer.files[0]); });
+
+/* ======================================================================
+   05 · ACCRUAL
+   ====================================================================== */
+const RG = [['North', 18, '#E61D2B'], ['South', 16, '#F2A900'], ['East', 9, '#2F6CB3'], ['West', 15, '#1F9D6B']];
+const ACD = (() => { const R = mulberry32(51), n = nrmGen(R); return RG.map(([r, bud], i) => { const lvl = [1.02, .94, .88, 1.07][i]; return { r, bud, daily: range(30).map(d => { const dow = (d + 2) % 7, f = (dow === 5 || dow === 6 ? .72 : 1.06) * (d >= 25 ? 1.3 : 1); return bud * lvl / 30 * f * (1 + n() * .08); }) }; }); })();
+let DAY = 24;
+function accState(d){ return ACD.map(a => { const earned = sum(a.daily.slice(0, d)), last7 = mean(a.daily.slice(Math.max(0, d - 7), d)), rem = range(30 - d).map(i => { const dd = d + i, dow = (dd + 2) % 7; return last7 * ((dow === 5 || dow === 6 ? .72 : 1.06) / 1) * (dd >= 25 ? (d > 25 ? 1 : 1.3) : 1); }), p50 = earned + sum(rem), sd = last7 * .3 * Math.sqrt(30 - d) + a.bud * .015, claims = sum(a.daily.slice(0, Math.max(0, d - 18))) * .62; return { r: a.r, bud: a.bud, earned, p50, p10: p50 - 1.28 * sd, p90: p50 + 1.28 * sd, claims, curve: range(30).map(i => i < d ? sum(a.daily.slice(0, i + 1)) : earned + sum(rem.slice(0, i - d + 1))), csd: range(30).map(i => i < d ? 0 : last7 * .3 * Math.sqrt(i - d + 1)) }; }); }
+$('day').addEventListener('input', () => { DAY = +$('day').value; renderAcc(); });
+function renderAcc(){ const S = accState(DAY), T = k => sum(S.map(s => s[k])), prov = T('p50') - T('claims'), bud = sum(RG.map(r => r[1])), lo = Math.sqrt(sum(S.map(s => ((s.p50 - s.p10)) ** 2)));
+  $('dayV').textContent = `day ${DAY} of 30${DAY >= 28 ? ' · close' : ''}`;
+  $('aKpi').innerHTML = [['Provision to book', cr(prov), 'forecast minus claims received'], ['80% range', `${cr(T('p50') - lo)} – ${cr(T('p50') + lo)}`, 'total month liability'], ['Claims received', cr(T('claims')), 'for this month so far'], ['Budget used', pc(T('p50') / bud), 'forecast vs ' + cr(bud)]].map(m => `<div class="ms"><div class="k">${m[0]}</div><div class="v" style="font-size:1.1rem">${m[1]}</div><div class="s">${esc(m[2])}</div></div>`).join('');
+  $('je').querySelector('tbody').innerHTML = S.map(s => `<tr><td>Dr Trade promotion expense · schemes</td><td>${s.r}</td><td class="r">${inr((s.p50 - s.claims) * 1e7)}</td><td class="r"></td></tr>`).join('') + `<tr><td>Cr Accrued liabilities · schemes</td><td>All</td><td class="r"></td><td class="r">${inr(prov * 1e7)}</td></tr><tr><td colspan="2"><b>Total</b></td><td class="r"><b>${inr(prov * 1e7)}</b></td><td class="r"><b>${inr(prov * 1e7)}</b></td></tr>`;
+  if (!hasD3) return; drawAcc(S); drawRings(S); }
+function drawAcc(S){ const w = 640, h = 280, m = { l: 46, r: 70, t: 14, b: 30 }, tot = range(30).map(i => sum(S.map(s => s.curve[i]))), sd = range(30).map(i => Math.sqrt(sum(S.map(s => s.csd[i] ** 2)))), cl = range(30).map(i => sum(ACD.map(a => sum(a.daily.slice(0, Math.max(0, Math.min(i + 1, DAY) - 18))) * .62))), bud = sum(RG.map(r => r[1]));
+  const x = d3.scaleLinear().domain([1, 30]).range([m.l, w - m.r]), y = d3.scaleLinear().domain([0, Math.max(bud, tot[29] + 1.28 * sd[29]) * 1.08]).range([h - m.b, m.t]), svg = d3.select('#acc').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'Scheme liability build-up');
+  svg.append('g').attr('class', 'grid').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickSize(-(w - m.l - m.r)).tickFormat(''));
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(10).tickFormat(d => 'D' + d)); svg.append('g').attr('class', 'axis').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickFormat(d => '₹' + d + 'cr'));
+  const bw = (w - m.l - m.r) / 30 * .6; svg.selectAll('.cb').data(cl.slice(0, DAY)).join('rect').attr('x', (d, i) => x(i + 1) - bw / 2).attr('width', bw).attr('y', d => y(d)).attr('height', d => y(0) - y(d)).attr('fill', '#DCD6CF');
+  const fut = range(30 - DAY + 1).map(i => DAY - 1 + i);
+  svg.append('path').attr('d', d3.area().x(i => x(i + 1)).y0(i => y(tot[i] - 1.28 * sd[i])).y1(i => y(tot[i] + 1.28 * sd[i])).curve(d3.curveMonotoneX)(fut)).attr('fill', '#E61D2B').attr('opacity', .15);
+  svg.append('path').attr('d', d3.line().x(i => x(i + 1)).y(i => y(tot[i])).curve(d3.curveMonotoneX)(fut)).attr('fill', 'none').attr('stroke', '#E61D2B').attr('stroke-width', 2.2).attr('stroke-dasharray', '6 4');
+  svg.append('path').attr('d', d3.line().x(i => x(i + 1)).y(i => y(tot[i])).curve(d3.curveMonotoneX)(range(DAY))).attr('fill', 'none').attr('stroke', '#1C1C1C').attr('stroke-width', 2.6);
+  svg.append('line').attr('x1', m.l).attr('x2', w - m.r).attr('y1', y(bud)).attr('y2', y(bud)).attr('stroke', '#9C9393').attr('stroke-dasharray', '2 3'); svg.append('text').attr('x', w - m.r + 4).attr('y', y(bud) + (bud > tot[29] ? -5 : 14)).attr('font-size', 9.5).attr('fill', '#625E5A').text('budget ' + cr(bud));
+  svg.append('text').attr('x', w - m.r + 4).attr('y', y(tot[29]) + (bud > tot[29] ? 12 : -5)).attr('font-size', 10).attr('font-weight', 800).attr('fill', '#E61D2B').text('P50 ' + cr(tot[29]));
+  svg.append('line').attr('x1', x(DAY)).attr('x2', x(DAY)).attr('y1', m.t).attr('y2', h - m.b).attr('stroke', '#1C1C1C').attr('stroke-width', 1); svg.append('text').attr('x', x(DAY) - 4).attr('y', m.t + 10).attr('text-anchor', 'end').attr('font-size', 10).attr('font-weight', 700).text('today');
+  const pr = tot[29] - cl[DAY - 1]; svg.append('line').attr('x1', x(30)).attr('x2', x(30)).attr('y1', y(cl[DAY - 1])).attr('y2', y(tot[29])).attr('stroke', '#1F9D6B').attr('stroke-width', 3); svg.append('text').attr('x', x(30) - 6).attr('y', (y(cl[DAY - 1]) + y(tot[29])) / 2).attr('text-anchor', 'end').attr('font-size', 10).attr('font-weight', 800).attr('fill', '#146B48').text('provision ' + cr(pr));
+  [['Earned to date', '#1C1C1C'], ['Forecast with 80% range', '#E61D2B'], ['Claims received', '#B5ABAB']].forEach(([n, c], i) => { svg.append('rect').attr('x', m.l + 8 + i * 150).attr('y', m.t + 2).attr('width', 10).attr('height', 10).attr('rx', 2).attr('fill', c); svg.append('text').attr('x', m.l + 22 + i * 150).attr('y', m.t + 11).attr('font-size', 9.5).attr('fill', '#625E5A').text(n); }); }
+function drawRings(S){ const w = 380, h = 250, cx = 125, cy = 125, svg = d3.select('#rings').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'Budget used by region'), arc = d3.arc();
+  S.forEach((s, i) => { const r1 = 112 - i * 22, r0 = r1 - 16, v = s.p50 / s.bud, col = RG[i][2];
+    svg.append('path').attr('transform', `translate(${cx},${cy})`).attr('d', arc({ innerRadius: r0, outerRadius: r1, startAngle: 0, endAngle: Math.PI * 2 })).attr('fill', col).attr('opacity', .14);
+    const p = svg.append('path').attr('transform', `translate(${cx},${cy})`).attr('fill', col).attr('d', arc({ innerRadius: r0, outerRadius: r1, startAngle: 0, endAngle: 0, cornerRadius: 8 }));
+    p.transition().duration(reduce ? 0 : 900).attrTween('d', () => t => arc({ innerRadius: r0, outerRadius: r1, startAngle: 0, endAngle: Math.min(.995, v) * Math.PI * 2 * t, cornerRadius: 8 }));
+    p.on('mousemove', ev => showTip(`<b>${s.r}</b><br>Forecast ${cr(s.p50)} of ${cr(s.bud)} budget (${pc(v)})<br>Claims received ${cr(s.claims)}`, ev)).on('mouseleave', hideTip);
+    svg.append('text').attr('x', 252).attr('y', 70 + i * 24).attr('font-size', 10.5).attr('font-weight', 800).attr('fill', col).attr('text-anchor', 'start').text(`${s.r} ${pc(v)}${v > 1 ? ' ▲' : ''}`); });
+  const tot = sum(S.map(s => s.p50)) / sum(S.map(s => s.bud)); svg.append('text').attr('x', cx).attr('y', cy + 2).attr('text-anchor', 'middle').attr('font-family', 'DM Serif Display, serif').attr('font-size', 24).text(pc(tot)); svg.append('text').attr('x', cx).attr('y', cy + 18).attr('text-anchor', 'middle').attr('font-size', 9).attr('fill', '#625E5A').text('of budget'); }
+$('jeDl').addEventListener('click', () => { const S = accState(DAY), rows = [['entry', 'account', 'region', 'debit_inr', 'credit_inr']]; S.forEach(s => rows.push(['Dr', 'Trade promotion expense - schemes', s.r, Math.round((s.p50 - s.claims) * 1e7), ''])); rows.push(['Cr', 'Accrued liabilities - schemes', 'All', '', Math.round(sum(S.map(s => s.p50 - s.claims)) * 1e7)]); download(`scheme-accrual-day${DAY}.csv`, rows.map(r => r.map(csvCell).join(',')).join('\n'), 'text/csv'); });
+function cfoRules(){ const S = accState(DAY), T = k => sum(S.map(s => s[k])), bud = sum(RG.map(r => r[1])), over = S.filter(s => s.p50 > s.bud), lo = Math.sqrt(sum(S.map(s => (s.p50 - s.p10) ** 2)));
+  return `**Scheme accrual · day ${DAY} of the month**\n- Book a provision of **${cr(T('p50') - T('claims'))}** (forecast liability ${cr(T('p50'))} less claims received ${cr(T('claims'))}).\n- 80% range for the month's liability: ${cr(T('p50') - lo)} to ${cr(T('p50') + lo)}.\n- Forecast uses ${pc(T('p50') / bud)} of the ${cr(bud)} budget.\n` + (over.length ? `- Over budget: ${over.map(s => `${s.r} (${pc(s.p50 / s.bud)})`).join(', ')}; month-end push days drive it.\n` : '') + `**Why it is better than last year's method**\n- Booking the full budget would have ${bud > T('p50') ? 'over' : 'under'}-provided by ${cr(Math.abs(bud - T('p50')))}.\n- Forecast is refreshed daily from outlet sales; claims true it up as they arrive.`; }
+$('cfoGo').addEventListener('click', () => { const S = accState(DAY); streamOrRules($('cfoOut'), $('cfoGo'), 'You are the commercial finance controller of a beverage company writing a short month-end close note for the CFO on trade scheme accruals. State the provision to book, the range, budget utilisation by region, risks, and why the forecast method is more reliable than booking the budget. Use **bold** for the provision and short bullets. Do not invent numbers.',
+  JSON.stringify({ day: DAY, regions: S.map(s => ({ region: s.r, budget_cr: s.bud, forecast_cr: +s.p50.toFixed(2), p10_cr: +s.p10.toFixed(2), p90_cr: +s.p90.toFixed(2), claims_received_cr: +s.claims.toFixed(2) })), provision_cr: +sum(S.map(s => s.p50 - s.claims)).toFixed(2) }), cfoRules()); });
+
+/* ======================================================================
+   IMPACT · bottles + payback curve
+   ====================================================================== */
+const BOT = { before: [['Q1 FY24', .86], ['Q2', .91], ['Q3', .84], ['Q4', .95], ['Q1 FY25', .90], ['Q2', .97], ['Q3', .88], ['Q4', .93]], after: [['Q1 FY26', 1.02], ['Q2', 1.08], ['Q3', 1.13], ['Q4', 1.17], ['Q1 FY27', 1.2], ['Q2', 1.23]] };
+const BPATH = 'M19,0 h12 v10 c0,8 7,12 7,24 c0,10 -5,14 -5,24 c0,12 10,18 10,36 v54 c0,9 -5,14 -14,14 h-8 c-9,0 -14,-5 -14,-14 v-54 c0,-18 10,-24 10,-36 c0,-10 -5,-14 -5,-24 c0,-12 7,-16 7,-24 z';
+let BTM = 'after';
+function drawBottles(){ const D = BOT[BTM], w = 600, bw = 66, h = 262, x0 = (w - D.length * bw) / 2, svg = d3.select('#bottles').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'ROI by quarter as filled bottles');
+  svg.append('defs').append('clipPath').attr('id', 'bclip').append('path').attr('d', BPATH);
+  D.forEach(([q, v], i) => { const g = svg.append('g').attr('transform', `translate(${x0 + i * bw + 6},26) scale(1.15)`); g.append('path').attr('d', BPATH).attr('fill', '#F4F1EE').attr('stroke', '#C8BFB8').attr('stroke-width', 1.4);
+    const fill = g.append('g').attr('clip-path', 'url(#bclip)'), H = 162, lv = Math.min(1, v / 2);
+    fill.append('rect').attr('x', 0).attr('width', 52).attr('y', H).attr('height', 0).attr('fill', v >= 1 ? '#E61D2B' : '#9C9393').transition().duration(reduce ? 0 : 900).delay(i * 90).attr('y', H * (1 - lv)).attr('height', H * lv);
+    fill.append('rect').attr('x', 0).attr('width', 52).attr('y', 92).attr('height', 14).attr('fill', '#fff').attr('opacity', .85);
+    g.append('line').attr('x1', 0).attr('x2', 52).attr('y1', H / 2).attr('y2', H / 2).attr('stroke', '#1C1C1C').attr('stroke-dasharray', '2 2').attr('opacity', .5);
+    g.append('text').attr('x', 26).attr('y', -6).attr('text-anchor', 'middle').attr('font-size', 11).attr('font-weight', 800).attr('fill', v >= 1 ? '#9E0A16' : '#625E5A').text(v.toFixed(2) + '×');
+    g.append('text').attr('x', 26).attr('y', H + 16).attr('text-anchor', 'middle').attr('font-size', 9).attr('fill', '#625E5A').text(q);
+    g.on('mousemove', ev => showTip(`<b>${q}</b><br>Return on trade spend ${v.toFixed(2)}×`, ev)).on('mouseleave', hideTip); });
+  svg.append('text').attr('x', w / 2).attr('y', h - 4).attr('text-anchor', 'middle').attr('font-size', 10).attr('fill', '#625E5A').text('dashed line = break-even 1× · grey = below 1×'); }
+segBind('bt', v => { BTM = v; if (hasD3) drawBottles(); });
+const SPB = [70, 40, 70, 28, 120, 30, 62, 20, 55, 24, 48, 12];
+function payCurve(mode){ const S = SCH.map((s, i) => mode === 'before' ? { sp: SPB[i], roi: s.roi * .82 } : { sp: s.spend, roi: s.roi }).sort((a, b) => b.roi - a.roi); let cs = 0, cm = 0; return [{ x: 0, y: 0 }].concat(S.map(s => { cs += s.sp; cm += s.sp * s.roi; return { x: cs, y: cm, roi: s.roi }; })); }
+let LZM = 'after';
+function drawLorenz(){ const w = 560, h = 330, m = { l: 50, r: 20, t: 16, b: 34 }, A = payCurve('after'), B = payCurve('before'), mx = Math.max(A[A.length - 1].x, B[B.length - 1].x), my = Math.max(A[A.length - 1].y, B[B.length - 1].y), x = d3.scaleLinear().domain([0, mx]).range([m.l, w - m.r]), y = d3.scaleLinear().domain([0, Math.max(my, mx) * 1.05]).range([h - m.b, m.t]);
+  const svg = d3.select('#lorenz').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'Cumulative payback curve');
+  svg.append('g').attr('class', 'grid').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickSize(-(w - m.l - m.r)).tickFormat(''));
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(6).tickFormat(d => '₹' + d + 'cr')); svg.append('g').attr('class', 'axis').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickFormat(d => '₹' + d + 'cr'));
+  svg.append('line').attr('x1', x(0)).attr('y1', y(0)).attr('x2', x(mx)).attr('y2', y(mx)).attr('stroke', '#1C1C1C').attr('stroke-dasharray', '5 4'); svg.append('text').attr('x', x(mx) - 4).attr('y', y(mx) + 14).attr('text-anchor', 'end').attr('font-size', 9.5).text('break-even: margin = spend');
+  const D = LZM === 'after' ? A : B, G = LZM === 'after' ? B : A, line = d3.line().x(d => x(d.x)).y(d => y(d.y)).curve(d3.curveMonotoneX);
+  svg.append('path').attr('d', line(G)).attr('fill', 'none').attr('stroke', '#C8BFB8').attr('stroke-width', 2);
+  svg.append('path').attr('d', d3.area().x(d => x(d.x)).y0(d => y(d.x)).y1(d => y(d.y)).curve(d3.curveMonotoneX)(D)).attr('fill', '#E61D2B').attr('opacity', .1);
+  const p = svg.append('path').attr('d', line(D)).attr('fill', 'none').attr('stroke', '#E61D2B').attr('stroke-width', 2.8); if (!reduce){ const L = p.node().getTotalLength(); p.attr('stroke-dasharray', L).attr('stroke-dashoffset', L).transition().duration(1000).attr('stroke-dashoffset', 0); }
+  svg.selectAll('.pd').data(D.slice(1)).join('circle').attr('cx', d => x(d.x)).attr('cy', d => y(d.y)).attr('r', 4).attr('fill', d => d.roi >= 1 ? '#E61D2B' : '#9C9393').attr('stroke', '#fff').on('mousemove', (ev, d) => showTip(`Scheme ROI ${d.roi.toFixed(2)}×<br>Cumulative spend ${cr(d.x)} · margin ${cr(d.y)}`, ev)).on('mouseleave', hideTip);
+  const e = D[D.length - 1]; svg.append('text').attr('x', x(e.x) - 4).attr('y', y(e.y) - 10).attr('text-anchor', 'end').attr('font-size', 11).attr('font-weight', 800).attr('fill', '#9E0A16').text(`${LZM === 'after' ? 'After' : 'Before'}: ${cr(e.x)} spend → ${cr(e.y)} margin (${(e.y / e.x).toFixed(2)}×)`);
+  svg.append('text').attr('x', m.l + 8).attr('y', m.t + 12).attr('font-size', 9.5).attr('fill', '#625E5A').text('grey line = the other period · grey dots = schemes below 1×'); }
+segBind('lz', v => { LZM = v; if (hasD3) drawLorenz(); });
+
+/* ======================================================================
+   HERO · fizz rising into cases
+   ====================================================================== */
+(function hero(){ const cvh = $('heroCv'); if (!cvh) return; const c = cvh.getContext('2d'); let Wd = 0, Hd = 0, run = false; const R = mulberry32(12), B = range(90).map(() => ({ x: R(), y: R(), r: 1.5 + R() * 5, s: .04 + R() * .08, w: R() * 6.28 }));
+  function size(){ const dpr = Math.min(2, devicePixelRatio || 1); Wd = cvh.clientWidth; Hd = cvh.clientHeight; cvh.width = Wd * dpr; cvh.height = Hd * dpr; c.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function draw(t){ c.clearRect(0, 0, Wd, Hd); const nar = Wd < 700, x0 = nar ? Wd * .05 : Wd * .4, x1 = Wd * .97, bars = [.35, .55, .48, .72, .66, .88], bw = (x1 - x0) / bars.length;
+    bars.forEach((v, i) => { const hh = (nar ? 80 : Hd * .55) * v * (.8 + .2 * Math.sin(t * .8 + i)), bx = x0 + i * bw + bw * .2, by = (nar ? 150 : Hd * .82); c.fillStyle = 'rgba(255,255,255,.06)'; c.fillRect(bx, by - (nar ? 80 : Hd * .55), bw * .6, nar ? 80 : Hd * .55); const g = c.createLinearGradient(0, by - hh, 0, by); g.addColorStop(0, 'rgba(255,194,199,.9)'); g.addColorStop(1, 'rgba(230,29,43,.85)'); c.fillStyle = g; c.fillRect(bx, by - hh, bw * .6, hh); });
+    B.forEach(b => { b.y -= b.s * .016 * (1 + b.r / 4); if (b.y < -.05){ b.y = 1.05; b.x = R(); } const x = x0 + b.x * (x1 - x0) + Math.sin(t * 2 + b.w) * 4, y = b.y * Hd; c.strokeStyle = 'rgba(255,255,255,' + (.25 + b.r / 14) + ')'; c.lineWidth = 1.2; c.beginPath(); c.arc(x, y, b.r * (nar ? .7 : 1), 0, 7); c.stroke(); });
+    if (!nar){ c.font = '700 11px DM Sans, sans-serif'; c.fillStyle = 'rgba(255,255,255,.7)'; c.fillText('₹ in → extra cases out', x0, Hd * .82 + 22); } }
+  size(); draw(1); addEventListener('resize', () => { size(); draw(1); }); if (reduce) return; const t0 = performance.now(); function loop(now){ if (!run) return; draw((now - t0) / 1000); requestAnimationFrame(loop); }
+  if (io) new IntersectionObserver(es => { const on = es[0].isIntersecting; if (on && !run){ run = true; requestAnimationFrame(loop); } else if (!on) run = false; }).observe(cvh); })();
+
+/* ======================================================================
+   BOOT
+   ====================================================================== */
+setMode(); simLabels(); renderDash(); checkAll(); claimsKpi(); renderClaims(); CSEL = CLAIMS.slice().sort((a, b) => (b.claimed - b.allowed) - (a.claimed - a.allowed))[0].id; renderClaims(); showClaim(CLAIMS.find(c => c.id === CSEL)); renderAcc();
+if (hasD3){ whenVisible($('m0'), drawFlow); whenVisible($('map'), drawMap); whenVisible($('drop'), () => runSim(true)); whenVisible($('upset'), drawUpset); whenVisible($('bottles'), drawBottles); whenVisible($('lorenz'), drawLorenz); }
+else { runSim(false); ['flowSvg'].forEach(() => {}); ['quad','did','map','split','drop','resp','band','upset','acc','rings','bottles','lorenz'].forEach(id => $(id).innerHTML = '<p style="padding:20px;color:var(--muted)">Charts need an internet connection to load their library.</p>'); }
+if ($('apiKey').value) connect(true);
+window.__cc = { simulate, getP, SIM: () => SIM, CLAIMS, accState, SCH };
+})();
+
+</script>
+</body>
+</html>

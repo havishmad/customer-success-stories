@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Life Insurance · FLS Attrition Prediction | HMC Case Study</title>
+<meta name="description" content="How Havish M Consulting built a Python machine-learning model that predicts front-line sales attrition at a life insurer 90 days ahead, with explainable risk scores and retention actions.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<style>
+:root{
+  --pri:#1B2A8F; --deep:#0A1450; --acc:#00A3AD; --bad:#E4002B; --good:#2A9D5C; --amb:#F4A261; --vio:#6C4AB6;
+  --pri-15:rgba(27,42,143,.15); --acc-15:rgba(0,163,173,.15);
+  --bg:#F4F6FB; --text:#141A33; --muted:#5A6180; --card:#FFFFFF; --line:#E1E5F0;
+  --radius:12px; --shadow:0 1px 2px rgba(10,20,80,.06),0 8px 24px rgba(10,20,80,.08);
+  --serif:"DM Serif Display",Georgia,serif; --sans:"DM Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif; --mono:ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--serif);font-weight:400;color:var(--deep);margin:0;line-height:1.15}
+h2{font-size:clamp(1.6rem,3.2vw,2.2rem)}
+h3{font-size:1.2rem}
+p{margin:0}
+.wrap{max-width:1260px;margin:0 auto;padding:0 24px}
+section{padding:64px 0}
+.eyebrow{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--pri);margin-bottom:10px}
+.lead{color:var(--muted);max-width:800px;margin-top:12px}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line)}
+.sec-head{margin-bottom:28px}
+.alt{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.topbar{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+.logos{display:flex;align-items:center;gap:16px}
+.logos img{height:44px;width:auto;object-fit:contain}
+.logos img.cl{height:30px}
+.vdiv{width:1px;height:36px;background:var(--line)}
+.tagline{font-size:.8rem;color:var(--muted);letter-spacing:.04em}
+.tagline b{color:var(--pri);font-weight:700}
+.hero{background:radial-gradient(120% 140% at 88% 0%,#4A2470 0%,#2A1446 45%,#120821 100%);color:#fff;padding:76px 0 70px;position:relative;overflow:hidden}
+.hero canvas{position:absolute;right:0;top:0;width:58%;height:100%;pointer-events:none}
+.hero .eyebrow{color:#7FD3FF}
+.hero h1{color:#fff;font-size:clamp(2.3rem,5.4vw,3.8rem);max-width:720px;position:relative;z-index:1}
+.hero h1 em{font-style:normal;color:#7FD3FF}
+.hero .sub{font-size:clamp(1.05rem,2vw,1.2rem);color:rgba(255,255,255,.86);max-width:640px;margin-top:18px;position:relative;z-index:1}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px;position:relative;z-index:1}
+.pill{border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:6px 14px;font-size:.85rem;color:#fff;background:rgba(255,255,255,.06)}
+.pill span{color:#7FD3FF;font-weight:700;margin-right:6px}
+.kpis{margin-top:-30px;position:relative;z-index:2;padding:0}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi{padding:22px 20px;border-top:3px solid var(--acc)}
+.kpi .label{font-size:.82rem;color:var(--muted);font-weight:500}
+.kpi .val{font-family:var(--serif);font-size:clamp(1.9rem,4vw,2.6rem);color:var(--pri);line-height:1.1;margin-top:6px;white-space:nowrap}
+.kpi .val small{font-family:var(--sans);font-size:.9rem;color:var(--muted);margin-left:4px}
+.delta{display:inline-flex;align-items:center;gap:4px;font-size:.8rem;font-weight:700;margin-top:8px;padding:2px 8px;border-radius:999px;background:rgba(31,166,122,.1);color:var(--good)}
+.footnote{font-size:.78rem;color:var(--muted);margin-top:14px}
+.ch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.chc{padding:24px}
+.ico{width:44px;height:44px;border-radius:10px;background:var(--pri-15);display:grid;place-items:center;margin-bottom:16px}
+.ico svg{width:22px;height:22px;stroke:var(--pri);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.chc h3{margin-bottom:8px}
+.chc p{font-size:.92rem;color:#433A52}
+.tl{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.tl::before{content:"";position:absolute;left:10%;right:10%;top:27px;height:3px;background:linear-gradient(90deg,var(--pri),var(--acc));border-radius:2px;opacity:.55}
+.tl-step{position:relative;background:none;border:0;cursor:pointer;font:inherit;color:inherit;display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 4px 8px}
+.tl-dot{width:56px;height:56px;border-radius:50%;background:#fff;border:2px solid var(--line);display:grid;place-items:center;font-family:var(--serif);font-size:1.25rem;color:var(--pri);transition:all .25s;position:relative;z-index:1}
+.tl-name{font-weight:700;font-size:.95rem}
+.tl-dur{font-size:.75rem;color:var(--muted);margin-top:-8px}
+.tl-step:hover .tl-dot{border-color:var(--pri)}
+.tl-step[aria-expanded="true"] .tl-dot{background:var(--pri);border-color:var(--pri);color:#fff;box-shadow:0 0 0 6px var(--pri-15)}
+.tl-step:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:8px}
+.tl-panel{display:none;padding:24px 28px;margin-top:20px;border-left:4px solid var(--acc)}
+.tl-panel.open{display:block;animation:fadeUp .35s ease}
+.tl-panel h3{margin-bottom:6px}
+.tl-panel ul{margin:12px 0 0;padding-left:20px;color:#433A52}
+.tl-panel li{margin:6px 0}
+.tl-panel .deliv{margin-top:14px;font-size:.85rem;color:var(--muted)}
+.tl-panel .deliv b{color:var(--pri)}
+.tl-hint{text-align:center;color:var(--muted);font-size:.8rem;margin-top:6px}
+.seg{display:inline-flex;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:22px;padding:4px;gap:4px}
+.seg button{border:0;background:none;font:inherit;font-size:.82rem;font-weight:700;padding:6px 13px;border-radius:999px;cursor:pointer;color:var(--muted);transition:all .2s}
+.seg button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.seg button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.seg.sm button{font-size:.76rem;padding:5px 10px}
+.mod-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.mod-head h3{font-size:1.5rem}
+.mod-head p{font-size:.88rem;color:var(--muted);max-width:720px;margin-top:4px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--deep);color:#7FD3FF;font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:8px}
+.module{margin-bottom:54px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 12px;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer;color:var(--deep);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:border-color .15s,color .15s,background .15s}
+.btn:hover{border-color:var(--pri);color:var(--pri)}
+.btn.go{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.go:hover{background:#178A65;color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+
+
+.clw{font:800 1.05rem var(--sans);color:#1B2A8F;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.clw b{background:#E4002B;color:#fff;border-radius:4px;padding:1px 6px;font-weight:800}
+.hero{background:radial-gradient(110% 140% at 85% 10%,#2A3BB0 0%,#0A1450 52%,#050A2E 100%)}
+.hero .eyebrow,.hero .pill span{color:#7FD3FF}
+.hero h1 em{color:#FF8FA3;font-style:italic}
+.badge{color:#7FD3FF}
+.kpi{border-top:3px solid var(--bad)}
+.chc p,.tl-panel ul,.tk p{color:#444B66}
+.tl::before{background:linear-gradient(90deg,var(--pri),var(--acc),var(--amb),var(--bad))}
+.module .btn.go,.btn.go{background:var(--deep);border-color:var(--deep);color:#fff}
+.module .btn.go:hover,.btn.go:hover{background:#000;color:#fff}
+.btn.sm{padding:6px 10px;font-size:.74rem}
+.btn.ai{background:linear-gradient(110deg,#0A1450 0%,#8A1030 38%,#FF8FA3 50%,#8A1030 62%,#0A1450 100%);background-size:260% 100%;color:#fff;border-color:transparent;animation:shim 3.2s linear infinite}
+.btn.ai:hover{color:#fff;filter:brightness(1.1)} .btn.ai[disabled]{opacity:.7;cursor:progress}
+@keyframes shim{from{background-position:130% 0}to{background-position:-130% 0}}
+.chart svg{width:100%;height:auto;display:block}
+.axis text{font-family:var(--sans);font-size:10.5px;fill:var(--muted)}
+.axis line{stroke:var(--line)} .axis path{stroke:var(--line)}
+.grid line{stroke:var(--line);stroke-dasharray:2 3} .grid path{display:none}
+.ckey{display:flex;gap:12px;font-size:.72rem;color:var(--muted);margin-top:6px;flex-wrap:wrap}
+.ckey span{display:inline-flex;align-items:center;gap:6px}
+.ckey i{width:11px;height:11px;border-radius:50%;display:inline-block}
+h4.lbl{margin:0 0 8px;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.chipb{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;font:700 .74rem var(--sans);color:var(--deep);cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.chipb:hover{border-color:var(--pri)} .chipb.on{background:var(--deep);border-color:var(--deep);color:#fff}
+.sigs{display:flex;gap:5px;flex-wrap:wrap}
+.ms{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.ms .k{font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.ms .v{font-family:var(--serif);font-size:1.35rem;color:var(--deep);line-height:1.15;font-variant-numeric:tabular-nums}
+.ms .s{font-size:.68rem;color:var(--muted)}
+.mgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+select.sel,input.inp{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:600 .78rem var(--sans);background:#fff;color:var(--deep);width:100%;min-width:0}
+.note{font-size:.72rem;color:var(--muted);line-height:1.45;margin:0}
+.pill2{display:inline-flex;align-items:center;gap:6px;font:800 .62rem var(--sans);letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.pill2.off{background:#E9ECF5;color:#5A6180} .pill2.on{background:#FFE3E8;color:#9E0020}
+.pill2 i{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block}
+.pill2.on i{animation:blink 1.4s infinite}
+@keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
+.tag{font:800 .6rem var(--sans);letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 8px;white-space:nowrap;display:inline-block}
+.tag.r{background:#FDE0E5;color:#9E0020} .tag.a{background:#FFEBD9;color:#8A4A00} .tag.g{background:#DDF1E5;color:#1D6B40} .tag.b{background:#DCE3FA;color:#1B2A8F}
+.spark{color:#FF8FA3;display:inline-block;animation:tw 2.4s ease-in-out infinite}
+@keyframes tw{50%{opacity:.4;transform:scale(.8) rotate(20deg)}}
+.aikey{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:18px;padding:16px 18px;margin:0 0 32px;align-items:center;border:2px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(120deg,#1B2A8F,#00A3AD,#F4A261,#E4002B,#1B2A8F) border-box;background-size:100% 100%,300% 100%;animation:bord 9s linear infinite}
+@keyframes bord{to{background-position:0 0,300% 0}}
+.aikey h3{margin:0;font:400 1.35rem var(--serif);color:var(--deep)}
+.krow{display:grid;grid-template-columns:minmax(0,1.4fr) 150px auto auto;gap:8px;align-items:center;margin-bottom:8px}
+.krow input{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:500 .78rem var(--mono);color:var(--deep);background:#fff;min-width:0;width:100%}
+.kfoot{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.74rem}
+.rng{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;font-size:.72rem;align-items:center}
+.rng input{grid-column:1/-1;width:100%;accent-color:var(--pri)}
+.rng b{font-variant-numeric:tabular-nums;color:var(--deep)}
+.chk{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px 10px;font-size:.72rem}
+.chk label{display:inline-flex;gap:5px;align-items:center;cursor:pointer;min-width:0}
+.chk input{accent-color:var(--pri)}
+.out{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:.8rem;line-height:1.55;color:#2B3048}
+.out ul{margin:4px 0 8px;padding-left:18px} .out p{margin:0 0 6px}
+.dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--bad);margin-right:3px;animation:blink 1s infinite}
+.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+.split{display:grid;overflow:hidden}
+.split>div{min-width:0;padding:14px}
+.side{background:#FAFBFD;display:flex;flex-direction:column;gap:12px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.dx{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)} .dx>div+div{border-left:1px solid var(--line)}
+.ml{grid-template-columns:290px minmax(0,1fr)} .ml>div:first-child{border-right:1px solid var(--line)}
+.rk{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr)} .rk>div+div{border-left:1px solid var(--line)}
+.br{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)} .br>div+div{border-left:1px solid var(--line)}
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.g2>*{min-width:0}
+.tile{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px}
+.tile h5{margin:0 0 2px;font-size:.84rem;color:var(--deep)}
+.tile .sub{font-size:.7rem;color:var(--muted);margin:0 0 6px}
+.three{position:relative;border-radius:12px;overflow:hidden;background:radial-gradient(120% 120% at 50% 0%,#18237A 0%,#0A1450 60%,#060B33 100%)}
+.three canvas{display:block;width:100%!important}
+.three .hud{position:absolute;left:10px;top:10px;display:flex;gap:5px;flex-wrap:wrap;z-index:2}
+.three .hud .chipb{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.25);color:#fff;backdrop-filter:blur(4px)}
+.three .hud .chipb.on{background:#fff;color:#0A1450}
+.three .lg{position:absolute;right:10px;bottom:10px;display:flex;gap:10px;flex-wrap:wrap;font-size:.68rem;color:#D8DEFF;z-index:2;background:rgba(6,11,51,.55);padding:5px 8px;border-radius:8px}
+.three .lg span{display:inline-flex;gap:5px;align-items:center}
+.three .lg i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.three .hint{position:absolute;left:10px;bottom:10px;font-size:.66rem;color:#AEB8F0;z-index:2}
+.no3d{padding:30px;color:#AEB8F0;font-size:.85rem;text-align:center}
+.tabs2{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px}
+.tabs2 button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:5px 9px;font:700 .7rem var(--sans);color:var(--muted);cursor:pointer}
+.tabs2 button.on{background:#0A1450;color:#fff;border-color:#0A1450}
+pre.code{margin:0;background:#0B1033;color:#DCE2FF;border-radius:10px;padding:12px 14px;font:500 .7rem/1.55 var(--mono);overflow:auto;max-height:330px;white-space:pre}
+pre.code .k{color:#FF8FA3} pre.code .s{color:#9EE6B8} pre.code .c{color:#7E88B8;font-style:italic} pre.code .f{color:#7FD3FF}
+.prog{height:6px;border-radius:999px;background:#E9ECF5;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pri),var(--acc));transition:width .15s}
+.tab{width:100%;border-collapse:collapse;font-size:.74rem}
+.tab th{text-align:left;font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);padding:6px;white-space:nowrap;position:sticky;top:0;background:#fff}
+.tab td{padding:6px;border-bottom:1px solid #EEF0F6;vertical-align:middle}
+.tab td.r,.tab th.r{text-align:right;font-variant-numeric:tabular-nums}
+.tab tbody tr{cursor:pointer} .tab tr.on td{background:#EEF1FF}
+.scroll{max-height:330px;overflow:auto;border:1px solid var(--line);border-radius:10px;background:#fff}
+.riskbar{display:inline-block;width:60px;height:7px;border-radius:999px;background:#E9ECF5;overflow:hidden;vertical-align:middle;margin-right:6px}
+.riskbar i{display:block;height:100%;border-radius:999px}
+.prof{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.wi{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px}
+.big{font:400 2.2rem var(--serif);line-height:1}
+.risknow{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--deep);color:#fff;padding:10px 16px;border-radius:999px;font-size:.82rem;font-weight:700;opacity:0;transition:all .3s;z-index:1200;pointer-events:none;max-width:calc(100vw - 32px);text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.cmp-head{display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+.cmp{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.cmp th,.cmp td{padding:16px 18px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);font-size:.92rem;overflow-wrap:anywhere}
+.cmp thead th{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);background:#F4F6FB}
+.cmp tbody tr:last-child td,.cmp tbody tr:last-child th{border-bottom:0}
+.cmp tbody th{font-weight:700;color:var(--pri)}
+.cmp col.c1{width:22%}
+.cmp td{transition:background .3s,opacity .3s,color .3s}
+.cmp.hl-before td.b{background:#FCEEF3;color:#7A1236}
+.cmp.hl-before td.a{opacity:.38}
+.cmp.hl-after td.a{background:#ECF8F3;color:#0E4F39;font-weight:500}
+.cmp.hl-after td.b{opacity:.38}
+.cmp.hl-after thead th.a{color:var(--acc)}
+.cmp.hl-before thead th.b{color:var(--bad)}
+.tchips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:.9rem;font-weight:500;display:inline-flex;align-items:center;gap:8px}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 3px var(--acc-15)}
+.chip em{font-style:normal;color:var(--muted);font-weight:400;font-size:.82rem}
+.tk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.tk{padding:26px}
+.tk .n{font-family:var(--serif);font-size:2.6rem;color:var(--acc);line-height:1}
+.tk h3{margin:12px 0 8px}
+.tk p{font-size:.92rem;color:#433A52}
+footer{background:var(--deep);color:rgba(255,255,255,.75);padding:48px 0 32px;margin-top:32px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px}
+.f-brand{display:flex;align-items:center;gap:16px}
+.f-brand img{height:44px;width:auto;border-radius:6px;background:#fff;padding:4px}
+.f-brand b{display:block;color:#fff;font-family:var(--serif);font-weight:400;font-size:1.15rem}
+.copy{width:100%;border-top:1px solid rgba(255,255,255,.12);padding-top:18px;font-size:.8rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+#tip{position:fixed;pointer-events:none;z-index:95;background:var(--deep);color:#fff;font-size:.8rem;line-height:1.45;padding:10px 12px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transition:opacity .15s;max-width:300px}
+#tip b{color:#7DE3BE;font-weight:700}
+#tip .t{font-weight:700;font-size:.85rem;margin-bottom:2px;color:#fff}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.cmp.hl-after td.a{background:#EEF1FF;color:#0A1450}
+.chip i{background:var(--bad);box-shadow:0 0 0 3px rgba(228,0,43,.18)}
+.tk .n{color:var(--bad)}
+#tip{z-index:1300} #tip b{color:#7FD3FF}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.js .reveal{opacity:1;transform:none;transition:none}.aikey,.btn.ai,.spark,.pill2.on i{animation:none!important}}
+@media (max-width:1100px){.mgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:980px){.kpi-grid,.ch-grid{grid-template-columns:repeat(2,1fr)}.dash{grid-template-columns:1fr}.tk-grid{grid-template-columns:1fr}.hero canvas{width:100%;opacity:.3}
+  .dx,.ml,.rk,.br,.aikey{grid-template-columns:minmax(0,1fr)}.ml>div:first-child{border-right:0;border-bottom:1px solid var(--line)}.dx>div+div,.rk>div+div,.br>div+div{border-left:0;border-top:1px solid var(--line)}
+  .krow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.krow input[type=password]{grid-column:1/-1}}
+@media (max-width:640px){
+  .wrap{padding:0 16px} section{padding:48px 0} .hero{padding:52px 0 56px} .logos img{height:34px} .clw{font-size:.86rem} .vdiv{height:28px}
+  .kpi-grid{gap:10px} .kpi{padding:16px 14px} .ch-grid{grid-template-columns:1fr} .g2{grid-template-columns:minmax(0,1fr)}
+  .tl::before{top:19px} .tl-dot{width:40px;height:40px;font-size:1rem} .tl-name{font-size:.75rem} .tl-dur{display:none} .tl-panel{padding:18px}
+  .sx{overflow-x:auto;-webkit-overflow-scrolling:touch} .sx svg{min-width:480px} .sx table{min-width:520px}
+  .three{height:330px!important} .mgrid{grid-template-columns:repeat(2,minmax(0,1fr))} .prof{grid-template-columns:repeat(2,minmax(0,1fr))} .wi{grid-template-columns:minmax(0,1fr)}
+  .cmp th,.cmp td{padding:12px 10px;font-size:.82rem} .cmp thead th{font-size:.68rem;letter-spacing:.08em} .chart-card{padding:14px}
+}
+@media print{
+  body{background:#fff;font-size:12px} .topbar{position:static}
+  .hero{background:#0A1450!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:36px 0} .hero canvas{display:none}
+  .card{box-shadow:none;break-inside:avoid} section{padding:28px 0} .js .reveal{opacity:1!important;transform:none!important}
+  .seg,.tl-hint,.btn,#tip,.toast,.aikey,.three .hud{display:none!important} .tl-panel{display:block!important;margin-top:10px}
+  footer{background:#fff;color:var(--text)} footer .f-brand b{color:var(--deep)} .kpis{margin-top:16px} .scroll,pre.code{max-height:none}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="logos">
+      <img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting">
+    </div>
+    <div class="tagline">Customer Case Study · <b>FLS Attrition Prediction</b></div>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas id="heroCv" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="eyebrow">Life Insurance × Havish M Consulting</div>
+    <h1>Knowing which sellers will leave, <em>90 days before they do</em></h1>
+    <p class="sub">Front-line sales is where life insurers lose people fastest, often in the first six months. HMC built a Python machine-learning model on a leading life insurer's HR, sales and activity data that scores every front-line seller each month, explains why each one is at risk, and tells managers what to do about it.</p>
+    <div class="pills">
+      <span class="pill"><span>Sector</span>Life Insurance</span>
+      <span class="pill"><span>Function</span>HR · Front-Line Sales</span>
+      <span class="pill"><span>Theme</span>Attrition Prediction · ML in Python</span>
+    </div>
+  </div>
+</section>
+
+<section class="kpis">
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="card kpi reveal"><div class="label">Warning before a seller resigns</div><div class="val"><span class="count" data-to="90">0</span><small>days</small></div><div class="delta">▲ scored every month, not at exit</div></div>
+      <div class="card kpi reveal"><div class="label">Model accuracy (AUC, held-out test)</div><div class="val"><span class="count" data-to="0.83" data-dp="2">0</span><small>AUC</small></div><div class="delta">▲ against about 0.66 for a tenure rule</div></div>
+      <div class="card kpi reveal"><div class="label">Leavers caught in the top 20% risk list</div><div class="val"><span class="count" data-to="58">0</span><small>%</small></div><div class="delta">▲ managers focus on one in five</div></div>
+      <div class="card kpi reveal"><div class="label">Exits in the first six months</div><div class="val"><span class="count" data-to="21">0</span><small>% fewer</small></div><div class="delta">▼ after two quarters of action</div></div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="challenge">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Challenge</div>
+      <h2>By the time HR heard, the seller had gone</h2>
+      <p class="lead">Front-line sales attrition was measured after the fact, explained by exit interviews and treated with one policy for everyone.</p>
+    </div>
+    <div class="ch-grid">
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg></div><h3>Early exits</h3><p>Most leavers went in their first year, before recovering their hiring and licensing cost.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div><h3>Lagging signals</h3><p>Monthly attrition reports told leaders what had already happened.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="7"/><rect x="14" y="4" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div><h3>Data in silos</h3><p>HRMS, sales MIS, incentive files and CRM logins were never joined at seller level.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg></div><h3>One fix for all</h3><p>Retention spend went to everyone, or to whoever shouted loudest.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="approach" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">HMC Approach</div>
+      <h2>From four data sources to a monthly risk list</h2>
+      <p class="lead">Built in Python with HR, sales operations and channel heads; reviewed every month.</p>
+    </div>
+    <div class="tl reveal" aria-label="HMC approach steps">
+      <button class="tl-step" aria-expanded="true" aria-controls="tp0"><span class="tl-dot">1</span><span class="tl-name">Discover</span><span class="tl-dur">2 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp1"><span class="tl-dot">2</span><span class="tl-name">Design</span><span class="tl-dur">2 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp2"><span class="tl-dot">3</span><span class="tl-name">Build</span><span class="tl-dur">5 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp3"><span class="tl-dot">4</span><span class="tl-name">Adopt</span><span class="tl-dur">2 channels</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp4"><span class="tl-dot">5</span><span class="tl-name">Scale</span><span class="tl-dur">All FLS</span></button>
+    </div>
+    <p class="tl-hint">Select a step to see what happened.</p>
+    <div class="card tl-panel open" id="tp0"><h3>Discover · Join the seller's story</h3><p>HRMS, sales MIS, incentive payouts and CRM activity at seller-month level.</p><ul><li>Three years of joiners and leavers across channels.</li><li>Exit reasons coded from interviews.</li><li>Agreed the target: resigns in the next 90 days.</li></ul><p class="deliv"><b>Deliverable:</b> Analytical dataset and data dictionary.</p></div>
+    <div class="card tl-panel" id="tp1"><h3>Design · Features managers recognise</h3><p>Every feature had to be something a manager could act on or explain.</p><ul><li>Tenure, target achievement, incentive, persistency.</li><li>Manager changes, training, leaves, CRM logins.</li><li>Pay against band, commute, channel and zone.</li></ul><p class="deliv"><b>Deliverable:</b> Feature catalogue and leakage checks.</p></div>
+    <div class="card tl-panel" id="tp2"><h3>Build · Python models, explained</h3><p>scikit-learn and LightGBM, explained with SHAP.</p><ul><li>Logistic regression baseline, gradient boosting final.</li><li>Time-based validation; calibrated probabilities.</li><li>Reason codes and a retention action for each seller.</li></ul><p class="deliv"><b>Deliverable:</b> Scoring pipeline and risk desk.</p></div>
+    <div class="card tl-panel" id="tp3"><h3>Adopt · Monthly risk review</h3><p>Agency and bancassurance first.</p><ul><li>Risk list to branch and area managers on day 3.</li><li>One action per at-risk seller, tracked to closure.</li><li>Model refreshed monthly; drift monitored.</li></ul><p class="deliv"><b>Deliverable:</b> Manager playbook.</p></div>
+    <div class="card tl-panel" id="tp4"><h3>Scale · Every front-line seller</h3><p>Direct, tele-sales and partnerships added.</p><ul><li>Hiring scorecard from the same drivers.</li><li>Incentive design tested against predicted risk.</li><li>CHRO and channel head dashboard.</li></ul><p class="deliv"><b>Deliverable:</b> Roll-out plan.</p></div>
+  </div>
+</section>
+
+<section id="solution">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Solution</div>
+      <h2>Open the attrition lab</h2>
+      <p class="lead">A synthetic population of 1,800 past and 420 current front-line sellers. The machine-learning models really train in your browser, mirroring the Python pipeline shown alongside. Drag the 3D charts to turn them.</p>
+    </div>
+
+    <div class="card aikey reveal" id="aiKey">
+      <div><h3><span class="spark">✦</span> Add GenAI to the risk desk</h3>
+        <p class="note">Optional. The model and every chart work without a key; retention plans and the CHRO summary come from built-in rules. Add your OpenAI key to have them written for each seller and manager.</p></div>
+      <div>
+        <div class="krow"><input type="password" id="apiKey" placeholder="OpenAI API key (sk-…)" autocomplete="off" spellcheck="false" aria-label="OpenAI API key"><input type="text" class="inp" id="oaModel" value="gpt-4o-mini" list="models" spellcheck="false" aria-label="OpenAI model" style="font-family:var(--mono)"><datalist id="models"><option value="gpt-4o-mini"><option value="gpt-4.1-mini"><option value="gpt-4o"><option value="gpt-4.1"></datalist><button class="btn sm go" id="keySave" type="button">Connect</button><span class="pill2 off" id="keyPill"><i></i>Rules</span></div>
+        <div class="kfoot"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="remember"> Remember on this device</label><button class="btn sm" id="keyClr" type="button">Disconnect</button><span class="note" id="keyMsg">Your key goes only from this browser to OpenAI. Only scores and reason codes are sent.</span></div>
+      </div>
+    </div>
+
+    <!-- 01 DATA -->
+    <div class="module reveal" id="m1">
+      <div class="mod-head"><div><div class="badge">01 · The data, in three dimensions</div><h3>Who left, and what they looked like before they did</h3><p>Each dot is a past seller placed by tenure, target achievement and engagement. Red dots resigned within 90 days. Survival curves show how long each group stays; the hexagon map shows where leavers cluster.</p></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" id="dlCsv" type="button">⬇ Dataset CSV</button></div></div>
+      <div class="card split dx">
+        <div class="stack">
+          <div class="three" id="cloud" style="height:440px"><div class="hud" id="cloudHud"></div><div class="lg" id="cloudLg"></div><div class="hint">Drag to turn · scroll to zoom · hover a dot</div></div>
+          <div class="mgrid" id="dKpi"></div>
+        </div>
+        <div class="side">
+          <div class="tile"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap"><div><h5>Survival curves</h5><p class="sub">Kaplan–Meier: share still employed by months since joining</p></div><select class="sel" id="kmBy" style="width:auto" aria-label="Split survival curves by"><option value="channel">By channel</option><option value="tband">By target achievement</option><option value="mgr">By manager changes</option><option value="zone">By zone</option></select></div><div class="chart" id="km"></div></div>
+          <div class="tile"><h5>Where leavers cluster</h5><p class="sub">Hexbin: tenure × target achievement · colour = share who left · size = sellers</p><div class="chart" id="hex"></div></div>
+        </div>
+      </div>
+      <p class="footnote">Synthetic data generated to resemble a life insurer's front-line sales force. No real employee data is used.</p>
+    </div>
+
+    <!-- 02 MODEL -->
+    <div class="module reveal" id="m2">
+      <div class="mod-head"><div><div class="badge">02 · Model lab</div><h3>Train two models and compare them</h3><p>A logistic-regression baseline and a gradient-boosted tree model, trained on 70% of sellers and tested on the other 30%. Change the features or settings and retrain; the Python tab shows the same pipeline as delivered.</p></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" id="dlPy" type="button">⬇ Python script</button></div></div>
+      <div class="card split ml">
+        <div class="side">
+          <div><h4 class="lbl">Features</h4><div class="chk" id="feats"></div></div>
+          <label class="rng"><span>Trees</span><b id="ntV">120</b><input type="range" id="nt" min="20" max="300" step="10" value="120"></label>
+          <label class="rng"><span>Learning rate</span><b id="lrV">0.10</b><input type="range" id="lr" min="0.02" max="0.3" step="0.01" value="0.1"></label>
+          <label class="rng"><span>Tree depth</span><b id="dpV">2</b><input type="range" id="dp" min="1" max="4" step="1" value="2"></label>
+          <button class="btn go" id="trainGo" type="button">▶ Train models</button>
+          <div class="prog"><i id="prog"></i></div>
+          <label class="rng"><span>Risk threshold for the action list</span><b id="thV">0.35</b><input type="range" id="th" min="0.05" max="0.9" step="0.01" value="0.35"></label>
+          <p class="note" id="trainNote"></p>
+        </div>
+        <div class="stack">
+          <div class="mgrid" id="mKpi"></div>
+          <div class="g2">
+            <div class="tile"><h5>ROC curves</h5><p class="sub">True positives against false positives, test set</p><div class="chart" id="roc"></div></div>
+            <div class="tile"><h5>Learning curve</h5><p class="sub">Gradient boosting log-loss by tree, train and test</p><div class="chart" id="lc"></div></div>
+            <div class="tile"><h5>Calibration</h5><p class="sub">Predicted risk against actual leaver rate, 10 bins</p><div class="chart" id="cal"></div></div>
+            <div class="tile"><h5>Confusion matrix at the threshold</h5><p class="sub">Test set, gradient boosting</p><div class="chart" id="cm"></div></div>
+          </div>
+          <div class="tile"><h5>What drives the prediction</h5><p class="sub">Gradient boosting gain share against logistic-regression standardised coefficient</p><div class="sx"><div class="chart" id="imp"></div></div></div>
+          <div><div class="tabs2" id="pyTabs"></div><pre class="code" id="py"></pre></div>
+        </div>
+      </div>
+      <p class="footnote">Models train in JavaScript on the synthetic data so the page runs anywhere; the delivered pipeline runs the Python shown, with LightGBM and SHAP.</p>
+    </div>
+
+    <!-- 03 RISK DESK -->
+    <div class="module reveal" id="m3">
+      <div class="mod-head"><div><div class="badge">03 · Risk desk</div><h3>Every current seller, scored and explained</h3><p>Pick a seller to see why the model rates them at risk, try what-if changes, and see their risk landscape in 3D. Then draft the retention plan for their manager.</p></div><span class="pill2 off aipill"><i></i>Rules</span></div>
+      <div class="card split rk">
+        <div class="side">
+          <div class="sigs" id="rkFilt"></div>
+          <div class="scroll"><table class="tab" id="rkTab"><thead><tr><th>Seller</th><th>Channel</th><th>Zone</th><th class="r">Tenure</th><th class="r">Target</th><th>Risk</th></tr></thead><tbody></tbody></table></div>
+          <div class="three" id="surf" style="height:330px"><div class="lg"><span>Risk landscape for the selected seller: tenure × target achievement</span></div><div class="hint" style="top:10px;bottom:auto">Drag to turn</div></div>
+        </div>
+        <div class="stack">
+          <div class="risknow" id="rkHead"></div>
+          <div class="prof" id="rkProf"></div>
+          <div class="tile"><h5>Why this risk</h5><p class="sub">Force plot: each reason pushes risk up (red) or down (teal) from the average seller</p><div class="sx"><div class="chart" id="force"></div></div></div>
+          <div class="tile"><h5>What if the manager acts?</h5><p class="sub">Move a lever and the model re-scores this seller</p><div class="wi" id="wi"></div><div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" id="wiReset" type="button">↺ Reset levers</button></div></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm ai" id="planGo" type="button">✦ Retention plan for the manager</button></div>
+          <div class="out" id="planOut"><p class="note">The plan uses this seller's top reasons and the what-if result.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 04 BRANCH VIEW -->
+    <div class="module reveal" id="m4" style="margin-bottom:0">
+      <div class="mod-head"><div><div class="badge">04 · Leadership view</div><h3>Where the next 90 days of exits will come from</h3><p>Expected leavers by zone and tenure as a 3D city; at-risk sellers grouped into personas by why they are at risk; and the threshold that saves the most money.</p></div><span class="pill2 off aipill"><i></i>Rules</span></div>
+      <div class="card split br">
+        <div class="stack">
+          <div class="three" id="city" style="height:420px"><div class="hud" id="cityHud"></div><div class="lg"><span><i style="background:#2FD3B4"></i>low rate</span><span><i style="background:#F4C95D"></i>medium</span><span><i style="background:#FF5470"></i>high</span><span>height = expected leavers</span></div></div>
+          <div class="tile"><h5>Return on retention spend by threshold</h5><p class="sub">Net saving = leavers kept × replacement cost − cost of acting on everyone flagged</p><div class="chart" id="cost"></div></div>
+        </div>
+        <div class="side">
+          <div class="tile"><h5>At-risk personas</h5><p class="sub">Dendrogram: sellers above the threshold, clustered on their reasons for risk</p><div class="chart" id="dend"></div></div>
+          <div class="stack" id="personas" style="gap:6px"></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm ai" id="chroGo" type="button">✦ Summary for the CHRO</button></div>
+          <div class="out" id="chroOut"><p class="note">The summary combines the forecast, personas and the best threshold.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="impact" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Impact Dashboard</div>
+      <h2>More new sellers reach their first anniversary</h2>
+      <p class="lead">With the riskiest sellers reached every month, early exits fell and fewer hiring and licensing costs were written off.</p>
+    </div>
+    <div class="dash">
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>Cohort retention triangle</h3><p class="sub">Share of each joining month still employed, by months since joining</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-co="before" aria-pressed="false">Before</button><button type="button" data-co="after" aria-pressed="true">After</button></div></div>
+        <div class="sx"><div class="chart" id="cohort"></div></div>
+      </div>
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>Early exits and their cost</h3><p class="sub">Combo chart: bars = exits within six months of joining (% of joiners); line = cost written off, ₹ lakh</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-cb="before" aria-pressed="false">Before</button><button type="button" data-cb="after" aria-pressed="true">After</button></div></div>
+        <div class="sx"><div class="chart" id="combo"></div></div>
+      </div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <div class="cmp-head reveal"><div><div class="eyebrow">Before vs After</div><h2>How attrition is managed now</h2></div>
+      <div class="seg" role="group" aria-label="Highlight column"><button type="button" data-hl="before" aria-pressed="false">Before</button><button type="button" data-hl="after" aria-pressed="true">After</button></div></div>
+    <div class="card reveal" style="overflow:hidden">
+      <table class="cmp hl-after" id="cmp"><colgroup><col class="c1"><col><col></colgroup>
+        <thead><tr><th scope="col">Dimension</th><th scope="col" class="b">Before</th><th scope="col" class="a">After</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">When HR knows</th><td class="b">On the resignation email</td><td class="a">Up to 90 days earlier, every month</td></tr>
+          <tr><th scope="row">Data</th><td class="b">HRMS, MIS, incentives and CRM apart</td><td class="a">One seller-month dataset</td></tr>
+          <tr><th scope="row">Why</th><td class="b">Exit interviews, after the fact</td><td class="a">Reason codes for each seller</td></tr>
+          <tr><th scope="row">Who acts</th><td class="b">HR, after escalation</td><td class="a">The seller's own manager, with a plan</td></tr>
+          <tr><th scope="row">Spend</th><td class="b">Same retention offer for everyone</td><td class="a">Targeted at the riskiest, at the best threshold</td></tr>
+          <tr><th scope="row">Learning</th><td class="b">Annual attrition review</td><td class="a">Monthly model refresh and action tracking</td></tr>
+        </tbody></table>
+    </div>
+  </div>
+</section>
+
+<section id="tools" style="padding-top:16px">
+  <div class="wrap">
+    <div class="sec-head reveal" style="margin-bottom:20px"><div class="eyebrow">Tools &amp; Tech Used</div><h2>The attrition model stack</h2></div>
+    <div class="tchips reveal">
+      <span class="chip"><i></i>Python · pandas <em>seller-month dataset</em></span>
+      <span class="chip"><i></i>scikit-learn <em>baseline, pipeline, validation</em></span>
+      <span class="chip"><i></i>LightGBM <em>gradient-boosted trees</em></span>
+      <span class="chip"><i></i>SHAP <em>reason codes per seller</em></span>
+      <span class="chip"><i></i>lifelines <em>survival analysis</em></span>
+      <span class="chip"><i></i>OpenAI GPT <em>retention plans and summaries</em></span>
+      <span class="chip"><i></i>Power BI <em>manager risk list</em></span>
+    </div>
+  </div>
+</section>
+
+<section id="takeaways">
+  <div class="wrap">
+    <div class="sec-head reveal"><div class="eyebrow">Key Takeaways</div><h2>What any sales-led business can borrow</h2></div>
+    <div class="tk-grid">
+      <div class="card tk reveal"><div class="n">01</div><h3>Predict, then explain</h3><p>A risk score without reasons gets ignored; reason codes turn it into a manager's to-do.</p></div>
+      <div class="card tk reveal"><div class="n">02</div><h3>The first six months decide</h3><p>Onboarding, early targets and a stable manager matter more than pay for new sellers.</p></div>
+      <div class="card tk reveal"><div class="n">03</div><h3>Pick the threshold with money</h3><p>Acting on everyone wastes budget; the cost curve shows where retention pays.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="f-brand"><img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting"><div><b>Havish M Consulting</b></div></div>
+    <div class="copy"><span>© <span id="yr">2026</span> Havish M Consulting. All rights reserved.</span><span>Figures indicative; validated metrics available on request.</span></div>
+  </div>
+</footer>
+<div id="tip" role="tooltip"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(function(){
+"use strict";
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = id => document.getElementById(id);
+$('yr').textContent = new Date().getFullYear();
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hasD3 = typeof d3 !== 'undefined';
+const has3 = typeof THREE !== 'undefined' && !!THREE.OrbitControls && (() => { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl') || c.getContext('experimental-webgl')); } catch (e){ return false; } })();
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const sum = a => a.reduce((x, y) => x + (+y || 0), 0);
+const mean = a => a.length ? sum(a) / a.length : 0;
+const range = n => Array.from({ length: n }, (_, i) => i);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const sig = z => 1 / (1 + Math.exp(-z));
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const tip = $('tip');
+function showTip(html, ev){ tip.innerHTML = html; tip.style.opacity = 1; const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight; let x = ev.clientX + pad, y = ev.clientY + pad; if (x + w > innerWidth - 8) x = ev.clientX - w - pad; if (y + h > innerHeight - 8) y = ev.clientY - h - pad; tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; }
+function hideTip(){ tip.style.opacity = 0; }
+window.addEventListener('scroll', hideTip, { passive: true });
+function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => el.classList.remove('on'), 3000); }
+const onView = new Map();
+const io = ('IntersectionObserver' in window) ? new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; e.target.classList.add('in'); const fn = onView.get(e.target); if (fn){ fn(); onView.delete(e.target); } io.unobserve(e.target); }), { threshold: .06 }) : null;
+function whenVisible(el, fn){ onView.set(el, fn); if (io) io.observe(el); else fn(); }
+document.querySelectorAll('.reveal').forEach(el => io ? io.observe(el) : el.classList.add('in'));
+function countUp(el){ const to = +el.dataset.to, dp = +(el.dataset.dp || 0); if (reduce || !to){ el.textContent = to.toFixed(dp); return; } const t0 = performance.now(); (function s(t){ const p = Math.min(1, (t - t0) / 1400), e = 1 - Math.pow(1 - p, 3); el.textContent = (to * e).toFixed(dp); if (p < 1) requestAnimationFrame(s); })(t0); }
+document.querySelectorAll('.count').forEach(el => whenVisible(el.closest('.kpi'), () => countUp(el)));
+const tlSteps = document.querySelectorAll('.tl-step');
+tlSteps.forEach(btn => btn.addEventListener('click', () => { const open = btn.getAttribute('aria-expanded') === 'true'; tlSteps.forEach(b => { b.setAttribute('aria-expanded','false'); $(b.getAttribute('aria-controls')).classList.remove('open'); }); if (!open){ btn.setAttribute('aria-expanded','true'); $(btn.getAttribute('aria-controls')).classList.add('open'); } }));
+function segBind(attr, fn){ const bs = document.querySelectorAll(`[data-${attr}]`); bs.forEach(b => b.addEventListener('click', () => { bs.forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); fn(b.dataset[attr]); })); }
+const cmpT = $('cmp');
+segBind('hl', v => { cmpT.classList.toggle('hl-before', v === 'before'); cmpT.classList.toggle('hl-after', v === 'after'); });
+function md(s){ const lines = esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').split(/\n/); let out = '', inL = false;
+  lines.forEach(l => { const m = l.match(/^\s*(?:[-*•]|\d+[.)])\s+(.*)/); if (m){ if (!inL){ out += '<ul>'; inL = true; } out += '<li>' + m[1] + '</li>'; } else { if (inL){ out += '</ul>'; inL = false; } if (l.trim()) out += '<p>' + l.replace(/^#+\s*/, '') + '</p>'; } });
+  if (inL) out += '</ul>'; return out; }
+const csvCell = v => { const s = v == null ? '' : String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+function download(name, text, type){ const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); toast('Downloaded ' + name); }
+const dots = '<span class="dots"><span></span><span></span><span></span></span>';
+const pc = v => Math.round(v * 100) + '%';
+const riskCol = p => p >= .5 ? '#E4002B' : p >= .25 ? '#F4A261' : '#2A9D5C';
+
+/* ======================================================================
+   KEY
+   ====================================================================== */
+let KEY = '', OAM = 'gpt-4o-mini';
+try { const k = localStorage.getItem('hmc_bax_key'); if (k){ $('apiKey').value = k; $('remember').checked = true; } } catch (e){}
+function setMode(){ const on = !!KEY, h = `<i></i>${on ? 'Live · ' + esc(OAM) : 'Rules'}`; $('keyPill').className = 'pill2 ' + (on ? 'on' : 'off'); $('keyPill').innerHTML = h; document.querySelectorAll('.aipill').forEach(el => { el.className = 'pill2 aipill ' + (on ? 'on' : 'off'); el.innerHTML = h; }); }
+async function connect(silent){ const k = $('apiKey').value.trim(), m = $('oaModel').value.trim() || 'gpt-4o-mini'; if (!/^sk-/.test(k)){ if (!silent) $('keyMsg').innerHTML = '<span style="color:var(--bad)">That does not look like an OpenAI key.</span>'; return; }
+  $('keyMsg').textContent = 'Checking key…';
+  try { const r = await fetch('https://api.openai.com/v1/models', { headers: { Authorization: 'Bearer ' + k } }); if (r.status === 401) throw new Error('OpenAI rejected this key (401).'); if (!r.ok) throw new Error('OpenAI returned ' + r.status + '.');
+    KEY = k; OAM = m; try { if ($('remember').checked) localStorage.setItem('hmc_bax_key', k); else localStorage.removeItem('hmc_bax_key'); } catch (e){}
+    setMode(); $('keyMsg').innerHTML = `<b style="color:var(--good)">Connected.</b> Retention plans and summaries now use ${esc(m)}.`; if (!silent) toast('OpenAI connected'); }
+  catch (err){ $('keyMsg').innerHTML = `<span style="color:var(--bad)">${esc(err.message || 'Could not reach OpenAI from this browser.')}</span>`; } }
+$('keySave').addEventListener('click', () => connect(false));
+$('oaModel').addEventListener('change', () => { OAM = $('oaModel').value.trim() || 'gpt-4o-mini'; setMode(); });
+$('keyClr').addEventListener('click', () => { KEY = ''; $('apiKey').value = ''; try { localStorage.removeItem('hmc_bax_key'); } catch (e){} setMode(); $('keyMsg').textContent = 'Disconnected. Built-in rules still work.'; });
+async function openai(messages, onDelta){
+  const r = await fetch('https://api.openai.com/v1/chat/completions', { method:'POST', headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + KEY }, body: JSON.stringify({ model: OAM, messages, temperature: .3, stream: true }) });
+  if (!r.ok){ let msg = 'OpenAI error ' + r.status; try { const j = await r.json(); if (j.error && j.error.message) msg += ': ' + j.error.message; } catch (e){} throw new Error(msg); }
+  const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '', full = '';
+  for (;;){ const { value, done } = await rd.read(); if (done) break; buf += dec.decode(value, { stream: true }); const parts = buf.split('\n'); buf = parts.pop();
+    for (const ln of parts){ const s2 = ln.trim(); if (!s2.startsWith('data:')) continue; const dd = s2.slice(5).trim(); if (dd === '[DONE]') continue; try { const j = JSON.parse(dd), t = j.choices && j.choices[0].delta && j.choices[0].delta.content; if (t){ full += t; onDelta(full); } } catch (e){} } }
+  return full; }
+async function streamOrRules(outEl, btn, sys, user, rulesText){ btn.disabled = true;
+  if (KEY){ outEl.innerHTML = dots; try { await openai([{ role:'system', content: sys }, { role:'user', content: user }], t => outEl.innerHTML = md(t)); } catch (e){ toast('GenAI unavailable (' + String(e.message).slice(0, 60) + '); used built-in rules'); outEl.innerHTML = md(rulesText); } }
+  else outEl.innerHTML = md(rulesText);
+  btn.disabled = false; }
+
+/* ======================================================================
+   SYNTHETIC FRONT-LINE SALES DATA
+   ====================================================================== */
+const CH = ['Agency', 'Bancassurance', 'Direct & tele', 'Partnerships'], ZN = ['North', 'West', 'South', 'East', 'Central'];
+const NUM = [['tenure', 'Tenure (months)'], ['age', 'Age'], ['target', 'Target achievement %'], ['incent', 'Incentive % of CTC'], ['persist', '13th-month persistency %'], ['mgr', 'Manager changes (12 m)'], ['train', 'Training hours (qtr)'], ['leaves', 'Leaves (last 30 days)'], ['engage', 'Engagement score (1–5)'], ['compa', 'Pay vs band (compa)'], ['commute', 'Commute (km)'], ['login', 'CRM login drop %']];
+const LAB = Object.fromEntries(NUM.concat([['channel', 'Channel'], ['zone', 'Zone']]));
+const SHORT = { tenure:'Tenure', age:'Age', target:'Target ach.', incent:'Incentive', persist:'Persistency', mgr:'Manager changes', train:'Training', leaves:'Leaves', engage:'Engagement', compa:'Pay vs band', commute:'Commute', login:'Login drop', channel:'Channel', zone:'Zone' };
+const fmtV = (k, v) => k === 'channel' || k === 'zone' ? v : k === 'compa' ? (+v).toFixed(2) : k === 'engage' ? (+v).toFixed(1) : ['target','persist','login','incent'].includes(k) ? Math.round(v) + '%' : k === 'tenure' ? Math.round(v) + ' m' : k === 'commute' ? Math.round(v) + ' km' : String(Math.round(v));
+function genFLS(n, seed, prefix){ const R = mulberry32(seed), nrm = () => { let u = 0, v = 0; while (!u) u = R(); while (!v) v = R(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+  const pick = (arr, w) => { let t = R() * sum(w); for (let i = 0; i < arr.length; i++){ t -= w[i]; if (t <= 0) return arr[i]; } return arr[arr.length - 1]; };
+  const CB = { 'Agency': 0, 'Bancassurance': .25, 'Direct & tele': .55, 'Partnerships': .1 }, ZB = { North: .1, West: 0, South: -.15, East: .2, Central: .05 };
+  return range(n).map(i => { const channel = pick(CH, [40, 35, 15, 10]), zone = pick(ZN, [24, 22, 22, 16, 16]);
+    const tenure = Math.round(clamp(-Math.log(R()) * 15 + 1, 1, 96)), age = Math.round(clamp(22 + tenure / 12 * .8 + nrm() * 3.4 + 2, 21, 52));
+    const target = Math.round(clamp(86 + nrm() * 27 + (tenure <= 6 ? -14 : 0) + (channel === 'Direct & tele' ? -5 : 0), 0, 200));
+    const incent = +clamp(target >= 100 ? 8 + (target - 100) * .12 + nrm() * 2 : target / 100 * 5 + nrm() * 1.4, 0, 25).toFixed(1);
+    const persist = Math.round(clamp(82 + nrm() * 7 + (channel === 'Bancassurance' ? 3 : 0), 55, 98));
+    const mgr = R() < .55 ? 0 : R() < .65 ? 1 : R() < .8 ? 2 : 3;
+    const train = Math.round(clamp(14 + nrm() * 7 - (tenure > 24 ? 4 : 0), 0, 40));
+    const engage = +clamp(3.6 + nrm() * .7 - (mgr >= 2 ? .4 : 0) - (target < 60 ? .3 : 0), 1, 5).toFixed(1);
+    const compa = +clamp(1 + nrm() * .1 - (tenure > 36 ? .05 : 0), .72, 1.3).toFixed(2);
+    const commute = Math.round(clamp(-Math.log(R()) * 9 + 2, 1, 45));
+    const z = -3.05 + (tenure <= 6 ? 1.05 : tenure <= 12 ? .55 : tenure <= 24 ? .15 : -.3) + (target < 60 ? .8 : 0) - .011 * (target - 86) - .05 * (incent - 6) + .4 * mgr + .6 * (3.6 - engage) + .85 * (compa < .9) + .3 * (commute > 25) + CB[channel] + ZB[zone] - .025 * (train - 14) + (tenure <= 6 && target < 60 ? .45 : 0) - .015 * (persist - 82);
+    const left = R() < sig(z) ? 1 : 0;
+    const leaves = Math.round(clamp(1 + nrm() * 1.1 + (left ? 1.9 * R() : 0) + (sig(z) > .4 ? .5 : 0), 0, 10));
+    const login = Math.round(clamp(nrm() * 11 + (left ? 13 * R() + 5 : 3), -25, 80));
+    return { id: prefix + (10000 + i * 7 + (seed % 7)), channel, zone, tenure, age, target, incent, persist, mgr, train, leaves, engage, compa, commute, login, left }; }); }
+const HIST = genFLS(1800, 2026, 'FLS-'), CUR = genFLS(420, 777, 'FLS-2');
+CUR.forEach(r => delete r.left);
+
+/* ======================================================================
+   MACHINE LEARNING (mirrors the Python pipeline)
+   ====================================================================== */
+const ALLF = NUM.map(n => n[0]).concat(['channel', 'zone']);
+let FEATS = ALLF.slice(), MODEL = null, THR = .35;
+function design(feats){ const cols = []; feats.forEach(f => { if (f === 'channel') CH.slice(1).forEach(c => cols.push({ k:'channel', v:c, n:'Channel: ' + c })); else if (f === 'zone') ZN.slice(1).forEach(z => cols.push({ k:'zone', v:z, n:'Zone: ' + z })); else cols.push({ k:f, n:LAB[f] }); }); return cols; }
+const vec = (cols, r) => cols.map(c => c.v != null ? (r[c.k] === c.v ? 1 : 0) : +r[c.k]);
+function split(n, seed){ const R = mulberry32(seed), ids = range(n); for (let i = n - 1; i > 0; i--){ const j = Math.floor(R() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; } const k = Math.round(n * .7); return { tr: ids.slice(0, k), te: ids.slice(k) }; }
+function trainLR(X, y, tr){ const d = X[0].length, mu = Array(d).fill(0), sd = Array(d).fill(0); tr.forEach(i => X[i].forEach((v, j) => mu[j] += v)); mu.forEach((v, j) => mu[j] = v / tr.length); tr.forEach(i => X[i].forEach((v, j) => sd[j] += (v - mu[j]) ** 2)); sd.forEach((v, j) => sd[j] = Math.sqrt(v / tr.length) || 1);
+  const Z = tr.map(i => X[i].map((v, j) => (v - mu[j]) / sd[j])), Y = tr.map(i => y[i]); let w = Array(d).fill(0), b = 0;
+  for (let it = 0; it < 400; it++){ const gw = Array(d).fill(0); let gb = 0; for (let n = 0; n < Z.length; n++){ const zr = Z[n]; let z = b; for (let j = 0; j < d; j++) z += w[j] * zr[j]; const e = sig(z) - Y[n]; gb += e; for (let j = 0; j < d; j++) gw[j] += e * zr[j]; } const m = Z.length; b -= .6 * gb / m; for (let j = 0; j < d; j++) w[j] -= .6 * (gw[j] / m + .002 * w[j]); }
+  return { w, b, mu, sd, prob: x => { let z = b; for (let j = 0; j < d; j++) z += w[j] * (x[j] - mu[j]) / sd[j]; return sig(z); } }; }
+function prepBins(X, tr, nb){ const d = X[0].length, thr = []; for (let j = 0; j < d; j++){ const vals = tr.map(i => X[i][j]).sort((a, b) => a - b), u = []; for (let q = 1; q < nb; q++){ const v = vals[Math.floor(q * vals.length / nb)]; if (!u.length || v > u[u.length - 1]) u.push(v); } if (u.length && u[u.length - 1] >= vals[vals.length - 1]) u.pop(); thr.push(u); }
+  const B = X.map(r => r.map((v, j) => { const t = thr[j]; let k = 0; while (k < t.length && v > t[k]) k++; return k; })); return { thr, B }; }
+function buildTree(ids, g, h, B, thr, depth, lam, minLeaf){ const nf = thr.length;
+  function node(ids, dd){ let G = 0, H = 0; for (const i of ids){ G += g[i]; H += h[i]; } const nd = { v: -G / (H + lam), n: ids.length };
+    if (dd >= depth || ids.length < 2 * minLeaf) return nd; let best = null;
+    for (let j = 0; j < nf; j++){ const nb = thr[j].length + 1; if (nb < 2) continue; const hg = new Float64Array(nb), hh = new Float64Array(nb), hc = new Int32Array(nb);
+      for (const i of ids){ const b = B[i][j]; hg[b] += g[i]; hh[b] += h[i]; hc[b]++; }
+      let gl = 0, hl = 0, cl = 0; for (let k = 0; k < nb - 1; k++){ gl += hg[k]; hl += hh[k]; cl += hc[k]; const gr = G - gl, hr = H - hl, cr = ids.length - cl; if (cl < minLeaf || cr < minLeaf) continue; const gain = gl * gl / (hl + lam) + gr * gr / (hr + lam) - G * G / (H + lam); if (!best || gain > best.gain) best = { gain, j, k }; } }
+    if (!best || best.gain <= 1e-9) return nd; nd.f = best.j; nd.t = thr[best.j][best.k]; nd.gain = best.gain; const L = [], Rr = []; for (const i of ids) (B[i][best.j] <= best.k ? L : Rr).push(i); nd.l = node(L, dd + 1); nd.r = node(Rr, dd + 1); return nd; }
+  return node(ids, 0); }
+const treeVal = (nd, x) => { while (nd.l) nd = x[nd.f] <= nd.t ? nd.l : nd.r; return nd.v; };
+function auc(s, y){ const idx = s.map((v, i) => i).sort((a, b) => s[a] - s[b]); let r = 0, np = 0, nn = 0, k = 0; while (k < idx.length){ let e = k; while (e + 1 < idx.length && s[idx[e + 1]] === s[idx[k]]) e++; const rk = (k + e) / 2 + 1; for (let q = k; q <= e; q++){ if (y[idx[q]]) { r += rk; np++; } else nn++; } k = e + 1; } return np && nn ? (r - np * (np + 1) / 2) / (np * nn) : .5; }
+function rocPts(s, y){ const idx = s.map((v, i) => i).sort((a, b) => s[b] - s[a]), P = sum(y), N = y.length - P, pts = [[0, 0]]; let tp = 0, fp = 0; idx.forEach((i, k) => { if (y[i]) tp++; else fp++; if (k % 4 === 0 || k === idx.length - 1) pts.push([fp / N, tp / P]); }); return pts; }
+const logloss = (F, y, ids) => -mean(ids.map(i => { const p = clamp(sig(F[i]), 1e-6, 1 - 1e-6); return y[i] ? Math.log(p) : Math.log(1 - p); }));
+async function train(opts, onTick){ const cols = design(FEATS), X = HIST.map(r => vec(cols, r)), y = HIST.map(r => r.left), { tr, te } = split(HIST.length, 11), d = cols.length;
+  const lrm = trainLR(X, y, tr);
+  const { thr, B } = prepBins(X, tr, 24), p0 = mean(tr.map(i => y[i])), F0 = Math.log(p0 / (1 - p0)), F = new Float64Array(X.length).fill(F0), g = new Float64Array(X.length), h = new Float64Array(X.length), T = [], imp = Array(d).fill(0), curve = [];
+  const walk = (nd, f) => { if (!nd.l) return; f(nd); walk(nd.l, f); walk(nd.r, f); };
+  for (let t = 0; t < opts.trees; t++){ for (const i of tr){ const p = sig(F[i]); g[i] = p - y[i]; h[i] = Math.max(p * (1 - p), 1e-6); }
+    const tree = buildTree(tr, g, h, B, thr, opts.depth, 1, 12); T.push(tree); walk(tree, nd => imp[nd.f] += nd.gain);
+    for (let i = 0; i < X.length; i++) F[i] += opts.lr * treeVal(tree, X[i]);
+    if (t % 5 === 4 || t === opts.trees - 1) curve.push({ t: t + 1, tr: logloss(F, y, tr), te: logloss(F, y, te) });
+    if (onTick && (t % 10 === 9 || t === opts.trees - 1)) await onTick(t + 1, curve); }
+  const lr = opts.lr, gbm = { F0, lr, T, prob: x => { let z = F0; for (const tt of T) z += lr * treeVal(tt, x); return sig(z); },
+    contrib: x => { const c = Array(d).fill(0); let bias = F0; for (const tt of T){ let nd = tt; bias += lr * nd.v; while (nd.l){ const ch = x[nd.f] <= nd.t ? nd.l : nd.r; c[nd.f] += lr * (ch.v - nd.v); nd = ch; } } return { bias, c }; } };
+  const yt = te.map(i => y[i]), sG = te.map(i => gbm.prob(X[i])), sL = te.map(i => lrm.prob(X[i])), tenRule = te.map(i => -HIST[i].tenure);
+  const it = sum(imp) || 1;
+  MODEL = { cols, X, y, tr, te, lrm, gbm, yt, sG, sL, aucG: auc(sG, yt), aucL: auc(sL, yt), aucT: auc(tenRule, yt), curve, imp: imp.map(v => v / it), opts, base: p0 };
+  CUR.forEach(r => r.risk = gbm.prob(vec(cols, r)));
+  return MODEL; }
+
+/* ======================================================================
+   3D HELPERS (three.js)
+   ====================================================================== */
+const DOT = (() => { if (!has3) return null; const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 30); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.6, 'rgba(255,255,255,.95)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.beginPath(); x.arc(32, 32, 30, 0, 7); x.fill(); return new THREE.CanvasTexture(c); })();
+function label3(text, size, color, bg){ const c = document.createElement('canvas'), x = c.getContext('2d'), fs = 44; x.font = `700 ${fs}px DM Sans, sans-serif`; const w = Math.ceil(x.measureText(text).width) + 24; c.width = w; c.height = fs + 22; x.font = `700 ${fs}px DM Sans, sans-serif`; if (bg){ x.fillStyle = bg; x.fillRect(0, 0, w, c.height); } x.fillStyle = color || '#C9D2FF'; x.textBaseline = 'middle'; x.fillText(text, 12, c.height / 2 + 2);
+  const t = new THREE.CanvasTexture(c); t.minFilter = THREE.LinearFilter; const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: false })); s.scale.set(size * w / c.height, size, 1); return s; }
+function scene3(el, o){ if (!has3){ el.insertAdjacentHTML('beforeend', '<div class="no3d">3D charts need WebGL and an internet connection to load three.js.</div>'); return null; }
+  const H = () => el.clientHeight || 400, W = () => el.clientWidth || 600, renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1)); renderer.setSize(W(), H()); el.insertBefore(renderer.domElement, el.firstChild);
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(38, W() / H(), .1, 200); camera.position.set(...o.cam.map((v, i) => W() < 520 ? (o.target || [0, 0, 0])[i] + (v - (o.target || [0, 0, 0])[i]) * 1.45 : v)); const ctl = new THREE.OrbitControls(camera, renderer.domElement); ctl.target.set(...(o.target || [0, 0, 0])); ctl.enableDamping = true; ctl.dampingFactor = .08; ctl.autoRotate = !reduce; ctl.autoRotateSpeed = o.spin || .7; ctl.minDistance = 3; ctl.maxDistance = 22; ctl.update();
+  scene.add(new THREE.AmbientLight(0xffffff, .62)); const dl = new THREE.DirectionalLight(0xffffff, .7); dl.position.set(4, 9, 6); scene.add(dl); const dl2 = new THREE.DirectionalLight(0x99bbff, .25); dl2.position.set(-6, 3, -4); scene.add(dl2);
+  const S = { scene, camera, renderer, ctl, el, vis: false, raf: 0, hover: null };
+  const loop = () => { if (!S.vis){ S.raf = 0; return; } ctl.update(); renderer.render(scene, camera); S.raf = requestAnimationFrame(loop); };
+  if ('IntersectionObserver' in window) new IntersectionObserver(es => { S.vis = es[0].isIntersecting; if (S.vis && !S.raf) loop(); }, { threshold: .02 }).observe(el); else { S.vis = true; loop(); }
+  addEventListener('resize', () => { camera.aspect = W() / H(); camera.updateProjectionMatrix(); renderer.setSize(W(), H()); });
+  ctl.addEventListener('start', () => { ctl.autoRotate = false; });
+  const ray = new THREE.Raycaster(), mv = new THREE.Vector2(); ray.params.Points = { threshold: .07 };
+  renderer.domElement.addEventListener('pointermove', ev => { if (!S.hover) return; const r = renderer.domElement.getBoundingClientRect(); mv.x = (ev.clientX - r.left) / r.width * 2 - 1; mv.y = -(ev.clientY - r.top) / r.height * 2 + 1; ray.setFromCamera(mv, camera); const hit = ray.intersectObjects(S.hover.objs, false)[0]; if (hit) showTip(S.hover.tip(hit), ev); else hideTip(); });
+  renderer.domElement.addEventListener('pointerleave', hideTip);
+  S.render = () => renderer.render(scene, camera); return S; }
+function frame3(S, x0, x1, y0, y1, z0, z1){ const g = new THREE.BufferGeometry(), P = [], add = (a, b) => P.push(...a, ...b);
+  [[x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [x0, y0, z1]].forEach((p, i, a) => add(p, a[(i + 1) % 4])); [[x0, y0, z0], [x0, y1, z0]].forEach(() => 0); add([x0, y0, z0], [x0, y1, z0]); add([x0, y1, z0], [x1, y1, z0]); add([x0, y0, z1], [x0, y1, z1]); add([x0, y1, z0], [x0, y1, z1]);
+  g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); S.scene.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x5767C9, transparent: true, opacity: .55 })));
+  const grid = new THREE.GridHelper(Math.max(x1 - x0, z1 - z0), 8, 0x3A49A8, 0x26337E); grid.position.set((x0 + x1) / 2, y0, (z0 + z1) / 2); grid.scale.set((x1 - x0) / Math.max(x1 - x0, z1 - z0), 1, (z1 - z0) / Math.max(x1 - x0, z1 - z0)); grid.material.transparent = true; grid.material.opacity = .45; S.scene.add(grid); }
+const put = (S, sp, x, y, z) => { sp.position.set(x, y, z); S.scene.add(sp); return sp; };
+
+/* ======================================================================
+   01 · DATA EXPLORER
+   ====================================================================== */
+let CLOUD = null, CMODE = 'out';
+const CHC = { 'Agency':'#7FD3FF', 'Bancassurance':'#F4C95D', 'Direct & tele':'#FF5470', 'Partnerships':'#B79CFF' };
+const cx = r => -2.1 + clamp(r.tenure, 0, 72) / 72 * 4.2, cy = r => clamp(r.target, 0, 180) / 180 * 2.6, cz = (r, i) => -1.5 + (r.engage - 1) / 4 * 3 + ((i * 7919) % 100 / 100 - .5) * .06;
+function cloudColors(){ if (!CLOUD) return; const col = CLOUD.pts.geometry.getAttribute('color'), c = new THREE.Color();
+  HIST.forEach((r, i) => { if (CMODE === 'out') c.set(r.left ? '#FF5470' : '#2FD3B4'); else if (CMODE === 'ch') c.set(CHC[r.channel]); else { const p = MODEL ? MODEL.gbm.prob(MODEL.X[i]) : .2; c.set(p >= .5 ? '#FF5470' : p >= .25 ? '#F4C95D' : '#2FD3B4'); } col.setXYZ(i, c.r, c.g, c.b); }); col.needsUpdate = true;
+  $('cloudLg').innerHTML = CMODE === 'out' ? '<span><i style="background:#FF5470"></i>Resigned within 90 days</span><span><i style="background:#2FD3B4"></i>Stayed</span>' : CMODE === 'ch' ? Object.keys(CHC).map(k => `<span><i style="background:${CHC[k]}"></i>${k}</span>`).join('') : '<span><i style="background:#FF5470"></i>Model risk ≥ 50%</span><span><i style="background:#F4C95D"></i>25–50%</span><span><i style="background:#2FD3B4"></i>&lt; 25%</span>'; }
+function initCloud(){ const S = scene3($('cloud'), { cam: [5.6, 3.6, 6.2], target: [0, 1.1, 0], spin: .6 }); if (!S) return;
+  frame3(S, -2.1, 2.1, 0, 2.6, -1.5, 1.5);
+  const g = new THREE.BufferGeometry(), P = new Float32Array(HIST.length * 3); HIST.forEach((r, i) => { P[i * 3] = cx(r); P[i * 3 + 1] = cy(r); P[i * 3 + 2] = cz(r, i); }); g.setAttribute('position', new THREE.BufferAttribute(P, 3)); g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(HIST.length * 3), 3));
+  const pts = new THREE.Points(g, new THREE.PointsMaterial({ size: .13, vertexColors: true, map: DOT, transparent: true, alphaTest: .3, depthWrite: false })); S.scene.add(pts); CLOUD = { S, pts };
+  [[0, '0'], [24, '24'], [48, '48'], [72, '72 m']].forEach(([v, t]) => put(S, label3(t, .17), -2.1 + v / 72 * 4.2, -.18, 1.75));
+  put(S, label3('Tenure (months)', .2, '#FFFFFF'), 0, -.45, 1.95);
+  [[0, '0%'], [60, '60%'], [120, '120%'], [180, '180%']].forEach(([v, t]) => put(S, label3(t, .17), -2.45, v / 180 * 2.6, -1.5));
+  put(S, label3('Target achievement', .2, '#FFFFFF'), -2.6, 2.95, -1.5);
+  [[1, '1'], [3, '3'], [5, '5']].forEach(([v, t]) => put(S, label3(t, .17), 2.35, -.15, -1.5 + (v - 1) / 4 * 3)); put(S, label3('Engagement', .2, '#FFFFFF'), 2.75, -.4, 0);
+  S.hover = { objs: [pts], tip: hit => { const r = HIST[hit.index]; return `<b>${r.id}</b> · ${esc(r.channel)} · ${r.zone}<br>Tenure ${r.tenure} m · target ${r.target}% · engagement ${r.engage}<br>${r.left ? 'Resigned within 90 days' : 'Stayed'}${MODEL ? ' · model risk ' + pc(MODEL.gbm.prob(MODEL.X[hit.index])) : ''}`; } };
+  $('cloudHud').innerHTML = [['out', 'Outcome'], ['ch', 'Channel'], ['risk', 'Model risk']].map(m => `<button type="button" class="chipb${m[0] === CMODE ? ' on' : ''}" data-cm="${m[0]}">${m[1]}</button>`).join('') + '<button type="button" class="chipb" id="cloudSpin">⟳ Spin</button>';
+  $('cloudHud').addEventListener('click', e => { const b = e.target.closest('[data-cm]'); if (b){ CMODE = b.dataset.cm; document.querySelectorAll('#cloudHud [data-cm]').forEach(x => x.classList.toggle('on', x === b)); cloudColors(); } if (e.target.id === 'cloudSpin') S.ctl.autoRotate = !S.ctl.autoRotate; });
+  cloudColors(); }
+function dataKpi(){ const L = HIST.filter(r => r.left), S = HIST.filter(r => !r.left), med = a => { const s = a.slice().sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
+  $('dKpi').innerHTML = [['Past sellers', HIST.length.toLocaleString('en-IN'), CH.length + ' channels · ' + ZN.length + ' zones'], ['Resigned in 90 days', pc(L.length / HIST.length), L.length + ' sellers'], ['Leavers in year one', pc(L.filter(r => r.tenure <= 12).length / L.length), 'of all leavers'], ['Median tenure', med(HIST.map(r => r.tenure)) + ' m', 'leavers ' + med(L.map(r => r.tenure)) + ' m'], ['Target achievement', Math.round(mean(L.map(r => r.target))) + '%', 'leavers vs ' + Math.round(mean(S.map(r => r.target))) + '% stayers']]
+    .map(m => `<div class="ms"><div class="k">${m[0]}</div><div class="v">${m[1]}</div><div class="s">${esc(m[2])}</div></div>`).join(''); }
+const KMC = ['#1B2A8F', '#E4002B', '#00A3AD', '#F4A261', '#6C4AB6'];
+function kmGroups(by){ const g = by === 'channel' ? CH.map(c => [c, r => r.channel === c]) : by === 'zone' ? ZN.map(z => [z, r => r.zone === z]) : by === 'mgr' ? [['No manager change', r => r.mgr === 0], ['1 change', r => r.mgr === 1], ['2+ changes', r => r.mgr >= 2]] : [['Target < 60%', r => r.target < 60], ['60–100%', r => r.target >= 60 && r.target < 100], ['100%+', r => r.target >= 100]]; return g; }
+function kmCurve(rows){ const t = rows.map(r => ({ t: r.tenure + (r.left ? 1.5 : 0), e: r.left })).sort((a, b) => a.t - b.t); let n = t.length, S = 1; const pts = [[0, 1]]; let i = 0; while (i < t.length){ const tt = t[i].t; let d = 0, c = 0; while (i < t.length && t[i].t === tt){ if (t[i].e) d++; else c++; i++; } if (d) { S *= 1 - d / n; pts.push([tt, S]); } n -= d + c; if (tt > 60) break; } pts.push([60, S]); return pts; }
+function drawKM(){ const by = $('kmBy').value, G = kmGroups(by), w = 460, h = 250, m = { l: 36, r: 10, t: 10, b: 30 }, x = d3.scaleLinear().domain([0, 60]).range([m.l, w - m.r]), y = d3.scaleLinear().domain([0, 1]).range([h - m.b, m.t]);
+  const svg = d3.select('#km').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'Kaplan-Meier survival curves');
+  svg.append('g').attr('class', 'grid').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickSize(-(w - m.l - m.r)).tickFormat(''));
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(6).tickFormat(d => d + ' m'));
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickFormat(d3.format('.0%')));
+  const line = d3.line().x(d => x(d[0])).y(d => y(d[1])).curve(d3.curveStepAfter);
+  G.forEach(([n, f], i) => { const rows = HIST.filter(f), pts = kmCurve(rows), p = svg.append('path').attr('d', line(pts)).attr('fill', 'none').attr('stroke', KMC[i]).attr('stroke-width', 2.2);
+    if (!reduce){ const L = p.node().getTotalLength(); p.attr('stroke-dasharray', L).attr('stroke-dashoffset', L).transition().duration(900).attr('stroke-dashoffset', 0); }
+    const s12 = pts.filter(q => q[0] <= 12).pop()[1]; svg.append('text').attr('x', w - m.r - 4).attr('y', m.t + 12 + i * 13).attr('text-anchor', 'end').attr('font-size', 10).attr('font-weight', 700).attr('fill', KMC[i]).text(`${n} · ${pc(s12)} at 12 m (n=${rows.length})`); }); }
+$('kmBy').addEventListener('change', () => hasD3 && drawKM());
+function drawHex(){ const w = 460, h = 260, m = { l: 40, r: 10, t: 8, b: 30 }, x = d3.scaleLinear().domain([0, 72]).range([m.l, w - m.r]), y = d3.scaleLinear().domain([0, 180]).range([h - m.b, m.t]), r = 11;
+  const dx = r * 2 * Math.sin(Math.PI / 3), dy = r * 1.5, bins = new Map();
+  HIST.forEach(o => { if (o.tenure > 72 || o.target > 180) return; const px0 = x(o.tenure), py0 = y(o.target); let py = py0 / dy, pj = Math.round(py), px = px0 / dx - (pj & 1) / 2, pi = Math.round(px), py1 = py - pj;
+    if (Math.abs(py1) * 3 > 1){ const px1 = px - pi, pi2 = pi + (px < pi ? -1 : 1) / 2, pj2 = pj + (py < pj ? -1 : 1), px2 = px - pi2, py2 = py - pj2; if (px1 * px1 + py1 * py1 > px2 * px2 + py2 * py2){ pi = pi2 + (pj & 1 ? 1 : -1) / 2; pj = pj2; } }
+    const id = pi + ',' + pj; let b = bins.get(id); if (!b){ b = { x: (pi + (pj & 1) / 2) * dx, y: pj * dy, n: 0, l: 0 }; bins.set(id, b); } b.n++; b.l += o.left; });
+  const B = [...bins.values()], mx = d3.max(B, b => b.n), sz = d3.scaleSqrt().domain([0, mx]).range([2, r]), col = d3.scaleSequential(d3.interpolateRgbBasis(['#2FD3B4', '#F4C95D', '#FF5470', '#9E0020'])).domain([0, .6]);
+  const hex = rr => 'M' + range(6).map(i => { const a = i * Math.PI / 3; return [rr * Math.sin(a), -rr * Math.cos(a)].map(v => v.toFixed(2)).join(','); }).join('L') + 'Z';
+  const svg = d3.select('#hex').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'Hexbin of tenure and target achievement');
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(6).tickFormat(d => d + ' m'));
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickFormat(d => d + '%'));
+  svg.append('g').selectAll('path').data(B).join('path').attr('transform', b => `translate(${b.x},${b.y})`).attr('d', b => hex(reduce ? sz(b.n) : 0)).attr('fill', b => col(b.l / b.n)).attr('stroke', '#fff').attr('stroke-width', .6)
+    .on('mousemove', (ev, b) => showTip(`<b>${b.n} sellers</b><br>${b.l} resigned within 90 days (${pc(b.l / b.n)})`, ev)).on('mouseleave', hideTip).transition().duration(700).delay((b, i) => i * 3).attr('d', b => hex(sz(b.n)));
+  const lg = svg.append('g').attr('transform', `translate(${w - 150},${m.t + 2})`); range(6).forEach(i => lg.append('rect').attr('x', i * 20).attr('width', 20).attr('height', 7).attr('fill', col(i * .12))); lg.append('text').attr('y', 18).attr('font-size', 9).attr('fill', '#5A6180').text('0%'); lg.append('text').attr('x', 120).attr('y', 18).attr('text-anchor', 'end').attr('font-size', 9).attr('fill', '#5A6180').text('60%+ left'); }
+$('dlCsv').addEventListener('click', () => { const cols = ['id','channel','zone'].concat(NUM.map(n => n[0])), rows = [cols.concat(['left_90d', 'set']).join(',')]; HIST.forEach(r => rows.push(cols.map(c => csvCell(r[c])).concat([r.left, 'history']).join(','))); CUR.forEach(r => rows.push(cols.map(c => csvCell(r[c])).concat(['', 'current']).join(','))); download('fls_attrition_synthetic.csv', rows.join('\n'), 'text/csv'); });
+
+/* ======================================================================
+   02 · MODEL LAB
+   ====================================================================== */
+$('feats').innerHTML = ALLF.map(f => `<label title="${esc(LAB[f])}"><input type="checkbox" value="${f}" checked> ${esc(SHORT[f])}</label>`).join('');
+$('feats').addEventListener('change', () => { FEATS = [...document.querySelectorAll('#feats input:checked')].map(i => i.value); if (FEATS.length < 2){ toast('Keep at least two features'); } $('trainNote').textContent = 'Features changed; select Train models to refit.'; });
+[['nt', v => v], ['lr', v => (+v).toFixed(2)], ['dp', v => v]].forEach(([id, f]) => $(id).addEventListener('input', () => $(id + 'V').textContent = f($(id).value)));
+let TRAINING = false;
+async function runTrain(animate){ if (TRAINING) return; if (FEATS.length < 2){ toast('Pick at least two features'); return; } TRAINING = true; $('trainGo').disabled = true; const t0 = performance.now(), opts = { trees: +$('nt').value, lr: +$('lr').value, depth: +$('dp').value };
+  await train(opts, async (t, curve) => { $('prog').style.width = (t / opts.trees * 100) + '%'; if (animate && hasD3){ drawLC(curve, opts.trees); await sleep(reduce ? 0 : 16); } });
+  $('prog').style.width = '100%'; $('trainNote').textContent = `Trained on ${MODEL.tr.length} sellers, tested on ${MODEL.te.length}, ${MODEL.cols.length} columns, in ${Math.round(performance.now() - t0)} ms.`;
+  TRAINING = false; $('trainGo').disabled = false; afterTrain(); }
+$('trainGo').addEventListener('click', () => runTrain(true));
+$('th').addEventListener('input', () => { THR = +$('th').value; $('thV').textContent = THR.toFixed(2); onThr(); });
+function metricsAt(thr){ const { sG, yt } = MODEL; let tp = 0, fp = 0, fn = 0, tn = 0; sG.forEach((s, i) => { const p = s >= thr; if (p && yt[i]) tp++; else if (p) fp++; else if (yt[i]) fn++; else tn++; }); const ord = sG.map((s, i) => i).sort((a, b) => sG[b] - sG[a]), top = ord.slice(0, Math.round(ord.length * .2)), cap = sum(top.map(i => yt[i])) / (sum(yt) || 1); return { tp, fp, fn, tn, prec: tp / (tp + fp || 1), rec: tp / (tp + fn || 1), cap }; }
+function renderMK(){ const m = metricsAt(THR);
+  $('mKpi').innerHTML = [['AUC · boosting', MODEL.aucG.toFixed(3), 'test set'], ['AUC · logistic', MODEL.aucL.toFixed(3), 'tenure rule ' + MODEL.aucT.toFixed(2)], ['Top-20% capture', pc(m.cap), 'of leavers in top fifth'], ['Precision', pc(m.prec), 'at threshold ' + THR.toFixed(2)], ['Recall', pc(m.rec), m.tp + ' of ' + (m.tp + m.fn) + ' leavers']]
+    .map(k => `<div class="ms"><div class="k">${k[0]}</div><div class="v">${k[1]}</div><div class="s">${esc(k[2])}</div></div>`).join(''); }
+function axes(svg, x, y, w, h, m, fx, fy){ svg.append('g').attr('class', 'grid').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickSize(-(w - m.l - m.r)).tickFormat(''));
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x).ticks(5).tickFormat(fx)); svg.append('g').attr('class', 'axis').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickFormat(fy)); }
+function drawROC(){ const w = 300, h = 230, m = { l: 34, r: 16, t: 8, b: 26 }, x = d3.scaleLinear().domain([0, 1]).range([m.l, w - m.r]), y = d3.scaleLinear().domain([0, 1]).range([h - m.b, m.t]), svg = d3.select('#roc').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'ROC curves');
+  axes(svg, x, y, w, h, m, d3.format('.0%'), d3.format('.0%')); svg.append('line').attr('x1', x(0)).attr('y1', y(0)).attr('x2', x(1)).attr('y2', y(1)).attr('stroke', '#C3C9DE').attr('stroke-dasharray', '4 3');
+  const line = d3.line().x(d => x(d[0])).y(d => y(d[1]));
+  [[rocPts(MODEL.sL, MODEL.yt), '#00A3AD', 'Logistic ' + MODEL.aucL.toFixed(2)], [rocPts(MODEL.sG, MODEL.yt), '#E4002B', 'Boosting ' + MODEL.aucG.toFixed(2)]].forEach(([pts, c, n], i) => { const area = d3.area().x(d => x(d[0])).y0(y(0)).y1(d => y(d[1])); if (i) svg.append('path').attr('d', area(pts)).attr('fill', c).attr('opacity', .08);
+    const p = svg.append('path').attr('d', line(pts)).attr('fill', 'none').attr('stroke', c).attr('stroke-width', 2.2); if (!reduce){ const L = p.node().getTotalLength(); p.attr('stroke-dasharray', L).attr('stroke-dashoffset', L).transition().duration(900).attr('stroke-dashoffset', 0); }
+    svg.append('text').attr('x', w - m.r - 4).attr('y', h - m.b - 10 - i * 14).attr('text-anchor', 'end').attr('font-size', 10).attr('font-weight', 800).attr('fill', c).text(n); });
+  const mt = metricsAt(THR), fpr = mt.fp / (mt.fp + mt.tn || 1); svg.append('circle').attr('class', 'thrDot').attr('cx', x(fpr)).attr('cy', y(mt.rec)).attr('r', 5).attr('fill', '#fff').attr('stroke', '#0A1450').attr('stroke-width', 2); }
+function drawLC(curve, total){ const w = 300, h = 230, m = { l: 40, r: 8, t: 8, b: 26 }, all = curve.flatMap(c => [c.tr, c.te]), x = d3.scaleLinear().domain([0, total || MODEL.opts.trees]).range([m.l, w - m.r]), y = d3.scaleLinear().domain([d3.min(all) * .96, d3.max(all) * 1.02]).range([h - m.b, m.t]);
+  const svg = d3.select('#lc').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'Learning curve'); axes(svg, x, y, w, h, m, d => d, d3.format('.2f'));
+  [['tr', '#1B2A8F', 'Train'], ['te', '#E4002B', 'Test']].forEach(([k, c, n], i) => { svg.append('path').attr('d', d3.line().x(d => x(d.t)).y(d => y(d[k])).curve(d3.curveMonotoneX)(curve)).attr('fill', 'none').attr('stroke', c).attr('stroke-width', 2.2); svg.append('text').attr('x', w - m.r - 4).attr('y', m.t + 12 + i * 13).attr('text-anchor', 'end').attr('font-size', 10).attr('font-weight', 800).attr('fill', c).text(`${n} ${curve[curve.length - 1][k].toFixed(3)}`); });
+  const best = curve.reduce((a, b) => b.te < a.te ? b : a, curve[0]); svg.append('circle').attr('cx', x(best.t)).attr('cy', y(best.te)).attr('r', 4).attr('fill', '#E4002B'); svg.append('text').attr('x', x(best.t)).attr('y', y(best.te) - 8).attr('text-anchor', 'middle').attr('font-size', 9).attr('fill', '#5A6180').text('best test · tree ' + best.t); }
+function drawCal(){ const w = 300, h = 230, m = { l: 34, r: 16, t: 8, b: 26 }, x = d3.scaleLinear().domain([0, 1]).range([m.l, w - m.r]), y = d3.scaleLinear().domain([0, 1]).range([h - m.b, m.t]), { sG, yt } = MODEL, bins = range(10).map(b => ({ b, s: [], y: [] }));
+  sG.forEach((s, i) => { const b = bins[Math.min(9, Math.floor(s * 10))]; b.s.push(s); b.y.push(yt[i]); }); const B = bins.filter(b => b.s.length).map(b => ({ p: mean(b.s), a: mean(b.y), n: b.s.length }));
+  const svg = d3.select('#cal').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'Calibration plot'); axes(svg, x, y, w, h, m, d3.format('.0%'), d3.format('.0%'));
+  const mx = d3.max(B, b => b.n); svg.selectAll('.cb').data(B).join('rect').attr('x', d => x(d.p) - 5).attr('width', 10).attr('y', d => h - m.b - d.n / mx * 40).attr('height', d => d.n / mx * 40).attr('fill', '#DCE3FA');
+  svg.append('line').attr('x1', x(0)).attr('y1', y(0)).attr('x2', x(1)).attr('y2', y(1)).attr('stroke', '#C3C9DE').attr('stroke-dasharray', '4 3');
+  svg.append('path').attr('d', d3.line().x(d => x(d.p)).y(d => y(d.a))(B)).attr('fill', 'none').attr('stroke', '#6C4AB6').attr('stroke-width', 2);
+  svg.selectAll('.cd').data(B).join('circle').attr('cx', d => x(d.p)).attr('cy', d => y(d.a)).attr('r', d => 3 + Math.sqrt(d.n) * .5).attr('fill', '#6C4AB6').attr('stroke', '#fff').on('mousemove', (ev, d) => showTip(`<b>Predicted ${pc(d.p)}</b><br>Actual ${pc(d.a)} · ${d.n} sellers`, ev)).on('mouseleave', hideTip);
+  svg.append('text').attr('x', m.l + 6).attr('y', m.t + 12).attr('font-size', 9.5).attr('fill', '#5A6180').text('On the dashed line = well calibrated'); }
+function drawCM(){ const mt = metricsAt(THR), w = 300, h = 230, cells = [['Flagged, left', mt.tp, '#E4002B', 0, 0], ['Flagged, stayed', mt.fp, '#F4A261', 1, 0], ['Missed, left', mt.fn, '#6C4AB6', 0, 1], ['Not flagged, stayed', mt.tn, '#2A9D5C', 1, 1]], tot = mt.tp + mt.fp + mt.fn + mt.tn, cw = 118, ch = 86, x0 = 60, y0 = 26;
+  const svg = d3.select('#cm').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'Confusion matrix');
+  svg.append('text').attr('x', x0 + cw / 2).attr('y', 16).attr('text-anchor', 'middle').attr('font-size', 10).attr('font-weight', 800).attr('fill', '#5A6180').text('ACTUALLY LEFT'); svg.append('text').attr('x', x0 + cw * 1.5 + 4).attr('y', 16).attr('text-anchor', 'middle').attr('font-size', 10).attr('font-weight', 800).attr('fill', '#5A6180').text('STAYED');
+  svg.append('text').attr('transform', `translate(18,${y0 + ch / 2}) rotate(-90)`).attr('text-anchor', 'middle').attr('font-size', 10).attr('font-weight', 800).attr('fill', '#5A6180').text('FLAGGED'); svg.append('text').attr('transform', `translate(18,${y0 + ch * 1.5 + 4}) rotate(-90)`).attr('text-anchor', 'middle').attr('font-size', 10).attr('font-weight', 800).attr('fill', '#5A6180').text('NOT FLAGGED');
+  cells.forEach(([n, v, c, cx2, cy2]) => { const g = svg.append('g').attr('transform', `translate(${x0 + cx2 * (cw + 4)},${y0 + cy2 * (ch + 4)})`); g.append('rect').attr('width', cw).attr('height', ch).attr('rx', 8).attr('fill', c).attr('opacity', .12 + .75 * v / tot * 2.2);
+    g.append('text').attr('x', cw / 2).attr('y', ch / 2 + 2).attr('text-anchor', 'middle').attr('font-family', 'DM Serif Display, serif').attr('font-size', 28).attr('fill', '#0A1450').text(v); g.append('text').attr('x', cw / 2).attr('y', ch / 2 + 22).attr('text-anchor', 'middle').attr('font-size', 9.5).attr('fill', '#0A1450').text(n); }); }
+function drawImp(){ const cols = MODEL.cols, grp = {}; cols.forEach((c, j) => { const k = c.k; grp[k] = grp[k] || { k, g: 0, l: 0 }; grp[k].g += MODEL.imp[j]; grp[k].l += Math.abs(MODEL.lrm.w[j]); });
+  const G = Object.values(grp).sort((a, b) => b.g - a.g), ml = d3.max(G, d => d.l) || 1, w = 640, rh = 22, h = 24 + G.length * rh + 10, lm = 170, x = d3.scaleLinear().domain([0, d3.max(G, d => d.g)]).range([lm, w - 70]), xl = d3.scaleLinear().domain([0, ml]).range([lm, w - 70]);
+  const svg = d3.select('#imp').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'Feature importance');
+  svg.append('rect').attr('x', lm).attr('y', 4).attr('width', 12).attr('height', 8).attr('fill', '#E4002B').attr('rx', 2); svg.append('text').attr('x', lm + 16).attr('y', 12).attr('font-size', 10).attr('fill', '#5A6180').text('Boosting gain share');
+  svg.append('circle').attr('cx', lm + 150).attr('cy', 8).attr('r', 5).attr('fill', '#00A3AD'); svg.append('text').attr('x', lm + 160).attr('y', 12).attr('font-size', 10).attr('fill', '#5A6180').text('Logistic |coefficient| (scaled)');
+  G.forEach((d, i) => { const y = 24 + i * rh; svg.append('text').attr('x', lm - 8).attr('y', y + 13).attr('text-anchor', 'end').attr('font-size', 10.5).attr('fill', '#0A1450').text(LAB[d.k]);
+    svg.append('rect').attr('x', lm).attr('y', y + 4).attr('height', 12).attr('rx', 3).attr('fill', '#E4002B').attr('opacity', .85).attr('width', 0).transition().duration(reduce ? 0 : 700).delay(i * 30).attr('width', x(d.g) - lm);
+    svg.append('text').attr('x', x(d.g) + 4).attr('y', y + 14).attr('font-size', 9.5).attr('font-weight', 700).attr('fill', '#5A6180').text(pc(d.g));
+    svg.append('circle').attr('cx', xl(d.l)).attr('cy', y + 10).attr('r', 5).attr('fill', '#00A3AD').attr('stroke', '#fff').attr('stroke-width', 1.5); }); }
+const PY = {
+  '1 · Load and join': `import pandas as pd
+import numpy as np
+
+# Seller-month snapshots: HRMS + sales MIS + incentives + CRM activity
+hr   = pd.read_parquet("hrms_fls.parquet")          # joiners, exits, manager history
+mis  = pd.read_parquet("sales_mis_monthly.parquet")  # target, achievement, persistency
+inc  = pd.read_parquet("incentive_payouts.parquet")
+crm  = pd.read_parquet("crm_logins_daily.parquet")
+
+df = (hr.merge(mis, on=["emp_id", "month"])
+        .merge(inc, on=["emp_id", "month"], how="left")
+        .merge(crm.groupby(["emp_id", "month"]).agg(logins=("login", "sum")).reset_index(),
+               on=["emp_id", "month"], how="left"))
+
+# Target: resigns within the next 90 days of the snapshot month
+df["left_90d"] = ((df["exit_date"] - df["month_end"]).dt.days.between(1, 90)).astype(int)
+df = df[df["month_end"] <= df["month_end"].max() - pd.Timedelta(days=90)]   # avoid label leakage`,
+  '2 · Features': `df["tenure"]    = (df["month_end"] - df["doj"]).dt.days // 30
+df["target"]    = 100 * df["achieved_ape"] / df["target_ape"]
+df["incent"]    = 100 * df["incentive_qtr"] / df["ctc_qtr"]
+df["mgr"]       = df.groupby("emp_id")["manager_id"].transform(lambda s: s.rolling(12, 1).apply(lambda x: x.nunique() - 1))
+df["login"]     = 100 * (1 - df["logins"] / df.groupby("emp_id")["logins"].shift(1))
+df["compa"]     = df["fixed_pay"] / df["band_midpoint"]
+
+NUM = ["tenure", "age", "target", "incent", "persist", "mgr", "train",
+       "leaves", "engage", "compa", "commute", "login"]
+CAT = ["channel", "zone"]
+X, y = df[NUM + CAT], df["left_90d"]`,
+  '3 · Train and evaluate': `from sklearn.model_selection import train_test_split
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import roc_auc_score
+from lightgbm import LGBMClassifier
+
+X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.3, stratify=y, random_state=11)
+pre = ColumnTransformer([("num", StandardScaler(), NUM),
+                         ("cat", OneHotEncoder(drop="first"), CAT)])
+
+baseline = Pipeline([("pre", pre), ("lr", LogisticRegression(C=1.0, max_iter=500))]).fit(X_tr, y_tr)
+gbm = LGBMClassifier(n_estimators=120, learning_rate=0.10, max_depth=2,
+                     min_child_samples=12, reg_lambda=1.0)
+gbm.fit(pd.get_dummies(X_tr, columns=CAT, drop_first=True), y_tr)
+
+print("AUC logistic:", roc_auc_score(y_te, baseline.predict_proba(X_te)[:, 1]))
+print("AUC boosting:", roc_auc_score(y_te, gbm.predict_proba(pd.get_dummies(X_te, columns=CAT, drop_first=True))[:, 1]))`,
+  '4 · Explain and score': `import shap
+
+explainer = shap.TreeExplainer(gbm)
+current = pd.get_dummies(this_month[NUM + CAT], columns=CAT, drop_first=True)
+risk = gbm.predict_proba(current)[:, 1]
+sv = explainer.shap_values(current)
+
+def reasons(i, k=3):
+    s = pd.Series(sv[i], index=current.columns).sort_values(ascending=False)
+    return [f"{c}: {current.iloc[i][c]:.0f}" for c in s.index[:k] if s[c] > 0]
+
+risk_list = (this_month[["emp_id", "channel", "zone", "manager_id"]]
+             .assign(risk=risk, reasons=[reasons(i) for i in range(len(current))])
+             .query("risk >= 0.35")
+             .sort_values("risk", ascending=False))
+risk_list.to_csv("fls_risk_list.csv", index=False)   # to managers on day 3`
+};
+let PYT = Object.keys(PY)[0];
+const hlPy = s => esc(s).replace(/(#[^\n]*)/g, '<span class="c">$1</span>').replace(/(&quot;[^&\n]*?&quot;)/g, '<span class="s">$1</span>').replace(/\b(import|from|as|def|return|for|in|if|else|lambda|True|False|None|print)\b/g, '<span class="k">$1</span>').replace(/\b([a-zA-Z_]+)(?=\()/g, '<span class="f">$1</span>');
+function renderPy(){ $('pyTabs').innerHTML = Object.keys(PY).map(k => `<button type="button" class="${k === PYT ? 'on' : ''}" data-py="${esc(k)}">${esc(k)}</button>`).join(''); $('py').innerHTML = hlPy(PY[PYT]); }
+$('pyTabs').addEventListener('click', e => { const b = e.target.closest('[data-py]'); if (b){ PYT = b.dataset.py; renderPy(); } });
+$('dlPy').addEventListener('click', () => download('fls_attrition_model.py', '"""FLS attrition prediction · Life Insurance × Havish M Consulting (illustrative pipeline)"""\n\n' + Object.entries(PY).map(([k, v]) => '# ---------- ' + k + ' ----------\n' + v).join('\n\n') + '\n', 'text/x-python'));
+renderPy();
+
+/* ======================================================================
+   03 · RISK DESK
+   ====================================================================== */
+let RF = 'all', SEL = null, WI = null, SURF = null;
+const RFS = [['all', 'All'], ['high', 'Above threshold'], ['new', 'New joiners ≤ 6 m'], ...CH.map(c => [c, c])];
+const filtCur = () => CUR.filter(r => RF === 'all' || (RF === 'high' ? r.risk >= THR : RF === 'new' ? r.tenure <= 6 : r.channel === RF)).sort((a, b) => b.risk - a.risk);
+function renderRK(){ $('rkFilt').innerHTML = RFS.map(f => `<button type="button" class="chipb${RF === f[0] ? ' on' : ''}" data-rf="${esc(f[0])}">${esc(f[1])}${f[0] === 'high' ? ' · ' + CUR.filter(r => r.risk >= THR).length : ''}</button>`).join('');
+  const rows = filtCur(); $('rkTab').querySelector('tbody').innerHTML = rows.map(r => `<tr data-id="${r.id}" class="${SEL && SEL.id === r.id ? 'on' : ''}"><td><b>${r.id}</b></td><td>${esc(r.channel)}</td><td>${r.zone}</td><td class="r">${r.tenure} m</td><td class="r">${r.target}%</td><td><span class="riskbar"><i style="width:${Math.round(r.risk * 100)}%;background:${riskCol(r.risk)}"></i></span><b>${pc(r.risk)}</b></td></tr>`).join('') || '<tr><td colspan="6" class="note">No sellers match.</td></tr>';
+  $('rkTab').querySelectorAll('tbody tr[data-id]').forEach(tr => tr.addEventListener('click', () => selSeller(CUR.find(r => r.id === tr.dataset.id)))); }
+$('rkFilt').addEventListener('click', e => { const b = e.target.closest('[data-rf]'); if (b){ RF = b.dataset.rf; renderRK(); } });
+const LEV = [['target', 'Target achievement %', 0, 200, 1], ['incent', 'Incentive % of CTC', 0, 25, .5], ['train', 'Training hours (qtr)', 0, 40, 1], ['engage', 'Engagement score', 1, 5, .1], ['mgr', 'Manager changes (12 m)', 0, 3, 1], ['compa', 'Pay vs band', .7, 1.3, .01], ['leaves', 'Leaves (last 30 days)', 0, 10, 1], ['login', 'CRM login drop %', -25, 80, 1]];
+function selSeller(r){ SEL = r; WI = Object.assign({}, r); renderRK(); renderWI(); renderSel(); }
+function scoreRow(r){ return MODEL.gbm.prob(vec(MODEL.cols, r)); }
+function groupedContrib(r){ const { bias, c } = MODEL.gbm.contrib(vec(MODEL.cols, r)), g = {}; MODEL.cols.forEach((col, j) => { g[col.k] = (g[col.k] || 0) + c[j]; }); return { bias, g }; }
+function renderSel(){ const r = WI, p0 = SEL.risk, p = scoreRow(r), d = p - p0;
+  $('rkHead').innerHTML = `<div><div class="note">${SEL.id} · ${esc(SEL.channel)} · ${SEL.zone}</div><div class="big" style="color:${riskCol(p)}">${pc(p)}</div><div class="note">chance of resigning in the next 90 days</div></div><div>${p >= THR ? '<span class="tag r">On the action list</span>' : '<span class="tag g">Below threshold</span>'}${Math.abs(d) >= .005 ? `<div class="note" style="margin-top:6px">What-if: <b style="color:${d < 0 ? 'var(--good)' : 'var(--bad)'}">${d < 0 ? '−' : '+'}${Math.abs(Math.round(d * 100))} pts</b> from ${pc(p0)}</div>` : ''}</div>`;
+  $('rkProf').innerHTML = [['tenure'], ['target'], ['incent'], ['engage'], ['mgr'], ['leaves'], ['login'], ['compa']].map(([k]) => `<div class="ms"><div class="k">${esc(SHORT[k])}</div><div class="v" style="font-size:1.05rem">${esc(fmtV(k, r[k]))}</div></div>`).join('');
+  drawForce(); updSurf(); }
+function renderWI(){ $('wi').innerHTML = LEV.map(([k, n, a, b, s]) => `<label class="rng"><span>${esc(n)}</span><b id="wv_${k}">${esc(fmtV(k, WI[k]))}</b><input type="range" min="${a}" max="${b}" step="${s}" value="${WI[k]}" data-k="${k}" aria-label="${esc(n)}"></label>`).join(''); }
+let wiRaf = 0; $('wi').addEventListener('input', e => { const k = e.target.dataset.k; if (!k) return; WI[k] = +e.target.value; $('wv_' + k).textContent = fmtV(k, WI[k]); cancelAnimationFrame(wiRaf); wiRaf = requestAnimationFrame(renderSel); });
+$('wiReset').addEventListener('click', () => { WI = Object.assign({}, SEL); renderWI(); renderSel(); });
+function drawForce(){ if (!hasD3) return; const { bias, g } = groupedContrib(WI), f = bias + sum(Object.values(g)), items = Object.entries(g).map(([k, v]) => ({ k, v })).filter(d => Math.abs(d.v) > .002), pos = items.filter(d => d.v > 0).sort((a, b) => b.v - a.v), neg = items.filter(d => d.v < 0).sort((a, b) => a.v - b.v);
+  const sp = sum(pos.map(d => d.v)), sn = -sum(neg.map(d => d.v)), lo = Math.min(bias, f - sp, f) - .2, hi = Math.max(bias, f + sn, f) + .2, w = 640, h = 150, x = d3.scaleLinear().domain([lo, hi]).range([16, w - 16]), yb = 58, bh = 26;
+  const svg = d3.select('#force').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'Force plot of reasons');
+  const ticks = [.02, .05, .1, .2, .35, .5, .7, .85, .95].map(p => [p, Math.log(p / (1 - p))]).filter(t => t[1] >= lo && t[1] <= hi);
+  ticks.forEach(([p, z]) => { svg.append('line').attr('x1', x(z)).attr('x2', x(z)).attr('y1', 30).attr('y2', yb + bh + 6).attr('stroke', '#EEF0F6'); svg.append('text').attr('x', x(z)).attr('y', 24).attr('text-anchor', 'middle').attr('font-size', 9.5).attr('fill', '#5A6180').text(pc(p)); });
+  const chev = (x1, x2, up) => { const a = Math.min(x1, x2), b = Math.max(x1, x2), t = Math.min(7, (b - a) / 2); return up ? `M${a},${yb} L${b - t},${yb} L${b},${yb + bh / 2} L${b - t},${yb + bh} L${a},${yb + bh} L${a + t},${yb + bh / 2} Z` : `M${b},${yb} L${a + t},${yb} L${a},${yb + bh / 2} L${a + t},${yb + bh} L${b},${yb + bh} L${b - t},${yb + bh / 2} Z`; };
+  let c0 = f - sp; pos.slice().reverse().forEach((d, i) => { const a = c0, b = c0 + d.v; c0 = b; const gg = svg.append('g'); gg.append('path').attr('d', chev(x(a), x(b), true)).attr('fill', '#E4002B').attr('opacity', .55 + .45 * (d.v / (pos[0].v || 1))).attr('stroke', '#fff');
+    if (x(b) - x(a) > 72) gg.append('text').attr('x', (x(a) + x(b)) / 2).attr('y', yb + bh + 16).attr('text-anchor', 'middle').attr('font-size', 9.5).attr('font-weight', 700).attr('fill', '#9E0020').text(`${SHORT[d.k]} ${fmtV(d.k, WI[d.k])}`);
+    gg.on('mousemove', ev => showTip(`<b>${esc(LAB[d.k])}: ${esc(fmtV(d.k, WI[d.k]))}</b><br>Pushes risk up by ${d.v.toFixed(2)} log-odds`, ev)).on('mouseleave', hideTip); });
+  c0 = f; neg.forEach(d => { const a = c0, b = c0 - d.v; c0 = b; const gg = svg.append('g'); gg.append('path').attr('d', chev(x(a), x(b), false)).attr('fill', '#00A3AD').attr('opacity', .55 + .45 * (d.v / (neg[0].v || -1))).attr('stroke', '#fff');
+    if (x(b) - x(a) > 72) gg.append('text').attr('x', (x(a) + x(b)) / 2).attr('y', yb + bh + 16).attr('text-anchor', 'middle').attr('font-size', 9.5).attr('font-weight', 700).attr('fill', '#006A70').text(`${SHORT[d.k]} ${fmtV(d.k, WI[d.k])}`);
+    gg.on('mousemove', ev => showTip(`<b>${esc(LAB[d.k])}: ${esc(fmtV(d.k, WI[d.k]))}</b><br>Pulls risk down by ${(-d.v).toFixed(2)} log-odds`, ev)).on('mouseleave', hideTip); });
+  [[bias, 'Average seller ' + pc(sig(bias)), '#5A6180', yb - 14], [f, 'This seller ' + pc(sig(f)), '#0A1450', yb - 14]].forEach(([z, t, c, y], i) => { svg.append('line').attr('x1', x(z)).attr('x2', x(z)).attr('y1', yb - 8).attr('y2', yb + bh + 2).attr('stroke', c).attr('stroke-width', i ? 2.5 : 1.5).attr('stroke-dasharray', i ? null : '3 2');
+    svg.append('text').attr('x', x(z)).attr('y', i ? h - 10 : y).attr('text-anchor', 'middle').attr('font-size', 10.5).attr('font-weight', 800).attr('fill', c).text(t); }); }
+function initSurf(){ SURF = scene3($('surf'), { cam: [4.6, 3.6, 4.8], target: [0, .7, 0], spin: .5 }); if (!SURF) return; const S = SURF;
+  frame3(S, -2, 2, 0, 2, -1.5, 1.5); const geo = new THREE.PlaneGeometry(4, 3, 28, 28); geo.rotateX(-Math.PI / 2); geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(geo.attributes.position.count * 3), 3));
+  const mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide, transparent: true, opacity: .92 })), wire = new THREE.LineSegments(new THREE.WireframeGeometry(geo), new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: .12 }));
+  S.scene.add(mesh); S.scene.add(wire); const ball = new THREE.Mesh(new THREE.SphereGeometry(.09, 20, 14), new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: 0x333333 })), stem = new THREE.Mesh(new THREE.CylinderGeometry(.012, .012, 1, 8), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+  S.scene.add(ball); S.scene.add(stem); Object.assign(S, { geo, mesh, wire, ball, stem });
+  [[1, '1'], [30, '30'], [60, '60 m']].forEach(([v, t]) => put(S, label3(t, .16), -2 + (v - 1) / 59 * 4, -.15, 1.75)); put(S, label3('Tenure', .19, '#FFFFFF'), 0, -.42, 1.95);
+  [[10, '10%'], [90, '90%'], [180, '180%']].forEach(([v, t]) => put(S, label3(t, .16), 2.3, -.12, 1.5 - (v - 10) / 170 * 3)); put(S, label3('Target ach.', .19, '#FFFFFF'), 2.75, -.4, 0);
+  [[0, '0%'], [.5, '50%'], [1, '100%']].forEach(([v, t]) => put(S, label3(t, .16), -2.3, v * 2, -1.5)); put(S, label3('Risk', .19, '#FFFFFF'), -2.4, 2.35, -1.5);
+  S.hover = { objs: [mesh], tip: hit => { const p = hit.point, ten = Math.round(1 + (p.x + 2) / 4 * 59), tg = Math.round(10 + (1.5 - p.z) / 3 * 170); return `<b>Tenure ${ten} m · target ${tg}%</b><br>Risk ${pc(clamp(p.y / 2, 0, 1))}`; } }; updSurf(); }
+const RC = [[0, [47, 211, 180]], [.25, [244, 201, 93]], [.5, [255, 84, 112]], [1, [158, 0, 32]]];
+const rcol = p => { for (let k = 1; k < RC.length; k++) if (p <= RC[k][0]){ const [a, ca] = RC[k - 1], [b, cb] = RC[k], t = (p - a) / (b - a); return ca.map((v, j) => (v + (cb[j] - v) * t) / 255); } return RC[3][1].map(v => v / 255); };
+function updSurf(){ const S = SURF; if (!S || !S.geo || !WI || !MODEL) return; const pos = S.geo.attributes.position, col = S.geo.attributes.color, r = Object.assign({}, WI);
+  for (let i = 0; i < pos.count; i++){ const x = pos.getX(i), z = pos.getZ(i); r.tenure = 1 + (x + 2) / 4 * 59; r.target = 10 + (1.5 - z) / 3 * 170; const p = scoreRow(r); pos.setY(i, p * 2); const c = rcol(p); col.setXYZ(i, c[0], c[1], c[2]); }
+  pos.needsUpdate = true; col.needsUpdate = true; S.geo.computeVertexNormals(); S.scene.remove(S.wire); S.wire.geometry.dispose(); S.wire = new THREE.LineSegments(new THREE.WireframeGeometry(S.geo), new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: .12 })); S.scene.add(S.wire);
+  const sx = -2 + (clamp(WI.tenure, 1, 60) - 1) / 59 * 4, sz = 1.5 - (clamp(WI.target, 10, 180) - 10) / 170 * 3, sp = scoreRow(WI); S.ball.position.set(sx, sp * 2 + .1, sz); S.stem.position.set(sx, (sp * 2 + .1) / 2, sz); S.stem.scale.set(1, sp * 2 + .1, 1); }
+const ACTS = { tenure:'Assign a buddy and a 30-60-90 day onboarding plan; weekly manager check-in for the first six months.', age:'Discuss the career path and the next role openly.', target:'Two joint field days a week; route warm leads from the branch or bank partner; reset the next 60-day target in steps.', incent:'Bring the quarterly incentive forward or set a fast-start bonus on the next five policies.', persist:'Review renewals due and support service calls so persistency does not cut payouts.', mgr:'Keep the current manager for at least two quarters; skip-level call from the area head.', train:'Enrol in the next product certification and a closing-skills workshop.', leaves:'Manager to have a private conversation this week about health, family or an outside offer.', engage:'Skip-level one-to-one; recognise a recent win in the team huddle.', compa:'Raise a pay review against the band; consider a retention allowance.', commute:'Offer a transfer to a nearer branch or a travel allowance for field days.', login:'Manager call within 48 hours; falling CRM activity is the strongest short-term signal.', channel:'Check lead flow and the partner relationship for this channel.', zone:'Compare with peers in the zone; zonal head to review.' };
+function planRules(){ const { g } = groupedContrib(SEL), top = Object.entries(g).filter(e => e[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 3), p1 = scoreRow(WI), moved = LEV.filter(([k]) => WI[k] !== SEL[k]);
+  let o = `**${SEL.id} · ${SEL.channel}, ${SEL.zone} · risk ${pc(SEL.risk)}**\n**Why the model is worried**\n` + top.map(([k, v]) => `- ${LAB[k]}: ${fmtV(k, SEL[k])}`).join('\n') + `\n**What the manager should do in the next two weeks**\n` + top.map(([k]) => `- ${ACTS[k]}`).join('\n');
+  if (moved.length) o += `\n**If these changes land**\n- ${moved.map(([k, n]) => `${n}: ${fmtV(k, SEL[k])} → ${fmtV(k, WI[k])}`).join('; ')}: risk ${pc(SEL.risk)} → ${pc(p1)}.`;
+  return o + `\n**Follow-up**\n- Log the action in the risk tracker; the model re-scores next month.`; }
+$('planGo').addEventListener('click', () => { if (!SEL) return; const { g } = groupedContrib(SEL); streamOrRules($('planOut'), $('planGo'), 'You are an HR business partner for front-line sales at an Indian life insurer. Write a short, practical retention plan for the seller\'s manager: why the seller is at risk (use the reason codes), three specific actions for the next two weeks, and a two-line WhatsApp message the manager can send to open the conversation. Warm, plain English; no jargon; do not mention the model score to the seller. Use **bold** headings and bullets. Do not invent numbers.',
+  JSON.stringify({ seller: SEL.id, channel: SEL.channel, zone: SEL.zone, risk_90d: +SEL.risk.toFixed(2), profile: Object.fromEntries(NUM.map(n => [n[1], SEL[n[0]]])), reasons_up: Object.entries(g).filter(e => e[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([k, v]) => ({ factor: LAB[k], value: fmtV(k, SEL[k]), push: +v.toFixed(2) })), what_if: LEV.filter(([k]) => WI[k] !== SEL[k]).map(([k, n]) => ({ lever: n, from: SEL[k], to: WI[k] })), risk_after_what_if: +scoreRow(WI).toFixed(2) }), planRules()); });
+
+/* ======================================================================
+   04 · LEADERSHIP VIEW
+   ====================================================================== */
+const TB = [['0–6 m', r => r.tenure <= 6], ['7–12 m', r => r.tenure > 6 && r.tenure <= 12], ['13–24 m', r => r.tenure > 12 && r.tenure <= 24], ['25–48 m', r => r.tenure > 24 && r.tenure <= 48], ['48 m+', r => r.tenure > 48]];
+let CITY = null, CHM = 'exp';
+function cityData(){ return ZN.flatMap((z, i) => TB.map(([t, f], j) => { const rs = CUR.filter(r => r.zone === z && f(r)); return { z, t, i, j, n: rs.length, e: sum(rs.map(r => r.risk)), rate: rs.length ? mean(rs.map(r => r.risk)) : 0 }; })); }
+function initCity(){ CITY = scene3($('city'), { cam: [7.6, 6.4, 8.2], target: [0, .9, 0], spin: .5 }); if (!CITY) return; const S = CITY;
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(6.2, 6.2), new THREE.MeshLambertMaterial({ color: 0x18237A, transparent: true, opacity: .8 })); floor.rotation.x = -Math.PI / 2; floor.position.y = -.01; S.scene.add(floor);
+  S.bars = []; ZN.forEach((z, i) => TB.forEach((t, j) => { const m = new THREE.Mesh(new THREE.BoxGeometry(.72, 1, .72), new THREE.MeshLambertMaterial({ color: 0xffffff })); m.position.set(-2.4 + i * 1.2, .5, -2.4 + j * 1.2); m.userData = { i, j }; S.scene.add(m); S.bars.push(m); }));
+  ZN.forEach((z, i) => put(S, label3(z, .22, '#FFFFFF'), -2.4 + i * 1.2, .02, 3.3)); TB.forEach(([t], j) => put(S, label3(t, .2, '#C9D2FF'), -3.55, .02, -2.4 + j * 1.2));
+  S.vals = []; S.hover = { objs: S.bars, tip: hit => { const d = cityData().find(c => c.i === hit.object.userData.i && c.j === hit.object.userData.j); return `<b>${d.z} · tenure ${d.t}</b><br>${d.n} sellers · expected leavers ${d.e.toFixed(1)}<br>Average risk ${pc(d.rate)}`; } };
+  $('cityHud').innerHTML = '<button type="button" class="chipb on" data-chm="exp">Expected leavers</button><button type="button" class="chipb" data-chm="rate">Average risk</button><button type="button" class="chipb" data-chm="n">Headcount</button>';
+  $('cityHud').addEventListener('click', e => { const b = e.target.closest('[data-chm]'); if (!b) return; CHM = b.dataset.chm; document.querySelectorAll('#cityHud .chipb').forEach(x => x.classList.toggle('on', x === b)); updCity(); }); updCity(); }
+function updCity(){ const S = CITY; if (!S || !S.bars || !MODEL) return; const D = cityData(), mx = Math.max(...D.map(d => CHM === 'exp' ? d.e : CHM === 'rate' ? d.rate : d.n)) || 1;
+  S.vals.forEach(v => S.scene.remove(v)); S.vals = [];
+  S.bars.forEach(m => { const d = D.find(c => c.i === m.userData.i && c.j === m.userData.j), v = CHM === 'exp' ? d.e : CHM === 'rate' ? d.rate : d.n, h = Math.max(.04, v / mx * 2.5); m.userData.h = h; const c = rcol(clamp(d.rate * 1.6, 0, 1)); m.material.color.setRGB(c[0], c[1], c[2]);
+    const t0 = performance.now(), from = m.scale.y || 1; (function an(t){ const k = reduce ? 1 : Math.min(1, (t - t0) / 600), y = from + (h - from) * (1 - Math.pow(1 - k, 3)); m.scale.y = y; m.position.y = y / 2; if (k < 1) requestAnimationFrame(an); })(t0);
+    const lb = label3(CHM === 'rate' ? pc(v) : CHM === 'exp' ? v.toFixed(1) : String(v), .17, '#FFFFFF'); lb.position.set(m.position.x, h + .22, m.position.z); S.scene.add(lb); S.vals.push(lb); }); }
+const RCOST = 160000, ACOST = 12000, SUCC = .35;
+function costCurve(){ return range(86).map(i => { const t = .05 + i * .01, f = CUR.filter(r => r.risk >= t), kept = sum(f.map(r => r.risk)) * SUCC; return { t, n: f.length, kept, net: kept * RCOST - f.length * ACOST }; }); }
+function drawCost(){ const D = costCurve(), best = D.reduce((a, b) => b.net > a.net ? b : a, D[0]), w = 600, h = 230, m = { l: 52, r: 44, t: 14, b: 30 }, x = d3.scaleLinear().domain([.05, .9]).range([m.l, w - m.r]), y = d3.scaleLinear().domain([Math.min(0, d3.min(D, d => d.net)), d3.max(D, d => d.net) * 1.1]).range([h - m.b, m.t]), yn = d3.scaleLinear().domain([0, d3.max(D, d => d.n)]).range([h - m.b, m.t]);
+  const svg = d3.select('#cost').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'Net saving by threshold');
+  axes(svg, x, y, w, h, m, d3.format('.0%'), v => '₹' + (v / 1e5).toFixed(0) + 'L');
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(${w - m.r},0)`).call(d3.axisRight(yn).ticks(4).tickFormat(d => d));
+  svg.append('text').attr('x', w - 4).attr('y', m.t - 4).attr('text-anchor', 'end').attr('font-size', 9).attr('fill', '#5A6180').text('sellers flagged');
+  svg.selectAll('.cn').data(D.filter((d, i) => i % 2 === 0)).join('rect').attr('x', d => x(d.t) - 3).attr('width', 6).attr('y', d => yn(d.n)).attr('height', d => yn(0) - yn(d.n)).attr('fill', '#DCE3FA');
+  svg.append('path').attr('d', d3.area().x(d => x(d.t)).y0(y(0)).y1(d => y(d.net)).curve(d3.curveMonotoneX)(D)).attr('fill', '#2A9D5C').attr('opacity', .12);
+  svg.append('path').attr('d', d3.line().x(d => x(d.t)).y(d => y(d.net)).curve(d3.curveMonotoneX)(D)).attr('fill', 'none').attr('stroke', '#2A9D5C').attr('stroke-width', 2.4);
+  svg.append('line').attr('x1', x(best.t)).attr('x2', x(best.t)).attr('y1', m.t).attr('y2', h - m.b).attr('stroke', '#2A9D5C').attr('stroke-dasharray', '3 3');
+  svg.append('text').attr('x', x(best.t) + 4).attr('y', m.t + 10).attr('font-size', 10).attr('font-weight', 800).attr('fill', '#1D6B40').text(`Best: ${best.t.toFixed(2)} · ${best.n} sellers · ₹${(best.net / 1e5).toFixed(1)} lakh`);
+  const cur = D.reduce((a, b) => Math.abs(b.t - THR) < Math.abs(a.t - THR) ? b : a, D[0]); svg.append('line').attr('x1', x(THR)).attr('x2', x(THR)).attr('y1', m.t).attr('y2', h - m.b).attr('stroke', '#0A1450').attr('stroke-width', 2);
+  svg.append('circle').attr('cx', x(THR)).attr('cy', y(cur.net)).attr('r', 5).attr('fill', '#0A1450'); svg.append('text').attr('x', x(THR) + (THR > .6 ? -6 : 6)).attr('y', h - m.b - 8).attr('text-anchor', THR > .6 ? 'end' : 'start').attr('font-size', 10).attr('font-weight', 700).attr('fill', '#0A1450').text(`Now ${THR.toFixed(2)}: ₹${(cur.net / 1e5).toFixed(1)} lakh`);
+  svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', w - m.l - m.r).attr('height', h - m.t - m.b).attr('fill', 'transparent').style('cursor', 'pointer').on('click', ev => { const t = clamp(x.invert(d3.pointer(ev)[0]), .05, .9); setThr(Math.round(t * 100) / 100); }).on('mousemove', ev => { const t = x.invert(d3.pointer(ev)[0]), d = D.reduce((a, b) => Math.abs(b.t - t) < Math.abs(a.t - t) ? b : a, D[0]); showTip(`<b>Threshold ${d.t.toFixed(2)}</b><br>${d.n} sellers flagged · ${d.kept.toFixed(1)} kept<br>Net saving ₹${(d.net / 1e5).toFixed(1)} lakh<br>Click to use this threshold`, ev); }).on('mouseleave', hideTip);
+  return best; }
+function setThr(t){ THR = t; $('th').value = t; $('thV').textContent = t.toFixed(2); onThr(); }
+const DG = { 'New joiner':['tenure','age'], 'Below target':['target','incent','persist'], 'Manager churn':['mgr'], 'Disengaged':['engage','train'], 'Pulling away':['leaves','login'], 'Underpaid':['compa'], 'Commute & channel':['commute','channel','zone'] };
+const DGK = Object.keys(DG), DGA = { 'New joiner':'tenure', 'Below target':'target', 'Manager churn':'mgr', 'Disengaged':'engage', 'Pulling away':'login', 'Underpaid':'compa', 'Commute & channel':'commute' };
+const PCOL = ['#E4002B', '#1B2A8F', '#00A3AD', '#F4A261', '#6C4AB6'];
+let PERS = [];
+function personas(){ let at = CUR.filter(r => r.risk >= THR); if (at.length < 12) at = CUR.slice().sort((a, b) => b.risk - a.risk).slice(0, 30);
+  const V0 = at.map(r => { const { g } = groupedContrib(r); return DGK.map(k => sum(DG[k].map(f => Math.max(0, g[f] || 0)))); }), SD = DGK.map((_, j) => Math.sqrt(mean(V0.map(v => v[j] ** 2))) || 1), V = V0.map(v => v.map((x, j) => x / SD[j]));
+  const K = Math.min(12, Math.max(4, Math.round(at.length / 4))), R = mulberry32(5); let C = range(K).map(i => V[Math.floor(R() * V.length)].slice()), A = new Array(V.length).fill(0);
+  const dist = (a, b) => Math.sqrt(sum(a.map((v, i) => (v - b[i]) ** 2)));
+  for (let it = 0; it < 25; it++){ V.forEach((v, n) => { let b = 0, bd = 1e9; C.forEach((c, k) => { const d = dist(v, c); if (d < bd){ bd = d; b = k; } }); A[n] = b; }); C = C.map((c, k) => { const m = V.filter((v, n) => A[n] === k); return m.length ? DGK.map((_, j) => mean(m.map(v => v[j]))) : c; }); }
+  let nodes = C.map((c, k) => ({ id: 'm' + k, c, n: A.filter(a => a === k).length, mem: at.filter((r, n) => A[n] === k) })).filter(x => x.n);
+  const leaves = nodes.slice(); let H = 0;
+  while (nodes.length > 1){ let bi = 0, bj = 1, bd = 1e9; for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++){ const d = dist(nodes[i].c, nodes[j].c); if (d < bd){ bd = d; bi = i; bj = j; } }
+    const a = nodes[bi], b = nodes[bj], n = a.n + b.n, nd = { id: 'n' + (H++), c: a.c.map((v, i) => (v * a.n + b.c[i] * b.n) / n), n, h: bd, children: [a, b], mem: a.mem.concat(b.mem) }; nodes = nodes.filter((x, i) => i !== bi && i !== bj).concat([nd]); }
+  const root = nodes[0]; let groups = [root]; while (groups.length < Math.min(5, leaves.length)){ groups.sort((a, b) => (b.h || 0) - (a.h || 0)); const g = groups.shift(); if (!g.children){ groups.push(g); break; } groups.push(...g.children); }
+  const used = {}; PERS = groups.sort((a, b) => b.n - a.n).map((g, i) => { const ord = g.c.map((v, j) => [DGK[j], v]).sort((a, b) => b[1] - a[1]); let nm = ord[0][0]; for (let q = 1; used[nm] && q < ord.length; q++) nm = ord[0][0] + ' + ' + ord[q][0].toLowerCase(); if (used[nm]) nm += ' (' + (i + 1) + ')'; used[nm] = 1; const mark = x => { x.p = i; (x.children || []).forEach(mark); }; mark(g);
+    return { i, name: nm, n: g.mem.length, risk: mean(g.mem.map(r => r.risk)), ten: mean(g.mem.map(r => r.tenure)), tg: mean(g.mem.map(r => r.target)), top: ord[0][0], col: PCOL[i] }; });
+  return { root, at }; }
+function drawDend(){ const { root, at } = personas(), hier = d3.hierarchy(root, d => d.children), nl = hier.leaves().length, w = 440, h = Math.max(220, nl * 24 + 30), lm = 10, rm = 150, maxH = root.h || 1, x = d3.scaleLinear().domain([maxH, 0]).range([lm, w - rm]);
+  d3.cluster().size([h - 30, 1])(hier); hier.each(d => { d.px = x(d.data.h || 0); d.py = d.x + 15; });
+  const svg = d3.select('#dend').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'Dendrogram of at-risk personas');
+  svg.selectAll('.lk').data(hier.links()).join('path').attr('d', l => `M${l.source.px},${l.source.py}V${l.target.py}H${l.target.px}`).attr('fill', 'none').attr('stroke', l => l.target.data.p != null ? PCOL[l.target.data.p] : '#9AA3C7').attr('stroke-width', 2).attr('opacity', .9);
+  hier.leaves().forEach(d => { const top = DGK[d.data.c.indexOf(Math.max(...d.data.c))]; svg.append('circle').attr('cx', d.px).attr('cy', d.py).attr('r', 3 + Math.sqrt(d.data.n) * 1.4).attr('fill', PCOL[d.data.p] || '#9AA3C7').attr('stroke', '#fff').on('mousemove', ev => showTip(`<b>${d.data.n} sellers</b><br>Main reason: ${top}<br>Average risk ${pc(mean(d.data.mem.map(r => r.risk)))}`, ev)).on('mouseleave', hideTip);
+    svg.append('text').attr('x', d.px + 12).attr('y', d.py + 4).attr('font-size', 10).attr('fill', '#0A1450').text(`${d.data.n} · ${top}`); });
+  svg.append('text').attr('x', lm).attr('y', h - 2).attr('font-size', 9).attr('fill', '#5A6180').text(`${at.length} sellers · branch length = how different the groups' reasons are`);
+  $('personas').innerHTML = PERS.map(p => `<div class="tile" style="border-left:4px solid ${p.col};padding:8px 10px"><div style="display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap"><b style="color:var(--deep);font-size:.82rem">${esc(p.name)}</b><span class="note">${p.n} sellers · avg risk ${pc(p.risk)}</span></div><p class="note">Typical: ${Math.round(p.ten)} months in, ${Math.round(p.tg)}% of target. ${esc(ACTS[DGA[p.top]] || '')}</p></div>`).join(''); }
+function chroRules(){ const best = costCurve().reduce((a, b) => b.net > a.net ? b : a), cur = costCurve().reduce((a, b) => Math.abs(b.t - THR) < Math.abs(a.t - THR) ? b : a), D = cityData().sort((a, b) => b.e - a.e), exp = sum(CUR.map(r => r.risk));
+  return `**Front-line sales attrition · next 90 days**\n- ${CUR.length} current sellers scored; **${exp.toFixed(0)} expected to resign** (${pc(exp / CUR.length)}).\n- Model: gradient boosting, test AUC ${MODEL.aucG.toFixed(2)}; the top 20% risk list holds ${pc(metricsAt(THR).cap)} of leavers.\n- Hotspots: ${D.slice(0, 3).map(d => `${d.z}, tenure ${d.t} (${d.e.toFixed(1)} expected)`).join('; ')}.\n**Personas above the threshold**\n` + PERS.map(p => `- ${p.name}: ${p.n} sellers, average risk ${pc(p.risk)}.`).join('\n') + `\n**Budget**\n- At threshold ${THR.toFixed(2)}: act on ${cur.n} sellers, net saving about ₹${(cur.net / 1e5).toFixed(1)} lakh.\n- Best threshold ${best.t.toFixed(2)}: ${best.n} sellers, about ₹${(best.net / 1e5).toFixed(1)} lakh (assumes ₹1.6 lakh replacement cost, ₹12,000 per action, 35% success).\n**Asks**\n- Managers to log one action per flagged seller by day 10.\n- Onboarding and first-target design for new joiners in the two worst zones.`; }
+$('chroGo').addEventListener('click', () => { const cur = costCurve().reduce((a, b) => Math.abs(b.t - THR) < Math.abs(a.t - THR) ? b : a); streamOrRules($('chroOut'), $('chroGo'), 'You are the head of HR analytics at an Indian life insurer writing a one-page note for the CHRO on front-line sales attrition. Start with the headline forecast, then hotspots, personas with one action each, the budget and threshold choice, and two asks. Use **bold** headings and bullets. Do not invent numbers.',
+  JSON.stringify({ sellers: CUR.length, expected_leavers_90d: +sum(CUR.map(r => r.risk)).toFixed(1), test_auc: +MODEL.aucG.toFixed(3), top20_capture: +metricsAt(THR).cap.toFixed(2), hotspots: cityData().sort((a, b) => b.e - a.e).slice(0, 4).map(d => ({ zone: d.z, tenure: d.t, sellers: d.n, expected: +d.e.toFixed(1) })), personas: PERS.map(p => ({ name: p.name, sellers: p.n, avg_risk: +p.risk.toFixed(2), avg_tenure_m: Math.round(p.ten), avg_target_pct: Math.round(p.tg) })), threshold: THR, flagged: cur.n, net_saving_lakh: +(cur.net / 1e5).toFixed(1), assumptions: { replacement_cost: RCOST, action_cost: ACOST, success_rate: SUCC } }), chroRules()); });
+
+/* ======================================================================
+   REFRESH HOOKS
+   ====================================================================== */
+function afterTrain(){ if (hasD3){ renderMK(); drawROC(); drawLC(MODEL.curve); drawCal(); drawCM(); drawImp(); drawCost(); drawDend(); } cloudColors();
+  SEL = SEL ? CUR.find(r => r.id === SEL.id) : CUR.slice().sort((a, b) => b.risk - a.risk)[0]; WI = Object.assign({}, SEL); renderRK(); renderWI(); renderSel(); updCity(); }
+let thrRaf = 0;
+function onThr(){ cancelAnimationFrame(thrRaf); thrRaf = requestAnimationFrame(() => { if (!MODEL) return; if (hasD3){ renderMK(); drawROC(); drawCM(); drawCost(); drawDend(); } renderRK(); renderSel(); }); }
+
+/* ======================================================================
+   IMPACT · cohort triangle + combo chart
+   ====================================================================== */
+const MON = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+const COH = (() => { const R = mulberry32(31), o = {}; [['before', .085], ['after', .058]].forEach(([k, l]) => { o[k] = MON.map((m, i) => range(12 - i).map(t => +(100 * Math.exp(-l * t * (1 + (R() - .5) * .25)) - (t ? R() * 2 : 0)).toFixed(0))); }); return o; })();
+let COM = 'after';
+function drawCohort(){ const w = 600, lm = 50, top = 26, cs = (w - lm - 10) / 12, ch = 24, h = top + 12 * ch + 30, svg = d3.select('#cohort').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'Cohort retention triangle');
+  range(12).forEach(t => svg.append('text').attr('x', lm + t * cs + cs / 2).attr('y', top - 8).attr('text-anchor', 'middle').attr('font-size', 9.5).attr('fill', '#5A6180').text('M' + t));
+  MON.forEach((m, i) => svg.append('text').attr('x', lm - 8).attr('y', top + i * ch + ch / 2 + 4).attr('text-anchor', 'end').attr('font-size', 10).attr('fill', '#0A1450').text(m + ' joiners'));
+  const cells = []; MON.forEach((m, i) => range(12 - i).forEach(t => cells.push({ i, t })));
+  const g = svg.append('g').selectAll('g').data(cells).join('g').attr('transform', d => `translate(${lm + d.t * cs},${top + d.i * ch})`);
+  g.append('rect').attr('class', 'cc').attr('width', cs - 2).attr('height', ch - 2).attr('rx', 3).on('mousemove', (ev, d) => showTip(`<b>${MON[d.i]} joiners · month ${d.t}</b><br>Before: ${COH.before[d.i][d.t]}% still employed<br>After: ${COH.after[d.i][d.t]}%`, ev)).on('mouseleave', hideTip);
+  g.append('text').attr('class', 'ct').attr('x', (cs - 2) / 2).attr('y', ch / 2 + 3).attr('text-anchor', 'middle').attr('font-size', 9).attr('font-weight', 700).style('pointer-events', 'none');
+  svg.append('text').attr('class', 'csum').attr('x', w - 10).attr('y', h - 8).attr('text-anchor', 'end').attr('font-size', 10.5).attr('font-weight', 700).attr('fill', '#0A1450'); updCohort(false); }
+function updCohort(anim){ const svg = d3.select('#cohort svg'), D = COH[COM], col = d3.scaleSequential(d3.interpolateRgbBasis(['#FF5470', '#F4C95D', '#9FE0D2', '#1B2A8F'])).domain([40, 100]), t = anim && !reduce ? 600 : 0;
+  svg.selectAll('.cc').transition().duration(t).attr('fill', d => col(D[d.i][d.t])); svg.selectAll('.ct').text(d => D[d.i][d.t]).attr('fill', d => D[d.i][d.t] > 80 ? '#fff' : '#0A1450');
+  const m6 = mean(MON.slice(0, 6).map((m, i) => D[i][6])); svg.select('.csum').text(`${COM === 'before' ? 'Before' : 'After'}: ${m6.toFixed(0)}% of joiners still employed at month 6`); }
+segBind('co', v => { COM = v; if (hasD3) updCohort(true); });
+const CMB = (() => { const R = mulberry32(41), o = {}; [['before', 22, 0], ['after', 17.5, -.25]].forEach(([k, b, tr]) => { o[k] = MON.map((m, i) => { const pct = +(b + tr * i + (R() - .5) * 3).toFixed(1), joiners = 110 + Math.round(R() * 30); return { m, pct, cost: +(joiners * pct / 100 * 1.6).toFixed(1) }; }); }); return o; })();
+let CBM = 'after';
+function drawCombo(){ const w = 600, h = 300, m = { l: 40, r: 46, t: 16, b: 30 }, x = d3.scaleBand().domain(MON).range([m.l, w - m.r]).padding(.28), y = d3.scaleLinear().domain([0, 30]).range([h - m.b, m.t]), y2 = d3.scaleLinear().domain([0, 60]).range([h - m.b, m.t]);
+  const svg = d3.select('#combo').html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'Early exits and cost by month');
+  svg.append('g').attr('class', 'grid').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickSize(-(w - m.l - m.r)).tickFormat(''));
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${h - m.b})`).call(d3.axisBottom(x)); svg.append('g').attr('class', 'axis').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickFormat(d => d + '%')); svg.append('g').attr('class', 'axis').attr('transform', `translate(${w - m.r},0)`).call(d3.axisRight(y2).ticks(5).tickFormat(d => '₹' + d + 'L'));
+  svg.append('g').attr('class', 'bars').selectAll('rect').data(CMB[CBM]).join('rect').attr('x', d => x(d.m)).attr('width', x.bandwidth()).attr('rx', 3).attr('y', y(0)).attr('height', 0).attr('fill', '#1B2A8F').on('mousemove', (ev, d) => showTip(`<b>${d.m}</b><br>Early exits ${d.pct}% of joiners<br>Cost written off ₹${d.cost} lakh`, ev)).on('mouseleave', hideTip);
+  svg.append('path').attr('class', 'cl').attr('fill', 'none').attr('stroke', '#E4002B').attr('stroke-width', 2.4); svg.append('g').attr('class', 'cdots');
+  svg.append('text').attr('class', 'ctot').attr('x', m.l + 4).attr('y', m.t + 8).attr('font-size', 10.5).attr('font-weight', 700).attr('fill', '#0A1450'); updCombo(false); }
+function updCombo(anim){ const w = 600, h = 300, m = { l: 40, r: 46, t: 16, b: 30 }, x = d3.scaleBand().domain(MON).range([m.l, w - m.r]).padding(.28), y = d3.scaleLinear().domain([0, 30]).range([h - m.b, m.t]), y2 = d3.scaleLinear().domain([0, 60]).range([h - m.b, m.t]), D = CMB[CBM], t = anim && !reduce ? 650 : (reduce ? 0 : 700), svg = d3.select('#combo svg');
+  svg.select('.bars').selectAll('rect').data(D).transition().duration(t).attr('y', d => y(d.pct)).attr('height', d => y(0) - y(d.pct)).attr('fill', CBM === 'before' ? '#8C96C8' : '#1B2A8F');
+  svg.select('.cl').transition().duration(t).attr('d', d3.line().x(d => x(d.m) + x.bandwidth() / 2).y(d => y2(d.cost)).curve(d3.curveMonotoneX)(D));
+  svg.select('.cdots').selectAll('circle').data(D).join('circle').attr('r', 4).attr('fill', '#fff').attr('stroke', '#E4002B').attr('stroke-width', 2).transition().duration(t).attr('cx', d => x(d.m) + x.bandwidth() / 2).attr('cy', d => y2(d.cost));
+  svg.select('.ctot').text(`${CBM === 'before' ? 'Before' : 'After'}: average ${mean(D.map(d => d.pct)).toFixed(1)}% early exits · ₹${sum(D.map(d => d.cost)).toFixed(0)} lakh written off in the year`); }
+segBind('cb', v => { CBM = v; if (hasD3) updCombo(true); });
+
+/* ======================================================================
+   HERO · a sales force on the risk radar
+   ====================================================================== */
+(function hero(){ const cvh = $('heroCv'); if (!cvh) return; const c = cvh.getContext('2d'); let Wd = 0, Hd = 0, run = false; const R = mulberry32(9), P = range(150).map(() => ({ a: R() * Math.PI * 2, r: Math.sqrt(R()), risk: R() < .14 ? .6 + R() * .4 : R() * .45, ph: R() }));
+  function size(){ const dpr = Math.min(2, devicePixelRatio || 1); Wd = cvh.clientWidth; Hd = cvh.clientHeight; cvh.width = Wd * dpr; cvh.height = Hd * dpr; c.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function draw(t){ c.clearRect(0, 0, Wd, Hd); const nar = Wd < 700, cx2 = nar ? Wd * .5 : Wd * .62, cy2 = nar ? 120 : Hd * .5, rad = nar ? 95 : Math.min(Hd * .38, 210), sw = (t * .8) % (Math.PI * 2);
+    c.strokeStyle = 'rgba(127,211,255,.18)'; c.lineWidth = 1; [.33, .66, 1].forEach(f => { c.beginPath(); c.arc(cx2, cy2, rad * f, 0, 7); c.stroke(); }); c.beginPath(); c.moveTo(cx2 - rad, cy2); c.lineTo(cx2 + rad, cy2); c.moveTo(cx2, cy2 - rad); c.lineTo(cx2, cy2 + rad); c.stroke();
+    const gr = c.createConicGradient ? c.createConicGradient(sw - .9, cx2, cy2) : null; if (gr){ gr.addColorStop(0, 'rgba(127,211,255,0)'); gr.addColorStop(.14, 'rgba(127,211,255,.22)'); gr.addColorStop(.145, 'rgba(127,211,255,0)'); c.fillStyle = gr; c.beginPath(); c.arc(cx2, cy2, rad, 0, 7); c.fill(); }
+    c.strokeStyle = 'rgba(127,211,255,.7)'; c.lineWidth = 2; c.beginPath(); c.moveTo(cx2, cy2); c.lineTo(cx2 + Math.cos(sw) * rad, cy2 + Math.sin(sw) * rad); c.stroke();
+    P.forEach(p => { let da = (sw - p.a) % (Math.PI * 2); if (da < 0) da += Math.PI * 2; const lit = Math.max(0, 1 - da / 2.2), hi = p.risk >= .6, drift = hi ? ((t * .05 + p.ph) % 1) : 0, rr = p.r * rad * (1 + (hi ? drift * .35 : 0)), x = cx2 + Math.cos(p.a) * rr, y = cy2 + Math.sin(p.a) * rr;
+      c.globalAlpha = hi ? (1 - drift * .8) * (.35 + .65 * lit) : .3 + .5 * lit; c.fillStyle = hi ? '#FF5470' : p.risk > .3 ? '#F4C95D' : '#7FD3FF'; c.beginPath(); c.arc(x, y, (nar ? 2 : 3) + (hi ? lit * 2.5 : 0), 0, 7); c.fill(); if (hi && lit > .5 && !nar){ c.strokeStyle = 'rgba(255,84,112,.8)'; c.lineWidth = 1.2; c.beginPath(); c.arc(x, y, 8 + lit * 4, 0, 7); c.stroke(); } });
+    c.globalAlpha = 1; if (!nar){ c.font = '700 11px DM Sans, sans-serif'; c.fillStyle = 'rgba(255,255,255,.7)'; c.fillText('Each dot is a seller · red: likely to resign in 90 days', cx2 - rad, cy2 + rad + 24); } }
+  size(); draw(2); addEventListener('resize', () => { size(); draw(2); }); if (reduce) return; const t0 = performance.now(); function loop(now){ if (!run) return; draw((now - t0) / 1000); requestAnimationFrame(loop); }
+  if (io) new IntersectionObserver(es => { const on = es[0].isIntersecting; if (on && !run){ run = true; requestAnimationFrame(loop); } else if (!on) run = false; }).observe(cvh); })();
+
+/* ======================================================================
+   BOOT
+   ====================================================================== */
+setMode(); dataKpi();
+(async () => { await train({ trees: 120, lr: .1, depth: 2 }); $('prog').style.width = '100%'; $('trainNote').textContent = `Trained on ${MODEL.tr.length} sellers, tested on ${MODEL.te.length}. Change settings and train again.`;
+  if (hasD3){ whenVisible($('km'), drawKM); whenVisible($('hex'), drawHex); whenVisible($('cohort'), drawCohort); whenVisible($('combo'), drawCombo); }
+  else ['km','hex','roc','lc','cal','cm','imp','cost','dend','cohort','combo','force'].forEach(id => $(id).innerHTML = '<p style="padding:20px;color:var(--muted)">Charts need an internet connection to load their library.</p>');
+  whenVisible($('cloud'), initCloud); whenVisible($('surf'), initSurf); whenVisible($('city'), initCity);
+  afterTrain(); if ($('apiKey').value) connect(true);
+  window.__bx = { MODEL: () => MODEL, CUR, HIST, metricsAt, costCurve, PERS: () => PERS }; })();
+})();
+
+</script>
+</body>
+</html>

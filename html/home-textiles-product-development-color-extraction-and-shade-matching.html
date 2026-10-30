@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home Textiles · Colour Match &amp; Print-Run QC | HMC Case Study</title>
+<meta name="description" content="How Havish M Consulting built a colour extraction and shade-matching studio for a global home-textiles manufacturer: palettes in every colour space, ΔE2000 checks against the approved standard, print-run drift, shade banding and colourways.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+:root{
+  --pri:#C8553D; --deep:#2B1E3A; --acc:#2A9D8F; --vio:#6D597A; --bad:#D64545; --good:#2F9E5B; --amb:#E9A23B;
+  --bg:#F5F5F7; --text:#1F1A26; --muted:#615B6B; --card:#FFFFFF; --line:#E5E2EA;
+  --radius:12px; --shadow:0 1px 2px rgba(43,30,58,.06),0 8px 24px rgba(43,30,58,.08);
+  --serif:"DM Serif Display",Georgia,serif; --sans:"DM Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif; --mono:ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--serif);font-weight:400;color:var(--deep);margin:0;line-height:1.15}
+h2{font-size:clamp(1.6rem,3.2vw,2.2rem)}
+h3{font-size:1.2rem}
+p{margin:0}
+.wrap{max-width:1260px;margin:0 auto;padding:0 24px}
+section{padding:64px 0}
+.eyebrow{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--pri);margin-bottom:10px}
+.lead{color:var(--muted);max-width:800px;margin-top:12px}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line)}
+.sec-head{margin-bottom:28px}
+.alt{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.topbar{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+.logos{display:flex;align-items:center;gap:16px}
+.logos img{height:44px;width:auto;object-fit:contain}
+.logos img.cl{height:30px}
+.vdiv{width:1px;height:36px;background:var(--line)}
+.tagline{font-size:.8rem;color:var(--muted);letter-spacing:.04em}
+.tagline b{color:var(--pri);font-weight:700}
+.hero{background:radial-gradient(120% 140% at 88% 0%,#4A2470 0%,#2A1446 45%,#120821 100%);color:#fff;padding:76px 0 70px;position:relative;overflow:hidden}
+.hero canvas{position:absolute;right:0;top:0;width:58%;height:100%;pointer-events:none}
+.hero .eyebrow{color:#F6B89F}
+.hero h1{color:#fff;font-size:clamp(2.3rem,5.4vw,3.8rem);max-width:720px;position:relative;z-index:1}
+.hero h1 em{font-style:normal;color:#F6B89F}
+.hero .sub{font-size:clamp(1.05rem,2vw,1.2rem);color:rgba(255,255,255,.86);max-width:640px;margin-top:18px;position:relative;z-index:1}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px;position:relative;z-index:1}
+.pill{border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:6px 14px;font-size:.85rem;color:#fff;background:rgba(255,255,255,.06)}
+.pill span{color:#F6B89F;font-weight:700;margin-right:6px}
+.kpis{margin-top:-30px;position:relative;z-index:2;padding:0}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi{padding:22px 20px;border-top:3px solid var(--acc)}
+.kpi .label{font-size:.82rem;color:var(--muted);font-weight:500}
+.kpi .val{font-family:var(--serif);font-size:clamp(1.9rem,4vw,2.6rem);color:var(--pri);line-height:1.1;margin-top:6px;white-space:nowrap}
+.kpi .val small{font-family:var(--sans);font-size:.9rem;color:var(--muted);margin-left:4px}
+.delta{display:inline-flex;align-items:center;gap:4px;font-size:.8rem;font-weight:700;margin-top:8px;padding:2px 8px;border-radius:999px;background:rgba(31,166,122,.1);color:var(--good)}
+.footnote{font-size:.78rem;color:var(--muted);margin-top:14px}
+.ch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.chc{padding:24px}
+.ico{width:44px;height:44px;border-radius:10px;background:var(--pri-15);display:grid;place-items:center;margin-bottom:16px}
+.ico svg{width:22px;height:22px;stroke:var(--pri);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.chc h3{margin-bottom:8px}
+.chc p{font-size:.92rem;color:#433A52}
+.tl{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.tl::before{content:"";position:absolute;left:10%;right:10%;top:27px;height:3px;background:linear-gradient(90deg,var(--pri),var(--acc));border-radius:2px;opacity:.55}
+.tl-step{position:relative;background:none;border:0;cursor:pointer;font:inherit;color:inherit;display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 4px 8px}
+.tl-dot{width:56px;height:56px;border-radius:50%;background:#fff;border:2px solid var(--line);display:grid;place-items:center;font-family:var(--serif);font-size:1.25rem;color:var(--pri);transition:all .25s;position:relative;z-index:1}
+.tl-name{font-weight:700;font-size:.95rem}
+.tl-dur{font-size:.75rem;color:var(--muted);margin-top:-8px}
+.tl-step:hover .tl-dot{border-color:var(--pri)}
+.tl-step[aria-expanded="true"] .tl-dot{background:var(--pri);border-color:var(--pri);color:#fff;box-shadow:0 0 0 6px var(--pri-15)}
+.tl-step:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:8px}
+.tl-panel{display:none;padding:24px 28px;margin-top:20px;border-left:4px solid var(--acc)}
+.tl-panel.open{display:block;animation:fadeUp .35s ease}
+.tl-panel h3{margin-bottom:6px}
+.tl-panel ul{margin:12px 0 0;padding-left:20px;color:#433A52}
+.tl-panel li{margin:6px 0}
+.tl-panel .deliv{margin-top:14px;font-size:.85rem;color:var(--muted)}
+.tl-panel .deliv b{color:var(--pri)}
+.tl-hint{text-align:center;color:var(--muted);font-size:.8rem;margin-top:6px}
+.seg{display:inline-flex;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:22px;padding:4px;gap:4px}
+.seg button{border:0;background:none;font:inherit;font-size:.82rem;font-weight:700;padding:6px 13px;border-radius:999px;cursor:pointer;color:var(--muted);transition:all .2s}
+.seg button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.seg button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.seg.sm button{font-size:.76rem;padding:5px 10px}
+.mod-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.mod-head h3{font-size:1.5rem}
+.mod-head p{font-size:.88rem;color:var(--muted);max-width:720px;margin-top:4px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--deep);color:#F6B89F;font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;border-radius:999px;padding:3px 10px;margin-bottom:8px}
+.module{margin-bottom:54px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 12px;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer;color:var(--deep);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:border-color .15s,color .15s,background .15s}
+.btn:hover{border-color:var(--pri);color:var(--pri)}
+.btn.go{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.go:hover{background:#178A65;color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+
+
+.logos img.cl{height:34px}
+.hero{background:radial-gradient(110% 140% at 82% 10%,#5A2B3E 0%,#2B1E3A 52%,#16101E 100%)}
+.hero .eyebrow,.hero .pill span{color:#F6B89F}
+.hero h1 em{color:#9ED9CF;font-style:italic}
+.badge{color:#F6B89F}
+.kpi{border-top:3px solid var(--pri)}
+.chc p,.tl-panel ul,.tk p{color:#48424F}
+.tl::before{background:linear-gradient(90deg,var(--pri),var(--amb),var(--acc),var(--vio))}
+.module .btn.go,.btn.go{background:var(--deep);border-color:var(--deep);color:#fff}
+.module .btn.go:hover,.btn.go:hover{background:#000;color:#fff}
+.btn.sm{padding:6px 10px;font-size:.74rem}
+.btn.ai{background:linear-gradient(110deg,#2B1E3A 0%,#7C3B3A 38%,#F6B89F 50%,#7C3B3A 62%,#2B1E3A 100%);background-size:260% 100%;color:#fff;border-color:transparent;animation:shim 3.2s linear infinite}
+.btn.ai:hover{color:#fff;filter:brightness(1.1)} .btn.ai[disabled]{opacity:.7;cursor:progress}
+@keyframes shim{from{background-position:130% 0}to{background-position:-130% 0}}
+.chart svg{width:100%;height:auto;display:block}
+.axis text{font-family:var(--sans);font-size:11px;fill:var(--muted)}
+.axis line{stroke:var(--line)} .axis path{display:none}
+.grid line{stroke:var(--line);stroke-dasharray:2 3} .grid path{display:none}
+.ckey{display:flex;gap:12px;font-size:.74rem;color:var(--muted);margin-top:6px;flex-wrap:wrap}
+.ckey span{display:inline-flex;align-items:center;gap:6px}
+.ckey i{width:12px;height:12px;border-radius:3px;display:inline-block}
+h4.lbl{margin:0 0 8px;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.chipb{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;font:700 .74rem var(--sans);color:var(--deep);cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.chipb:hover{border-color:var(--pri)} .chipb.on{background:var(--deep);border-color:var(--deep);color:#fff}
+.chipb .sw{width:12px;height:12px;border-radius:3px;display:inline-block;border:1px solid rgba(0,0,0,.12)}
+.sigs{display:flex;gap:5px;flex-wrap:wrap}
+.ms{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.ms .k{font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.ms .v{font-family:var(--serif);font-size:1.3rem;color:var(--deep);line-height:1.15;font-variant-numeric:tabular-nums}
+.ms .s{font-size:.68rem;color:var(--muted)}
+select.sel,input.inp{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:600 .78rem var(--sans);background:#fff;color:var(--deep);width:100%;min-width:0}
+.note{font-size:.72rem;color:var(--muted);line-height:1.45;margin:0}
+.pill2{display:inline-flex;align-items:center;gap:6px;font:800 .62rem var(--sans);letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.pill2.off{background:#ECEAF0;color:#615B6B} .pill2.on{background:#FBE5DE;color:#9A3A26}
+.pill2 i{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block}
+.pill2.on i{animation:blink 1.4s infinite}
+@keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
+.tag{font:800 .6rem var(--sans);letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 8px;white-space:nowrap;display:inline-block}
+.tag.r{background:#FBE2E2;color:#9E2A2A} .tag.a{background:#FFF0D6;color:#8A5A00} .tag.g{background:#DDF1E5;color:#1D6B40} .tag.b{background:#DDF1EE;color:#1E6B62} .tag.n{background:#ECEAF0;color:#615B6B}
+.spark{color:#F6B89F;display:inline-block;animation:tw 2.4s ease-in-out infinite}
+@keyframes tw{50%{opacity:.4;transform:scale(.8) rotate(20deg)}}
+.aikey{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:18px;padding:16px 18px;margin:0 0 32px;align-items:center;border:2px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(120deg,#C8553D,#E9A23B,#2A9D8F,#6D597A,#C8553D) border-box;background-size:100% 100%,300% 100%;animation:bord 9s linear infinite}
+@keyframes bord{to{background-position:0 0,300% 0}}
+.aikey h3{margin:0;font:400 1.35rem var(--serif);color:var(--deep)}
+.krow{display:grid;grid-template-columns:minmax(0,1.4fr) 150px auto auto;gap:8px;align-items:center;margin-bottom:8px}
+.krow input{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:500 .78rem var(--mono);color:var(--deep);background:#fff;min-width:0;width:100%}
+.kfoot{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.74rem}
+.drop{border:1.5px dashed #CBC5D3;border-radius:10px;padding:10px;text-align:center;font-size:.72rem;color:var(--muted);background:#fff;cursor:pointer;transition:all .2s;display:block}
+.drop:hover,.drop.over{border-color:var(--pri);background:#FDF3EF;color:var(--deep)}
+.drop b{display:block;color:var(--deep);font-size:.78rem;margin-bottom:2px}
+.rng{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;font-size:.72rem;align-items:center}
+.rng input{grid-column:1/-1;width:100%;accent-color:var(--pri)}
+.rng b{font-variant-numeric:tabular-nums;color:var(--deep)}
+.chk{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:.72rem}
+.chk label{display:inline-flex;gap:4px;align-items:center;cursor:pointer}
+.chk input{accent-color:var(--pri)}
+/* 01 extractor */
+.ex{display:grid;grid-template-columns:240px minmax(0,1.25fr) minmax(0,1fr);overflow:hidden}
+.ex>div{min-width:0;padding:14px}
+.ex>div:first-child{border-right:1px solid var(--line);background:#FAF9FB;display:flex;flex-direction:column;gap:12px}
+.ex>div:last-child{border-left:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.samples{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.smp{border:1px solid var(--line);border-radius:9px;overflow:hidden;cursor:pointer;background:#fff;padding:0;text-align:left;font:inherit;color:inherit}
+.smp canvas{width:100%;aspect-ratio:4/3;display:block}
+.smp span{display:block;font:700 .64rem var(--sans);color:var(--deep);padding:4px 6px}
+.smp.on{border-color:var(--pri);box-shadow:0 0 0 3px rgba(200,85,61,.18)}
+.stage{position:relative;border-radius:12px;overflow:hidden;background:#EDEBF0;cursor:crosshair}
+.stage canvas{width:100%;height:auto;display:block}
+.loupe{position:absolute;width:118px;height:150px;border-radius:12px;background:#fff;box-shadow:0 8px 24px rgba(0,0,0,.25);pointer-events:none;display:none;overflow:hidden;z-index:3}
+.loupe canvas{width:118px;height:118px;display:block;image-rendering:pixelated}
+.loupe div{font:700 .64rem var(--mono);padding:4px 6px;color:var(--deep);display:flex;gap:6px;align-items:center}
+.loupe div i{width:12px;height:12px;border-radius:3px;display:inline-block;border:1px solid rgba(0,0,0,.15)}
+.pbar{display:flex;height:34px;border-radius:8px;overflow:hidden;margin-top:10px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.pbar div{height:100%;transition:flex .5s}
+.pick{display:flex;gap:10px;align-items:center;margin-top:10px;font-size:.74rem;flex-wrap:wrap}
+.pick i{width:28px;height:28px;border-radius:7px;display:inline-block;border:1px solid rgba(0,0,0,.12)}
+.pal{display:flex;flex-direction:column;gap:6px;max-height:520px;overflow:auto;padding-right:2px}
+.pc{display:grid;grid-template-columns:52px minmax(0,1fr);gap:10px;border:1px solid var(--line);border-radius:10px;padding:7px;background:#fff;align-items:start}
+.pc .swb{width:52px;height:52px;border-radius:8px;border:1px solid rgba(0,0,0,.1);position:relative}
+.pc .swb span{position:absolute;left:3px;bottom:3px;font:800 .58rem var(--sans);background:rgba(255,255,255,.88);border-radius:4px;padding:1px 4px;color:#222}
+.pc .vals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 10px;font:500 .66rem/1.45 var(--mono);color:#3C3645}
+.pc .vals b{font-family:var(--sans);font-weight:800;font-size:.56rem;letter-spacing:.06em;color:var(--muted);margin-right:4px}
+.pc .vals button{all:unset;cursor:pointer;border-radius:4px;padding:0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc .vals button:hover{background:#F3EFF6}
+.pc .vals button:focus-visible{outline:2px solid var(--pri)}
+.pc .nm{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;font-size:.7rem;color:var(--muted);gap:6px}
+.pc .nm b{color:var(--deep);font-size:.74rem}
+/* before/after */
+.ba{position:relative;border-radius:12px;overflow:hidden;background:#EDEBF0;user-select:none;touch-action:none}
+.ba canvas{width:100%;height:auto;display:block}
+.ba .top{position:absolute;inset:0}
+.ba .top canvas{position:absolute;inset:0;width:100%;height:100%}
+.runmeta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}
+@media (max-width:640px){.runmeta{grid-template-columns:repeat(2,minmax(0,1fr))}.pc .vals{grid-template-columns:minmax(0,1fr)}}
+.rl .r{text-align:right;font-variant-numeric:tabular-nums}
+.ba .hd{position:absolute;top:0;bottom:0;width:0;border-left:3px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.25);z-index:2;pointer-events:none}
+.ba .hd::after{content:"⟷";position:absolute;top:50%;left:-21px;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;background:#fff;display:grid;place-items:center;font:800 .9rem var(--sans);color:var(--deep);box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.ba .lb{position:absolute;top:10px;z-index:2;background:rgba(43,30,58,.85);color:#fff;font:800 .62rem var(--sans);letter-spacing:.08em;text-transform:uppercase;border-radius:999px;padding:4px 10px}
+.ba .lb.l{left:10px} .ba .lb.r{right:10px}
+.ba input[type=range]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;z-index:3;margin:0}
+/* 02 match */
+.mt{display:grid;grid-template-columns:260px minmax(0,1fr);overflow:hidden}
+.mt>div{min-width:0;padding:14px}
+.mt>div:first-child{border-right:1px solid var(--line);background:#FAF9FB;display:flex;flex-direction:column;gap:12px}
+.mtab{width:100%;border-collapse:collapse;font-size:.74rem}
+.mtab th{text-align:left;font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);padding:6px 6px}
+.mtab td{padding:6px;border-bottom:1px solid #F0EEF3;vertical-align:middle}
+.mtab td.r,.mtab th.r{text-align:right;font-variant-numeric:tabular-nums}
+.pair{display:flex;align-items:center;gap:0}
+.pair i{width:30px;height:30px;display:inline-block;border:1px solid rgba(0,0,0,.1)}
+.pair i:first-child{border-radius:7px 0 0 7px} .pair i:last-child{border-radius:0 7px 7px 0}
+.dir{font-size:.68rem;color:var(--muted)}
+.sim{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px}
+.sim div{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff;font-size:.64rem}
+.sim div i{display:block;height:36px}
+.sim div span{display:block;padding:4px 6px;line-height:1.35;color:var(--muted)}
+.sim div b{display:block;color:var(--deep);font-size:.68rem}
+.mx{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px}
+/* 03 runs */
+.rn{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);overflow:hidden}
+.rn>div{min-width:0;padding:14px}
+.rn>div+div{border-left:1px solid var(--line);background:#FAF9FB;display:flex;flex-direction:column;gap:10px}
+.bands{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.bands div{border-radius:10px;padding:8px;text-align:center;border:1px solid var(--line);background:#fff;font-size:.66rem;color:var(--muted)}
+.bands div b{display:block;font:400 1.3rem var(--serif);color:var(--deep)}
+.bands div.on{border-color:var(--pri);box-shadow:0 0 0 3px rgba(200,85,61,.15)}
+.rlist{display:flex;flex-direction:column;gap:5px}
+.rl{display:grid;grid-template-columns:80px minmax(0,1fr) 54px 64px;gap:8px;align-items:center;border:1px solid var(--line);border-radius:9px;padding:6px 8px;background:#fff;font-size:.72rem;cursor:pointer;text-align:left;font-family:inherit;color:inherit}
+.rl.on{border-color:var(--pri);box-shadow:0 0 0 2px rgba(200,85,61,.15)}
+.rl .strip{display:flex;height:16px;border-radius:4px;overflow:hidden}
+.rl .strip i{flex:1}
+/* 04 colourway */
+.cw{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);overflow:hidden}
+.cw>div{min-width:0;padding:14px}
+.cw>div+div{border-left:1px solid var(--line);background:#FAF9FB;display:flex;flex-direction:column;gap:10px}
+.cwp{display:flex;flex-direction:column;gap:6px}
+.cwr{display:grid;grid-template-columns:34px 18px 34px minmax(0,1fr) 40px;gap:8px;align-items:center;font-size:.72rem}
+.cwr i{width:34px;height:34px;border-radius:7px;display:inline-block;border:1px solid rgba(0,0,0,.1)}
+.cwr input[type=color]{width:34px;height:34px;border:0;padding:0;background:none;cursor:pointer}
+.out{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:.8rem;line-height:1.55;color:#2E2836}
+.out ul{margin:4px 0 8px;padding-left:18px} .out p{margin:0 0 6px}
+.dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--pri);margin-right:3px;animation:blink 1s infinite}
+.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--deep);color:#fff;padding:10px 16px;border-radius:999px;font-size:.82rem;font-weight:700;opacity:0;transition:all .3s;z-index:1200;pointer-events:none;max-width:calc(100vw - 32px);text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.dash{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dash>*{min-width:0}
+.chart-card{padding:22px}
+.chart-card h3{margin-bottom:4px}
+.chart-card .sub{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.cmp-head{display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+.cmp{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.cmp th,.cmp td{padding:16px 18px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);font-size:.92rem;overflow-wrap:anywhere}
+.cmp thead th{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);background:#F5F5F7}
+.cmp tbody tr:last-child td,.cmp tbody tr:last-child th{border-bottom:0}
+.cmp tbody th{font-weight:700;color:var(--pri)}
+.cmp col.c1{width:22%}
+.cmp td{transition:background .3s,opacity .3s,color .3s}
+.cmp.hl-before td.b{background:#FCEEF3;color:#7A1236}
+.cmp.hl-before td.a{opacity:.38}
+.cmp.hl-after td.a{background:#ECF8F3;color:#0E4F39;font-weight:500}
+.cmp.hl-after td.b{opacity:.38}
+.cmp.hl-after thead th.a{color:var(--acc)}
+.cmp.hl-before thead th.b{color:var(--bad)}
+.tchips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:.9rem;font-weight:500;display:inline-flex;align-items:center;gap:8px}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 3px var(--acc-15)}
+.chip em{font-style:normal;color:var(--muted);font-weight:400;font-size:.82rem}
+.tk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.tk{padding:26px}
+.tk .n{font-family:var(--serif);font-size:2.6rem;color:var(--acc);line-height:1}
+.tk h3{margin:12px 0 8px}
+.tk p{font-size:.92rem;color:#433A52}
+footer{background:var(--deep);color:rgba(255,255,255,.75);padding:48px 0 32px;margin-top:32px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px}
+.f-brand{display:flex;align-items:center;gap:16px}
+.f-brand img{height:44px;width:auto;border-radius:6px;background:#fff;padding:4px}
+.f-brand b{display:block;color:#fff;font-family:var(--serif);font-weight:400;font-size:1.15rem}
+.copy{width:100%;border-top:1px solid rgba(255,255,255,.12);padding-top:18px;font-size:.8rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+#tip{position:fixed;pointer-events:none;z-index:95;background:var(--deep);color:#fff;font-size:.8rem;line-height:1.45;padding:10px 12px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transition:opacity .15s;max-width:300px}
+#tip b{color:#7DE3BE;font-weight:700}
+#tip .t{font-weight:700;font-size:.85rem;margin-bottom:2px;color:#fff}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.cmp.hl-after td.a{background:#FBEFEA;color:#2B1E3A}
+.chip i{background:var(--pri);box-shadow:0 0 0 3px rgba(200,85,61,.22)}
+.tk .n{color:var(--pri)}
+#tip{z-index:1300} #tip b{color:#F6B89F}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.js .reveal{opacity:1;transform:none;transition:none}.aikey,.btn.ai,.spark,.pill2.on i{animation:none!important}.pbar div{transition:none}}
+@media (max-width:1180px){.ex{grid-template-columns:220px minmax(0,1fr)}.ex>div:last-child{grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}.pal{max-height:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}}
+@media (max-width:980px){.kpi-grid,.ch-grid{grid-template-columns:repeat(2,1fr)}.dash{grid-template-columns:1fr}.tk-grid{grid-template-columns:1fr}.hero canvas{width:100%;opacity:.3}
+  .ex,.mt,.rn,.cw,.aikey,.mx{grid-template-columns:minmax(0,1fr)}.ex>div:first-child,.mt>div:first-child{border-right:0;border-bottom:1px solid var(--line)}.rn>div+div,.cw>div+div{border-left:0;border-top:1px solid var(--line)}
+  .krow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.krow input[type=password]{grid-column:1/-1}.samples{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (max-width:640px){
+  .wrap{padding:0 16px} section{padding:48px 0} .hero{padding:52px 0 56px} .logos img{height:34px} .logos img.cl{height:26px} .vdiv{height:28px}
+  .kpi-grid{gap:10px} .kpi{padding:16px 14px} .ch-grid{grid-template-columns:1fr}
+  .tl::before{top:19px} .tl-dot{width:40px;height:40px;font-size:1rem} .tl-name{font-size:.75rem} .tl-dur{display:none} .tl-panel{padding:18px}
+  .sx{overflow-x:auto;-webkit-overflow-scrolling:touch} .sx svg{min-width:500px} .sx table{min-width:560px}
+  .samples{grid-template-columns:repeat(2,minmax(0,1fr))} .bands{grid-template-columns:repeat(5,minmax(0,1fr));gap:3px} .bands div{padding:6px 2px}
+  .cmp th,.cmp td{padding:12px 10px;font-size:.82rem} .cmp thead th{font-size:.68rem;letter-spacing:.08em} .chart-card{padding:14px}
+}
+@media print{
+  body{background:#fff;font-size:12px} .topbar{position:static}
+  .hero{background:#2B1E3A!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:36px 0} .hero canvas{display:none}
+  .card{box-shadow:none;break-inside:avoid} section{padding:28px 0} .js .reveal{opacity:1!important;transform:none!important}
+  .seg,.tl-hint,.btn,#tip,.toast,.aikey,.drop{display:none!important} .tl-panel{display:block!important;margin-top:10px}
+  footer{background:#fff;color:var(--text)} footer .f-brand b{color:var(--deep)} .kpis{margin-top:16px}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="logos">
+      <img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting">
+    </div>
+    <div class="tagline">Customer Case Study · <b>Colour Match &amp; Print-Run QC</b></div>
+  </div>
+</header>
+
+<section class="hero">
+  <canvas id="heroCv" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="eyebrow">Home Textiles × Havish M Consulting</div>
+    <h1>Every print run, matched to the approved shade, <em>before it ships</em></h1>
+    <p class="sub">Towels, bed linen and rugs ship to global retailers who reject shipments when shades drift between print runs. HMC built a colour studio for a home-textiles manufacturer's quality and product development teams: it extracts the palette from any design, converts every colour across HEX, RGB, HSB, HSL, CMYK and CIELAB, scores each run against the approved standard with ΔE2000, groups runs into shade bands and creates new colourways.</p>
+    <div class="pills">
+      <span class="pill"><span>Sector</span>Home Textiles</span>
+      <span class="pill"><span>Function</span>Quality &amp; Product Development · Colour</span>
+      <span class="pill"><span>Theme</span>Colour Extraction &amp; Shade Matching</span>
+    </div>
+  </div>
+</section>
+
+<section class="kpis">
+  <div class="wrap">
+    <div class="kpi-grid">
+      <div class="card kpi reveal"><div class="label">Shade-related shipment rejections</div><div class="val"><span class="count" data-to="64">0</span><small>% fewer</small></div><div class="delta">▼ caught at the run, not the buyer</div></div>
+      <div class="card kpi reveal"><div class="label">Average run-to-standard colour difference</div><div class="val"><span class="count" data-to="0.9" data-dp="1">0</span><small>ΔE2000</small></div><div class="delta">▼ from about 2.3</div></div>
+      <div class="card kpi reveal"><div class="label">Time to compare a run with the standard</div><div class="val"><span class="count" data-to="10">0</span><small>minutes</small></div><div class="delta">▼ from about 2 days</div></div>
+      <div class="card kpi reveal"><div class="label">Runs shade-banded before packing</div><div class="val"><span class="count" data-to="100">0</span><small>%</small></div><div class="delta">▲ no mixed shades in a shipment</div></div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="challenge">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Challenge</div>
+      <h2>Close enough is not a shade match</h2>
+      <p class="lead">A print run that looks fine under the shop-floor lights can be visibly different next to last month's run on a retailer's shelf.</p>
+    </div>
+    <div class="ch-grid">
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg></div><h3>Judged by eye</h3><p>Shade approval relied on experienced eyes under a light box; two checkers could disagree.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></div><h3>Many runs, one standard</h3><p>The same design is printed across machines, dye lots and weeks; small drifts add up.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg></div><h3>Mixed shades in one carton</h3><p>Without shade banding, slightly different runs were packed together and flagged by the buyer.</p></div>
+      <div class="card chc reveal"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5L12 15.8 7.1 18.2 8 12.7 4 8.8 9.5 8z"/></svg></div><h3>Colour numbers in five formats</h3><p>Designers think in HEX and CMYK, dye labs in LAB, buyers in their own references.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="approach" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">HMC Approach</div>
+      <h2>From the approved standard to every carton</h2>
+      <p class="lead">Built with the colour lab, print floor and product development teams.</p>
+    </div>
+    <div class="tl reveal" aria-label="HMC approach steps">
+      <button class="tl-step" aria-expanded="true" aria-controls="tp0"><span class="tl-dot">1</span><span class="tl-name">Discover</span><span class="tl-dur">2 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp1"><span class="tl-dot">2</span><span class="tl-name">Design</span><span class="tl-dur">2 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp2"><span class="tl-dot">3</span><span class="tl-name">Build</span><span class="tl-dur">5 weeks</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp3"><span class="tl-dot">4</span><span class="tl-name">Adopt</span><span class="tl-dur">Bed linen unit</span></button>
+      <button class="tl-step" aria-expanded="false" aria-controls="tp4"><span class="tl-dot">5</span><span class="tl-name">Scale</span><span class="tl-dur">All categories</span></button>
+    </div>
+    <p class="tl-hint">Select a step to see what happened.</p>
+    <div class="card tl-panel open" id="tp0"><h3>Discover · Where shades go wrong</h3><p>Rejected shipments traced back to their runs.</p><ul><li>Which colours drift most: deep reds, navies, greys.</li><li>How approval works today: light box, lab dip, sign-off.</li><li>Buyer tolerances by programme.</li></ul><p class="deliv"><b>Deliverable:</b> Shade failure map and tolerance table.</p></div>
+    <div class="card tl-panel" id="tp1"><h3>Design · One colour language</h3><p>Every colour carried in every format.</p><ul><li>CIELAB as the reference space; HEX, RGB, HSB, HSL and CMYK alongside.</li><li>ΔE2000 with buyer-specific tolerances.</li><li>Five shade bands for packing.</li></ul><p class="deliv"><b>Deliverable:</b> Colour data model and banding rules.</p></div>
+    <div class="card tl-panel" id="tp2"><h3>Build · Extract, match, compare, recolour</h3><p>One studio for design and quality.</p><ul><li>Palette extraction from artwork and photos.</li><li>Run-to-standard matching with drift direction.</li><li>Colourway studio with GenAI naming and notes.</li></ul><p class="deliv"><b>Deliverable:</b> Colour studio.</p></div>
+    <div class="card tl-panel" id="tp3"><h3>Adopt · Spectro first, studio second</h3><p>Instrument readings feed the studio.</p><ul><li>Spectrophotometer LAB readings uploaded per run.</li><li>Bands printed on the carton label.</li><li>Approval notes sent to buyers with the numbers.</li></ul><p class="deliv"><b>Deliverable:</b> Pilot on bed linen.</p></div>
+    <div class="card tl-panel" id="tp4"><h3>Scale · Every category</h3><p>Towels, rugs and fashion bedding.</p><ul><li>Shared colour library across units.</li><li>Colourway development for new seasons.</li><li>Drift alerts per machine and dye lot.</li></ul><p class="deliv"><b>Deliverable:</b> Roll-out plan.</p></div>
+  </div>
+</section>
+
+<section id="solution">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The Solution</div>
+      <h2>Open the colour studio</h2>
+      <p class="lead">Start from a sample design or upload your own image. Everything runs in your browser; the images are drawn illustrations, and in production the colour readings come from a spectrophotometer, not a photo.</p>
+    </div>
+
+    <div class="card aikey reveal" id="aiKey">
+      <div><h3><span class="spark">✦</span> Add GenAI to the studio</h3>
+        <p class="note">Optional. Without a key, colour names, colourways and approval notes come from built-in rules. Add your OpenAI key to name colours like a designer, suggest seasonal colourways and draft the shade approval note for a buyer.</p></div>
+      <div>
+        <div class="krow"><input type="password" id="apiKey" placeholder="OpenAI API key (sk-…)" autocomplete="off" spellcheck="false" aria-label="OpenAI API key"><input type="text" class="inp" id="oaModel" value="gpt-4o-mini" list="models" spellcheck="false" aria-label="OpenAI model" style="font-family:var(--mono)"><datalist id="models"><option value="gpt-4o-mini"><option value="gpt-4.1-mini"><option value="gpt-4o"><option value="gpt-4.1"></datalist><button class="btn sm go" id="keySave" type="button">Connect</button><span class="pill2 off" id="keyPill"><i></i>Rules</span></div>
+        <div class="kfoot"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="remember"> Remember on this device</label><button class="btn sm" id="keyClr" type="button">Disconnect</button><span class="note" id="keyMsg">Your key goes only from this browser to OpenAI. Images never leave the page.</span></div>
+      </div>
+    </div>
+
+    <div class="module reveal" id="m1">
+      <div class="mod-head"><div><div class="badge">01 · Colour extractor</div><h3>Every colour in the design, in every format</h3><p>Pick a sample or upload an image. The palette is found by clustering pixels in CIELAB, so it groups colours the way the eye does. Hover the image for a pixel loupe; click to pin a colour. Click any value to copy it.</p></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" id="dlCsv" type="button">⬇ Palette CSV</button><button class="btn sm" id="dlJson" type="button">⬇ JSON</button></div></div>
+      <div class="card ex">
+        <div>
+          <div><h4 class="lbl">Sample designs</h4><div class="samples" id="samples"></div></div>
+          <label class="drop" for="upImg"><b>⬆ Upload your image</b>JPG or PNG · stays in this browser<input type="file" id="upImg" accept="image/*" hidden></label>
+          <label class="rng"><span>Colours to extract</span><b id="kV">6</b><input type="range" id="kN" min="2" max="12" value="6" aria-label="Number of colours"></label>
+          <div><h4 class="lbl">Method</h4><select class="sel" id="algo" aria-label="Extraction method"><option value="km">k-means in CIELAB (perceptual)</option><option value="mc">Median cut in RGB (fast)</option></select></div>
+          <div class="chk"><label><input type="checkbox" id="skipBg"> Ignore near-white</label><label><input type="checkbox" id="mergeSim" checked> Merge near-duplicates (ΔE &lt; 4)</label></div>
+          <div><h4 class="lbl">Show formats</h4><div class="chk" id="fmts"></div></div>
+          <div><h4 class="lbl">CMYK profile</h4><select class="sel" id="cmykP" aria-label="CMYK conversion"><option value="naive">Full black replacement</option><option value="gcr">Light black (30% GCR)</option></select></div>
+        </div>
+        <div>
+          <div class="stage" id="stage"><canvas id="cv" width="640" height="480" aria-label="Design image; hover to inspect pixels"></canvas><div class="loupe" id="loupe"><canvas id="lcv" width="118" height="118"></canvas><div id="lval"></div></div></div>
+          <div class="pbar" id="pbar" aria-label="Palette by share of image"></div>
+          <div class="pick" id="pick"><span class="note">Click the image to pin a pixel colour.</span></div>
+        </div>
+        <div><div style="display:flex;justify-content:space-between;align-items:center"><h4 class="lbl" style="margin:0">Palette · <span id="pCount">0</span> colours</h4><span class="pill2 off aipill"><i></i>Rules</span></div><div class="pal" id="pal"></div><button class="btn sm ai" id="nameGo" type="button">✦ Name these colours</button></div>
+      </div>
+      <p class="footnote">Screen colours are approximate. CMYK uses a simple device conversion, not an ICC press profile; LAB uses D65 and the 2° observer.</p>
+    </div>
+
+    <div class="module reveal" id="m2">
+      <div class="mod-head"><div><div class="badge">02 · Shade match</div><h3>Each colour against the approved standard</h3><p>The approved lab dip for the design is the standard. Every extracted colour is matched to its standard colour and scored with ΔE. Move the tolerance to your buyer's limit; the direction words say how the shade has moved.</p></div></div>
+      <div class="card mt">
+        <div>
+          <div><h4 class="lbl">Compare</h4><select class="sel" id="cmpRun" aria-label="Run to compare"></select></div>
+          <label class="rng"><span>Tolerance (ΔE)</span><b id="tolV">1.0</b><input type="range" id="tol" min="0.3" max="4" step="0.1" value="1.0" aria-label="Tolerance"></label>
+          <div><h4 class="lbl">Formula</h4><select class="sel" id="formula" aria-label="Colour difference formula"><option value="2000">ΔE2000 (CIEDE2000)</option><option value="94">ΔE94 (textiles, kL = 2)</option><option value="cmc">ΔE CMC (2:1)</option><option value="76">ΔE76 (CIELAB distance)</option></select></div>
+          <div class="sigs" id="tolPre"></div>
+          <div class="ms" id="mSum"></div>
+          <label class="drop" for="upRun"><b>⬆ Upload a run photo</b>Compare it with the current design<input type="file" id="upRun" accept="image/*" hidden></label>
+          <p class="note">ΔE under 1 is barely visible to a trained eye; 2 to 3 is visible side by side. Buyers set their own limits.</p>
+        </div>
+        <div>
+          <div class="sx"><table class="mtab" id="mtab"><thead><tr><th>Standard → run</th><th>Colour</th><th class="r">ΔL*</th><th class="r">ΔC*</th><th class="r">ΔH*</th><th class="r">ΔE</th><th>Shade moved</th><th>Verdict</th></tr></thead><tbody></tbody></table></div>
+          <div class="mx" style="margin-top:14px">
+            <div><h4 class="lbl">Similar colours in the in-house library · <span id="simFor"></span></h4><div class="sim" id="sim"></div></div>
+            <div><h4 class="lbl">Where the colour moved (a*, b* plane)</h4><div class="chart" id="ab"></div></div>
+          </div>
+        </div>
+      </div>
+      <p class="footnote">Synthetic standard and colour library. Library codes are illustrative, not a commercial colour system.</p>
+    </div>
+
+    <div class="module reveal" id="m3">
+      <div class="mod-head"><div><div class="badge">03 · Print-run comparison</div><h3>Drag to compare a run with the standard</h3><p>Six runs of the same design from different machines and dye lots. Drag the slider across the image to see the difference; each run is scored, given a shade band, and the band decides which runs can be packed together.</p></div></div>
+      <div class="card rn">
+        <div><div class="ba" id="ba1"><canvas id="baB" width="640" height="480"></canvas><div class="top" id="baTop"><canvas id="baA" width="640" height="480"></canvas></div><div class="hd" id="baH"></div><span class="lb l" id="baL">Standard</span><span class="lb r" id="baR">Run</span><input type="range" id="baS" min="0" max="100" value="50" aria-label="Before and after slider"></div>
+          <div class="sigs" style="margin-top:10px" id="viewMode"><button type="button" class="chipb on" data-vm="side">Before / after</button><button type="button" class="chipb" data-vm="diff">Difference heat map</button></div>
+          <p class="note" style="margin-top:6px" id="baNote"></p><div class="runmeta" id="runMeta"></div></div>
+        <div>
+          <div><h4 class="lbl">Runs · tap to compare</h4><div class="rlist" id="rlist"></div></div>
+          <div><h4 class="lbl">Shade bands · ΔE to standard and lightness</h4><div class="bands" id="bands"></div><p class="note" style="margin-top:6px" id="packNote"></p></div>
+          <div class="chart" id="drift"></div>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><button class="btn sm ai" id="runNote" type="button">✦ Draft run approval note</button><span class="pill2 off aipill"><i></i>Rules</span></div>
+          <div class="out" id="runOut"><p class="note">Pick a run, then draft the note for the dye house and buyer.</p></div>
+        </div>
+      </div>
+      <p class="footnote">Runs are simulated from the design by shifting lightness, chroma and hue per colour.</p>
+    </div>
+
+    <div class="module reveal" id="m4" style="margin-bottom:0">
+      <div class="mod-head"><div><div class="badge">04 · Colourway studio</div><h3>New colourways from the same artwork</h3><p>Pick a preset or change any colour. The design is recoloured in CIELAB, keeping its shading and texture. Drag to compare with the original, then draft the lab-dip request for the dye house.</p></div><span class="pill2 off aipill"><i></i>Rules</span></div>
+      <div class="card cw">
+        <div><div class="ba" id="ba2"><canvas id="cwB" width="640" height="480"></canvas><div class="top" id="cwTop"><canvas id="cwA" width="640" height="480"></canvas></div><div class="hd" id="cwH"></div><span class="lb l">Original</span><span class="lb r">Colourway</span><input type="range" id="cwS" min="0" max="100" value="50" aria-label="Before and after slider for colourway"></div>
+          <div class="sigs" style="margin-top:10px" id="cwPre"></div></div>
+        <div>
+          <div><h4 class="lbl">Colour mapping</h4><div class="cwp" id="cwMap"></div></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm ai" id="cwAi" type="button">✦ Suggest colourways</button><button class="btn sm" id="noteGo" type="button">Draft lab-dip request</button><button class="btn sm" id="cwReset" type="button">↺ Reset</button></div>
+          <div class="out" id="cwOut"><p class="note">Pick a preset, change a colour, or ask for suggestions.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="impact" class="alt">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Impact Dashboard</div>
+      <h2>Tighter shades, run after run</h2>
+      <p class="lead">With every run measured against the standard and banded before packing, drift is caught early and buyers see consistent shades.</p>
+    </div>
+    <div class="dash">
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>Thirty runs of one design, colour by colour</h3><p class="sub">Swatch matrix: each cell is the run's actual colour; red outline when ΔE is over 1</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-sm="before" aria-pressed="false">Before</button><button type="button" data-sm="after" aria-pressed="true">After</button></div></div>
+        <div class="sx"><div class="chart" id="swm"></div></div>
+      </div>
+      <div class="card chart-card reveal">
+        <div class="chart-head"><div><h3>Days to shade approval, by buyer programme</h3><p class="sub">Interval plot: range and median per programme</p></div>
+          <div class="seg" role="group" aria-label="Period"><button type="button" data-ip="before" aria-pressed="false">Before</button><button type="button" data-ip="after" aria-pressed="true">After</button></div></div>
+        <div class="sx"><div class="chart" id="intv"></div></div>
+      </div>
+    </div>
+    <p class="footnote">Figures indicative; validated metrics available on request.</p>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <div class="cmp-head reveal"><div><div class="eyebrow">Before vs After</div><h2>How shades are approved now</h2></div>
+      <div class="seg" role="group" aria-label="Highlight column"><button type="button" data-hl="before" aria-pressed="false">Before</button><button type="button" data-hl="after" aria-pressed="true">After</button></div></div>
+    <div class="card reveal" style="overflow:hidden">
+      <table class="cmp hl-after" id="cmp"><colgroup><col class="c1"><col><col></colgroup>
+        <thead><tr><th scope="col">Dimension</th><th scope="col" class="b">Before</th><th scope="col" class="a">After</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Reading a design</th><td class="b">Colours picked by hand, one at a time</td><td class="a">Full palette with share of design, in seconds</td></tr>
+          <tr><th scope="row">Colour formats</th><td class="b">Retyped between design, lab and buyer</td><td class="a">HEX, RGB, HSB, HSL, CMYK and LAB together</td></tr>
+          <tr><th scope="row">Shade approval</th><td class="b">Light box and experience</td><td class="a">ΔE2000 against the standard, with direction</td></tr>
+          <tr><th scope="row">Print runs</th><td class="b">Checked one by one, if at all</td><td class="a">Every run scored and shade-banded</td></tr>
+          <tr><th scope="row">Packing</th><td class="b">Mixed shades in one carton</td><td class="a">One band per shipment</td></tr>
+          <tr><th scope="row">Colourways</th><td class="b">Redrawn in design software</td><td class="a">Recoloured from the artwork in minutes</td></tr>
+        </tbody></table>
+    </div>
+  </div>
+</section>
+
+<section id="tools" style="padding-top:16px">
+  <div class="wrap">
+    <div class="sec-head reveal" style="margin-bottom:20px"><div class="eyebrow">Tools &amp; Tech Used</div><h2>The colour studio stack</h2></div>
+    <div class="tchips reveal">
+      <span class="chip"><i></i>CIELAB and CIEDE2000 <em>colour science core</em></span>
+      <span class="chip"><i></i>k-means clustering <em>palette extraction</em></span>
+      <span class="chip"><i></i>Spectrophotometer data <em>production readings</em></span>
+      <span class="chip"><i></i>OpenAI GPT <em>colour naming and approval notes</em></span>
+      <span class="chip"><i></i>D3 <em>drift maps and charts</em></span>
+      <span class="chip"><i></i>Power BI <em>run and buyer reporting</em></span>
+    </div>
+  </div>
+</section>
+
+<section id="takeaways">
+  <div class="wrap">
+    <div class="sec-head reveal"><div class="eyebrow">Key Takeaways</div><h2>What any textile maker can borrow</h2></div>
+    <div class="tk-grid">
+      <div class="card tk reveal"><div class="n">01</div><h3>Agree the number, not the look</h3><p>A ΔE tolerance agreed with the buyer ends most shade arguments before they start.</p></div>
+      <div class="card tk reveal"><div class="n">02</div><h3>Say which way it moved</h3><p>"Lighter and redder" tells the dye house what to fix; a pass/fail alone does not.</p></div>
+      <div class="card tk reveal"><div class="n">03</div><h3>Band before you pack</h3><p>Even passing runs differ slightly; packing by band keeps every carton consistent.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="f-brand"><img src="https://i.postimg.cc/BnD3f1Xt/HMC-ONE.jpg" alt="Havish M Consulting"><div><b>Havish M Consulting</b></div></div>
+    <div class="copy"><span>© <span id="yr">2026</span> Havish M Consulting. All rights reserved.</span><span>Figures indicative; validated metrics available on request.</span></div>
+  </div>
+</footer>
+<div id="tip" role="tooltip"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(function(){
+"use strict";
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DUR = reduce ? 0 : 700;
+const $ = id => document.getElementById(id);
+$('yr').textContent = new Date().getFullYear();
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hasD3 = typeof d3 !== 'undefined';
+const sleep = ms => new Promise(r => setTimeout(r, reduce ? Math.min(ms, 30) : ms));
+const sum = a => a.reduce((x, y) => x + (+y || 0), 0);
+const range = n => Array.from({ length: n }, (_, i) => i);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const tip = $('tip');
+function showTip(html, ev){ tip.innerHTML = html; tip.style.opacity = 1; const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight; let x = ev.clientX + pad, y = ev.clientY + pad; if (x + w > innerWidth - 8) x = ev.clientX - w - pad; if (y + h > innerHeight - 8) y = ev.clientY - h - pad; tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; }
+function hideTip(){ tip.style.opacity = 0; }
+window.addEventListener('scroll', hideTip, { passive: true });
+function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => el.classList.remove('on'), 3000); }
+const onView = new Map();
+const io = ('IntersectionObserver' in window) ? new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; e.target.classList.add('in'); const fn = onView.get(e.target); if (fn){ fn(); onView.delete(e.target); } io.unobserve(e.target); }), { threshold: .12 }) : null;
+function whenVisible(el, fn){ onView.set(el, fn); if (io) io.observe(el); else fn(); }
+document.querySelectorAll('.reveal').forEach(el => io ? io.observe(el) : el.classList.add('in'));
+function countUp(el){ const to = +el.dataset.to, dp = +(el.dataset.dp || 0); if (reduce || !to){ el.textContent = to.toFixed(dp); return; } const t0 = performance.now(); (function s(t){ const p = Math.min(1, (t - t0) / 1400), e = 1 - Math.pow(1 - p, 3); el.textContent = (to * e).toFixed(dp); if (p < 1) requestAnimationFrame(s); })(t0); }
+document.querySelectorAll('.count').forEach(el => whenVisible(el.closest('.kpi'), () => countUp(el)));
+const tlSteps = document.querySelectorAll('.tl-step');
+tlSteps.forEach(btn => btn.addEventListener('click', () => { const open = btn.getAttribute('aria-expanded') === 'true'; tlSteps.forEach(b => { b.setAttribute('aria-expanded','false'); $(b.getAttribute('aria-controls')).classList.remove('open'); }); if (!open){ btn.setAttribute('aria-expanded','true'); $(btn.getAttribute('aria-controls')).classList.add('open'); } }));
+function segBind(attr, fn){ const bs = document.querySelectorAll(`[data-${attr}]`); bs.forEach(b => b.addEventListener('click', () => { bs.forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); fn(b.dataset[attr]); })); }
+const cmpT = $('cmp');
+segBind('hl', v => { cmpT.classList.toggle('hl-before', v === 'before'); cmpT.classList.toggle('hl-after', v === 'after'); });
+function md(s){ const lines = esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').split(/\n/); let out = '', inL = false;
+  lines.forEach(l => { const m = l.match(/^\s*(?:[-*•]|\d+[.)])\s+(.*)/); if (m){ if (!inL){ out += '<ul>'; inL = true; } out += '<li>' + m[1] + '</li>'; } else { if (inL){ out += '</ul>'; inL = false; } if (l.trim()) out += '<p>' + l.replace(/^#+\s*/, '') + '</p>'; } });
+  if (inL) out += '</ul>'; return out; }
+const csvCell = v => { const s = v == null ? '' : String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+function download(name, text, type){ const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); toast('Downloaded ' + name); }
+async function copy(t){ try { await navigator.clipboard.writeText(t); toast('Copied ' + t); } catch (e){ const ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); toast('Copied ' + t); } catch (_){ toast(t); } ta.remove(); } }
+function dk(hex, f){ const n = parseInt(hex.slice(1), 16), r = n >> 16, g = n >> 8 & 255, b = n & 255, m = v => Math.round(v * (1 - f)); return '#' + ((1 << 24) + (m(r) << 16) + (m(g) << 8) + m(b)).toString(16).slice(1); }
+function lt(hex, f){ const n = parseInt(hex.slice(1), 16), r = n >> 16, g = n >> 8 & 255, b = n & 255, m = v => Math.round(v + (255 - v) * f); return '#' + ((1 << 24) + (m(r) << 16) + (m(g) << 8) + m(b)).toString(16).slice(1); }
+
+/* ======================================================================
+   COLOUR SCIENCE · sRGB, CIELAB (D65, 2°), HSB, HSL, CMYK, ΔE
+   ====================================================================== */
+const LIN = new Float32Array(256); for (let i = 0; i < 256; i++){ const c = i / 255; LIN[i] = c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+const lin2s = v => { v = clamp(v, 0, 1); return v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - 0.055; };
+const GAM = new Uint8ClampedArray(4097); for (let i = 0; i <= 4096; i++) GAM[i] = Math.round(lin2s(i / 4096) * 255);
+const Xn = 0.95047, Zn = 1.08883;
+const fLab = t => t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116;
+function rgb2xyz(r, g, b){ const R = LIN[r], G = LIN[g], B = LIN[b]; return [R * 0.4124564 + G * 0.3575761 + B * 0.1804375, R * 0.2126729 + G * 0.7151522 + B * 0.0721750, R * 0.0193339 + G * 0.1191920 + B * 0.9503041]; }
+function rgb2lab(r, g, b){ const R = LIN[r], G = LIN[g], B = LIN[b];
+  const fx = fLab((R * 0.4124564 + G * 0.3575761 + B * 0.1804375) / Xn), fy = fLab(R * 0.2126729 + G * 0.7151522 + B * 0.0721750), fz = fLab((R * 0.0193339 + G * 0.1191920 + B * 0.9503041) / Zn);
+  return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)]; }
+function lab2lin(L, a, b){ const fy = (L + 16) / 116, fx = fy + a / 500, fz = fy - b / 200, f3 = t => { const c = t * t * t; return c > 0.008856 ? c : (t - 16 / 116) / 7.787; };
+  const x = f3(fx) * Xn, y = L > 7.9996 ? fy * fy * fy : L / 903.3, z = f3(fz) * Zn;
+  return [3.2404542 * x - 1.5371385 * y - 0.4985314 * z, -0.9692660 * x + 1.8760108 * y + 0.0415560 * z, 0.0556434 * x - 0.2040259 * y + 1.0572252 * z]; }
+const lab2rgb = (L, a, b) => lab2lin(L, a, b).map(v => Math.round(lin2s(v) * 255));
+const inGamut = lab => lab2lin(lab[0], lab[1], lab[2]).every(v => v > -0.002 && v < 1.002);
+const hexOf = (r, g, b) => '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+const hex2rgb = h => { const n = parseInt(h.slice(1), 16); return [n >> 16, n >> 8 & 255, n & 255]; };
+const hex2lab = h => rgb2lab(...hex2rgb(h));
+const lab2hex = lab => hexOf(...lab2rgb(lab[0], lab[1], lab[2]));
+const toLch = ([L, a, b]) => [L, Math.hypot(a, b), (Math.atan2(b, a) * 180 / Math.PI + 360) % 360];
+const fromLch = (L, C, h) => [L, C * Math.cos(h * Math.PI / 180), C * Math.sin(h * Math.PI / 180)];
+function rgb2hsv(r, g, b){ r /= 255; g /= 255; b /= 255; const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn; let h = 0;
+  if (d){ if (mx === r) h = ((g - b) / d) % 6; else if (mx === g) h = (b - r) / d + 2; else h = (r - g) / d + 4; h *= 60; if (h < 0) h += 360; } return [h, mx ? d / mx : 0, mx]; }
+function rgb2hsl(r, g, b){ const [h] = rgb2hsv(r, g, b); r /= 255; g /= 255; b /= 255; const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn; return [h, d ? d / (1 - Math.abs(2 * l - 1)) : 0, l]; }
+function rgb2cmyk(r, g, b, mode){ const c0 = 1 - r / 255, m0 = 1 - g / 255, y0 = 1 - b / 255, mn = Math.min(c0, m0, y0), k = mode === 'gcr' ? mn * .3 : mn; if (k >= .9999) return [0, 0, 0, 1]; return [(c0 - k) / (1 - k), (m0 - k) / (1 - k), (y0 - k) / (1 - k), k]; }
+const RAD = Math.PI / 180;
+function de76(p, q){ return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]); }
+function de94(p, q){ const C1 = Math.hypot(p[1], p[2]), C2 = Math.hypot(q[1], q[2]), dL = p[0] - q[0], dC = C1 - C2, da = p[1] - q[1], db = p[2] - q[2], dH2 = Math.max(0, da * da + db * db - dC * dC), SC = 1 + .048 * C1, SH = 1 + .014 * C1;
+  return Math.sqrt((dL / 2) ** 2 + (dC / SC) ** 2 + dH2 / (SH * SH)); }
+function deCMC(p, q){ const [L1, a1, b1] = p, C1 = Math.hypot(a1, b1), C2 = Math.hypot(q[1], q[2]), dL = L1 - q[0], dC = C1 - C2, da = a1 - q[1], db = b1 - q[2], dH2 = Math.max(0, da * da + db * db - dC * dC);
+  let H1 = Math.atan2(b1, a1) / RAD; if (H1 < 0) H1 += 360;
+  const F = Math.sqrt(C1 ** 4 / (C1 ** 4 + 1900)), T = (H1 >= 164 && H1 <= 345) ? .56 + Math.abs(.2 * Math.cos((H1 + 168) * RAD)) : .36 + Math.abs(.4 * Math.cos((H1 + 35) * RAD));
+  const SL = L1 < 16 ? .511 : .040975 * L1 / (1 + .01765 * L1), SC = .0638 * C1 / (1 + .0131 * C1) + .638, SH = SC * (F * T + 1 - F);
+  return Math.sqrt((dL / (2 * SL)) ** 2 + (dC / SC) ** 2 + dH2 / (SH * SH)); }
+function de00(p, q){ const [L1, a1, b1] = p, [L2, a2, b2] = q;
+  const C1 = Math.hypot(a1, b1), C2 = Math.hypot(a2, b2), Cb = (C1 + C2) / 2, G = .5 * (1 - Math.sqrt(Cb ** 7 / (Cb ** 7 + 25 ** 7)));
+  const a1p = a1 * (1 + G), a2p = a2 * (1 + G), C1p = Math.hypot(a1p, b1), C2p = Math.hypot(a2p, b2);
+  const hp = (b, a) => { if (!b && !a) return 0; const h = Math.atan2(b, a) / RAD; return h < 0 ? h + 360 : h; };
+  const h1p = hp(b1, a1p), h2p = hp(b2, a2p), dLp = L2 - L1, dCp = C2p - C1p;
+  let dhp = 0; if (C1p * C2p){ dhp = h2p - h1p; if (dhp > 180) dhp -= 360; else if (dhp < -180) dhp += 360; }
+  const dHp = 2 * Math.sqrt(C1p * C2p) * Math.sin(dhp * RAD / 2), Lbp = (L1 + L2) / 2, Cbp = (C1p + C2p) / 2;
+  let hbp = h1p + h2p; if (C1p * C2p){ if (Math.abs(h1p - h2p) > 180) hbp += hbp < 360 ? 360 : -360; hbp /= 2; }
+  const T = 1 - .17 * Math.cos((hbp - 30) * RAD) + .24 * Math.cos(2 * hbp * RAD) + .32 * Math.cos((3 * hbp + 6) * RAD) - .20 * Math.cos((4 * hbp - 63) * RAD);
+  const dTh = 30 * Math.exp(-(((hbp - 275) / 25) ** 2)), RC = 2 * Math.sqrt(Cbp ** 7 / (Cbp ** 7 + 25 ** 7));
+  const SL = 1 + .015 * (Lbp - 50) ** 2 / Math.sqrt(20 + (Lbp - 50) ** 2), SC = 1 + .045 * Cbp, SH = 1 + .015 * Cbp * T, RT = -Math.sin(2 * dTh * RAD) * RC;
+  return Math.sqrt((dLp / SL) ** 2 + (dCp / SC) ** 2 + (dHp / SH) ** 2 + RT * (dCp / SC) * (dHp / SH)); }
+let FORM = '2000', TOL = 1.0;
+const FNAME = { '2000':'ΔE2000', '94':'ΔE94', 'cmc':'ΔE CMC', '76':'ΔE76' };
+const dE = (s, r) => FORM === '2000' ? de00(s, r) : FORM === '94' ? de94(s, r) : FORM === 'cmc' ? deCMC(s, r) : de76(s, r);
+function comps(s, r){ const C1 = Math.hypot(s[1], s[2]), C2 = Math.hypot(r[1], r[2]), dL = r[0] - s[0], dC = C2 - C1, da = r[1] - s[1], db = r[2] - s[2];
+  let dh = Math.atan2(r[2], r[1]) - Math.atan2(s[2], s[1]); if (dh > Math.PI) dh -= 2 * Math.PI; if (dh < -Math.PI) dh += 2 * Math.PI;
+  const dH = Math.sign(dh) * Math.sqrt(Math.max(0, da * da + db * db - dC * dC)); return { dL, dC, dH, da, db, h: toLch(s)[2] }; }
+/* Colourist words: lighter/darker, brighter/duller and the hue the shade has turned towards */
+function hueWord(c, inv){ const s = Math.sign(c.dH) * (inv ? -1 : 1), h = c.h; const axes = [[0,'redder'],[90,'yellower'],[180,'greener'],[270,'bluer'],[360,'redder']];
+  if (s > 0){ for (const [a, w] of axes) if (a > h + 1) return w; return 'redder'; } for (let i = axes.length - 1; i >= 0; i--) if (axes[i][0] < h - 1) return axes[i][1]; return 'bluer'; }
+function words(c, inv){ const t = .25, w = [], f = inv ? -1 : 1; if (f * c.dL > t) w.push('lighter'); else if (f * c.dL < -t) w.push('darker');
+  if (f * c.dC > t) w.push('brighter'); else if (f * c.dC < -t) w.push('duller'); if (Math.abs(c.dH) > t) w.push(hueWord(c, inv)); return w; }
+function hueName(h){ return h < 20 ? 'rose' : h < 45 ? 'red' : h < 65 ? 'orange' : h < 85 ? 'amber' : h < 105 ? 'yellow' : h < 135 ? 'olive' : h < 170 ? 'green' : h < 210 ? 'teal' : h < 240 ? 'cyan' : h < 285 ? 'blue' : h < 310 ? 'indigo' : h < 335 ? 'violet' : 'magenta'; }
+function plainName(lab){ const [L, C, h] = toLch(lab);
+  if (C < 7){ const tone = C > 2 ? (lab[2] > 0 ? 'warm ' : 'cool ') : ''; return tone + (L < 20 ? 'black' : L < 35 ? 'charcoal' : L < 60 ? 'grey' : L < 80 ? 'light grey' : L < 93 ? 'off-white' : 'white'); }
+  const l = L < 25 ? 'very dark ' : L < 40 ? 'dark ' : L < 62 ? '' : L < 80 ? 'light ' : 'pale ', c = C < 18 ? 'muted ' : C > 55 ? 'vivid ' : ''; return (l + c + hueName(h)).trim(); }
+
+/* Synthetic in-house colour library (illustrative codes, not a commercial colour system) */
+const LIB = ('Cloud White|F4F2EE,Ivory Linen|EFE7D8,Oat|DCCDB3,Sandstone|CBB38E,Driftwood|A8957A,Mushroom|8E7F72,Pebble Grey|B3B1AD,Silver Mist|CFD1D2,Slate|6B7178,Charcoal|3A3D42,Ink Black|1E1F24,Warm Taupe|9A8676,' +
+  'Madder Red|B8432F,Brick|9C3B2A,Rust|A2442A,Terracotta|C0643F,Coral|E07A5F,Blush|E8B4A6,Rosewood|8C3B4A,Crimson|A6192E,Pomegranate|C0283A,Dusty Rose|C99A9A,' +
+  'Saffron|E8962E,Marigold|E9A23B,Mustard|D9A441,Turmeric|D2A22B,Honey|C9A04B,Butter|F1DC9C,Apricot|F2B38A,Amber|C17F2A,' +
+  'Sage|8FA586,Sage Leaf|6E8B5E,Forest|4F6B43,Olive|7A7A3A,Moss|5E6B3A,Mint|BFE0CF,Bottle Green|23493A,Celadon|A9C8A8,' +
+  'Teal|2A8C8A,Peacock|1F6E73,Sea Glass|9CCFC6,Aqua|6BC1C2,Denim|4A6A94,Cornflower|6F8FCF,Powder Blue|B8CDE3,Navy|1F3557,Indigo|2B3A67,Midnight|19213D,Steel Blue|4F6D85,' +
+  'Lavender|B9A9D2,Lilac|C8A2C8,Plum|4A2545,Aubergine|3B1F33,Mulberry|7A2E5A,Orchid|A4508B,Mauve|9C7A8E,' +
+  'Chocolate|4E3227,Walnut|6B4A35,Caramel|A86F3D,Cinnamon|8F5233,Tan|C49A6C,Khaki|B0A27A').split(',').map((s, i) => { const [n, h] = s.split('|'); return { code: 'LIB-C-' + (101 + i), name: n, hex: '#' + h, lab: hex2lab('#' + h) }; });
+const nearLib = (lab, n = 1) => LIB.map(c => ({ c, de: de00(lab, c.lab) })).sort((a, b) => a.de - b.de).slice(0, n);
+
+/* ======================================================================
+   SAMPLE DESIGNS · drawn procedurally, with a woven texture and soft light
+   ====================================================================== */
+function texture(c, W, H, seed, kind){ const id = c.getImageData(0, 0, W, H), d = id.data, R = mulberry32(seed);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++){ const i = (y * W + x) * 4;
+    const n = kind === 'terry' ? (R() - .5) * .14 + .05 * Math.sin(x * 1.3 + Math.sin(y * .7) * 2) * Math.sin(y * 1.3) : (R() - .5) * .05 + .03 * Math.sin(x * 2.1) * Math.sin(y * 2.1);
+    const f = (1 + n) * (1.03 - .08 * ((x / W) * .6 + (y / H) * .4)); d[i] *= f; d[i + 1] *= f; d[i + 2] *= f; }
+  c.putImageData(id, 0, 0); }
+function drawFloral(c, W, H){ const R = mulberry32(11); c.fillStyle = '#F2ECE1'; c.fillRect(0, 0, W, H);
+  c.fillStyle = '#C9D3BD'; for (let y = 12; y < H; y += 24) for (let x = ((y / 24) % 2) * 12 + 12; x < W; x += 24){ c.beginPath(); c.arc(x, y, 2, 0, 7); c.fill(); }
+  c.fillStyle = '#E9B0A0'; for (let k = 0; k < 24; k++){ c.beginPath(); c.arc(R() * W, R() * H, 5 + R() * 3, 0, 7); c.fill(); }
+  const pts = []; for (let gy = 0; gy < 4; gy++) for (let gx = 0; gx < 5; gx++) pts.push([gx * 150 + 30 + (gy % 2) * 70 + R() * 30, gy * 128 + 46 + R() * 26, 26 + R() * 14]);
+  pts.forEach(([x, y, s]) => { c.strokeStyle = '#4F6B43'; c.lineWidth = 3; c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + s * .8, y + s * 1.4, x + s * .2, y + s * 2.4); c.stroke();
+    [[x + s * .7, y + s * 1.2, .6], [x + s * .1, y + s * 1.9, -.7]].forEach(([lx, ly, rot]) => { c.save(); c.translate(lx, ly); c.rotate(rot); c.fillStyle = '#7C9A6A'; c.beginPath(); c.ellipse(0, 0, s * .55, s * .22, 0, 0, 7); c.fill(); c.strokeStyle = '#4F6B43'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(-s * .5, 0); c.lineTo(s * .5, 0); c.stroke(); c.restore(); }); });
+  pts.forEach(([x, y, s]) => { const n = 5 + (R() < .4 ? 1 : 0), r0 = R() * 6;
+    for (let k = 0; k < n; k++){ const a = r0 + k * 2 * Math.PI / n; c.save(); c.translate(x + Math.cos(a) * s * .45, y + Math.sin(a) * s * .45); c.rotate(a); const g = c.createRadialGradient(-s * .2, 0, 1, 0, 0, s * .55); g.addColorStop(0, '#CF6550'); g.addColorStop(1, '#B23F2C'); c.fillStyle = g; c.beginPath(); c.ellipse(0, 0, s * .5, s * .32, 0, 0, 7); c.fill(); c.restore(); }
+    c.fillStyle = '#E3A83A'; c.beginPath(); c.arc(x, y, s * .24, 0, 7); c.fill(); c.fillStyle = '#B8832A'; for (let k = 0; k < 6; k++){ c.beginPath(); c.arc(x + Math.cos(k) * s * .12, y + Math.sin(k) * s * .12, 1.6, 0, 7); c.fill(); } }); }
+function drawTowel(c, W, H){ const bands = [['#F6F3EC',56],['#1F3557',40],['#F6F3EC',12],['#2A8C8A',26],['#F6F3EC',12],['#1F3557',40],['#D9C3A0',66],['#E07A5F',12],['#D9C3A0',66],['#1F3557',40],['#F6F3EC',12],['#2A8C8A',26],['#F6F3EC',12],['#1F3557',40],['#F6F3EC',60]], tot = sum(bands.map(b => b[1]));
+  let y = 0; bands.forEach(([col, h]) => { const hh = h / tot * H; c.fillStyle = col; c.fillRect(0, y, W, hh + 1); y += hh; });
+  const y0 = (56 + 40 + 12 + 26 + 12 + 40) / tot * H, bh = 66 / tot * H; c.fillStyle = '#C4A77C';
+  for (let x = 6; x < W; x += 22){ c.save(); c.translate(x, y0 + bh / 2); c.rotate(Math.PI / 4); c.fillRect(-5, -5, 10, 10); c.restore(); }
+  c.fillStyle = 'rgba(31,53,87,.9)'; for (let x = 0; x < W; x += 6) c.fillRect(x, y0 + bh - 6, 3, 3); }
+function drawKilim(c, W, H){ const cell = 8, cols = Math.ceil(W / cell), rows = Math.ceil(H / cell), P = { rust:'#A2442A', ind:'#2B3A67', mus:'#D9A441', cre:'#EFE3C8' };
+  for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++){ let col = P.rust;
+    if (j < 2 || j >= rows - 2) col = P.cre; else if (j < 3 || j >= rows - 3) col = P.ind; else if (j < 4 || j >= rows - 4) col = P.mus;
+    else { const rj = Math.round((j - 4) / 14), cy = 4 + rj * 14 + 7, off = (rj % 2) * 8, ci = Math.round((i - off) / 16) * 16 + off, d = Math.abs(i - ci) + Math.abs(j - cy);
+      if (d <= 7){ col = d === 0 ? P.ind : d <= 2 ? P.cre : d <= 4 ? P.mus : d <= 5 ? P.cre : P.ind; }
+      else if ((i - off + 8) % 16 === 0 && Math.abs(j - cy) <= 1 || ((i - off + 8) % 16 <= 1 || (i - off + 8) % 16 >= 15) && j === cy) col = P.mus; }
+    c.fillStyle = col; c.fillRect(i * cell, j * cell, cell, cell); } }
+function drawPaisley(c, W, H){ const R = mulberry32(44); c.fillStyle = '#4A2545'; c.fillRect(0, 0, W, H);
+  c.fillStyle = '#5C3156'; for (let y = 10; y < H; y += 20) for (let x = (y / 20 % 2) * 10 + 10; x < W; x += 20){ c.beginPath(); c.arc(x, y, 1.8, 0, 7); c.fill(); }
+  const pz = s => { c.beginPath(); c.moveTo(0, s); c.bezierCurveTo(s * 1.1, s, s * 1.1, -s * .6, 0, -s * .9); c.bezierCurveTo(-s * .5, -s * 1.2, -s * .2, -s * 1.7, s * .3, -s * 1.5); c.bezierCurveTo(-s * .9, -s * 1.4, -s * 1.1, s, 0, s); c.closePath(); };
+  for (let gy = 0; gy < 3; gy++) for (let gx = 0; gx < 4; gx++){ const x = gx * 170 + 70 + (gy % 2) * 80, y = gy * 165 + 95, s = 44 + R() * 8; c.save(); c.translate(x, y); c.rotate((gx + gy) % 2 ? .5 : -.4);
+    c.fillStyle = '#3E8E87'; pz(s); c.fill(); c.fillStyle = '#C9A04B'; pz(s * .8); c.fill(); c.fillStyle = '#4A2545'; pz(s * .58); c.fill(); c.fillStyle = '#E8B4A6';
+    for (let k = 0; k < 7; k++){ const t = k / 6 * Math.PI * 1.4 - .6; c.beginPath(); c.arc(Math.cos(t) * s * .32, Math.sin(t) * s * .38 + s * .1, 3, 0, 7); c.fill(); } c.restore(); }
+  c.fillStyle = '#C9A04B'; for (let k = 0; k < 18; k++){ const x = R() * W, y = R() * H; c.save(); c.translate(x, y); for (let p = 0; p < 4; p++){ c.rotate(Math.PI / 2); c.beginPath(); c.ellipse(5, 0, 5, 2.2, 0, 0, 7); c.fill(); } c.restore(); } }
+const SAMPLES = [ { id:'floral', name:'Floral bed sheet', fn: drawFloral, tex:'plain', seed: 5 }, { id:'towel', name:'Striped bath towel', fn: drawTowel, tex:'terry', seed: 6 }, { id:'kilim', name:'Kilim rug', fn: drawKilim, tex:'plain', seed: 7 }, { id:'paisley', name:'Paisley cushion', fn: drawPaisley, tex:'plain', seed: 8 } ];
+SAMPLES.forEach(s => { const c = document.createElement('canvas'); c.width = 640; c.height = 480; const x = c.getContext('2d', { willReadFrequently: true }); s.fn(x, 640, 480); texture(x, 640, 480, s.seed, s.tex); s.canvas = c; });
+$('samples').innerHTML = SAMPLES.map(s => `<button type="button" class="smp" data-s="${s.id}"><canvas width="160" height="120"></canvas><span>${esc(s.name)}</span></button>`).join('');
+document.querySelectorAll('#samples .smp').forEach(b => { b.querySelector('canvas').getContext('2d').drawImage(SAMPLES.find(s => s.id === b.dataset.s).canvas, 0, 0, 160, 120); b.addEventListener('click', () => loadSample(b.dataset.s)); });
+
+/* ======================================================================
+   KEY
+   ====================================================================== */
+let KEY = '', OAM = 'gpt-4o-mini';
+try { const k = localStorage.getItem('hmc_wsl_key'); if (k){ $('apiKey').value = k; $('remember').checked = true; } } catch (e){}
+function setMode(){ const on = !!KEY, h = `<i></i>${on ? 'Live · ' + esc(OAM) : 'Rules'}`; $('keyPill').className = 'pill2 ' + (on ? 'on' : 'off'); $('keyPill').innerHTML = h; document.querySelectorAll('.aipill').forEach(el => { el.className = 'pill2 aipill ' + (on ? 'on' : 'off'); el.innerHTML = h; }); }
+async function connect(silent){ const k = $('apiKey').value.trim(), m = $('oaModel').value.trim() || 'gpt-4o-mini'; if (!/^sk-/.test(k)){ if (!silent) $('keyMsg').innerHTML = '<span style="color:var(--bad)">That does not look like an OpenAI key.</span>'; return; }
+  $('keyMsg').textContent = 'Checking key…';
+  try { const r = await fetch('https://api.openai.com/v1/models', { headers: { Authorization: 'Bearer ' + k } }); if (r.status === 401) throw new Error('OpenAI rejected this key (401).'); if (!r.ok) throw new Error('OpenAI returned ' + r.status + '.');
+    KEY = k; OAM = m; try { if ($('remember').checked) localStorage.setItem('hmc_wsl_key', k); else localStorage.removeItem('hmc_wsl_key'); } catch (e){}
+    setMode(); $('keyMsg').innerHTML = `<b style="color:var(--good)">Connected.</b> Colour names, colourways and notes now use ${esc(m)}. Images stay in this browser; only colour values are sent.`; if (!silent) toast('OpenAI connected'); }
+  catch (err){ $('keyMsg').innerHTML = `<span style="color:var(--bad)">${esc(err.message || 'Could not reach OpenAI from this browser.')}</span>`; } }
+$('keySave').addEventListener('click', () => connect(false));
+$('oaModel').addEventListener('change', () => { OAM = $('oaModel').value.trim() || 'gpt-4o-mini'; setMode(); });
+$('keyClr').addEventListener('click', () => { KEY = ''; $('apiKey').value = ''; try { localStorage.removeItem('hmc_wsl_key'); } catch (e){} setMode(); $('keyMsg').textContent = 'Disconnected. Built-in rules still work.'; });
+async function openai(messages, { json = false, onDelta, temp = .4 } = {}){
+  const body = { model: OAM, messages, temperature: temp }; if (json) body.response_format = { type:'json_object' }; if (onDelta) body.stream = true;
+  const r = await fetch('https://api.openai.com/v1/chat/completions', { method:'POST', headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + KEY }, body: JSON.stringify(body) });
+  if (!r.ok){ let msg = 'OpenAI error ' + r.status; try { const j = await r.json(); if (j.error && j.error.message) msg += ': ' + j.error.message; } catch (e){} throw new Error(msg); }
+  if (!onDelta){ const j = await r.json(); return { text: j.choices[0].message.content }; }
+  const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '', full = '';
+  for (;;){ const { value, done } = await rd.read(); if (done) break; buf += dec.decode(value, { stream: true }); const parts = buf.split('\n'); buf = parts.pop();
+    for (const ln of parts){ const s2 = ln.trim(); if (!s2.startsWith('data:')) continue; const dd = s2.slice(5).trim(); if (dd === '[DONE]') continue; try { const j = JSON.parse(dd), t = j.choices && j.choices[0].delta && j.choices[0].delta.content; if (t){ full += t; onDelta(full); } } catch (e){} } }
+  return { text: full }; }
+function fail(what, err){ toast(what + ' unavailable (' + String(err && err.message || err).slice(0, 70) + '); used built-in rules'); }
+
+/* ======================================================================
+   IMAGE STATE + EXTRACTION
+   ====================================================================== */
+let W = 640, H = 480, SRC = null, LAB = null, L1 = null, L2 = null, WT = null, PAL = [], DESIGN = 'Floral bed sheet', CURS = 'floral', BGN = 0, MERGED = 0;
+const cv = $('cv'), cx = cv.getContext('2d', { willReadFrequently: true });
+const sizeCanvases = () => ['cv','baA','baB','cwA','cwB'].forEach(id => { $(id).width = W; $(id).height = H; });
+function setImage(imgData, name){ W = imgData.width; H = imgData.height; sizeCanvases(); cx.putImageData(imgData, 0, 0); SRC = imgData.data; DESIGN = name;
+  const N = W * H; LAB = new Float32Array(N * 3); for (let i = 0; i < N; i++){ const p = rgb2lab(SRC[i * 4], SRC[i * 4 + 1], SRC[i * 4 + 2]); LAB[i * 3] = p[0]; LAB[i * 3 + 1] = p[1]; LAB[i * 3 + 2] = p[2]; }
+  UPRUN = null; extract(); }
+function loadSample(id){ const s = SAMPLES.find(x => x.id === id); CURS = id; document.querySelectorAll('#samples .smp').forEach(b => b.classList.toggle('on', b.dataset.s === id));
+  $('skipBg').checked = false; setImage(s.canvas.getContext('2d').getImageData(0, 0, 640, 480), s.name); }
+const isBg = i => $('skipBg').checked && LAB[i * 3] > 92 && Math.hypot(LAB[i * 3 + 1], LAB[i * 3 + 2]) < 7;
+function sampleIdx(){ const N = W * H, step = Math.max(1, Math.floor(Math.sqrt(N / 22000))), S = []; for (let y = 0; y < H; y += step) for (let x = 0; x < W; x += step){ const i = y * W + x; if (!isBg(i)) S.push(i); } return S; }
+function kmeans(S, K, lab){ const n = S.length, R = mulberry32(7), P = new Float32Array(n * 3); S.forEach((i, j) => { P[j * 3] = lab[i * 3]; P[j * 3 + 1] = lab[i * 3 + 1]; P[j * 3 + 2] = lab[i * 3 + 2]; });
+  const C = [], D = new Float32Array(n).fill(1e9); let f = Math.floor(R() * n); C.push([P[f * 3], P[f * 3 + 1], P[f * 3 + 2]]);
+  while (C.length < K){ const c = C[C.length - 1]; let tot = 0; for (let j = 0; j < n; j++){ const d = (P[j * 3] - c[0]) ** 2 + (P[j * 3 + 1] - c[1]) ** 2 + (P[j * 3 + 2] - c[2]) ** 2; if (d < D[j]) D[j] = d; tot += D[j]; }
+    if (!tot) break; let t = R() * tot, j = 0; for (; j < n - 1; j++){ t -= D[j]; if (t <= 0) break; } C.push([P[j * 3], P[j * 3 + 1], P[j * 3 + 2]]); }
+  const A = new Uint8Array(n); for (let it = 0; it < 18; it++){ const s = C.map(() => [0, 0, 0, 0]); let moved = 0;
+    for (let j = 0; j < n; j++){ let b = 0, bd = 1e12; for (let k = 0; k < C.length; k++){ const d = (P[j * 3] - C[k][0]) ** 2 + (P[j * 3 + 1] - C[k][1]) ** 2 + (P[j * 3 + 2] - C[k][2]) ** 2; if (d < bd){ bd = d; b = k; } } if (A[j] !== b){ A[j] = b; moved++; } const q = s[b]; q[0] += P[j * 3]; q[1] += P[j * 3 + 1]; q[2] += P[j * 3 + 2]; q[3]++; }
+    s.forEach((q, k) => { if (q[3]) C[k] = [q[0] / q[3], q[1] / q[3], q[2] / q[3]]; }); if (!moved && it) break; }
+  return C; }
+function medianCut(S, K, src){ let boxes = [S.slice()]; const ch = (i, c) => src[i * 4 + c];
+  while (boxes.length < K){ let bi = -1, best = -1, bc = 0; boxes.forEach((b, k) => { if (b.length < 2) return; for (let c = 0; c < 3; c++){ let mn = 255, mx = 0; for (const i of b){ const v = ch(i, c); if (v < mn) mn = v; if (v > mx) mx = v; } const r = (mx - mn) * Math.sqrt(b.length); if (r > best){ best = r; bi = k; bc = c; } } });
+    if (bi < 0 || best <= 0) break; const b = boxes[bi].sort((x, y) => ch(x, bc) - ch(y, bc)), m = b.length >> 1; boxes.splice(bi, 1, b.slice(0, m), b.slice(m)); }
+  return boxes.map(b => { let r = 0, g = 0, bl = 0; b.forEach(i => { r += src[i * 4]; g += src[i * 4 + 1]; bl += src[i * 4 + 2]; }); return rgb2lab(Math.round(r / b.length), Math.round(g / b.length), Math.round(bl / b.length)); }); }
+function countsFor(S, C, lab){ const n = C.map(() => 0); S.forEach(i => { let b = 0, bd = 1e12; C.forEach((c, k) => { const d = (lab[i * 3] - c[0]) ** 2 + (lab[i * 3 + 1] - c[1]) ** 2 + (lab[i * 3 + 2] - c[2]) ** 2; if (d < bd){ bd = d; b = k; } }); n[b]++; }); return n; }
+function mergeClose(C, n){ let merged = 0; for (;;){ let bi = -1, bj = -1, bd = 4; for (let i = 0; i < C.length; i++) for (let j = i + 1; j < C.length; j++){ const d = de00(C[i], C[j]); if (d < bd){ bd = d; bi = i; bj = j; } }
+    if (bi < 0) break; const t = n[bi] + n[bj] || 1; C[bi] = C[bi].map((v, k) => (v * n[bi] + C[bj][k] * n[bj]) / t); n[bi] += n[bj]; C.splice(bj, 1); n.splice(bj, 1); merged++; }
+  return merged; }
+function extract(){ const K = +$('kN').value, S = sampleIdx(), N = W * H; let C;
+  if (S.length < K){ toast('Image has too few non-background pixels'); return; }
+  C = $('algo').value === 'km' ? kmeans(S, K, LAB) : medianCut(S, K, SRC); C = C.filter(c => c.every(isFinite));
+  const n = countsFor(S, C, LAB); for (let k = C.length - 1; k >= 0; k--) if (!n[k]){ C.splice(k, 1); n.splice(k, 1); }
+  MERGED = $('mergeSim').checked ? mergeClose(C, n) : 0;
+  const Kc = C.length; L1 = new Uint8Array(N); L2 = new Uint8Array(N); WT = new Float32Array(N); const cnt = new Array(Kc).fill(0), acc = C.map(() => [0, 0, 0]); BGN = 0;
+  for (let i = 0; i < N; i++){ if (isBg(i)){ L1[i] = 255; BGN++; continue; } const L = LAB[i * 3], a = LAB[i * 3 + 1], b = LAB[i * 3 + 2]; let b1 = 0, b2 = 0, d1 = 1e12, d2 = 1e12;
+    for (let k = 0; k < Kc; k++){ const c = C[k], d = (L - c[0]) ** 2 + (a - c[1]) ** 2 + (b - c[2]) ** 2; if (d < d1){ d2 = d1; b2 = b1; d1 = d; b1 = k; } else if (d < d2){ d2 = d; b2 = k; } }
+    if (Kc === 1){ b2 = b1; d2 = d1 + 1; } L1[i] = b1; L2[i] = b2; WT[i] = (d2 * d2) / (d1 * d1 + d2 * d2 || 1); cnt[b1]++; acc[b1][0] += L; acc[b1][1] += a; acc[b1][2] += b; }
+  const tot = N - BGN || 1, ord = range(Kc).sort((x, y) => cnt[y] - cnt[x]), remap = new Uint8Array(256).fill(255); ord.forEach((o, k) => remap[o] = k);
+  for (let i = 0; i < N; i++){ if (L1[i] !== 255){ L1[i] = remap[L1[i]]; L2[i] = remap[L2[i]]; } }
+  PAL = ord.map(o => { const lab = cnt[o] ? acc[o].map(v => v / cnt[o]) : C[o], rgb = lab2rgb(...lab), l = nearLib(lab)[0]; return { lab, rgb, hex: hexOf(...rgb), share: cnt[o] / tot, n: cnt[o], lib: l.c, libDe: l.de, ai: null }; });
+  afterExtract(); }
+
+/* ======================================================================
+   01 · PALETTE UI
+   ====================================================================== */
+const FMT = [['hex','HEX',1],['rgb','RGB',1],['hsb','HSB',1],['hsl','HSL',1],['cmyk','CMYK',1],['lab','LAB',1],['lch','LCh',0],['xyz','XYZ',0]];
+const FON = new Set(FMT.filter(f => f[2]).map(f => f[0]));
+$('fmts').innerHTML = FMT.map(f => `<label><input type="checkbox" value="${f[0]}"${f[2] ? ' checked' : ''}> ${f[1]}</label>`).join('');
+$('fmts').addEventListener('change', e => { if (e.target.checked) FON.add(e.target.value); else FON.delete(e.target.value); renderPal(); });
+$('cmykP').addEventListener('change', () => { renderPal(); if (PIN) showPin(PIN); });
+const pct = v => Math.round(v * 100);
+function fmt(rgb, lab, f){ const [r, g, b] = rgb; switch (f){
+  case 'hex': return hexOf(r, g, b);
+  case 'rgb': return `${r}, ${g}, ${b}`;
+  case 'hsb': { const [h, s, v] = rgb2hsv(r, g, b); return `${Math.round(h)}°, ${pct(s)}%, ${pct(v)}%`; }
+  case 'hsl': { const [h, s, l] = rgb2hsl(r, g, b); return `${Math.round(h)}°, ${pct(s)}%, ${pct(l)}%`; }
+  case 'cmyk': return rgb2cmyk(r, g, b, $('cmykP').value).map(pct).join(', ');
+  case 'lab': return lab.map(v => v.toFixed(1)).join(', ');
+  case 'lch': { const q = toLch(lab); return `${q[0].toFixed(1)}, ${q[1].toFixed(1)}, ${Math.round(q[2])}°`; }
+  case 'xyz': return rgb2xyz(r, g, b).map(v => (v * 100).toFixed(1)).join(', '); } }
+const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
+const nameOf = c => c.ai || (c.libDe <= 6 ? c.lib.name : cap(plainName(c.lab)));
+function renderPal(){ $('pCount').textContent = PAL.length;
+  $('pbar').innerHTML = PAL.map((c, k) => `<div data-k="${k}" style="flex:${c.share};background:${c.hex}"></div>`).join('');
+  $('pal').innerHTML = PAL.map((c, k) => { const dark = c.lab[0] < 55;
+    return `<div class="pc"><div class="swb" style="background:${c.hex}"><span>${(c.share * 100).toFixed(1)}%</span></div><div class="vals">${FMT.filter(f => FON.has(f[0])).map(f => { const v = fmt(c.rgb, c.lab, f[0]); return `<button type="button" data-copy="${esc(f[0] === 'hex' ? v : f[1] + ' ' + v)}" title="Copy ${f[1]}"><b>${f[1]}</b>${esc(v)}</button>`; }).join('')}</div>
+      <div class="nm"><b>${k + 1}. ${esc(nameOf(c))}</b><span>${c.ai ? '' : esc(plainName(c.lab)) + ' · '}${c.lib.code} · ΔE00 ${c.libDe.toFixed(1)}</span></div></div>`; }).join('');
+  document.querySelectorAll('#pbar div').forEach(d => { d.addEventListener('mousemove', ev => { const c = PAL[+d.dataset.k]; showTip(`<b>${esc(nameOf(c))}</b><br>${c.hex} · ${(c.share * 100).toFixed(1)}% of design`, ev); }); d.addEventListener('mouseleave', hideTip); }); }
+$('pal').addEventListener('click', e => { const b = e.target.closest('[data-copy]'); if (b) copy(b.dataset.copy); });
+$('pick').addEventListener('click', e => { const b = e.target.closest('[data-copy]'); if (b) copy(b.dataset.copy); });
+let kT = 0; $('kN').addEventListener('input', () => { $('kV').textContent = $('kN').value; clearTimeout(kT); kT = setTimeout(extract, 160); });
+['algo','skipBg','mergeSim'].forEach(id => $(id).addEventListener('change', extract));
+/* loupe + pin */
+const stage = $('stage'), loupe = $('loupe'), lcx = $('lcv').getContext('2d'); let PIN = null;
+function pxAt(ev){ const r = cv.getBoundingClientRect(); return { x: clamp(Math.floor((ev.clientX - r.left) / r.width * W), 0, W - 1), y: clamp(Math.floor((ev.clientY - r.top) / r.height * H), 0, H - 1), ox: ev.clientX - r.left, oy: ev.clientY - r.top, r }; }
+stage.addEventListener('pointermove', ev => { if (!SRC) return; const p = pxAt(ev), sx = clamp(p.x - 5, 0, W - 11), sy = clamp(p.y - 5, 0, H - 11), z = 118 / 11;
+  lcx.imageSmoothingEnabled = false; lcx.clearRect(0, 0, 118, 118); lcx.drawImage(cv, sx, sy, 11, 11, 0, 0, 118, 118); lcx.strokeStyle = '#fff'; lcx.lineWidth = 2; lcx.strokeRect((p.x - sx) * z, (p.y - sy) * z, z, z); lcx.strokeStyle = '#000'; lcx.lineWidth = 1; lcx.strokeRect((p.x - sx) * z - 1.5, (p.y - sy) * z - 1.5, z + 3, z + 3);
+  const i = (p.y * W + p.x) * 4, h = hexOf(SRC[i], SRC[i + 1], SRC[i + 2]); $('lval').innerHTML = `<i style="background:${h}"></i>${h}`;
+  loupe.style.display = 'block'; loupe.style.left = (p.ox + 136 > p.r.width ? p.ox - 136 : p.ox + 18) + 'px'; loupe.style.top = (p.oy > 170 ? p.oy - 166 : p.oy + 18) + 'px'; });
+stage.addEventListener('pointerleave', () => loupe.style.display = 'none');
+stage.addEventListener('click', ev => { if (!SRC) return; const p = pxAt(ev), i = (p.y * W + p.x) * 4; PIN = { rgb: [SRC[i], SRC[i + 1], SRC[i + 2]], x: p.x, y: p.y }; showPin(PIN); });
+function showPin(P){ const lab = rgb2lab(...P.rgb), h = hexOf(...P.rgb); let bk = 0, bd = 1e9; PAL.forEach((c, k) => { const d = de00(lab, c.lab); if (d < bd){ bd = d; bk = k; } }); const l = nearLib(lab)[0];
+  $('pick').innerHTML = `<i style="background:${h}"></i><div style="min-width:0;flex:1"><b>Pixel ${P.x}, ${P.y}</b> · ${esc(plainName(lab))} · nearest palette colour ${bk + 1} (ΔE00 ${bd.toFixed(1)}) · library ${l.c.code} ${esc(l.c.name)} (ΔE00 ${l.de.toFixed(1)})<div class="sigs" style="margin-top:4px">${FMT.filter(f => FON.has(f[0])).map(f => { const v = fmt(P.rgb, lab, f[0]); return `<button type="button" class="chipb" data-copy="${esc(f[0] === 'hex' ? v : f[1] + ' ' + v)}">${f[1]} ${esc(v)}</button>`; }).join('')}</div></div>`; }
+/* uploads */
+function readImg(file){ return new Promise((res, rej) => { const fr = new FileReader(); fr.onerror = rej; fr.onload = () => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error('Not an image')); im.src = fr.result; }; fr.readAsDataURL(file); }); }
+async function upDesign(file){ if (!file) return; try { const im = await readImg(file), s = Math.min(640 / im.width, 480 / im.height), w = Math.max(40, Math.round(im.width * s)), h = Math.max(40, Math.round(im.height * s)), c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(im, 0, 0, w, h);
+    CURS = null; document.querySelectorAll('#samples .smp').forEach(b => b.classList.remove('on')); setImage(x.getImageData(0, 0, w, h), file.name.replace(/\.[^.]+$/, '').slice(0, 40) || 'Your image'); toast('Your image loaded; palette extracted'); }
+  catch (e){ toast('Could not read that image'); } }
+$('upImg').addEventListener('change', e => { upDesign(e.target.files[0]); e.target.value = ''; });
+const dropBind = (el, fn) => { el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('over'); }); el.addEventListener('dragleave', () => el.classList.remove('over')); el.addEventListener('drop', e => { e.preventDefault(); el.classList.remove('over'); fn(e.dataTransfer.files[0]); }); };
+dropBind(document.querySelector('label[for=upImg]'), upDesign); dropBind(stage, upDesign);
+/* exports */
+function palRows(){ const m = $('cmykP').value; return PAL.map((c, k) => { const [r, g, b] = c.rgb, hsv = rgb2hsv(r, g, b), hsl = rgb2hsl(r, g, b), ck = rgb2cmyk(r, g, b, m), lc = toLch(c.lab), xyz = rgb2xyz(r, g, b);
+  return { rank: k + 1, share_pct: +(c.share * 100).toFixed(2), name: nameOf(c), description: plainName(c.lab), hex: c.hex, r, g, b, hsb_h: Math.round(hsv[0]), hsb_s: pct(hsv[1]), hsb_b: pct(hsv[2]), hsl_h: Math.round(hsl[0]), hsl_s: pct(hsl[1]), hsl_l: pct(hsl[2]), cmyk_c: pct(ck[0]), cmyk_m: pct(ck[1]), cmyk_y: pct(ck[2]), cmyk_k: pct(ck[3]), lab_l: +c.lab[0].toFixed(2), lab_a: +c.lab[1].toFixed(2), lab_b: +c.lab[2].toFixed(2), lch_c: +lc[1].toFixed(2), lch_h: +lc[2].toFixed(1), xyz_x: +(xyz[0] * 100).toFixed(2), xyz_y: +(xyz[1] * 100).toFixed(2), xyz_z: +(xyz[2] * 100).toFixed(2), library_code: c.lib.code, library_name: c.lib.name, library_de2000: +c.libDe.toFixed(2) }; }); }
+const slug = () => DESIGN.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'design';
+$('dlCsv').addEventListener('click', () => { const rows = palRows(), cols = Object.keys(rows[0]); download(`palette-${slug()}.csv`, [cols.join(',')].concat(rows.map(r => cols.map(c => csvCell(r[c])).join(','))).join('\n'), 'text/csv'); });
+$('dlJson').addEventListener('click', () => download(`palette-${slug()}.json`, JSON.stringify({ design: DESIGN, method: $('algo').selectedOptions[0].text, illuminant: 'D65 / 2°', cmyk: $('cmykP').selectedOptions[0].text, colours: palRows() }, null, 2), 'application/json'));
+/* AI colour names */
+$('nameGo').addEventListener('click', async () => { const btn = $('nameGo'); btn.disabled = true;
+  if (KEY){ try { const r = await openai([{ role:'system', content:'You are a senior textile colourist at a home-textiles maker. Name colours the way a design studio would for a buyer presentation: two or three evocative words, no brand or trademarked colour-system names. Return only JSON.' }, { role:'user', content: `Design: ${DESIGN}. Colours (hex, CIELAB, share of design):\n${PAL.map((c, k) => `${k + 1}. ${c.hex} · L*a*b* ${c.lab.map(v => v.toFixed(1)).join(', ')} · ${(c.share * 100).toFixed(1)}%`).join('\n')}\nReturn {"colours":[{"index":1,"name":"...","role":"ground|motif|accent|outline"}]} for every colour.` }], { json: true });
+      const j = JSON.parse(r.text); (j.colours || []).forEach(o => { const c = PAL[(+o.index || 0) - 1]; if (c && o.name) c.ai = String(o.name).slice(0, 40) + (o.role ? ' · ' + String(o.role).slice(0, 12) : ''); }); renderPal(); renderMatch(); renderCwMap(); toast('Colours named by ' + OAM); }
+    catch (e){ fail('GenAI naming', e); PAL.forEach(c => c.ai = null); renderPal(); } }
+  else { PAL.forEach((c, k) => { c.ai = c.lib.name + ' · ' + (k === 0 ? 'ground' : c.share < .04 ? 'accent' : 'motif'); }); renderPal(); renderMatch(); renderCwMap(); toast('Named from the in-house colour library. Add a key for designer names.'); }
+  btn.disabled = false; });
+
+/* ======================================================================
+   RUNS · simulated print runs of the current design
+   ====================================================================== */
+const RUNDEF = [
+  { id:'R-01', mc:'Rotary P2', lot:'DL-4417', day:'02 Sep', g:[.15, .2, .4], j:.2 },
+  { id:'R-02', mc:'Rotary P2', lot:'DL-4421', day:'05 Sep', g:[.85, -.2, .3], j:.25 },
+  { id:'R-03', mc:'Rotary P4', lot:'DL-4433', day:'09 Sep', g:[-.72, .25, -.3], j:.2 },
+  { id:'R-04', mc:'Flatbed F1', lot:'DL-4440', day:'12 Sep', g:[.3, -.7, 1], j:.3, hit:1, hx:[.2, -.9, 2.2] },
+  { id:'R-05', mc:'Rotary P4', lot:'DL-4452', day:'16 Sep', g:[-.15, -.1, -.3], j:.15 },
+  { id:'R-06', mc:'Flatbed F1', lot:'DL-4458', day:'19 Sep', g:[-2.4, 2.4, -4], j:.5 } ];
+let RUNS = [], UPRUN = null, SELRUN = 'R-04', SELC = 0, RUNIMG = {};
+function runDeltas(d, ri){ return PAL.map((c, k) => { const R = mulberry32(ri * 97 + k * 13 + 5), u = () => 2 * R() - 1, [L, C, h] = toLch(c.lab), x = (d.hit === k && d.hx) || [0, 0, 0];
+  const nl = fromLch(clamp(L + d.g[0] + x[0] + d.j * u(), 0, 100), Math.max(0, C + d.g[1] + x[1] + d.j * u()), h + d.g[2] + x[2] + d.j * 3 * u()); return [nl[0] - c.lab[0], nl[1] - c.lab[1], nl[2] - c.lab[2]]; }); }
+function measure(deltas){ const S = sampleIdx(), acc = PAL.map(() => [0, 0, 0, 0]);
+  S.forEach(i => { const k = L1[i]; if (k === 255 || WT[i] < .9) return; const q = deltas[k], lin = lab2lin(LAB[i * 3] + q[0], LAB[i * 3 + 1] + q[1], LAB[i * 3 + 2] + q[2]), rgb = lin.map(v => GAM[(clamp(v, 0, 1) * 4096) | 0]), lab = rgb2lab(rgb[0], rgb[1], rgb[2]), a = acc[k];
+    a[0] += lab[0] - LAB[i * 3]; a[1] += lab[1] - LAB[i * 3 + 1]; a[2] += lab[2] - LAB[i * 3 + 2]; a[3]++; });
+  return PAL.map((c, k) => { const a = acc[k]; return a[3] ? [c.lab[0] + a[0] / a[3], c.lab[1] + a[1] / a[3], c.lab[2] + a[2] / a[3]] : c.lab.map((v, j) => v + deltas[k][j]); }); }
+function buildRuns(){ RUNIMG = {}; RUNS = RUNDEF.map((d, ri) => { const deltas = runDeltas(d, ri); return Object.assign({}, d, { deltas, meas: measure(deltas) }); }); if (UPRUN) RUNS.push(UPRUN); scoreRuns(); }
+function scoreRuns(){ RUNS.forEach(r => { r.de = PAL.map((c, k) => dE(c.lab, r.meas[k])); r.cp = PAL.map((c, k) => comps(c.lab, r.meas[k]));
+  const sig = PAL.map((c, k) => k).filter(k => PAL[k].share >= .02); r.worst = Math.max(0, ...sig.map(k => r.de[k])); r.wk = sig.reduce((b, k) => r.de[k] > r.de[b] ? k : b, sig[0] || 0);
+  r.mean = sum(PAL.map((c, k) => r.de[k] * c.share)) / (sum(PAL.map(c => c.share)) || 1); r.wL = sum(PAL.map((c, k) => r.cp[k].dL * c.share));
+  r.band = r.worst <= TOL * .5 ? 'A' : r.worst <= TOL ? (r.wL >= 0 ? 'B' : 'C') : r.worst <= TOL * 2 ? 'D' : 'E'; }); }
+const BANDS = { A:['On standard','g'], B:['Light side','b'], C:['Dark side','b'], D:['Hold · buyer approval','a'], E:['Reject · re-dye','r'] };
+const runBy = id => RUNS.find(r => r.id === id) || RUNS[0];
+function applyDeltas(D, out){ const o = out.data, N = W * H; for (let i = 0; i < N; i++){ const j = i * 4, l = L1[i]; o[j + 3] = 255;
+    if (l === 255){ o[j] = SRC[j]; o[j + 1] = SRC[j + 1]; o[j + 2] = SRC[j + 2]; continue; }
+    const w = WT[i], l2 = L2[i], k = i * 3, p = D[l], q = D[l2], L = LAB[k] + w * p[0] + (1 - w) * q[0], a = LAB[k + 1] + w * p[1] + (1 - w) * q[1], b = LAB[k + 2] + w * p[2] + (1 - w) * q[2];
+    const fy = (L + 16) / 116, fx = fy + a / 500, fz = fy - b / 200, cx3 = fx * fx * fx, cz3 = fz * fz * fz, x = (cx3 > 0.008856 ? cx3 : (fx - 16 / 116) / 7.787) * Xn, y = L > 7.9996 ? fy * fy * fy : L / 903.3, z = (cz3 > 0.008856 ? cz3 : (fz - 16 / 116) / 7.787) * Zn;
+    const lr = 3.2404542 * x - 1.5371385 * y - 0.4985314 * z, lg = -0.9692660 * x + 1.8760108 * y + 0.0415560 * z, lb = 0.0556434 * x - 0.2040259 * y + 1.0572252 * z;
+    o[j] = GAM[(lr < 0 ? 0 : lr > 1 ? 1 : lr) * 4096 | 0]; o[j + 1] = GAM[(lg < 0 ? 0 : lg > 1 ? 1 : lg) * 4096 | 0]; o[j + 2] = GAM[(lb < 0 ? 0 : lb > 1 ? 1 : lb) * 4096 | 0]; } return out; }
+function runImage(r){ if (r.img) return r.img; if (!RUNIMG[r.id]) RUNIMG[r.id] = applyDeltas(r.deltas, new ImageData(W, H)); return RUNIMG[r.id]; }
+/* uploaded run photo */
+async function upRun(file){ if (!file || !SRC) return; try { const im = await readImg(file), c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d', { willReadFrequently: true }), s = Math.max(W / im.width, H / im.height); x.drawImage(im, (W - im.width * s) / 2, (H - im.height * s) / 2, im.width * s, im.height * s);
+    const img = x.getImageData(0, 0, W, H), d = img.data, N = W * H, lab = new Float32Array(N * 3); for (let i = 0; i < N; i++){ const p = rgb2lab(d[i * 4], d[i * 4 + 1], d[i * 4 + 2]); lab[i * 3] = p[0]; lab[i * 3 + 1] = p[1]; lab[i * 3 + 2] = p[2]; }
+    const step = Math.max(1, Math.floor(Math.sqrt(N / 22000))), S = []; for (let y = 0; y < H; y += step) for (let xx = 0; xx < W; xx += step) S.push(y * W + xx);
+    const C = kmeans(S, Math.min(14, PAL.length + 2), lab), meas = PAL.map(p => C.reduce((b, c) => de00(p.lab, c) < de00(p.lab, b) ? c : b, C[0]));
+    UPRUN = { id:'Upload', mc:'Your photo', lot: file.name.slice(0, 22), day:'today', img, lab, meas, up: true }; RUNS = RUNS.filter(r => !r.up); RUNS.push(UPRUN); scoreRuns(); SELRUN = 'Upload'; renderRunsAll(); toast('Run photo matched colour by colour against the standard'); }
+  catch (e){ toast('Could not read that image'); } }
+$('upRun').addEventListener('change', e => { upRun(e.target.files[0]); e.target.value = ''; }); dropBind(document.querySelector('label[for=upRun]'), upRun);
+
+/* ======================================================================
+   02 · SHADE MATCH
+   ====================================================================== */
+const TPRE = [['Premium retailer', .8], ['Standard', 1.0], ['Value programme', 1.5], ['Commodity', 2.0]];
+$('tolPre').innerHTML = TPRE.map(t => `<button type="button" class="chipb" data-t="${t[1]}">${t[0]} · ${t[1].toFixed(1)}</button>`).join('');
+$('tolPre').addEventListener('click', e => { const b = e.target.closest('[data-t]'); if (!b) return; $('tol').value = b.dataset.t; onTol(); });
+function onTol(){ TOL = +$('tol').value; $('tolV').textContent = TOL.toFixed(1); document.querySelectorAll('#tolPre .chipb').forEach(b => b.classList.toggle('on', Math.abs(+b.dataset.t - TOL) < .01)); scoreRuns(); renderRunsAll(); }
+$('tol').addEventListener('input', onTol);
+$('formula').addEventListener('change', () => { FORM = $('formula').value; scoreRuns(); renderRunsAll(); });
+$('cmpRun').addEventListener('change', () => { SELRUN = $('cmpRun').value; renderRunsAll(); });
+const verdict = (de) => de <= TOL ? '<span class="tag g">Pass</span>' : de <= TOL * 2 ? '<span class="tag a">Marginal</span>' : '<span class="tag r">Fail</span>';
+const sgn = v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2);
+function renderMatch(){ const r = runBy(SELRUN); if (!r) return;
+  $('cmpRun').innerHTML = RUNS.map(x => `<option value="${x.id}"${x.id === r.id ? ' selected' : ''}>${x.up ? 'Your run photo · ' + esc(x.lot) : `${x.id} · ${x.mc} · ${x.lot}`}</option>`).join('');
+  const nPass = r.de.filter(d => d <= TOL).length;
+  $('mSum').innerHTML = `<div class="k">${esc(r.up ? 'Your run photo' : r.id)} vs standard · ${FNAME[FORM]}</div><div class="v">${r.worst.toFixed(2)} <span class="tag ${BANDS[r.band][1]}">Band ${r.band}</span></div><div class="s">Worst colour (≥ 2% of design) · ${nPass} of ${PAL.length} colours within ${TOL.toFixed(1)} · weighted mean ${r.mean.toFixed(2)}</div>`;
+  $('mtab').querySelector('tbody').innerHTML = PAL.map((c, k) => { const m = lab2hex(r.meas[k]), cp = r.cp[k], w = words(cp);
+    return `<tr data-k="${k}" style="cursor:pointer${k === SELC ? ';background:#FBF3EF' : ''}"><td><span class="pair"><i style="background:${c.hex}"></i><i style="background:${m}"></i></span></td><td><b>${esc(nameOf(c))}</b><div class="dir">${(c.share * 100).toFixed(1)}% · ${c.hex} → ${m}</div></td><td class="r">${sgn(cp.dL)}</td><td class="r">${sgn(cp.dC)}</td><td class="r">${sgn(cp.dH)}</td><td class="r"><b>${r.de[k].toFixed(2)}</b></td><td class="dir">${w.length ? esc(w.join(', ')) : 'on shade'}</td><td>${verdict(r.de[k])}</td></tr>`; }).join('');
+  $('mtab').querySelectorAll('tbody tr').forEach(tr => tr.addEventListener('click', () => { SELC = +tr.dataset.k; renderMatch(); }));
+  SELC = Math.min(SELC, PAL.length - 1); const c = PAL[SELC];
+  $('simFor').textContent = nameOf(c); $('sim').innerHTML = nearLib(c.lab, 6).map(x => `<div title="Copy ${x.c.hex}" data-copy="${x.c.hex}" style="cursor:pointer"><i style="background:${x.c.hex}"></i><span><b>${esc(x.c.name)}</b>${x.c.code} · ${x.c.hex}<br>ΔE00 ${x.de.toFixed(2)}</span></div>`).join('');
+  drawAB(); }
+$('sim').addEventListener('click', e => { const b = e.target.closest('[data-copy]'); if (b) copy(b.dataset.copy); });
+function tolContour(s, t){ const pts = []; for (let k = 0; k < 72; k++){ const th = k / 72 * 2 * Math.PI, ca = Math.cos(th), sb = Math.sin(th); let lo = 0, hi = 30; for (let it = 0; it < 26; it++){ const m = (lo + hi) / 2; if (dE(s, [s[0], s[1] + m * ca, s[2] + m * sb]) < t) lo = m; else hi = m; } pts.push([lo * ca, lo * sb]); } return pts; }
+function drawAB(){ const c = PAL[SELC], s = c.lab, rr = RUNS.map(r => ({ r, d: [r.meas[SELC][1] - s[1], r.meas[SELC][2] - s[2]], dL: r.meas[SELC][0] - s[0] })), t2 = tolContour(s, TOL * 2), t1 = tolContour(s, TOL);
+  const R = Math.max(2.5, ...rr.map(x => Math.max(Math.abs(x.d[0]), Math.abs(x.d[1]))), ...t2.map(p => Math.max(Math.abs(p[0]), Math.abs(p[1])))) * 1.15, S = 110, X = a => 40 + S + a / R * S, Y = b => 16 + S - b / R * S, ML = Math.max(2, ...rr.map(x => Math.abs(x.dL))) * 1.15, LY = v => 16 + S - v / ML * S;
+  const poly = p => p.map(q => `${X(q[0]).toFixed(1)},${Y(q[1]).toFixed(1)}`).join(' ');
+  let g = `<svg viewBox="0 0 320 262" role="img" aria-label="Colour shift in the a* b* plane"><defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#2B1E3A"/></marker></defs>
+  <rect x="40" y="16" width="${2 * S}" height="${2 * S}" fill="#fff" stroke="#E5E2EA"/><line x1="${X(0)}" x2="${X(0)}" y1="16" y2="${16 + 2 * S}" stroke="#E5E2EA"/><line y1="${Y(0)}" y2="${Y(0)}" x1="40" x2="${40 + 2 * S}" stroke="#E5E2EA"/>
+  <polygon points="${poly(t2)}" fill="#FFF0D6" stroke="#E9A23B" stroke-dasharray="3 3"/><polygon points="${poly(t1)}" fill="#DDF1E5" stroke="#2F9E5B"/>
+  <text x="${40 + 2 * S - 4}" y="${Y(0) - 4}" text-anchor="end" font-size="9" fill="#615B6B">+a* redder</text><text x="44" y="${Y(0) - 4}" font-size="9" fill="#615B6B">−a* greener</text><text x="${X(0) + 4}" y="27" font-size="9" fill="#615B6B">+b* yellower</text><text x="${X(0) + 4}" y="${12 + 2 * S}" font-size="9" fill="#615B6B">−b* bluer</text>
+  <circle cx="${X(0)}" cy="${Y(0)}" r="9" fill="${c.hex}" stroke="#2B1E3A" stroke-width="2"/>`;
+  rr.forEach(x => { const on = x.r.id === SELRUN; if (on) g += `<line x1="${X(0)}" y1="${Y(0)}" x2="${X(x.d[0])}" y2="${Y(x.d[1])}" stroke="#2B1E3A" stroke-width="1.6" marker-end="url(#ah)"/>`;
+    g += `<g opacity="${on ? 1 : .55}"><circle cx="${X(x.d[0])}" cy="${Y(x.d[1])}" r="${on ? 7 : 5}" fill="${lab2hex(x.r.meas[SELC])}" stroke="${on ? '#C8553D' : '#2B1E3A'}" stroke-width="${on ? 2.5 : 1}"/><text x="${X(x.d[0]) + 8}" y="${Y(x.d[1]) - 6}" font-size="9" font-weight="700" fill="#2B1E3A">${x.r.up ? 'You' : x.r.id.slice(2)}</text></g>`; });
+  g += `<text x="${40 + S}" y="${16 + 2 * S + 22}" text-anchor="middle" font-size="9.5" fill="#615B6B">±${R.toFixed(1)} a*, b* units · green ≤ ${TOL.toFixed(1)} · amber ≤ ${(TOL * 2).toFixed(1)} ${FNAME[FORM]}</text>
+  <line x1="288" x2="288" y1="16" y2="${16 + 2 * S}" stroke="#E5E2EA" stroke-width="6" stroke-linecap="round"/><line x1="280" x2="296" y1="${LY(0)}" y2="${LY(0)}" stroke="#2B1E3A"/><text x="288" y="11" text-anchor="middle" font-size="9" fill="#615B6B">ΔL*</text><text x="302" y="${LY(0) + 3}" font-size="8" fill="#615B6B">0</text><text x="302" y="22" font-size="8" fill="#615B6B">+${ML.toFixed(1)}</text>`;
+  rr.forEach(x => { const on = x.r.id === SELRUN; g += `<circle cx="288" cy="${LY(x.dL)}" r="${on ? 5 : 3.5}" fill="${on ? '#C8553D' : '#6D597A'}" opacity="${on ? 1 : .6}"/>`; });
+  $('ab').innerHTML = g + '</svg>'; }
+
+/* ======================================================================
+   03 · RUNS · before/after slider, diff heat map, bands, notes
+   ====================================================================== */
+function baBind(rangeId, topId, hId){ const rg = $(rangeId), set = v => { $(topId).style.clipPath = `inset(0 ${100 - v}% 0 0)`; $(hId).style.left = v + '%'; }; rg.addEventListener('input', () => set(+rg.value)); set(+rg.value); return v => { rg.value = v; set(v); }; }
+const baSet = baBind('baS', 'baTop', 'baH'), cwSet = baBind('cwS', 'cwTop', 'cwH');
+async function sweep(fn){ if (reduce) return; for (const v of [50, 78, 22, 50]){ const a = +($(fn === baSet ? 'baS' : 'cwS').value); for (let t = 1; t <= 14; t++){ fn(a + (v - a) * t / 14); await sleep(22); } } }
+let VM = 'side';
+document.querySelectorAll('#viewMode [data-vm]').forEach(b => b.addEventListener('click', () => { VM = b.dataset.vm; document.querySelectorAll('#viewMode .chipb').forEach(x => x.classList.toggle('on', x === b)); renderBA(); }));
+const HEAT = [[0, [27, 31, 59]], [.5, [42, 157, 143]], [1, [233, 162, 59]], [2, [214, 69, 69]], [3, [255, 240, 230]]];
+function heatCol(v){ for (let k = 1; k < HEAT.length; k++){ if (v <= HEAT[k][0]){ const [a, ca] = HEAT[k - 1], [b, cb] = HEAT[k], t = (v - a) / (b - a); return ca.map((x, j) => x + (cb[j] - x) * t); } } return HEAT[HEAT.length - 1][1]; }
+function renderBA(){ const r = runBy(SELRUN); if (!r || !SRC) return; runMeta(r); $('baA').getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(SRC), W, H), 0, 0); const img = runImage(r);
+  if (VM === 'diff'){ const out = new ImageData(W, H), o = out.data, d = img.data, N = W * H; let tot = 0, over = 0;
+    for (let i = 0; i < N; i++){ const q = r.lab ? [r.lab[i * 3], r.lab[i * 3 + 1], r.lab[i * 3 + 2]] : rgb2lab(d[i * 4], d[i * 4 + 1], d[i * 4 + 2]), e = dE([LAB[i * 3], LAB[i * 3 + 1], LAB[i * 3 + 2]], q), c = heatCol(e / TOL); o[i * 4] = c[0]; o[i * 4 + 1] = c[1]; o[i * 4 + 2] = c[2]; o[i * 4 + 3] = 255; tot += e; if (e > TOL) over++; }
+    $('baB').getContext('2d').putImageData(out, 0, 0); $('baR').textContent = 'ΔE heat map'; $('baNote').innerHTML = `Heat map of per-pixel ${FNAME[FORM]}: <b style="color:#2A9D8F">teal</b> under half the tolerance, <b style="color:#B8781F">amber</b> at the tolerance, <b style="color:#D64545">red</b> at twice. ${(over / N * 100).toFixed(1)}% of pixels over ${TOL.toFixed(1)}; mean ${(tot / N).toFixed(2)}.${r.up ? ' Assumes your photo is framed like the design.' : ''}`; }
+  else { $('baB').getContext('2d').putImageData(img, 0, 0); $('baR').textContent = r.up ? 'Your run' : r.id; $('baNote').textContent = `Left: approved standard. Right: ${r.up ? 'your run photo' : `${r.id}, ${r.mc}, dye lot ${r.lot}`}. Worst colour ${nameOf(PAL[r.wk])} at ${FNAME[FORM]} ${r.worst.toFixed(2)}.`; } }
+function runMeta(r){ const over = PAL.filter((c, k) => r.de[k] > TOL), wk = PAL[r.wk];
+  $('runMeta').innerHTML = `<div class="ms"><div class="k">Run</div><div class="v">${r.up ? 'Yours' : r.id}</div><div class="s">${esc(r.mc)} · ${esc(r.lot)} · ${esc(r.day)}</div></div><div class="ms"><div class="k">Worst colour</div><div class="v">${r.worst.toFixed(2)}</div><div class="s">${esc(nameOf(wk))} · ${esc(words(r.cp[r.wk]).join(', ') || 'on shade')}</div></div><div class="ms"><div class="k">Colours over ${TOL.toFixed(1)}</div><div class="v">${over.length} / ${PAL.length}</div><div class="s">${over.length ? esc(over.slice(0, 3).map(nameOf).join(', ')) : 'all within tolerance'}</div></div><div class="ms"><div class="k">Shade band</div><div class="v">${r.band}</div><div class="s">${BANDS[r.band][0]}</div></div>`; }
+function renderRunList(){ $('rlist').innerHTML = RUNS.map(r => `<button type="button" class="rl${r.id === SELRUN ? ' on' : ''}" data-r="${r.id}"><span><b>${r.up ? 'Your photo' : r.id}</b><br><span class="dir">${esc(r.mc)}</span></span><span class="strip">${PAL.slice(0, 8).map((c, k) => `<i style="background:${lab2hex(r.meas[k])}"></i>`).join('')}</span><span class="r"><b>${r.worst.toFixed(2)}</b></span><span class="tag ${BANDS[r.band][1]}">Band ${r.band}</span></button>`).join('');
+  $('rlist').querySelectorAll('.rl').forEach(b => b.addEventListener('click', () => { SELRUN = b.dataset.r; renderRunsAll(); }));
+  const cnt = { A:0, B:0, C:0, D:0, E:0 }; RUNS.forEach(r => cnt[r.band]++); const sel = runBy(SELRUN);
+  $('bands').innerHTML = Object.keys(BANDS).map(b => `<div class="${sel.band === b ? 'on' : ''}"><b>${b}</b>${cnt[b]} run${cnt[b] === 1 ? '' : 's'}<br>${BANDS[b][0]}</div>`).join('');
+  const pk = ['A','B','C'].filter(b => cnt[b]).map(b => `${b}: ${RUNS.filter(r => r.band === b).map(r => r.up ? 'your photo' : r.id).join(', ')}`);
+  $('packNote').innerHTML = `<b>Packing:</b> one band per carton and shipment. ${pk.length ? pk.join(' · ') + '.' : ''} ${cnt.D ? `Band D held for buyer approval (${RUNS.filter(r => r.band === 'D').map(r => r.up ? 'your photo' : r.id).join(', ')}).` : ''} ${cnt.E ? `Band E goes back to the dye house.` : ''}`; drawDrift(); }
+function drawDrift(){ const rows = RUNS, w = 380, lm = 58, rh = 24, h = 30 + rows.length * rh + 22, mx = Math.max(TOL * 3, ...rows.map(r => Math.max(...r.de))) * 1.05, X = v => lm + v / mx * (w - lm - 10);
+  let g = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Colour difference per run and colour"><rect x="${X(0)}" y="18" width="${X(TOL * .5) - X(0)}" height="${rows.length * rh}" fill="#DDF1E5" opacity=".6"/><rect x="${X(TOL * .5)}" y="18" width="${X(TOL) - X(TOL * .5)}" height="${rows.length * rh}" fill="#DDF1EE" opacity=".6"/><rect x="${X(TOL)}" y="18" width="${X(TOL * 2) - X(TOL)}" height="${rows.length * rh}" fill="#FFF0D6" opacity=".7"/><rect x="${X(TOL * 2)}" y="18" width="${w - 10 - X(TOL * 2)}" height="${rows.length * rh}" fill="#FBE2E2" opacity=".55"/>
+    <text x="${(X(0) + X(TOL * .5)) / 2}" y="13" text-anchor="middle" font-size="9" font-weight="800" fill="#1D6B40">A</text><text x="${(X(TOL * .5) + X(TOL)) / 2}" y="13" text-anchor="middle" font-size="9" font-weight="800" fill="#1E6B62">B/C</text><text x="${(X(TOL) + X(TOL * 2)) / 2}" y="13" text-anchor="middle" font-size="9" font-weight="800" fill="#8A5A00">D</text><text x="${(X(TOL * 2) + w - 10) / 2}" y="13" text-anchor="middle" font-size="9" font-weight="800" fill="#9E2A2A">E</text>`;
+  rows.forEach((r, i) => { const y = 18 + i * rh + rh / 2; g += `<text x="${lm - 6}" y="${y + 3}" text-anchor="end" font-size="10" font-weight="${r.id === SELRUN ? 800 : 600}" fill="#2B1E3A">${r.up ? 'Yours' : r.id}</text><line x1="${X(0)}" x2="${w - 10}" y1="${y}" y2="${y}" stroke="#fff"/>`;
+    PAL.forEach((c, k) => { g += `<circle class="dd" data-r="${i}" data-k="${k}" cx="${X(r.de[k]).toFixed(1)}" cy="${y}" r="${(3 + Math.sqrt(c.share) * 9).toFixed(1)}" fill="${c.hex}" stroke="#2B1E3A" stroke-width=".8" opacity=".9"/>`; }); });
+  [0, TOL, TOL * 2, TOL * 3].forEach(v => { if (v <= mx) g += `<text x="${X(v)}" y="${h - 6}" text-anchor="middle" font-size="9" fill="#615B6B">${v.toFixed(1)}</text>`; });
+  $('drift').innerHTML = g + '</svg>';
+  $('drift').querySelectorAll('.dd').forEach(el => { el.addEventListener('mousemove', ev => { const r = rows[+el.dataset.r], k = +el.dataset.k; showTip(`<b>${r.up ? 'Your photo' : r.id}</b> · ${esc(nameOf(PAL[k]))}<br>${FNAME[FORM]} ${r.de[k].toFixed(2)} · ${esc(words(r.cp[k]).join(', ') || 'on shade')}`, ev); }); el.addEventListener('mouseleave', hideTip); }); }
+function renderRunsAll(){ if (!RUNS.length) return; if (!RUNS.some(r => r.id === SELRUN)) SELRUN = RUNS[0].id; renderMatch(); renderRunList(); renderBA(); }
+/* run approval note */
+const OPP = { lighter:'darker', darker:'lighter', brighter:'duller', duller:'brighter', redder:'less red', yellower:'less yellow', greener:'less green', bluer:'less blue' };
+function runFacts(r){ return PAL.map((c, k) => ({ colour: nameOf(c), share_pct: +(c.share * 100).toFixed(1), standard_hex: c.hex, run_hex: lab2hex(r.meas[k]), de: +r.de[k].toFixed(2), dL: +r.cp[k].dL.toFixed(2), dC: +r.cp[k].dC.toFixed(2), dH: +r.cp[k].dH.toFixed(2), moved: words(r.cp[k]).join(', ') || 'on shade' })); }
+function runNoteRules(r){ const f = runFacts(r), over = f.filter(x => x.de > TOL), v = { A:'Approved · Band A', B:'Approved · Band B (light side)', C:'Approved · Band C (dark side)', D:'On hold · Band D, needs buyer approval', E:'Rejected · Band E, re-dye' }[r.band];
+  let s = `**${r.up ? 'Your run photo' : `${r.id} · ${r.mc} · dye lot ${r.lot}`} · ${DESIGN}**\nDecision: **${v}**. Worst colour ${nameOf(PAL[r.wk])} at ${FNAME[FORM]} ${r.worst.toFixed(2)} against a tolerance of ${TOL.toFixed(1)}.\n`;
+  s += f.map(x => `- ${x.colour} (${x.share_pct}%): ${FNAME[FORM]} ${x.de.toFixed(2)}, ${x.moved}${x.de > TOL ? ' · over tolerance' : ''}`).join('\n') + '\n';
+  s += `**Actions**\n`; if (over.length) s += over.map(x => `- Correct ${x.colour}: make it ${x.moved.split(', ').map(w => OPP[w] || w).join(' and ')}.`).join('\n') + '\n';
+  s += r.band === 'D' || r.band === 'E' ? `- Do not pack with Band A to C runs.\n` : `- Pack only with other Band ${r.band} runs.\n`; s += `- Confirm with spectrophotometer readings under D65 and TL84 before release.`; return s; }
+$('runNote').addEventListener('click', async () => { const r = runBy(SELRUN), out = $('runOut'), btn = $('runNote'); btn.disabled = true;
+  if (KEY){ out.innerHTML = '<span class="dots"><span></span><span></span><span></span></span>'; try { await openai([{ role:'system', content:'You are the colour quality lead at a home-textile mill writing a shade approval note for a print run. Be specific and brief: decision, worst colours with numbers, what the dye house should correct (use lighter/darker, brighter/duller, redder/yellower/greener/bluer), packing instruction. Use **bold** for the decision and short bullet points. Do not invent numbers beyond the data.' }, { role:'user', content: JSON.stringify({ design: DESIGN, run: r.up ? 'customer photo' : r.id, machine: r.mc, dye_lot: r.lot, formula: FNAME[FORM], tolerance: TOL, band: r.band, band_meaning: BANDS[r.band][0], colours: runFacts(r) }) }], { onDelta: t => out.innerHTML = md(t) }); }
+    catch (e){ fail('GenAI note', e); out.innerHTML = md(runNoteRules(r)); } }
+  else { out.innerHTML = md(runNoteRules(r)); }
+  btn.disabled = false; });
+
+/* ======================================================================
+   04 · COLOURWAY STUDIO
+   ====================================================================== */
+const CWP = { 'Coastal':['#F4F1EA','#1F3557','#2A8C8A','#9CCFC6','#D9C3A0','#6F8FCF','#B8CDE3','#4F6D85'], 'Terracotta':['#F1E4D3','#C0643F','#8F5233','#E9A23B','#7A7A3A','#4E3227','#E8B4A6','#A86F3D'],
+  'Monsoon':['#E6EAE6','#23493A','#4F6D85','#8FA586','#2B3A67','#A9C8A8','#6B7178','#19213D'], 'Indigo mono':['#F2F3F7','#B8CDE3','#6F8FCF','#4A6A94','#2B3A67','#19213D','#8EA3C4','#3A4A7A'],
+  'Festive':['#F6E7C8','#A6192E','#E8962E','#7A2E5A','#D2A22B','#23493A','#C0283A','#4A2545'], 'Sage & sand':['#F3EEE4','#8FA586','#DCCDB3','#6E8B5E','#CBB38E','#4F6B43','#BFE0CF','#A8957A'] };
+let CW = { name:'Original', t: [], story:'' }, AICW = {};
+function mapPreset(list){ const src = range(PAL.length).sort((a, b) => PAL[a].lab[0] - PAL[b].lab[0]), tgt = list.slice().sort((a, b) => hex2lab(a)[0] - hex2lab(b)[0]), n = src.length, m = tgt.length, out = [];
+  src.forEach((k, i) => { out[k] = tgt[n > 1 ? Math.round(i * (m - 1) / (n - 1)) : m - 1]; }); return out; }
+function setCw(name){ CW.name = name; CW.t = name === 'Original' ? PAL.map(c => c.hex) : AICW[name] ? AICW[name].t.slice() : mapPreset(CWP[name]); CW.story = AICW[name] ? AICW[name].story : ''; renderCwPre(); renderCwMap(); renderCw(); }
+function renderCwPre(){ $('cwPre').innerHTML = ['Original'].concat(Object.keys(CWP), Object.keys(AICW)).map(n => { const sw = n === 'Original' ? PAL.slice(0, 4).map(c => c.hex) : AICW[n] ? AICW[n].t.slice(0, 4) : CWP[n].slice(1, 5); return `<button type="button" class="chipb${CW.name === n ? ' on' : ''}" data-cw="${esc(n)}">${AICW[n] ? '✦ ' : ''}${esc(n)} ${sw.map(h => `<i class="sw" style="background:${h}"></i>`).join('')}</button>`; }).join(''); }
+$('cwPre').addEventListener('click', e => { const b = e.target.closest('[data-cw]'); if (b) setCw(b.dataset.cw); });
+function renderCwMap(){ if (!CW.t.length) return; $('cwMap').innerHTML = PAL.map((c, k) => { const t = CW.t[k] || c.hex, tl = hex2lab(t), l = nearLib(tl)[0]; return `<div class="cwr"><i style="background:${c.hex}" title="${c.hex}"></i><span>→</span><input type="color" value="${t.toLowerCase()}" data-k="${k}" aria-label="New colour for ${esc(nameOf(c))}"><span><b>${esc(nameOf(c))}</b><br><span class="dir">${t.toUpperCase()} · ${l.c.code} ${esc(l.c.name)}</span></span><span class="dir">${(c.share * 100).toFixed(0)}%</span></div>`; }).join(''); }
+let cwRaf = 0; $('cwMap').addEventListener('input', e => { const k = e.target.dataset.k; if (k == null) return; CW.t[+k] = e.target.value.toUpperCase(); if (CW.name !== 'Custom'){ CW.name = 'Custom'; renderCwPre(); } cancelAnimationFrame(cwRaf); cwRaf = requestAnimationFrame(renderCw); });
+$('cwMap').addEventListener('change', renderCwMap);
+function renderCw(){ if (!SRC) return; $('cwA').getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(SRC), W, H), 0, 0); const D = PAL.map((c, k) => { const t = hex2lab(CW.t[k] || c.hex); return [t[0] - c.lab[0], t[1] - c.lab[1], t[2] - c.lab[2]]; }); $('cwB').getContext('2d').putImageData(applyDeltas(D, new ImageData(W, H)), 0, 0); }
+$('cwReset').addEventListener('click', () => { setCw('Original'); $('cwOut').innerHTML = '<p class="note">Back to the original colours.</p>'; });
+function ruleCws(){ const mk = (dh, dl, dc) => PAL.map(c => { const [L, C, h] = toLch(c.lab); let lab = fromLch(clamp(L + dl, 2, 98), Math.max(0, C * dc), h + (C > 8 ? dh : 0)); for (let i = 0; i < 20 && !inGamut(lab); i++){ const q = toLch(lab); lab = fromLch(q[0], q[1] * .92, q[2]); } return lab2hex(lab); });
+  return [{ name:'Spring air', story:'Hues turned towards green and lifted for a fresh, light spring range.', t: mk(35, 6, .85) }, { name:'Autumn harvest', story:'Warmer and deeper: every hue moved towards red-orange, ground kept light.', t: mk(-25, -6, 1.05) }, { name:'Winter frost', story:'Cooler and quieter: hues pushed towards blue with chroma pulled back.', t: mk(110, 2, .6) }]; }
+$('cwAi').addEventListener('click', async () => { const btn = $('cwAi'), out = $('cwOut'); btn.disabled = true; out.innerHTML = '<span class="dots"><span></span><span></span><span></span></span>'; let list = null;
+  if (KEY){ try { const r = await openai([{ role:'system', content:'You are a home-textile colour and trend designer. Suggest commercially sensible colourways for an existing artwork. Keep the ground light if the original ground is light, keep enough contrast between motif and ground, and stay printable on cotton. Return only JSON.' }, { role:'user', content: `Design: ${DESIGN}. Current colours in order (hex · share · role):\n${PAL.map((c, k) => `${k + 1}. ${c.hex} · ${(c.share * 100).toFixed(1)}% · ${nameOf(c)}`).join('\n')}\nReturn {"colourways":[{"name":"2-3 words","story":"one sentence","colours":["#RRGGBB", ... exactly ${PAL.length} in the same order]}]} with 3 colourways.` }], { json: true, temp: .8 });
+      const j = JSON.parse(r.text); list = (j.colourways || []).filter(c => Array.isArray(c.colours) && c.colours.length >= PAL.length && c.colours.every(h => /^#[0-9a-f]{6}$/i.test(h))).map(c => ({ name: String(c.name).slice(0, 26), story: String(c.story || '').slice(0, 200), t: c.colours.slice(0, PAL.length).map(h => h.toUpperCase()) })); if (!list.length) throw new Error('no usable colourways'); }
+    catch (e){ fail('GenAI colourways', e); list = null; } }
+  if (!list) list = ruleCws(); AICW = {}; list.forEach(c => AICW[c.name] = c); setCw(list[0].name);
+  out.innerHTML = `<p><b>${KEY ? 'Suggested by ' + esc(OAM) : 'Built-in seasonal shifts'}</b> · tap a ✦ chip to preview.</p><ul>${list.map(c => `<li><b>${esc(c.name)}</b>: ${esc(c.story)}</li>`).join('')}</ul>`; btn.disabled = false; });
+function labDipRules(){ const rows = PAL.map((c, k) => { const t = CW.t[k] || c.hex, l = hex2lab(t), rgb = hex2rgb(t), ck = rgb2cmyk(...rgb, $('cmykP').value).map(pct), lib = nearLib(l)[0]; return `- Colour ${k + 1} (${(c.share * 100).toFixed(0)}% of design, replaces ${c.hex}): target **${t.toUpperCase()}** · L*a*b* ${l.map(v => v.toFixed(1)).join(', ')} · CMYK ${ck.join('/')} · nearest library ${lib.c.code} ${lib.c.name} (ΔE00 ${lib.de.toFixed(1)})`; });
+  return `**Lab-dip request · ${DESIGN} · colourway "${CW.name}"**\nPlease submit three dips per colour on the production base fabric, read on the spectrophotometer under D65, with TL84 and A for a metamerism check.\n${rows.join('\n')}\n**Acceptance**\n- ${FNAME[FORM]} ≤ ${TOL.toFixed(1)} against each target.\n- Flag any dip whose shade changes visibly between D65 and TL84.\n- Screen targets are a starting point; the approved dip becomes the standard.`; }
+$('noteGo').addEventListener('click', async () => { const out = $('cwOut'), btn = $('noteGo'); btn.disabled = true;
+  if (KEY){ out.innerHTML = '<span class="dots"><span></span><span></span><span></span></span>'; try { await openai([{ role:'system', content:'You write lab-dip requests from a home-textile design studio to the dye house. Be precise and brief: a title, one line on how to submit, one bullet per colour with its target hex and L*a*b* exactly as given, acceptance criteria. Use **bold** for targets. Do not change any numbers.' }, { role:'user', content: labDipRules() }], { onDelta: t => out.innerHTML = md(t) }); }
+    catch (e){ fail('GenAI request', e); out.innerHTML = md(labDipRules()); } }
+  else out.innerHTML = md(labDipRules());
+  btn.disabled = false; });
+
+/* ======================================================================
+   AFTER EXTRACTION · refresh everything downstream
+   ====================================================================== */
+function afterExtract(){ renderPal(); if (PIN) showPin(PIN); SELC = 0; const ups = UPRUN; buildRuns(); if (ups && !RUNS.includes(ups)) RUNS.push(ups); if (!RUNS.some(r => r.id === SELRUN)) SELRUN = 'R-04';
+  renderRunsAll(); AICW = {}; setCw('Original');
+  if (MERGED) toast(`${MERGED} near-duplicate colour${MERGED > 1 ? 's' : ''} merged`); }
+
+/* ======================================================================
+   IMPACT · swatch matrix + interval plot
+   ====================================================================== */
+const SWB = [['Ivory ground','#F2ECE1'],['Madder red','#B8432F'],['Mustard','#E3A83A'],['Sage leaf','#7C9A6A'],['Forest','#4F6B43'],['Blush','#E9B0A0']];
+const SWM = (() => { const R = mulberry32(2026), nrm = () => { let u = 0, v = 0; while (!u) u = R(); while (!v) v = R(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }, out = {};
+  [['before', 1.15, 1.2, 2.3, .9], ['after', .38, .4, .7, .2]].forEach(([m, sL, sC, sH, drift]) => { out[m] = range(30).map(j => { const tr = Math.sin(j / 30 * Math.PI * 2) * drift;
+    return SWB.map(([n, h]) => { const s = hex2lab(h), [L, C, hh] = toLch(s), lab = fromLch(L + tr + nrm() * sL, Math.max(0, C + nrm() * sC), hh + (C > 8 ? nrm() * sH : 0)), hx = lab2hex(lab), q = hex2lab(hx), de = de00(s, q); return { hex: hx, de, w: words(comps(s, q)) }; }); }); });
+  return out; })();
+let SWMODE = 'after';
+function drawSwm(){ const el = $('swm'), w = 640, lm = 92, top = 24, ch = 30, n = 30, sx = lm + 44, cw = (w - sx - 6) / n, rows = SWB.length, by = top + rows * ch + 12, bh = 60, h = by + bh + 26;
+  const svg = d3.select(el).html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'Swatch matrix of thirty runs by colour');
+  svg.append('text').attr('x', lm).attr('y', top - 8).attr('font-size', 9).attr('font-weight', 800).attr('fill', '#615B6B').text('STD');
+  range(6).forEach(i => svg.append('text').attr('x', sx + (i * 5 + 2) * cw + cw / 2).attr('y', top - 8).attr('text-anchor', 'middle').attr('font-size', 9).attr('fill', '#615B6B').text('Run ' + (i * 5 + 3)));
+  SWB.forEach(([n2, hx], k) => { svg.append('text').attr('x', lm - 8).attr('y', top + k * ch + ch / 2 + 3).attr('text-anchor', 'end').attr('font-size', 10.5).attr('fill', '#2B1E3A').text(n2); svg.append('rect').attr('x', lm).attr('y', top + k * ch).attr('width', 34).attr('height', ch - 3).attr('rx', 4).attr('fill', hx).attr('stroke', '#2B1E3A').attr('stroke-width', 1.5); });
+  const cells = []; range(n).forEach(j => SWB.forEach((_, k) => cells.push({ j, k })));
+  svg.append('g').selectAll('rect').data(cells).join('rect').attr('class', 'swc').attr('x', d => sx + d.j * cw + 1).attr('y', d => top + d.k * ch + 1).attr('width', cw - 2).attr('height', ch - 5).attr('rx', 3)
+    .on('mousemove', (ev, d) => { const c = SWM[SWMODE][d.j][d.k]; showTip(`<b>Run ${d.j + 1} · ${esc(SWB[d.k][0])}</b><br>${c.hex} · ΔE00 ${c.de.toFixed(2)}${c.w.length ? ' · ' + esc(c.w.join(', ')) : ''}`, ev); }).on('mouseleave', hideTip);
+  const yb = d3.scaleLinear().domain([0, 3.5]).range([by + bh, by]);
+  svg.append('line').attr('x1', sx).attr('x2', w - 6).attr('y1', yb(1)).attr('y2', yb(1)).attr('stroke', '#D64545').attr('stroke-dasharray', '3 3');
+  svg.append('text').attr('x', lm + 34).attr('y', yb(1) + 3).attr('text-anchor', 'end').attr('font-size', 9).attr('fill', '#D64545').text('ΔE 1.0');
+  svg.append('text').attr('x', lm - 8).attr('y', by + bh / 2 + 3).attr('text-anchor', 'end').attr('font-size', 10).attr('fill', '#615B6B').text('Worst colour');
+  svg.append('g').selectAll('rect').data(range(n)).join('rect').attr('class', 'swb2').attr('x', j => sx + j * cw + 2).attr('width', cw - 4).attr('rx', 2).attr('y', yb(0)).attr('height', 0);
+  svg.append('text').attr('class', 'swsum').attr('x', lm).attr('y', h - 6).attr('font-size', 10.5).attr('fill', '#2B1E3A');
+  updSwm(false); }
+function updSwm(anim){ const svg = d3.select('#swm svg'), D = SWM[SWMODE], t = anim && !reduce ? 650 : 0, yb = d3.scaleLinear().domain([0, 3.5]).range([24 + 6 * 30 + 12 + 60, 24 + 6 * 30 + 12]);
+  svg.selectAll('.swc').transition().duration(t).attr('fill', d => D[d.j][d.k].hex).attr('stroke', d => D[d.j][d.k].de > 1 ? '#D64545' : 'none').attr('stroke-width', 2);
+  const worst = D.map(r => Math.max(...r.map(c => c.de))); svg.selectAll('.swb2').transition().duration(t).attr('y', j => yb(Math.min(3.5, worst[j]))).attr('height', j => yb(0) - yb(Math.min(3.5, worst[j]))).attr('fill', j => worst[j] > 1 ? '#D64545' : '#2A9D8F');
+  const cnt = D.filter(r => r.some(c => c.de > 1)).length, cells = sum(D.map(r => r.filter(c => c.de > 1).length));
+  svg.select('.swsum').text(`${SWMODE === 'before' ? 'Before' : 'After'}: ${cnt} of 30 runs had a colour over ΔE 1.0 (${cells} of 180 swatches) · mean worst colour ${d3.mean(worst).toFixed(2)}`); }
+segBind('sm', v => { SWMODE = v; if (hasD3) updSwm(true); });
+const PROG = [['US big-box retailer', [1.6, 3.1, 5.6], [.08, .2, .55]], ['UK department store', [1.2, 2.6, 4.8], [.07, .17, .45]], ['EU home brand', [1, 2.2, 4.1], [.06, .15, .4]], ['Australia retailer', [1.4, 2.9, 5.2], [.08, .19, .5]], ['Hospitality (hotels)', [.8, 1.8, 3.4], [.05, .12, .3]], ['Domestic e-commerce', [.5, 1.3, 2.6], [.04, .1, .25]]];
+let IPMODE = 'after';
+function drawIntv(){ const el = $('intv'), w = 640, lm = 150, rm = 20, top = 16, rh = 40, h = top + PROG.length * rh + 34, x = d3.scaleLinear().domain([0, 6]).range([lm, w - rm]);
+  const svg = d3.select(el).html('').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img').attr('aria-label', 'Days to shade approval by programme');
+  svg.append('g').attr('class', 'grid').attr('transform', `translate(0,${top + PROG.length * rh})`).call(d3.axisBottom(x).ticks(6).tickSize(-PROG.length * rh).tickFormat(''));
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${top + PROG.length * rh})`).call(d3.axisBottom(x).ticks(6).tickFormat(d => d + ' d'));
+  const g = svg.append('g').selectAll('g').data(PROG).join('g').attr('transform', (d, i) => `translate(0,${top + i * rh + rh / 2})`);
+  g.append('text').attr('x', lm - 10).attr('y', 4).attr('text-anchor', 'end').attr('font-size', 11).attr('fill', '#2B1E3A').text(d => d[0]);
+  g.append('line').attr('class', 'ghost').attr('stroke', '#D9D4DF').attr('stroke-width', 6).attr('stroke-linecap', 'round');
+  g.append('line').attr('class', 'rng').attr('stroke-width', 6).attr('stroke-linecap', 'round');
+  g.append('circle').attr('class', 'med').attr('r', 7).attr('stroke', '#fff').attr('stroke-width', 2);
+  g.append('text').attr('class', 'lab').attr('y', -10).attr('font-size', 10).attr('font-weight', 700).attr('text-anchor', 'middle').attr('fill', '#2B1E3A');
+  g.on('mousemove', (ev, d) => { const f = v => v < 1 ? Math.round(v * 24) + ' h' : v.toFixed(1) + ' d'; showTip(`<b>${esc(d[0])}</b><br>Before: ${f(d[1][0])} to ${f(d[1][2])}, median ${f(d[1][1])}<br>After: ${f(d[2][0])} to ${f(d[2][2])}, median ${f(d[2][1])}`, ev); }).on('mouseleave', hideTip);
+  updIntv(false); }
+function updIntv(anim){ const w = 640, x = d3.scaleLinear().domain([0, 6]).range([150, w - 20]), t = anim && !reduce ? 700 : 0, k = IPMODE === 'before' ? 1 : 2, col = IPMODE === 'before' ? '#C8553D' : '#2A9D8F', svg = d3.select('#intv svg');
+  svg.selectAll('.ghost').attr('opacity', IPMODE === 'after' ? 1 : 0).attr('x1', d => x(d[1][0])).attr('x2', d => x(d[1][2]));
+  svg.selectAll('.rng').transition().duration(t).attr('x1', d => x(d[k][0])).attr('x2', d => x(d[k][2])).attr('stroke', col);
+  svg.selectAll('.med').transition().duration(t).attr('cx', d => x(d[k][1])).attr('fill', col);
+  svg.selectAll('.lab').transition().duration(t).attr('x', d => x(d[k][1])).text(d => d[k][1] < 1 ? Math.round(d[k][1] * 24) + ' h' : d[k][1].toFixed(1) + ' d'); }
+segBind('ip', v => { IPMODE = v; if (hasD3) updIntv(true); });
+
+/* ======================================================================
+   HERO · runs of swatches scanned against the standard
+   ====================================================================== */
+(function hero(){ const cvh = $('heroCv'); if (!cvh) return; const c = cvh.getContext('2d'); let Wd = 0, Hd = 0, run = false;
+  const base = ['#C8553D','#E9A23B','#2A9D8F','#EFE3C8','#6D597A'], sh = [0, .05, -.06, .03, .16, -.04, .11], de = [0, .6, .8, .4, 1.9, .5, 1.4];
+  function size(){ const dpr = Math.min(2, devicePixelRatio || 1); Wd = cvh.clientWidth; Hd = cvh.clientHeight; cvh.width = Wd * dpr; cvh.height = Hd * dpr; c.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function draw(t){ c.clearRect(0, 0, Wd, Hd); const nar = Wd < 700, cols = 7, rows = 5, gap = nar ? 4 : 7, s = nar ? Math.min(24, Wd * .85 / cols - gap) : Math.min(46, Wd * .62 / cols - gap), x0 = nar ? Wd * .08 : Wd * .32, y0 = nar ? 16 : Hd * .5 - rows * (s + gap) / 2 + 10, cur = 1 + Math.floor(t / 1.4) % (cols - 1), ph = (t / 1.4) % 1;
+    for (let j = 0; j < cols; j++) for (let i = 0; i < rows; i++){ const f = sh[j] * (i % 2 ? 1 : -.7), col = f > 0 ? lt(base[i], f) : dk(base[i], -f), x = x0 + j * (s + gap), y = y0 + i * (s + gap); c.fillStyle = col; c.fillRect(x, y, s, s);
+      if (j < cur || (j === cur && ph > .7)){ if (de[j] > 1){ c.strokeStyle = '#FF8A84'; c.lineWidth = 2; c.strokeRect(x + 1, y + 1, s - 2, s - 2); } } }
+    if (!nar){ c.font = '800 10px DM Sans, sans-serif'; c.textAlign = 'center'; for (let j = 0; j < cols; j++){ const x = x0 + j * (s + gap) + s / 2; c.fillStyle = 'rgba(255,255,255,.45)'; c.fillText(j ? 'RUN ' + j : 'STD', x, y0 - 10);
+      if (j && (j < cur || (j === cur && ph > .7))){ c.fillStyle = de[j] > 1 ? '#FF8A84' : '#9ED9CF'; c.fillText((de[j] > 1 ? '✕ ' : '✓ ') + de[j].toFixed(1), x, y0 + rows * (s + gap) + 14); } } }
+    const sx = x0 + cur * (s + gap) + s / 2, sy = y0 + Math.min(1, ph / .7) * ((rows - 1) * (s + gap)) + s / 2; c.strokeStyle = '#fff'; c.lineWidth = 2; c.beginPath(); c.arc(sx, sy, s * .62, 0, 7); c.stroke(); c.strokeStyle = 'rgba(255,255,255,.35)'; c.beginPath(); c.arc(sx, sy, s * .78, 0, 7); c.stroke();
+    if (!nar){ c.textAlign = 'left'; c.font = '700 11px ui-monospace, Menlo, monospace'; const txt = `ΔE00 ${(de[cur] * Math.min(1, ph / .7 + .2)).toFixed(2)}`, tw = c.measureText(txt).width, tx = x0 + cols * (s + gap) + 8; c.fillStyle = 'rgba(22,16,30,.85)'; c.fillRect(tx - 6, sy - 11, tw + 12, 20); c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 1; c.beginPath(); c.moveTo(sx + s * .62, sy); c.lineTo(tx - 6, sy); c.stroke(); c.fillStyle = '#F6B89F'; c.fillText(txt, tx, sy + 4); } c.textAlign = 'left'; }
+  size(); draw(5.2); window.addEventListener('resize', () => { size(); draw(5.2); }); if (reduce) return; const t0 = performance.now(); function loop(now){ if (!run) return; draw((now - t0) / 1000); requestAnimationFrame(loop); }
+  if (io) new IntersectionObserver(es => { const on = es[0].isIntersecting; if (on && !run){ run = true; requestAnimationFrame(loop); } else if (!on) run = false; }).observe(cvh); })();
+
+/* ======================================================================
+   BOOT
+   ====================================================================== */
+setMode(); onTolSilent(); function onTolSilent(){ $('tolV').textContent = TOL.toFixed(1); document.querySelectorAll('#tolPre .chipb').forEach(b => b.classList.toggle('on', Math.abs(+b.dataset.t - TOL) < .01)); }
+loadSample('floral');
+whenVisible($('m3'), () => setTimeout(() => sweep(baSet), 300));
+whenVisible($('m4'), () => { setCw('Terracotta'); setTimeout(() => sweep(cwSet), 300); });
+if (hasD3){ whenVisible($('swm'), drawSwm); whenVisible($('intv'), drawIntv); }
+else ['swm','intv'].forEach(id => $(id).innerHTML = '<p style="padding:20px;color:var(--muted)">Charts need an internet connection to load their library.</p>');
+if ($('apiKey').value) connect(true);
+window.__wc = { de00, de94, deCMC, rgb2lab, lab2rgb, PAL: () => PAL, RUNS: () => RUNS, words, comps, LIB };
+})();
+
+</script>
+</body>
+</html>
